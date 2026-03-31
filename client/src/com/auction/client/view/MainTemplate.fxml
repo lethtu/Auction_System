@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane prefWidth="1024.0" prefHeight="768.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.MainController">
+
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-background-color: #343a40; -fx-padding: 15px;">
+            <Label text="Sàn đấu giá" textFill="WHITE">
+                <font>
+                    <Font name="System Bold" size="24.0" />
+                </font>
+            </Label>
+            <Region HBox.hgrow="ALWAYS" />
+            <TextField fx:id="txtSearch" promptText="Tìm kiếm sản phẩm đấu giá..." prefWidth="350.0" prefHeight="30.0" />
+            <Button text="Tìm kiếm" style="-fx-background-color: #ffc107; -fx-text-fill: black;" prefHeight="30.0" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Label fx:id="lblWelcome" text="Chào, User" textFill="WHITE" />
+            <Button onAction="#handleLogout" text="Đăng xuất" style="-fx-background-color: #dc3545; -fx-text-fill: white;" />
+        </HBox>
+    </top>
+
+    <left>
+        <VBox spacing="15.0" style="-fx-background-color: #f8f9fa; -fx-padding: 20px;" prefWidth="220.0">
+            <Label text="Danh mục">
+                <font>
+                    <Font name="System Bold" size="16.0" />
+                </font>
+            </Label>
+            <Hyperlink text="Đồ cổ &amp; Sưu tầm" />
+            <Hyperlink text="Trang sức &amp; Đồng hồ" />
+            <Hyperlink text="Nghệ thuật" />
+            <Hyperlink text="Bất động sản" />
+            <Hyperlink text="Xe cộ" />
+        </VBox>
+    </left>
+
+    <center>
+        <ScrollPane fitToWidth="true" style="-fx-background-color: white;">
+            <VBox spacing="20.0" style="-fx-padding: 20px;">
+                <Label text="Sản phẩm đang đấu giá nổi bật">
+                    <font>
+                        <Font name="System Bold" size="20.0" />
+                    </font>
+                </Label>
+
+                <FlowPane fx:id="productContainer" hgap="20.0" vgap="20.0">
+                </FlowPane>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+
+    <bottom>
+        <HBox alignment="CENTER" style="-fx-background-color: #343a40; -fx-padding: 10px;">
+            <Label text="© 2026 Hệ thống Đấu giá Trực tuyến bằng JavaFX. All rights reserved." textFill="WHITE" />
+        </HBox>
+    </bottom>
+</BorderPane>
