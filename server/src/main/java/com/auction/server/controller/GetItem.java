@@ -1,7 +1,7 @@
 package com.auction.server.controller;
 
 import java.util.List;
-import com.auction.server.model.item;
+import com.auction.server.model.Item;
 import com.auction.server.repository.ItemRepository;
 import com.auction.server.view.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +18,8 @@ public class GetItem {
 
     @GetMapping("/get_item")
     public ApiResponse get_item(){
-        List<item> hangDangBan = items.findByStatus("ACTIVE");
-        ApiResponse<List<item>> response = new ApiResponse(200, "Thành công", hangDangBan);
+        List<Item> hangDangBan = items.findByStatus("ACTIVE");
+        ApiResponse<List<Item>> response = new ApiResponse(200, "Thành công", hangDangBan);
         return response;
     }
 }

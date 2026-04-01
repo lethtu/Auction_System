@@ -1,6 +1,6 @@
 package com.auction.client.controller;
 
-import com.auction.client.model.user;
+import com.auction.client.model.User;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -43,7 +43,7 @@ public class LoginController {
                     System.out.println("Đăng nhập thành công: " + response.body());
                     JSONObject json = new JSONObject(response.body());
                     json = json.getJSONObject("data");
-                    user.setSession(json.getInt("id"), json.getString("fullname"), json.getString("fullname"), json.getString("email"), json.optString("dob", null), json.optString("place_of_birth", null), json.getString("role"));
+                    User.setSession(json.getInt("id"), json.getString("fullname"), json.getString("fullname"), json.getString("email"), json.optString("dob", null), json.optString("place_of_birth", null), json.getString("role"));
                     showAlert(Alert.AlertType.INFORMATION, "Thành công", "Chào mừng bạn đã quay lại!");
 
                     SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1024, 768);

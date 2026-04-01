@@ -16,7 +16,7 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.paint.Color;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import com.auction.client.model.user;
+import com.auction.client.model.User;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
@@ -32,8 +32,8 @@ public class MainController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        if (user.getFullname() != null) {
-            lblWelcome.setText("Chào, " + user.getFullname());
+        if (User.getFullname() != null) {
+            lblWelcome.setText("Chào, " + User.getFullname());
         }
 
         loadProductsFromServer();
@@ -102,13 +102,13 @@ public class MainController implements Initializable {
         vbox.setStyle("-fx-border-color: #dee2e6; -fx-border-radius: 5px; -fx-padding: 10px; -fx-background-color: white;");
 
         ImageView imageView = new ImageView();
+        boolean hasImage = false;
         try {
             if (!imagePath.isEmpty()) {
-                URL imageUrl = getClass().getResource("/com/auction/client/image/" + imagePath);
-                if (imageUrl != null) {
-                    Image image = new Image(imageUrl.toExternalForm());
-                    imageView.setImage(image);
-                }
+                String imageUrl = "http://localhost:8080/api/files/images/" + imagePath;
+                Image image = new Image(imageUrl, true);
+                imageView.setImage(image);
+                hasImage = true;
             } else {
                 throw new Exception("Không có ảnh");
             }
@@ -168,7 +168,7 @@ public class MainController implements Initializable {
 
     @FXML
     public void handleLogout(ActionEvent event) throws IOException {
-        user.clearSession();
+        User.clearSession();
         SceneSwitcher.switchScene(event, "Login.fxml", 400, 500);
     }
 }

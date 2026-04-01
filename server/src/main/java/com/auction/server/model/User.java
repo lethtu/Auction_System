@@ -4,7 +4,8 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "users")
-public class user {
+@DiscriminatorValue("user")
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -17,7 +18,7 @@ public class user {
     private String place_of_birth;
     private String role;
 
-    public user() {}
+    public User() {}
 
     public void setId(Integer id) { this.id = id; }
 

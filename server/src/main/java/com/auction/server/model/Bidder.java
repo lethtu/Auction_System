@@ -4,5 +4,5 @@ import jakarta.persistence.*;
 
 @Entity
 @DiscriminatorValue("bidder")
-public class bidder extends user{
+public class Bidder extends User {
 }
