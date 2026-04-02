@@ -44,7 +44,9 @@ public class User {
     public String getUsername() { return username; }
     public String getPassword() { return password; }
     public String getRole() { return role; }
-    public String in(){
+
+    @Override
+    public String toString(){
         return id + " " + fullname + " " + email + " " + dob + " " + place_of_birth + " " + username + " " + password;
     }
 }

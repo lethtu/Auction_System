@@ -32,7 +32,7 @@ public class AuthLoginSignup {
     @PostMapping("/signup")
     public ApiResponse Signup(@RequestBody User newUser){
         boolean check = rq.signup(newUser);
-        System.out.println(newUser.in());
+        System.out.println(newUser);
         System.out.println(newUser.getEmail() + " " + newUser.getFullname() + " " + newUser.getPassword());
         if (check == false){
             String body = "Xin chào " + newUser.getFullname() + ",\n\n"
