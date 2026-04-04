@@ -1,6 +1,6 @@
 package com.auction.client.model;
 
-public class user {
+public class User {
     private static Integer id;
 
     private static String username;

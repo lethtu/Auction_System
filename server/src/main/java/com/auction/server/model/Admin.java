@@ -1,6 +1,7 @@
 package com.auction.server.model;
 
 import jakarta.persistence.*;
+@Entity
 @DiscriminatorValue("admin")
-public class admin extends user{
+public class Admin extends User {
 }

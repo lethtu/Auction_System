@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "users")
-public class user {
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "role", discriminatorType = DiscriminatorType.STRING)
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -15,9 +17,10 @@ public class user {
     private String email;
     private String dob;
     private String place_of_birth;
+    @Column(name = "role", insertable = false, updatable = false)
     private String role;
 
-    public user() {}
+    public User() {}
 
     public void setId(Integer id) { this.id = id; }
 
@@ -43,7 +46,9 @@ public class user {
     public String getUsername() { return username; }
     public String getPassword() { return password; }
     public String getRole() { return role; }
-    public String in(){
+
+    @Override
+    public String toString(){
         return id + " " + fullname + " " + email + " " + dob + " " + place_of_birth + " " + username + " " + password;
     }
 }

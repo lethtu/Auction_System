@@ -7,7 +7,7 @@ import java.util.Map;
 import com.auction.server.repository.HandleLoginSignup;
 import com.auction.server.view.EmailServer;
 import com.auction.server.view.RqForgotPass;
-import com.auction.server.model.user;
+import com.auction.server.model.User;
 import com.auction.server.view.ApiResponse;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +43,7 @@ public class AuthForgotpass {
     public ApiResponse forgot_pass(@RequestBody Map<String, String> requests){
         String email = requests.get("email");
         System.out.println("Yêu cầu quên mật khẩu từ: " + email);
-        Optional<user> customer = forgotPass.forgot_pass(email);
+        Optional<User> customer = forgotPass.forgot_pass(email);
 
         if (customer.isPresent()){
             String newOTP = OTPGenerator.generateOTP(6);
@@ -70,7 +70,7 @@ public class AuthForgotpass {
         String email = requests.get("email");
         String code = requests.get("code");
         String pass = requests.get("password");
-        Optional<user> customer = forgotPass.forgot_pass(email);
+        Optional<User> customer = forgotPass.forgot_pass(email);
         if (customer.isPresent()){
             String savedOTP = otpStorage.get(email);
             if (savedOTP != null && savedOTP.equals(code)){

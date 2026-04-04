@@ -1,7 +1,7 @@
 package com.auction.server.controller;
 
 import java.util.List;
-import com.auction.server.model.user;
+import com.auction.server.model.User;
 import com.auction.server.repository.UserRepository;
 import com.auction.server.view.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,12 +12,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api")
 public class UserController {
-    @Autowired
-    private UserRepository list_user;
-    @GetMapping("/get_user")
-    public ApiResponse get_user(){
-        List<user> cac_user = list_user.findByRole("user");
-        return new ApiResponse<List<user>>(200, "Thành công", cac_user);
 
+    @Autowired
+    private UserRepository userRepository; // Đổi tên công cụ cho chuẩn xác
+
+    @GetMapping("/get_user")
+    public ApiResponse<List<User>> get_user() {
+        // Dùng siêu năng lực findAll() gọi đệ tử tàng hình lấy toàn bộ danh sách
+        List<User> users = userRepository.findAll();
+
+        return new ApiResponse<>(200, "Thành công", users);
     }
 }
