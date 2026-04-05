@@ -12,15 +12,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api")
 public class UserController {
-
     @Autowired
-    private UserRepository userRepository; // Đổi tên công cụ cho chuẩn xác
-
+    private UserRepository list_user;
     @GetMapping("/get_user")
-    public ApiResponse<List<User>> get_user() {
-        // Dùng siêu năng lực findAll() gọi đệ tử tàng hình lấy toàn bộ danh sách
-        List<User> users = userRepository.findAll();
+    public ApiResponse get_user(){
+        List<User> cac_user = list_user.findAll();
+        return new ApiResponse<List<User>>(200, "Thành công", cac_user);
 
-        return new ApiResponse<>(200, "Thành công", users);
     }
 }
