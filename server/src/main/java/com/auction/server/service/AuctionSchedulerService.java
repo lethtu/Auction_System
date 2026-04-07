@@ -1,7 +1,7 @@
 package com.auction.server.service;
 
 import com.auction.server.model.AuctionStatus;
-import com.auction.server.repository.ItemRepository;
+import com.auction.server.repository.AuctionSessionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 public class AuctionSchedulerService {
 
     @Autowired
-    private ItemRepository itemRepository;
+    private AuctionSessionRepository auctionSessionRepository;
 
     /**
      * Hàm này sẽ tự động chạy lặp lại mỗi 5 giây.
@@ -25,14 +25,14 @@ public class AuctionSchedulerService {
         LocalDateTime now = LocalDateTime.now();
 
         // Bước 1: Mở phiên (PENDING -> ACTIVE)
-        int activatedCount = itemRepository.updateStatusToActive(
+        int activatedCount = auctionSessionRepository.updateStatusToActive(
                 AuctionStatus.PENDING,
                 AuctionStatus.ACTIVE,
                 now
         );
 
         // Bước 2: Đóng phiên (ACTIVE -> ENDED)
-        int endedCount = itemRepository.updateStatusToEnded(
+        int endedCount = auctionSessionRepository.updateStatusToEnded(
                 AuctionStatus.ACTIVE,
                 AuctionStatus.ENDED,
                 now
