@@ -1,3 +1,5 @@
+package com.auction.server.controller;
+
 import com.auction.server.model.AuctionSession;
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.repository.AuctionSessionRepository;
