@@ -16,7 +16,7 @@ public class UserController {
     private UserRepository list_user;
     @GetMapping("/get_user")
     public ApiResponse get_user(){
-        List<User> cac_user = list_user.findAll();
+        List<User> cac_user = list_user.findByRole("user");
         return new ApiResponse<List<User>>(200, "Thành công", cac_user);
 
     }
