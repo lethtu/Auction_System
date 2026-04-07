@@ -27,7 +27,8 @@ public class Item {
     @Column(name = "image_path")
     private String imagePath;
 
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private AuctionStatus status;
 
     public Integer getId(){
         return id;
@@ -53,7 +54,11 @@ public class Item {
         return imagePath;
     }
 
-    public String getStatus(){
+    public AuctionStatus getStatus() {
         return status;
+    }
+
+    public void setStatus(AuctionStatus status) {
+        this.status = status;
     }
 }
