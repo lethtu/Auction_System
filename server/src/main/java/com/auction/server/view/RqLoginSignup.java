@@ -21,7 +21,7 @@ public class RqLoginSignup {
             if (newUser.getPassword() == null) {
                 throw new RuntimeException("Lỗi: Password gửi lên bị null!");
             }
-            newUser.setRole("bidder");
+
             LoginSignup.save(newUser);
             return false;
         }

@@ -1,6 +1,5 @@
 package com.auction.server.controller;
 
-import com.auction.server.model.Item;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

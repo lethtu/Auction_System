@@ -3,6 +3,6 @@ package com.auction.server.model;
 import jakarta.persistence.*;
 
 @Entity
-@DiscriminatorValue("bidder")
+@DiscriminatorValue("BIDDER")
 public class Bidder extends User {
 }
