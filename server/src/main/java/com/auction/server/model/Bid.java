@@ -2,6 +2,7 @@ package com.auction.server.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "bids")
@@ -19,7 +20,7 @@ public class Bid {
     @JoinColumn(name = "bidder_id")
     private User bidder;
 
-    private Double amount;
+    private BigDecimal amount;
     private LocalDateTime time;
 
     public Bid() {}
@@ -30,8 +31,8 @@ public class Bid {
     public void setSession(AuctionSession session) { this.session = session; }
     public User getBidder() { return bidder; }
     public void setBidder(User bidder) { this.bidder = bidder; }
-    public Double getAmount() { return amount; }
-    public void setAmount(Double amount) { this.amount = amount; }
+    public BigDecimal getAmount() { return amount; }
+    public void setAmount(BigDecimal amount) { this.amount = amount; }
     public LocalDateTime getTime() { return time; }
     public void setTime(LocalDateTime time) { this.time = time; }
 }

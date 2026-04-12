@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @RestController
@@ -24,7 +25,7 @@ public class BidderController {
     @PostMapping("/place-bid")
     public synchronized ResponseEntity<?> placeBid(@RequestParam Integer sessionId,
                                                    @RequestParam Integer bidderId,
-                                                   @RequestParam Double bidAmount) {
+                                                   @RequestParam BigDecimal bidAmount) {
         AuctionSession session = sessionRepository.findById(sessionId).orElse(null);
         User bidder = userRepository.findById(bidderId).orElse(null);
 
@@ -36,8 +37,8 @@ public class BidderController {
             return ResponseEntity.badRequest().body("Auction is not active");
         }
 
-        Double minBid = session.getCurrentPrice() + session.getStepPrice();
-        if (bidAmount < minBid) {
+        BigDecimal minBid = session.getCurrentPrice().add(session.getStepPrice());
+        if (bidAmount.compareTo(minBid) < 0) {
             return ResponseEntity.badRequest().body("Bid amount must be at least " + minBid);
         }
 
@@ -55,10 +56,10 @@ public class BidderController {
     }
 
     @PostMapping("/deposit")
-    public ResponseEntity<?> depositMoney(@RequestParam Integer bidderId, @RequestParam Double amount) {
+    public ResponseEntity<?> depositMoney(@RequestParam Integer bidderId, @RequestParam BigDecimal amount) {
         return userRepository.findById(bidderId)
                 .map(user -> {
-                    user.setBalance(user.getBalance() + amount);
+                    user.setBalance(user.getBalance().add(amount));
                     userRepository.save(user);
                     return ResponseEntity.ok("New balance: " + user.getBalance());
                 })

@@ -14,7 +14,6 @@ public class Seller extends User {
     public Seller() {
     }
 
-    // Getter và Setter
     public String getShopName() { return shopName; }
     public void setShopName(String shopName) { this.shopName = shopName; }
 

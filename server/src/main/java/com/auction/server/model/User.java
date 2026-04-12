@@ -1,6 +1,7 @@
 package com.auction.server.model;
 
 import java.time.LocalDate;
+import java.math.BigDecimal;
 import jakarta.persistence.*;
 
 @Entity
@@ -24,7 +25,7 @@ public abstract class User {
     @Column(name = "role", insertable = false, updatable = false)
     private String role;
 
-    private Double balance = 0.0;
+    private BigDecimal balance = BigDecimal.ZERO;
 
     public User() {}
 
@@ -35,7 +36,7 @@ public abstract class User {
     public void setEmail(String email) { this.email = email; }
     public void setDob(LocalDate dob) { this.dob = dob; }
     public void setPlaceOfBirth(String placeOfBirth) { this.placeOfBirth = placeOfBirth; }
-    public void setBalance(Double balance) { this.balance = balance; }
+    public void setBalance(BigDecimal balance) { this.balance = balance; }
 
     public Integer getId() { return id; }
     public String getUsername() { return username; }
@@ -45,7 +46,7 @@ public abstract class User {
     public LocalDate getDob() { return dob; }
     public String getPlaceOfBirth() { return placeOfBirth; }
     public String getRole() { return role; }
-    public Double getBalance() { return balance; }
+    public BigDecimal getBalance() { return balance; }
 
     @Override
     public String toString(){

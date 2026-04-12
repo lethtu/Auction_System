@@ -1,14 +1,15 @@
 package com.auction.server.dto;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 public class AuctionRequestDTO {
     private String productName;
     private String productType;
     private String imageUrl;
     private String description;
-    private Double startingPrice;
-    private Double stepPrice;
+    private BigDecimal startingPrice;
+    private BigDecimal stepPrice;
     private LocalDateTime endTime;
     private Integer sellerId;
 
@@ -16,7 +17,7 @@ public class AuctionRequestDTO {
     }
 
     public AuctionRequestDTO(String productName, String productType, String imageUrl, String description,
-                             Double startingPrice, Double stepPrice, LocalDateTime endTime, Integer sellerId) {
+                             BigDecimal startingPrice, BigDecimal stepPrice, LocalDateTime endTime, Integer sellerId) {
         this.productName = productName;
         this.productType = productType;
         this.imageUrl = imageUrl;
@@ -39,11 +40,11 @@ public class AuctionRequestDTO {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public Double getStartingPrice() { return startingPrice; }
-    public void setStartingPrice(Double startingPrice) { this.startingPrice = startingPrice; }
+    public BigDecimal getStartingPrice() { return startingPrice; }
+    public void setStartingPrice(BigDecimal startingPrice) { this.startingPrice = startingPrice; }
 
-    public Double getStepPrice() { return stepPrice; }
-    public void setStepPrice(Double stepPrice) { this.stepPrice = stepPrice; }
+    public BigDecimal getStepPrice() { return stepPrice; }
+    public void setStepPrice(BigDecimal stepPrice) { this.stepPrice = stepPrice; }
 
     public LocalDateTime getEndTime() { return endTime; }
     public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
