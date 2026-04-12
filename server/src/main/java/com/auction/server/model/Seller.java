@@ -7,9 +7,9 @@ import jakarta.persistence.Entity;
 @DiscriminatorValue("SELLER")
 public class Seller extends User {
 
-    private String shopName; // Tên gian hàng (ai cũng có)
-    private Boolean isBusiness; // True nếu là doanh nghiệp, False nếu là cá nhân
-    private String taxId; // Mã số thuế (Chỉ cần điền nếu isBusiness = true)
+    private String shopName;
+    private Boolean isBusiness;
+    private String taxId;
 
     public Seller() {
     }

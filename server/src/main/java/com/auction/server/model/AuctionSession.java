@@ -4,36 +4,34 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "auction_sessions")
 public class AuctionSession {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    // Liên kết với Product: Một sản phẩm có thể có nhiều phiên đấu giá khác nhau
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "product_id")
     private Product product;
 
-    @Column(name = "current_price")
+    private Double startingPrice;
     private Double currentPrice;
-
-    @Column(name = "start_time")
+    private Double stepPrice;
     private LocalDateTime startTime;
-
-    @Column(name = "end_time")
     private LocalDateTime endTime;
-
-    private String status; // Ví dụ: "ACTIVE", "COMPLETED", "PENDING"
+    private String status;
 
     public AuctionSession() {}
 
-    // Getter & Setter (Generate nốt cho đủ bộ nhé bro)
     public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
     public Product getProduct() { return product; }
     public void setProduct(Product product) { this.product = product; }
+    public Double getStartingPrice() { return startingPrice; }
+    public void setStartingPrice(Double startingPrice) { this.startingPrice = startingPrice; }
     public Double getCurrentPrice() { return currentPrice; }
     public void setCurrentPrice(Double currentPrice) { this.currentPrice = currentPrice; }
+    public Double getStepPrice() { return stepPrice; }
+    public void setStepPrice(Double stepPrice) { this.stepPrice = stepPrice; }
     public LocalDateTime getStartTime() { return startTime; }
     public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
     public LocalDateTime getEndTime() { return endTime; }

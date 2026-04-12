@@ -11,16 +11,27 @@ public class Bid {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "item_id")
-    private Integer itemId;
+    @ManyToOne
+    @JoinColumn(name = "session_id")
+    private AuctionSession session;
 
-    @Column(name = "bidder_id")
-    private Integer bidderId;
+    @ManyToOne
+    @JoinColumn(name = "bidder_id")
+    private User bidder;
 
-    @Column(name = "bid_amount")
-    private Double bidAmount;
+    private Double amount;
+    private LocalDateTime time;
 
-    @Column(name = "bid_time")
-    private LocalDateTime bidTime;
+    public Bid() {}
 
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
+    public AuctionSession getSession() { return session; }
+    public void setSession(AuctionSession session) { this.session = session; }
+    public User getBidder() { return bidder; }
+    public void setBidder(User bidder) { this.bidder = bidder; }
+    public Double getAmount() { return amount; }
+    public void setAmount(Double amount) { this.amount = amount; }
+    public LocalDateTime getTime() { return time; }
+    public void setTime(LocalDateTime time) { this.time = time; }
 }
