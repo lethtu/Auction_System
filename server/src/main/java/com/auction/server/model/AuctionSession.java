@@ -13,6 +13,9 @@ public class AuctionSession {
     @OneToOne
     @JoinColumn(name = "product_id")
     private Product product;
+    @ManyToOne
+    @JoinColumn(name = "seller_id")
+    private Seller seller;
 
     private BigDecimal startingPrice;
     private BigDecimal currentPrice;
@@ -22,6 +25,8 @@ public class AuctionSession {
     private String status;
 
     public AuctionSession() {}
+    public Seller getSeller() { return seller; }
+    public void setSeller(Seller seller) { this.seller = seller; }
 
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
