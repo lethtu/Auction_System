@@ -9,6 +9,7 @@ import jakarta.persistence.*;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "role", discriminatorType = DiscriminatorType.STRING)
 public abstract class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -23,7 +24,7 @@ public abstract class User {
     private String placeOfBirth;
 
     @Column(name = "role", insertable = false, updatable = false)
-    private String role;
+    private String accountType;
 
     private BigDecimal balance = BigDecimal.ZERO;
 
@@ -45,11 +46,16 @@ public abstract class User {
     public String getEmail() { return email; }
     public LocalDate getDob() { return dob; }
     public String getPlaceOfBirth() { return placeOfBirth; }
-    public String getRole() { return role; }
+    public String getAccountType() { return accountType; }
     public BigDecimal getBalance() { return balance; }
 
     @Override
-    public String toString(){
-        return id + " " + fullname + " " + email + " " + dob + " " + placeOfBirth + " " + username ;
+    public String toString() {
+        return "User [" +
+                "ID=" + id +
+                ", Fullname='" + fullname + '\'' +
+                ", AccountType='" + accountType + '\'' +
+                ", Username='" + username + '\'' +
+                ']';
     }
 }

@@ -22,9 +22,9 @@ public class AdminController {
     }
 
     @PostMapping("/approve/{sessionId}")
-    public ResponseEntity<?> approveSession(@PathVariable Integer sessionId) {
+    public ResponseEntity<?> approveSession(@PathVariable Integer sessionId, @RequestParam Integer adminId) {
         try {
-            adminService.approveSession(sessionId);
+            adminService.approveSession(sessionId, adminId);
             return ResponseEntity.ok("Phê duyệt thành công! Phiên đấu giá đã bắt đầu.");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -32,9 +32,9 @@ public class AdminController {
     }
 
     @PostMapping("/reject/{sessionId}")
-    public ResponseEntity<?> rejectSession(@PathVariable Integer sessionId) {
+    public ResponseEntity<?> rejectSession(@PathVariable Integer sessionId, @RequestParam Integer adminId) {
         try {
-            adminService.rejectSession(sessionId);
+            adminService.rejectSession(sessionId, adminId);
             return ResponseEntity.ok("Đã từ chối phiên đấu giá.");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
