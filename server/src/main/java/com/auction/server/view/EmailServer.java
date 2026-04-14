@@ -7,6 +7,10 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import jakarta.annotation.PreDestroy;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 @Service
 public class EmailServer {
     @Autowired
@@ -14,29 +18,31 @@ public class EmailServer {
 
     @Value("${spring.mail.username}")
     private String senderEmail;
+    private final ExecutorService executorService = Executors.newFixedThreadPool(10);
+
     public void SendEmail(String toEmail, String subject, String body) {
-        try {
-            // 2. TẠO THƯ CAO CẤP (MimeMessage) ĐỂ HỖ TRỢ TÊN TIẾNG VIỆT VÀ HTML
-            MimeMessage message = mailSender.createMimeMessage();
+        executorService.submit(() -> {
+            try {
+                MimeMessage message = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+                helper.setFrom(senderEmail, "Hệ thống Đấu giá");
+                helper.setTo(toEmail);
+                helper.setSubject(subject);
 
-            // Dùng Helper với encoding UTF-8 để chống lỗi font chữ
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+                // false = gửi dạng chữ (text) bình thường.
+                // Sau này muốn gửi giao diện HTML đẹp mắt thì chỉ cần đổi thành true
+                helper.setText(body, false);
+                mailSender.send(message);
+                System.out.println("Đã gửi email thành công tới: " + toEmail);
 
-            // Đặt Tên hiển thị cực đẹp và an toàn: "Hệ thống Đấu giá"
-            helper.setFrom(senderEmail, "Hệ thống Đấu giá");
-            helper.setTo(toEmail);
-            helper.setSubject(subject);
+            } catch (Exception e) {
+                System.err.println("Lỗi khi đóng gói và gửi email: " + e.getMessage());
+            }
+        });
+    }
 
-            // false = gửi dạng chữ (text) bình thường.
-            // Sau này bạn muốn gửi giao diện HTML đẹp mắt thì chỉ cần đổi thành true!
-            helper.setText(body, false);
-
-            // Lệnh phát thư đi
-            mailSender.send(message);
-            System.out.println("Đã gửi email thành công tới: " + toEmail);
-
-        } catch (Exception e) {
-            System.err.println("Lỗi khi đóng gói và gửi email: " + e.getMessage());
-        }
+    @PreDestroy
+    public void shutdown() {
+        executorService.shutdown();
     }
 }

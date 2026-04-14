@@ -11,7 +11,9 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("/com/auction/client/view/Login.fxml")));        primaryStage.setTitle("Hệ thống Đấu giá");
+        Parent root = FXMLLoader
+                .load(Objects.requireNonNull(getClass().getResource("/com/auction/client/view/Login.fxml")));
+        primaryStage.setTitle("Hệ thống Đấu giá");
         primaryStage.setScene(new Scene(root, 400, 500));
         primaryStage.setResizable(false);
         primaryStage.show();

@@ -5,7 +5,9 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "items")
-public class Item {
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "category", discriminatorType = DiscriminatorType.STRING)
+public abstract class Item {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

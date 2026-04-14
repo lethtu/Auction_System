@@ -15,11 +15,16 @@ import org.json.JSONObject; // Đảm bảo bạn đã thêm thư viện org.jso
 
 public class SignUpController {
 
-    @FXML private TextField txtFullName;
-    @FXML private TextField txtUsername;
-    @FXML private TextField txtEmail;
-    @FXML private PasswordField txtPassword;
-    @FXML private PasswordField txtConfirmPassword;
+    @FXML
+    private TextField txtFullName;
+    @FXML
+    private TextField txtUsername;
+    @FXML
+    private TextField txtEmail;
+    @FXML
+    private PasswordField txtPassword;
+    @FXML
+    private PasswordField txtConfirmPassword;
 
     @FXML
     public void handleSignUp(ActionEvent event) {
@@ -40,7 +45,8 @@ public class SignUpController {
             return;
         }
 
-        // 2. Tạo JSON Body bằng thư viện (Tránh lỗi SQL Null Password và lỗi ký tự đặc biệt)
+        // 2. Tạo JSON Body bằng thư viện (Tránh lỗi SQL Null Password và lỗi ký tự đặc
+        // biệt)
         JSONObject json = new JSONObject();
         json.put("username", username);
         json.put("password", password); // Key phải khớp chính xác với biến 'password' ở Server
@@ -79,24 +85,23 @@ public class SignUpController {
                         }
                     });
                 } else {
-                    Platform.runLater(() ->
-                            showAlert(Alert.AlertType.ERROR, "Lỗi Server", "Mã lỗi: " + response.statusCode())
-                    );
+                    Platform.runLater(
+                            () -> showAlert(Alert.AlertType.ERROR, "Lỗi Server", "Mã lỗi: " + response.statusCode()));
                 }
 
             } catch (Exception e) {
                 e.printStackTrace();
-                Platform.runLater(() ->
-                        showAlert(Alert.AlertType.ERROR, "Lỗi kết nối", "Không thể kết nối tới máy chủ!")
-                );
+                Platform.runLater(
+                        () -> showAlert(Alert.AlertType.ERROR, "Lỗi kết nối", "Không thể kết nối tới máy chủ!"));
             }
         }).start();
     }
 
     @FXML
     public void goToLogin(ActionEvent event) throws IOException {
-        // QUAN TRỌNG: Sửa đường dẫn FXML có dấu "/" ở đầu để SceneSwitcher tìm thấy file
-        SceneSwitcher.switchScene(event, "/com/auction/client/view/Login.fxml", 400, 500);
+        // QUAN TRỌNG: Sửa đường dẫn FXML có dấu "/" ở đầu để SceneSwitcher tìm thấy
+        // file
+        SceneSwitcher.switchScene(event, "Login.fxml", 400, 500);
     }
 
     private void showAlert(Alert.AlertType alertType, String title, String message) {

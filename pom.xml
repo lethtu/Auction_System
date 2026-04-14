@@ -5,8 +5,12 @@
   <groupId>com.btl.aucsys</groupId>
   <artifactId>Auction_System</artifactId>
   <version>0.1</version>
-  <packaging>jar</packaging>
+  <packaging>pom</packaging>
 
+  <modules>
+    <module>client</module>
+    <module>server</module>
+  </modules>
   <name>Auction_System</name>
   <url>http://maven.apache.org</url>
 
