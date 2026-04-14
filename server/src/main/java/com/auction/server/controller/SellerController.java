@@ -10,6 +10,7 @@ import com.auction.server.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,7 +23,7 @@ public class SellerController {
     private SellerService sellerService;
 
     @PostMapping("/create")
-    public ResponseEntity<?> createAuction(@RequestBody AuctionRequestDTO dto) {
+    public ResponseEntity<?> createAuction(@Valid @RequestBody AuctionRequestDTO dto) {
         try {
             AuctionSession session = sellerService.createAuction(dto);
             return ResponseEntity.ok("Đã gửi yêu cầu đấu giá cho món: " + session.getProduct().getName());

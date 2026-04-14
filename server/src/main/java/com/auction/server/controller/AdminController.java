@@ -1,6 +1,7 @@
 package com.auction.server.controller;
 
 import com.auction.server.model.AuctionSession;
+import com.auction.server.model.User;
 import com.auction.server.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -38,5 +39,10 @@ public class AdminController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    @GetMapping("/users")
+    public ResponseEntity<List<User>> getAllUsers() {
+        return ResponseEntity.ok(adminService.getAllUsers());
     }
 }
