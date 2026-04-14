@@ -1,6 +1,7 @@
 package com.auction.server.service;
 
 import com.auction.server.dto.AuctionRequestDTO;
+import com.auction.server.dto.SellerStatsDTO;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.model.Product;
 import com.auction.server.model.Seller;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -69,5 +71,19 @@ public class SellerService {
 
         session.setStatus("CANCELED");
         sessionRepository.save(session);
+    }
+
+    public SellerStatsDTO getSellerStats(Integer sellerId) {
+        List<AuctionSession> myCompletedSessions = sessionRepository.findBySeller_Id(sellerId)
+                .stream()
+                .filter(s -> "COMPLETED".equals(s.getStatus()))
+                .toList();
+
+        long count = myCompletedSessions.size();
+        BigDecimal revenue = myCompletedSessions.stream()
+                .map(AuctionSession::getCurrentPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return new SellerStatsDTO(count, revenue);
     }
 }

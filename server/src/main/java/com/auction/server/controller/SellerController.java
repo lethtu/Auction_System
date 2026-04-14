@@ -1,18 +1,14 @@
 package com.auction.server.controller;
-import com.auction.server.service.SellerService;
+
 import com.auction.server.dto.AuctionRequestDTO;
+import com.auction.server.dto.SellerStatsDTO;
 import com.auction.server.model.AuctionSession;
-import com.auction.server.model.Product;
-import com.auction.server.model.Seller;
-import com.auction.server.repository.AuctionSessionRepository;
-import com.auction.server.repository.ProductRepository;
-import com.auction.server.repository.UserRepository;
+import com.auction.server.service.SellerService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import jakarta.validation.Valid;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -33,7 +29,7 @@ public class SellerController {
     }
 
     @GetMapping("/my-sessions/{sellerId}")
-    public ResponseEntity<?> viewMySessions(@PathVariable Integer sellerId) {
+    public ResponseEntity<List<AuctionSession>> viewMySessions(@PathVariable Integer sellerId) {
         return ResponseEntity.ok(sellerService.getMySessions(sellerId));
     }
 
@@ -45,5 +41,10 @@ public class SellerController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    @GetMapping("/stats/{sellerId}")
+    public ResponseEntity<SellerStatsDTO> getStats(@PathVariable Integer sellerId) {
+        return ResponseEntity.ok(sellerService.getSellerStats(sellerId));
     }
 }
