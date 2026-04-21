@@ -105,6 +105,7 @@ public class MainController implements Initializable {
         boolean hasImage = false;
         try {
             if (!imagePath.isEmpty()) {
+                System.out.println(imagePath);
                 String imageUrl = "http://localhost:8080/api/files/images/" + imagePath;
                 Image image = new Image(imageUrl, true);
                 imageView.setImage(image);

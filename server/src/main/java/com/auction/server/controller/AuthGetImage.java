@@ -25,7 +25,7 @@ public class AuthGetImage {
         try {
             Path file = rootLocation.resolve(filename);
             Resource resource = new UrlResource(file.toUri());
-
+            System.out.println("Đường dẫn file thực tế đang tìm: " + file.toAbsolutePath());
             if (resource.exists() || resource.isReadable()) {
                 String contentType = Files.probeContentType(file);
                 if (contentType == null) {
