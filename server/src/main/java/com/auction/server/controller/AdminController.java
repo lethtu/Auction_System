@@ -1,7 +1,7 @@
 package com.auction.server.controller;
 
+import com.auction.server.dto.UserResponseDTO;
 import com.auction.server.model.AuctionSession;
-import com.auction.server.model.User;
 import com.auction.server.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -62,7 +62,9 @@ public class AdminController {
     }
 
     @GetMapping("/users")
-    public ResponseEntity<List<User>> getAllUsers() {
-        return ResponseEntity.ok(adminService.getAllUsers());
+    public ResponseEntity<List<UserResponseDTO>> getAllUsers(
+            @RequestParam(required = false) String role
+    ) {
+        return ResponseEntity.ok(adminService.getAllUsers(role));
     }
 }

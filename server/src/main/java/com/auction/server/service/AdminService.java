@@ -1,8 +1,10 @@
 package com.auction.server.service;
 
+import com.auction.server.dto.UserResponseDTO;
 import com.auction.server.model.Admin;
 import com.auction.server.model.AdminRole;
 import com.auction.server.model.AuctionSession;
+import com.auction.server.model.Seller;
 import com.auction.server.model.User;
 import com.auction.server.repository.AuctionSessionRepository;
 import com.auction.server.repository.UserRepository;
@@ -117,7 +119,41 @@ public class AdminService {
         sessionRepository.save(session);
     }
 
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public List<UserResponseDTO> getAllUsers(String role) {
+        List<User> users = userRepository.findAll();
+
+        if (role != null && !role.trim().isEmpty()) {
+            String normalizedRole = role.trim();
+
+            users = users.stream()
+                    .filter(user -> user.getAccountType() != null
+                            && user.getAccountType().equalsIgnoreCase(normalizedRole))
+                    .toList();
+        }
+
+        return users.stream()
+                .map(this::mapToUserResponseDTO)
+                .toList();
+    }
+
+    private UserResponseDTO mapToUserResponseDTO(User user) {
+        UserResponseDTO dto = new UserResponseDTO();
+        dto.setId(user.getId());
+        dto.setUsername(user.getUsername());
+        dto.setFullname(user.getFullname());
+        dto.setEmail(user.getEmail());
+        dto.setAccountType(user.getAccountType());
+        dto.setBalance(user.getBalance());
+
+        if (user instanceof Seller seller) {
+            dto.setShopName(seller.getShopName());
+        }
+
+        if (user instanceof Admin admin) {
+            dto.setEmployeeCode(admin.getEmployeeCode());
+            dto.setAdminRole(admin.getRole() != null ? admin.getRole().name() : null);
+        }
+
+        return dto;
     }
 }
