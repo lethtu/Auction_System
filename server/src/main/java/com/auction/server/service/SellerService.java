@@ -1,11 +1,12 @@
 package com.auction.server.service;
 
 import com.auction.server.dto.CreateAuctionRequest;
+import com.auction.server.factory.ItemFactory;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.model.AuctionStatus;
-import com.auction.server.model.Product;
+import com.auction.server.model.Item;
 import com.auction.server.repository.AuctionSessionRepository;
-import com.auction.server.repository.ProductRepository; // Đảm bảo em đã tạo Repo này
+import com.auction.server.repository.ItemRepository; // Đảm bảo em đã tạo Repo này
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,7 +17,7 @@ import java.time.LocalDateTime;
 public class SellerService {
 
     @Autowired
-    private ProductRepository productRepository;
+    private ItemRepository itemRepository;
 
     @Autowired
     private AuctionSessionRepository auctionSessionRepository;
@@ -41,17 +42,18 @@ public class SellerService {
         }
         // --- KẾT THÚC ĐOẠN VALIDATION ---
         // 1. Khởi tạo và lưu Product
-        Product product = new Product();
-        product.setName(request.getName());
-        product.setType(request.getType());
-        product.setImagePath(request.getImagePath());
+        // 1. Khởi tạo Item bằng Factory Pattern
+        // Xưởng sẽ tự động đẻ ra Art, Electronics hoặc Vehicle dựa vào type người dùng gửi lên
+        Item item = ItemFactory.createItem(request.getType());
+        item.setName(request.getName());
+        item.setImagePath(request.getImagePath());
 
-        // Save product xuống DB để lấy ID
-        Product savedProduct = productRepository.save(product);
+        // Save item xuống DB để lấy ID
+        Item savedItem = itemRepository.save(item);
 
         // 2. Khởi tạo và lưu AuctionSession
         AuctionSession session = new AuctionSession();
-        session.setProduct(savedProduct); // Map Product vừa lưu vào Session
+        session.setItem(savedItem); // Map Item vừa lưu vào Session
 
         // Khởi tạo các giá trị ban đầu cho phiên đấu giá
         session.setCurrentPrice(request.getStartingPrice()); // Giá hiện tại bằng giá khởi điểm

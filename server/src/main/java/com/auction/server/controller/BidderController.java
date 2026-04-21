@@ -3,6 +3,7 @@ package com.auction.server.controller;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.repository.AuctionSessionRepository;
+import com.auction.server.view.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,8 +20,9 @@ public class BidderController {
     private AuctionSessionRepository auctionSessionRepository;
 
     // API lấy danh sách đang đấu giá (có phân trang)
+    // Thay đổi kiểu trả về thành ApiResponse bọc lấy Page<AuctionSession>
     @GetMapping("/active-sessions")
-    public ResponseEntity<Page<AuctionSession>> getActiveSessions(
+    public ApiResponse<Page<AuctionSession>> getActiveSessions(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
@@ -30,6 +32,7 @@ public class BidderController {
         // Gọi hàm phân trang từ Repository với trạng thái ACTIVE
         Page<AuctionSession> activeSessions = auctionSessionRepository.findByStatus(AuctionStatus.ACTIVE, pageable);
 
-        return ResponseEntity.ok(activeSessions);
+        // Gói dữ liệu vào ApiResponse chuẩn form
+        return new ApiResponse<>(200, "Lấy danh sách đấu giá thành công", activeSessions);
     }
 }

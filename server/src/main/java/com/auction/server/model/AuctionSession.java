@@ -12,8 +12,8 @@ public class AuctionSession {
 
     //Sợi dây liên kết 1 Sản phẩm - Nhiều Phiên đấu giá
     @ManyToOne
-    @JoinColumn(name = "product_id")
-    private Product product;
+    @JoinColumn(name = "item_id")
+    private Item item;
 
     @Column(name = "current_price")
     private Double currentPrice;
@@ -35,13 +35,8 @@ public class AuctionSession {
         this.id = id;
     }
 
-    public Product getProduct() {
-        return product;
-    }
-
-    public void setProduct(Product product) {
-        this.product = product;
-    }
+    public Item getItem() { return item; }
+    public void setItem(Item item) { this.item = item; }
 
     public Double getCurrentPrice() {
         return currentPrice;

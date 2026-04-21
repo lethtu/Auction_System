@@ -42,8 +42,9 @@ public class MainController implements Initializable {
     private void loadProductsFromServer() {
         new Thread(() -> {
             try {
+                // 1. GỌI VÀO API MỚI (Lấy danh sách phân trang)
                 HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create("http://localhost:8080/api/get_item"))
+                        .uri(URI.create("http://localhost:8080/api/bidder/active-sessions"))
                         .GET()
                         .build();
 
@@ -51,39 +52,49 @@ public class MainController implements Initializable {
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
                 if (response.statusCode() == 200) {
+                    // 2. BÓC TÁCH JSON NHIỀU LỚP
                     JSONObject responseJson = new JSONObject(response.body());
 
-                    JSONArray jsonArray = responseJson.getJSONArray("data");
+                    // Check nếu status từ API trả về là 200 (Thành công)
+                    if (responseJson.getInt("status") == 200) {
 
-                    Platform.runLater(() -> {
-                        productContainer.getChildren().clear();
+                        // Lấy ra cục "data" (chứa toàn bộ thông tin phân trang)
+                        JSONObject pageData = responseJson.getJSONObject("data");
 
-                        for (int i = 0; i < jsonArray.length(); i++) {
-                            JSONObject item = jsonArray.getJSONObject(i);
+                        // Lấy mảng "content" (chứa danh sách sản phẩm thực sự)
+                        JSONArray jsonArray = pageData.getJSONArray("content");
 
-                            int id = item.getInt("id");
-                            String name = item.getString("name");
+                        Platform.runLater(() -> {
+                            productContainer.getChildren().clear();
 
-                            String type = item.optString("status", "ACTIVE");
+                            for (int i = 0; i < jsonArray.length(); i++) {
+                                JSONObject sessionObj = jsonArray.getJSONObject(i);
 
-                            double currentPrice = item.getDouble("currentPrice");
+                                // Lấy thông tin từ Session
+                                int id = sessionObj.getInt("id");
+                                String type = sessionObj.optString("status", "ACTIVE");
+                                double currentPrice = sessionObj.getDouble("currentPrice");
 
-                            String startTime = "Chưa bắt đầu";
-                            if (!item.isNull("startTime")) {
-                                startTime = item.getString("startTime").replace("T", " ");
+                                String startTime = "Chưa bắt đầu";
+                                if (!sessionObj.isNull("startTime")) {
+                                    startTime = sessionObj.getString("startTime").replace("T", " ");
+                                }
+
+                                String endTime = "Chưa rõ";
+                                if (!sessionObj.isNull("endTime")) {
+                                    endTime = sessionObj.getString("endTime").replace("T", " ");
+                                }
+
+                                // 3. LẤY THÔNG TIN HÀNG HÓA TỪ OBJECT "ITEM" LỒNG BÊN TRONG
+                                JSONObject itemObj = sessionObj.getJSONObject("item");
+                                String name = itemObj.getString("name");
+                                String imagePath = itemObj.optString("imagePath", "default.png");
+
+                                VBox card = createProductCard(id, name, type, currentPrice, startTime, endTime, imagePath);
+                                productContainer.getChildren().add(card);
                             }
-
-                            String endTime = "Chưa rõ";
-                            if (!item.isNull("endTime")) {
-                                endTime = item.getString("endTime").replace("T", " ");
-                            }
-
-                            String imagePath = item.optString("imagePath", "default.png");
-
-                            VBox card = createProductCard(id, name, type, currentPrice, startTime, endTime, imagePath);
-                            productContainer.getChildren().add(card);
-                        }
-                    });
+                        });
+                    }
                 } else {
                     System.err.println("Lỗi từ Server: " + response.statusCode());
                 }
