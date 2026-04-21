@@ -1,6 +1,7 @@
 package com.auction.server.controller;
 
 import com.auction.server.model.User;
+import com.auction.server.model.Bidder;
 import com.auction.server.view.ApiResponse;
 import com.auction.server.view.EmailServer;
 import com.auction.server.view.RqLoginSignup;
