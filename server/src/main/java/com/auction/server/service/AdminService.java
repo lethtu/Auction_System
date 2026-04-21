@@ -170,12 +170,12 @@ public class AdminService {
 
         dto.setId(session.getId());
 
-        if (session.getProduct() != null) {
-            dto.setProductId(session.getProduct().getId());
-            dto.setProductName(session.getProduct().getName());
-            dto.setProductType(session.getProduct().getType());
-            dto.setImageUrl(session.getProduct().getImageUrl());
-            dto.setDescription(session.getProduct().getDescription());
+        if (session.getItem() != null) {
+            dto.setProductId(session.getItem().getId());
+            dto.setProductName(session.getItem().getName());
+            dto.setProductType(session.getItem().getType());
+            dto.setImageUrl(session.getItem().getImageUrl());
+            dto.setDescription(session.getItem().getDescription());
         }
 
         if (session.getSeller() != null) {

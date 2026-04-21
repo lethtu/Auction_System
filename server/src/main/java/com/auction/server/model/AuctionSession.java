@@ -1,8 +1,8 @@
 package com.auction.server.model;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "auction_session")
@@ -14,7 +14,7 @@ public class AuctionSession {
 
     @OneToOne
     @JoinColumn(name = "product_id")
-    private Product product;
+    private Item item;
 
     @ManyToOne
     @JoinColumn(name = "seller_id")
@@ -62,12 +62,21 @@ public class AuctionSession {
         this.id = id;
     }
 
-    public Product getProduct() {
-        return product;
+    public Item getItem() {
+        return item;
     }
 
-    public void setProduct(Product product) {
-        this.product = product;
+    public void setItem(Item item) {
+        this.item = item;
+    }
+
+    // Giữ thêm 2 hàm này để code cũ đỡ vỡ nhiều
+    public Item getProduct() {
+        return item;
+    }
+
+    public void setProduct(Item item) {
+        this.item = item;
     }
 
     public Seller getSeller() {

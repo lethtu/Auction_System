@@ -3,12 +3,13 @@ package com.auction.server.service;
 import com.auction.server.dto.AuctionRequestDTO;
 import com.auction.server.dto.SellerStatsDTO;
 import com.auction.server.dto.SessionResponseDTO;
+import com.auction.server.factory.ItemFactory;
 import com.auction.server.model.AuctionSession;
-import com.auction.server.model.Product;
+import com.auction.server.model.Item;
 import com.auction.server.model.Seller;
 import com.auction.server.model.User;
 import com.auction.server.repository.AuctionSessionRepository;
-import com.auction.server.repository.ProductRepository;
+import com.auction.server.repository.ItemRepository;
 import com.auction.server.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,7 @@ import java.util.List;
 public class SellerService {
 
     @Autowired
-    private ProductRepository productRepository;
+    private ItemRepository itemRepository;
 
     @Autowired
     private AuctionSessionRepository sessionRepository;
@@ -72,16 +73,16 @@ public class SellerService {
         validateAuctionInput(dto);
         Seller seller = getSellerById(dto.getSellerId());
 
-        Product product = new Product();
-        product.setName(dto.getProductName());
-        product.setType(dto.getProductType());
-        product.setImageUrl(dto.getImageUrl());
-        product.setDescription(dto.getDescription());
+        Item item = ItemFactory.createItem(dto.getProductType());
+        item.setName(dto.getProductName());
+        item.setType(dto.getProductType());
+        item.setImageUrl(dto.getImageUrl());
+        item.setDescription(dto.getDescription());
 
-        Product savedProduct = productRepository.save(product);
+        Item savedItem = itemRepository.save(item);
 
         AuctionSession session = new AuctionSession();
-        session.setProduct(savedProduct);
+        session.setItem(savedItem);
         session.setSeller(seller);
         session.setStartingPrice(dto.getStartingPrice());
         session.setCurrentPrice(dto.getStartingPrice());
@@ -146,12 +147,12 @@ public class SellerService {
             throw new RuntimeException("Chỉ được sửa phiên đang chờ duyệt");
         }
 
-        Product product = session.getProduct();
-        product.setName(dto.getProductName());
-        product.setType(dto.getProductType());
-        product.setImageUrl(dto.getImageUrl());
-        product.setDescription(dto.getDescription());
-        productRepository.save(product);
+        Item item = session.getItem();
+        item.setName(dto.getProductName());
+        item.setType(dto.getProductType());
+        item.setImageUrl(dto.getImageUrl());
+        item.setDescription(dto.getDescription());
+        itemRepository.save(item);
 
         session.setStartingPrice(dto.getStartingPrice());
         session.setCurrentPrice(dto.getStartingPrice());
@@ -203,12 +204,12 @@ public class SellerService {
 
         dto.setId(session.getId());
 
-        if (session.getProduct() != null) {
-            dto.setProductId(session.getProduct().getId());
-            dto.setProductName(session.getProduct().getName());
-            dto.setProductType(session.getProduct().getType());
-            dto.setImageUrl(session.getProduct().getImageUrl());
-            dto.setDescription(session.getProduct().getDescription());
+        if (session.getItem() != null) {
+            dto.setProductId(session.getItem().getId());
+            dto.setProductName(session.getItem().getName());
+            dto.setProductType(session.getItem().getType());
+            dto.setImageUrl(session.getItem().getImageUrl());
+            dto.setDescription(session.getItem().getDescription());
         }
 
         if (session.getSeller() != null) {
