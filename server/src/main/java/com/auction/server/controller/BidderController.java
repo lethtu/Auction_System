@@ -23,8 +23,8 @@ public class BidderController {
     // Thay đổi kiểu trả về thành ApiResponse bọc lấy Page<AuctionSession>
     @GetMapping("/active-sessions")
     public ApiResponse<Page<AuctionSession>> getActiveSessions(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
 
         // Sắp xếp ưu tiên hiển thị những cái mới nhất (theo startTime giảm dần)
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "startTime"));
