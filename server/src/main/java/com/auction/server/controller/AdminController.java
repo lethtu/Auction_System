@@ -1,7 +1,7 @@
 package com.auction.server.controller;
 
+import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.dto.UserResponseDTO;
-import com.auction.server.model.AuctionSession;
 import com.auction.server.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,12 +17,12 @@ public class AdminController {
     private AdminService adminService;
 
     @GetMapping("/pending")
-    public ResponseEntity<List<AuctionSession>> getPendingSessions() {
+    public ResponseEntity<List<SessionResponseDTO>> getPendingSessions() {
         return ResponseEntity.ok(adminService.getPendingSessions());
     }
 
     @GetMapping("/sessions")
-    public ResponseEntity<List<AuctionSession>> getAllSessions(
+    public ResponseEntity<List<SessionResponseDTO>> getAllSessions(
             @RequestParam(required = false) String status
     ) {
         return ResponseEntity.ok(adminService.getAllSessions(status));

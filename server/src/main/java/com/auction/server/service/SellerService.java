@@ -2,6 +2,7 @@ package com.auction.server.service;
 
 import com.auction.server.dto.AuctionRequestDTO;
 import com.auction.server.dto.SellerStatsDTO;
+import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.model.Product;
 import com.auction.server.model.Seller;
@@ -97,24 +98,26 @@ public class SellerService {
         return sessionRepository.save(session);
     }
 
-    public List<AuctionSession> getMySessions(Integer sellerId, String status) {
+    public List<SessionResponseDTO> getMySessions(Integer sellerId, String status) {
         getSellerById(sellerId);
 
         List<AuctionSession> sessions = sessionRepository.findBySeller_Id(sellerId);
 
-        if (status == null || status.trim().isEmpty()) {
-            return sessions;
+        if (status != null && !status.trim().isEmpty()) {
+            String normalizedStatus = status.trim();
+
+            sessions = sessions.stream()
+                    .filter(session -> session.getStatus() != null
+                            && session.getStatus().equalsIgnoreCase(normalizedStatus))
+                    .toList();
         }
 
-        String normalizedStatus = status.trim();
-
         return sessions.stream()
-                .filter(session -> session.getStatus() != null
-                        && session.getStatus().equalsIgnoreCase(normalizedStatus))
+                .map(this::mapToSessionResponseDTO)
                 .toList();
     }
 
-    public AuctionSession getSessionDetail(Integer sessionId, Integer sellerId) {
+    public SessionResponseDTO getSessionDetail(Integer sessionId, Integer sellerId) {
         Seller seller = getSellerById(sellerId);
 
         AuctionSession session = sessionRepository.findById(sessionId)
@@ -124,7 +127,7 @@ public class SellerService {
             throw new RuntimeException("Bạn không có quyền xem phiên này");
         }
 
-        return session;
+        return mapToSessionResponseDTO(session);
     }
 
     @Transactional
@@ -193,5 +196,43 @@ public class SellerService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         return new SellerStatsDTO(count, revenue);
+    }
+
+    private SessionResponseDTO mapToSessionResponseDTO(AuctionSession session) {
+        SessionResponseDTO dto = new SessionResponseDTO();
+
+        dto.setId(session.getId());
+
+        if (session.getProduct() != null) {
+            dto.setProductId(session.getProduct().getId());
+            dto.setProductName(session.getProduct().getName());
+            dto.setProductType(session.getProduct().getType());
+            dto.setImageUrl(session.getProduct().getImageUrl());
+            dto.setDescription(session.getProduct().getDescription());
+        }
+
+        if (session.getSeller() != null) {
+            dto.setSellerId(session.getSeller().getId());
+            dto.setSellerUsername(session.getSeller().getUsername());
+            dto.setSellerFullname(session.getSeller().getFullname());
+        }
+
+        dto.setStartingPrice(session.getStartingPrice());
+        dto.setCurrentPrice(session.getCurrentPrice());
+        dto.setStepPrice(session.getStepPrice());
+
+        dto.setCreatedAt(session.getCreatedAt());
+        dto.setStartTime(session.getStartTime());
+        dto.setEndTime(session.getEndTime());
+        dto.setApprovedAt(session.getApprovedAt());
+        dto.setRejectedAt(session.getRejectedAt());
+
+        dto.setStatus(session.getStatus());
+        dto.setRejectReason(session.getRejectReason());
+
+        dto.setApprovedByAdminId(session.getApprovedByAdminId());
+        dto.setRejectedByAdminId(session.getRejectedByAdminId());
+
+        return dto;
     }
 }

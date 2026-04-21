@@ -1,5 +1,6 @@
 package com.auction.server.service;
 
+import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.dto.UserResponseDTO;
 import com.auction.server.model.Admin;
 import com.auction.server.model.AdminRole;
@@ -41,28 +42,35 @@ public class AdminService {
         return admin;
     }
 
-    public List<AuctionSession> getPendingSessions() {
-        return sessionRepository.findByStatus("PENDING");
-    }
-
-    public List<AuctionSession> getAllSessions(String status) {
-        List<AuctionSession> sessions = sessionRepository.findAll();
-
-        if (status == null || status.trim().isEmpty()) {
-            return sessions;
-        }
-
-        String normalizedStatus = status.trim();
-
-        return sessions.stream()
-                .filter(session -> session.getStatus() != null
-                        && session.getStatus().equalsIgnoreCase(normalizedStatus))
+    public List<SessionResponseDTO> getPendingSessions() {
+        return sessionRepository.findByStatus("PENDING")
+                .stream()
+                .map(this::mapToSessionResponseDTO)
                 .toList();
     }
 
-    public AuctionSession getSessionDetail(Integer sessionId) {
-        return sessionRepository.findById(sessionId)
+    public List<SessionResponseDTO> getAllSessions(String status) {
+        List<AuctionSession> sessions = sessionRepository.findAll();
+
+        if (status != null && !status.trim().isEmpty()) {
+            String normalizedStatus = status.trim();
+
+            sessions = sessions.stream()
+                    .filter(session -> session.getStatus() != null
+                            && session.getStatus().equalsIgnoreCase(normalizedStatus))
+                    .toList();
+        }
+
+        return sessions.stream()
+                .map(this::mapToSessionResponseDTO)
+                .toList();
+    }
+
+    public SessionResponseDTO getSessionDetail(Integer sessionId) {
+        AuctionSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiên đấu giá"));
+
+        return mapToSessionResponseDTO(session);
     }
 
     @Transactional
@@ -153,6 +161,44 @@ public class AdminService {
             dto.setEmployeeCode(admin.getEmployeeCode());
             dto.setAdminRole(admin.getRole() != null ? admin.getRole().name() : null);
         }
+
+        return dto;
+    }
+
+    private SessionResponseDTO mapToSessionResponseDTO(AuctionSession session) {
+        SessionResponseDTO dto = new SessionResponseDTO();
+
+        dto.setId(session.getId());
+
+        if (session.getProduct() != null) {
+            dto.setProductId(session.getProduct().getId());
+            dto.setProductName(session.getProduct().getName());
+            dto.setProductType(session.getProduct().getType());
+            dto.setImageUrl(session.getProduct().getImageUrl());
+            dto.setDescription(session.getProduct().getDescription());
+        }
+
+        if (session.getSeller() != null) {
+            dto.setSellerId(session.getSeller().getId());
+            dto.setSellerUsername(session.getSeller().getUsername());
+            dto.setSellerFullname(session.getSeller().getFullname());
+        }
+
+        dto.setStartingPrice(session.getStartingPrice());
+        dto.setCurrentPrice(session.getCurrentPrice());
+        dto.setStepPrice(session.getStepPrice());
+
+        dto.setCreatedAt(session.getCreatedAt());
+        dto.setStartTime(session.getStartTime());
+        dto.setEndTime(session.getEndTime());
+        dto.setApprovedAt(session.getApprovedAt());
+        dto.setRejectedAt(session.getRejectedAt());
+
+        dto.setStatus(session.getStatus());
+        dto.setRejectReason(session.getRejectReason());
+
+        dto.setApprovedByAdminId(session.getApprovedByAdminId());
+        dto.setRejectedByAdminId(session.getRejectedByAdminId());
 
         return dto;
     }

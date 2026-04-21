@@ -2,6 +2,7 @@ package com.auction.server.controller;
 
 import com.auction.server.dto.AuctionRequestDTO;
 import com.auction.server.dto.SellerStatsDTO;
+import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.service.SellerService;
 import jakarta.validation.Valid;
@@ -29,7 +30,7 @@ public class SellerController {
     }
 
     @GetMapping("/my-sessions/{sellerId}")
-    public ResponseEntity<List<AuctionSession>> viewMySessions(
+    public ResponseEntity<List<SessionResponseDTO>> viewMySessions(
             @PathVariable Integer sellerId,
             @RequestParam(required = false) String status
     ) {
