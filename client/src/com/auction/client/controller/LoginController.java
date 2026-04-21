@@ -1,17 +1,18 @@
 package com.auction.client.controller;
 
 import com.auction.client.model.User;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import javafx.scene.control.Alert;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import java.io.IOException;
 import org.json.JSONObject;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 public class LoginController {
 
@@ -20,14 +21,19 @@ public class LoginController {
 
     @FXML
     public void handleLogin(ActionEvent event) {
-        String loginField = txtUsername.getText();
-        String password = txtPassword.getText();
+        String loginField = txtUsername.getText().trim();
+        String password = txtPassword.getText().trim();
 
         if (loginField.isEmpty() || password.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Lỗi", "Vui lòng nhập Username/Email và Mật khẩu!");
             return;
         }
-        String jsonBody = String.format("{\"username\":\"%s\", \"password\":\"%s\"}", loginField, password);
+
+        String jsonBody = String.format(
+                "{\"username\":\"%s\", \"password\":\"%s\"}",
+                loginField, password
+        );
+
         try {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create("http://localhost:8080/api/login"))
@@ -37,20 +43,44 @@ public class LoginController {
 
             HttpClient client = HttpClient.newHttpClient();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            JSONObject rq = new JSONObject(response.body());
-            if (response.statusCode() == 200) {
-                if (rq.getInt("status") == 200) {
-                    System.out.println("Đăng nhập thành công: " + response.body());
-                    JSONObject json = new JSONObject(response.body());
-                    json = json.getJSONObject("data");
-                    User.setSession(json.getInt("id"), json.getString("fullname"), json.getString("fullname"), json.getString("email"), json.optString("dob", null), json.optString("place_of_birth", null), json.getString("role"));
-                    showAlert(Alert.AlertType.INFORMATION, "Thành công", "Chào mừng bạn đã quay lại!");
 
-                    SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1024, 768);
-                }
-
-            } else {
+            if (response.statusCode() != 200) {
                 showAlert(Alert.AlertType.ERROR, "Lỗi đăng nhập", "Sai tài khoản hoặc mật khẩu!");
+                return;
+            }
+
+            JSONObject responseJson = new JSONObject(response.body());
+
+            if (responseJson.getInt("status") != 200) {
+                showAlert(Alert.AlertType.ERROR, "Lỗi đăng nhập", "Đăng nhập thất bại!");
+                return;
+            }
+
+            JSONObject data = responseJson.getJSONObject("data");
+
+            int id = data.getInt("id");
+            String username = data.optString("username", loginField);
+            String fullname = data.optString("fullname", username);
+            String email = data.optString("email", "");
+            String dob = data.optString("dob", null);
+            String placeOfBirth = data.optString("place_of_birth", null);
+
+            String role = data.optString("role",
+                    data.optString("accountType", "USER"));
+
+            User.setSession(id, username, fullname, email, dob, placeOfBirth, role);
+
+            showAlert(Alert.AlertType.INFORMATION, "Thành công", "Chào mừng bạn đã quay lại!");
+
+            String normalizedRole = role.trim().toUpperCase();
+
+            if (normalizedRole.equals("SELLER")) {
+                SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1000, 650);
+            } else if (normalizedRole.equals("ADMIN")
+                    || normalizedRole.equals("SUPER_ADMIN")) {
+                SceneSwitcher.switchScene(event, "AdminDashboard.fxml", 1000, 650);
+            } else {
+                SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1024, 768);
             }
 
         } catch (Exception e) {
