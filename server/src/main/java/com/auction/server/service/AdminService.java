@@ -8,6 +8,7 @@ import com.auction.server.repository.AuctionSessionRepository;
 import com.auction.server.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -42,32 +43,77 @@ public class AdminService {
         return sessionRepository.findByStatus("PENDING");
     }
 
+    public List<AuctionSession> getAllSessions(String status) {
+        List<AuctionSession> sessions = sessionRepository.findAll();
+
+        if (status == null || status.trim().isEmpty()) {
+            return sessions;
+        }
+
+        String normalizedStatus = status.trim();
+
+        return sessions.stream()
+                .filter(session -> session.getStatus() != null
+                        && session.getStatus().equalsIgnoreCase(normalizedStatus))
+                .toList();
+    }
+
+    public AuctionSession getSessionDetail(Integer sessionId) {
+        return sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy phiên đấu giá"));
+    }
+
+    @Transactional
     public void approveSession(Integer sessionId, Integer adminId) {
-        checkAdminPermission(adminId);
+        Admin admin = checkAdminPermission(adminId);
 
         AuctionSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiên đấu giá"));
 
-        if (!"PENDING".equals(session.getStatus())) {
+        if (!"PENDING".equalsIgnoreCase(session.getStatus())) {
             throw new RuntimeException("Phiên này đã được xử lý hoặc không ở trạng thái chờ duyệt");
         }
 
+        LocalDateTime now = LocalDateTime.now();
+
         session.setStatus("ACTIVE");
-        session.setStartTime(LocalDateTime.now());
+        session.setStartTime(now);
+        session.setApprovedAt(now);
+        session.setApprovedByAdminId(admin.getId());
+
+        session.setRejectedAt(null);
+        session.setRejectedByAdminId(null);
+        session.setRejectReason(null);
+
         sessionRepository.save(session);
     }
 
-    public void rejectSession(Integer sessionId, Integer adminId) {
-        checkAdminPermission(adminId);
+    @Transactional
+    public void rejectSession(Integer sessionId, Integer adminId, String reason) {
+        Admin admin = checkAdminPermission(adminId);
+
+        if (reason == null || reason.trim().isEmpty()) {
+            throw new RuntimeException("Vui lòng nhập lý do từ chối");
+        }
 
         AuctionSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiên đấu giá"));
 
-        if (!"PENDING".equals(session.getStatus())) {
+        if (!"PENDING".equalsIgnoreCase(session.getStatus())) {
             throw new RuntimeException("Chỉ được từ chối các phiên đang ở trạng thái chờ duyệt");
         }
 
+        LocalDateTime now = LocalDateTime.now();
+
         session.setStatus("REJECTED");
+        session.setRejectedAt(now);
+        session.setRejectedByAdminId(admin.getId());
+        session.setRejectReason(reason.trim());
+
+        session.setApprovedAt(null);
+        session.setApprovedByAdminId(null);
+        session.setStartTime(null);
+
         sessionRepository.save(session);
     }
 

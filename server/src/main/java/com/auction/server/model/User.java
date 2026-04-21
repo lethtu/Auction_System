@@ -3,6 +3,7 @@ package com.auction.server.model;
 import java.time.LocalDate;
 import java.math.BigDecimal;
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "users")
@@ -41,6 +42,8 @@ public abstract class User {
 
     public Integer getId() { return id; }
     public String getUsername() { return username; }
+
+    @JsonIgnore
     public String getPassword() { return password; }
     public String getFullname() { return fullname; }
     public String getEmail() { return email; }

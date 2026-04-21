@@ -29,8 +29,38 @@ public class SellerController {
     }
 
     @GetMapping("/my-sessions/{sellerId}")
-    public ResponseEntity<List<AuctionSession>> viewMySessions(@PathVariable Integer sellerId) {
-        return ResponseEntity.ok(sellerService.getMySessions(sellerId));
+    public ResponseEntity<List<AuctionSession>> viewMySessions(
+            @PathVariable Integer sellerId,
+            @RequestParam(required = false) String status
+    ) {
+        return ResponseEntity.ok(sellerService.getMySessions(sellerId, status));
+    }
+
+    @GetMapping("/session-detail/{sessionId}")
+    public ResponseEntity<?> getSessionDetail(
+            @PathVariable Integer sessionId,
+            @RequestParam Integer sellerId
+    ) {
+        try {
+            return ResponseEntity.ok(sellerService.getSessionDetail(sessionId, sellerId));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/update-session/{sessionId}")
+    public ResponseEntity<?> updatePendingSession(
+            @PathVariable Integer sessionId,
+            @RequestParam Integer sellerId,
+            @RequestBody AuctionRequestDTO dto
+    ) {
+        try {
+            dto.setSellerId(sellerId);
+            AuctionSession updatedSession = sellerService.updatePendingSession(sessionId, sellerId, dto);
+            return ResponseEntity.ok("Đã cập nhật phiên chờ duyệt cho món: " + updatedSession.getProduct().getName());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/cancel-session/{sessionId}")

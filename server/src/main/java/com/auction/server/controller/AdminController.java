@@ -21,6 +21,22 @@ public class AdminController {
         return ResponseEntity.ok(adminService.getPendingSessions());
     }
 
+    @GetMapping("/sessions")
+    public ResponseEntity<List<AuctionSession>> getAllSessions(
+            @RequestParam(required = false) String status
+    ) {
+        return ResponseEntity.ok(adminService.getAllSessions(status));
+    }
+
+    @GetMapping("/session-detail/{sessionId}")
+    public ResponseEntity<?> getSessionDetail(@PathVariable Integer sessionId) {
+        try {
+            return ResponseEntity.ok(adminService.getSessionDetail(sessionId));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @PostMapping("/approve/{sessionId}")
     public ResponseEntity<?> approveSession(@PathVariable Integer sessionId, @RequestParam Integer adminId) {
         try {
@@ -32,9 +48,13 @@ public class AdminController {
     }
 
     @PostMapping("/reject/{sessionId}")
-    public ResponseEntity<?> rejectSession(@PathVariable Integer sessionId, @RequestParam Integer adminId) {
+    public ResponseEntity<?> rejectSession(
+            @PathVariable Integer sessionId,
+            @RequestParam Integer adminId,
+            @RequestParam String reason
+    ) {
         try {
-            adminService.rejectSession(sessionId, adminId);
+            adminService.rejectSession(sessionId, adminId, reason);
             return ResponseEntity.ok("Đã từ chối phiên đấu giá.");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
