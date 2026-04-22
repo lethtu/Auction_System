@@ -13,6 +13,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.text.DecimalFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,16 +29,9 @@ public class SellerDashboardController {
     @FXML private TextField endTimeField;
     @FXML private TextArea statsArea;
 
-    @FXML private Tab tabMySessions;
-    @FXML private Tab tabCreateSession;
-    @FXML private TabPane sellerTabPane;
-
-    @FXML private Button btnCreateOrUpdate;
-
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final List<SessionItem> allSessions = new ArrayList<>();
     private final List<SessionItem> displayedSessions = new ArrayList<>();
-    private Integer editingSessionId = null;
 
     @FXML
     public void initialize() {
@@ -45,7 +39,7 @@ public class SellerDashboardController {
                 "Electronics", "Art", "Vehicle"
         ));
         productTypeCombo.setValue("Electronics");
-        resetCreateButton();
+        fillDefaultEndTime();
         loadMySessions();
     }
 
@@ -59,17 +53,21 @@ public class SellerDashboardController {
 
         String productName = productNameField.getText().trim();
         String productType = productTypeCombo.getValue();
-        String imageUrl = imageUrlField.getText().trim();
-        String description = descriptionArea.getText().trim();
-        String startingPriceText = startingPriceField.getText().trim();
-        String stepPriceText = stepPriceField.getText().trim();
-        String endTime = endTimeField.getText().trim();
+        String imageUrl = productNameOrEmpty(imageUrlField);
+        String description = productNameOrEmpty(descriptionArea);
+        String startingPriceText = productNameOrEmpty(startingPriceField);
+        String stepPriceText = productNameOrEmpty(stepPriceField);
+        String endTime = productNameOrEmpty(endTimeField);
 
-        if (productName.isEmpty() || productType == null || startingPriceText.isEmpty()
-                || stepPriceText.isEmpty() || endTime.isEmpty()) {
+        if (productName.isEmpty() || productType == null || startingPriceText.isEmpty() || stepPriceText.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Thiếu dữ liệu",
-                    "Vui lòng nhập tên sản phẩm, loại, giá khởi điểm, bước giá và thời gian kết thúc.");
+                    "Vui lòng nhập tên sản phẩm, loại, giá khởi điểm và bước giá.");
             return;
+        }
+
+        if (endTime.isEmpty()) {
+            endTime = defaultEndTime();
+            endTimeField.setText(endTime);
         }
 
         try {
@@ -86,34 +84,18 @@ public class SellerDashboardController {
             body.put("endTime", endTime);
             body.put("sellerId", sellerId);
 
-            HttpRequest request;
-            String successMessage;
-
-            if (editingSessionId == null) {
-                request = HttpRequest.newBuilder()
-                        .uri(URI.create("http://localhost:8080/api/seller/create"))
-                        .header("Content-Type", "application/json")
-                        .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
-                        .build();
-                successMessage = "Tạo phiên đấu giá thành công.";
-            } else {
-                request = HttpRequest.newBuilder()
-                        .uri(URI.create("http://localhost:8080/api/seller/update-session/" + editingSessionId + "?sellerId=" + sellerId))
-                        .header("Content-Type", "application/json")
-                        .PUT(HttpRequest.BodyPublishers.ofString(body.toString()))
-                        .build();
-                successMessage = "Cập nhật phiên chờ duyệt thành công.";
-            }
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("http://localhost:8080/api/seller/create"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
+                    .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() == 200) {
                 clearForm();
-                editingSessionId = null;
-                resetCreateButton();
                 loadMySessions();
-                sellerTabPane.getSelectionModel().select(tabMySessions);
-                showAlert(Alert.AlertType.INFORMATION, "Thành công", successMessage);
+                showAlert(Alert.AlertType.INFORMATION, "Thành công", "Tạo phiên đấu giá thành công.");
             } else {
                 showAlert(Alert.AlertType.ERROR, "Lỗi", safeMessage(response.body()));
             }
@@ -146,62 +128,11 @@ public class SellerDashboardController {
         renderSessions(filterByStatus("REJECTED"));
     }
 
-
     @FXML
     private void handleEditSelectedSession() {
-        SessionItem selected = getSelectedSession();
-        if (selected == null) {
-            showAlert(Alert.AlertType.WARNING, "Chưa chọn phiên", "Bạn hãy chọn một phiên để sửa.");
-            return;
-        }
-
-        if (!"PENDING".equalsIgnoreCase(selected.status)) {
-            showAlert(Alert.AlertType.WARNING, "Không thể sửa",
-                    "Chỉ được sửa phiên đang ở trạng thái PENDING.");
-            return;
-        }
-
-        Integer sellerId = User.getId();
-        if (sellerId == null) {
-            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không lấy được sellerId từ session.");
-            return;
-        }
-
-        try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("http://localhost:8080/api/seller/session-detail/" + selected.id + "?sellerId=" + sellerId))
-                    .GET()
-                    .build();
-
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() != 200) {
-                showAlert(Alert.AlertType.ERROR, "Lỗi API", safeMessage(response.body()));
-                return;
-            }
-
-            JSONObject item = new JSONObject(response.body());
-            SessionItem detail = parseSession(item);
-
-            editingSessionId = detail.id;
-
-            productNameField.setText(detail.productName);
-            productTypeCombo.setValue(detail.productType == null || detail.productType.isBlank()
-                    ? "Electronics"
-                    : detail.productType);
-            imageUrlField.setText(detail.imageUrl);
-            descriptionArea.setText(detail.description);
-            startingPriceField.setText(cleanNumber(detail.startingPrice));
-            stepPriceField.setText(cleanNumber(detail.stepPrice));
-            endTimeField.setText(detail.endTime);
-
-            btnCreateOrUpdate.setText("Lưu cập nhật");
-            sellerTabPane.getSelectionModel().select(tabCreateSession);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể tải chi tiết phiên.");
-        }
+        showAlert(Alert.AlertType.INFORMATION,
+                "Tạm khóa chức năng",
+                "Chức năng sửa phiên đang tạm khóa để bản demo ổn định hơn.\nBạn có thể demo tạo, xem, lọc, hủy phiên và phân quyền.");
     }
 
     @FXML
@@ -241,11 +172,6 @@ public class SellerDashboardController {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() == 200) {
-                if (editingSessionId != null && editingSessionId.equals(selected.id)) {
-                    editingSessionId = null;
-                    clearForm();
-                    resetCreateButton();
-                }
                 loadMySessions();
                 showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã hủy phiên thành công.");
             } else {
@@ -405,14 +331,22 @@ public class SellerDashboardController {
         descriptionArea.clear();
         startingPriceField.clear();
         stepPriceField.clear();
-        endTimeField.clear();
+        fillDefaultEndTime();
         productTypeCombo.setValue("Electronics");
     }
 
-    private void resetCreateButton() {
-        if (btnCreateOrUpdate != null) {
-            btnCreateOrUpdate.setText("Tạo phiên");
+    private void fillDefaultEndTime() {
+        if (endTimeField != null && endTimeField.getText().trim().isEmpty()) {
+            endTimeField.setText(defaultEndTime());
         }
+    }
+
+    private String defaultEndTime() {
+        return LocalDateTime.now().plusDays(7).withSecond(0).withNano(0).toString();
+    }
+
+    private String productNameOrEmpty(TextInputControl input) {
+        return input == null ? "" : input.getText().trim();
     }
 
     private String cleanNumber(double value) {
