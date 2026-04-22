@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -71,8 +72,8 @@ public class SellerDashboardController {
         }
 
         try {
-            double startingPrice = Double.parseDouble(startingPriceText);
-            double stepPrice = Double.parseDouble(stepPriceText);
+            BigDecimal startingPrice = new BigDecimal(startingPriceText.trim());
+            BigDecimal stepPrice = new BigDecimal(stepPriceText.trim());
 
             JSONObject body = new JSONObject();
             body.put("productName", productName);
@@ -258,12 +259,39 @@ public class SellerDashboardController {
             s.description = product != null ? product.optString("description", "") : "";
         }
 
-        s.startingPrice = item.optDouble("startingPrice", 0.0);
-        s.currentPrice = item.optDouble("currentPrice", 0.0);
-        s.stepPrice = item.optDouble("stepPrice", 0.0);
+        s.startingPrice = parseBigDecimal(item, "startingPrice");
+        s.currentPrice = parseBigDecimal(item, "currentPrice");
+        s.stepPrice = parseBigDecimal(item, "stepPrice");
         s.endTime = item.optString("endTime", "");
         s.status = item.optString("status", "UNKNOWN");
         return s;
+    }
+
+    private BigDecimal parseBigDecimal(JSONObject item, String key) {
+        if (!item.has(key) || item.isNull(key)) {
+            return BigDecimal.ZERO;
+        }
+
+        Object value = item.get(key);
+
+        if (value instanceof BigDecimal) {
+            return (BigDecimal) value;
+        }
+
+        if (value instanceof Number) {
+            return new BigDecimal(value.toString());
+        }
+
+        String text = value.toString().trim();
+        if (text.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        try {
+            return new BigDecimal(text);
+        } catch (Exception e) {
+            return BigDecimal.ZERO;
+        }
     }
 
     private void renderSessions(List<SessionItem> sessions) {
@@ -297,7 +325,7 @@ public class SellerDashboardController {
 
     private void updateStats() {
         int pending = 0, active = 0, rejected = 0, completed = 0, canceled = 0;
-        double revenue = 0;
+        BigDecimal revenue = BigDecimal.ZERO;
 
         for (SessionItem s : allSessions) {
             if (s.status == null) continue;
@@ -307,7 +335,9 @@ public class SellerDashboardController {
                 case "REJECTED" -> rejected++;
                 case "COMPLETED" -> {
                     completed++;
-                    revenue += s.currentPrice;
+                    if (s.currentPrice != null) {
+                        revenue = revenue.add(s.currentPrice);
+                    }
                 }
                 case "CANCELED" -> canceled++;
             }
@@ -349,11 +379,6 @@ public class SellerDashboardController {
         return input == null ? "" : input.getText().trim();
     }
 
-    private String cleanNumber(double value) {
-        if (Math.floor(value) == value) return String.valueOf((long) value);
-        return String.valueOf(value);
-    }
-
     private String safeMessage(String body) {
         if (body == null || body.isBlank()) return "Có lỗi xảy ra từ server.";
         return body;
@@ -373,9 +398,9 @@ public class SellerDashboardController {
         String productType;
         String imageUrl;
         String description;
-        double startingPrice;
-        double currentPrice;
-        double stepPrice;
+        BigDecimal startingPrice = BigDecimal.ZERO;
+        BigDecimal currentPrice = BigDecimal.ZERO;
+        BigDecimal stepPrice = BigDecimal.ZERO;
         String endTime;
         String status;
     }
