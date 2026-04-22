@@ -71,13 +71,13 @@ public class AdminDashboardController {
                     .build();
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "Phê duyệt phiên thành công.");
 
-            if (response.statusCode() == 200) {
-                showAlert(Alert.AlertType.INFORMATION, "Thành công", "Phê duyệt phiên thành công.");
+            if (api.success) {
+                showAlert(Alert.AlertType.INFORMATION, "Thành công", api.message);
                 loadPendingSessions();
             } else {
-                String body = response.body() == null ? "" : response.body();
-                showAlert(Alert.AlertType.ERROR, "Lỗi", "Phê duyệt thất bại.\n" + body);
+                showAlert(Alert.AlertType.ERROR, "Lỗi", api.message);
             }
 
         } catch (Exception e) {
@@ -100,9 +100,7 @@ public class AdminDashboardController {
                 return;
             }
 
-            String body = response.body();
-            List<PendingSessionRow> rows = parsePendingSessions(body);
-
+            List<PendingSessionRow> rows = parsePendingSessions(response.body());
             tablePending.setItems(FXCollections.observableArrayList(rows));
 
         } catch (Exception e) {
@@ -119,7 +117,6 @@ public class AdminDashboardController {
         }
 
         JSONArray array;
-
         String trimmed = body.trim();
 
         if (trimmed.startsWith("[")) {
@@ -161,11 +158,38 @@ public class AdminDashboardController {
     }
 
     private double extractStartingPrice(JSONObject item) {
-        if (item.has("startingPrice")) {
-            return item.optDouble("startingPrice", 0.0);
+        if (!item.has("startingPrice") || item.isNull("startingPrice")) {
+            return 0.0;
         }
 
-        return 0.0;
+        Object value = item.get("startingPrice");
+        try {
+            return Double.parseDouble(value.toString());
+        } catch (Exception e) {
+            return 0.0;
+        }
+    }
+
+    private ApiResult parseApiResponse(String body, int httpStatus, String defaultSuccessMessage) {
+        if (body == null || body.isBlank()) {
+            return new ApiResult(httpStatus >= 200 && httpStatus < 300,
+                    httpStatus >= 200 && httpStatus < 300 ? defaultSuccessMessage : "Có lỗi xảy ra từ server.");
+        }
+
+        try {
+            String trimmed = body.trim();
+            if (trimmed.startsWith("{")) {
+                JSONObject obj = new JSONObject(trimmed);
+                int status = obj.optInt("status", httpStatus);
+                String message = obj.optString("message",
+                        status >= 200 && status < 300 ? defaultSuccessMessage : "Có lỗi xảy ra từ server.");
+                return new ApiResult(status >= 200 && status < 300, message);
+            }
+        } catch (Exception ignored) {
+        }
+
+        return new ApiResult(httpStatus >= 200 && httpStatus < 300,
+                httpStatus >= 200 && httpStatus < 300 ? defaultSuccessMessage : body);
     }
 
     private int getCurrentAdminId() {
@@ -215,6 +239,16 @@ public class AdminDashboardController {
 
         public double getStartingPrice() {
             return startingPrice.get();
+        }
+    }
+
+    private static class ApiResult {
+        boolean success;
+        String message;
+
+        ApiResult(boolean success, String message) {
+            this.success = success;
+            this.message = message;
         }
     }
 }

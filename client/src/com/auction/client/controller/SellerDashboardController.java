@@ -92,13 +92,14 @@ public class SellerDashboardController {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "Tạo phiên đấu giá thành công.");
 
-            if (response.statusCode() == 200) {
+            if (api.success) {
                 clearForm();
                 loadMySessions();
-                showAlert(Alert.AlertType.INFORMATION, "Thành công", "Tạo phiên đấu giá thành công.");
+                showAlert(Alert.AlertType.INFORMATION, "Thành công", api.message);
             } else {
-                showAlert(Alert.AlertType.ERROR, "Lỗi", safeMessage(response.body()));
+                showAlert(Alert.AlertType.ERROR, "Lỗi", api.message);
             }
 
         } catch (NumberFormatException e) {
@@ -171,12 +172,13 @@ public class SellerDashboardController {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "Đã hủy phiên thành công.");
 
-            if (response.statusCode() == 200) {
+            if (api.success) {
                 loadMySessions();
-                showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đã hủy phiên thành công.");
+                showAlert(Alert.AlertType.INFORMATION, "Thành công", api.message);
             } else {
-                showAlert(Alert.AlertType.ERROR, "Lỗi", safeMessage(response.body()));
+                showAlert(Alert.AlertType.ERROR, "Lỗi", api.message);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -204,16 +206,15 @@ public class SellerDashboardController {
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            if (response.statusCode() != 200) {
-                showAlert(Alert.AlertType.ERROR, "Lỗi", "Không tải được danh sách phiên.");
+            ApiArrayResult api = extractDataArray(response.body(), response.statusCode());
+            if (!api.success) {
+                showAlert(Alert.AlertType.ERROR, "Lỗi", api.message);
                 return;
             }
 
-            JSONArray array = new JSONArray(response.body());
             allSessions.clear();
-
-            for (int i = 0; i < array.length(); i++) {
-                allSessions.add(parseSession(array.getJSONObject(i)));
+            for (int i = 0; i < api.data.length(); i++) {
+                allSessions.add(parseSession(api.data.getJSONObject(i)));
             }
 
             renderSessions(allSessions);
@@ -384,6 +385,59 @@ public class SellerDashboardController {
         return body;
     }
 
+    private ApiResult parseApiResponse(String body, int httpStatus, String defaultSuccessMessage) {
+        if (body == null || body.isBlank()) {
+            return new ApiResult(httpStatus >= 200 && httpStatus < 300,
+                    httpStatus >= 200 && httpStatus < 300 ? defaultSuccessMessage : "Có lỗi xảy ra từ server.");
+        }
+
+        try {
+            String trimmed = body.trim();
+            if (trimmed.startsWith("{")) {
+                JSONObject obj = new JSONObject(trimmed);
+                int status = obj.optInt("status", httpStatus);
+                String message = obj.optString("message",
+                        status >= 200 && status < 300 ? defaultSuccessMessage : "Có lỗi xảy ra từ server.");
+                return new ApiResult(status >= 200 && status < 300, message);
+            }
+        } catch (Exception ignored) {
+        }
+
+        return new ApiResult(httpStatus >= 200 && httpStatus < 300,
+                httpStatus >= 200 && httpStatus < 300 ? defaultSuccessMessage : safeMessage(body));
+    }
+
+    private ApiArrayResult extractDataArray(String body, int httpStatus) {
+        if (body == null || body.isBlank()) {
+            return new ApiArrayResult(false, "Không có dữ liệu từ server.", new JSONArray());
+        }
+
+        try {
+            String trimmed = body.trim();
+
+            if (trimmed.startsWith("[")) {
+                return new ApiArrayResult(true, "OK", new JSONArray(trimmed));
+            }
+
+            JSONObject obj = new JSONObject(trimmed);
+            int status = obj.optInt("status", httpStatus);
+            String message = obj.optString("message", "Có lỗi xảy ra từ server.");
+
+            if (status < 200 || status >= 300) {
+                return new ApiArrayResult(false, message, new JSONArray());
+            }
+
+            Object data = obj.opt("data");
+            if (data instanceof JSONArray) {
+                return new ApiArrayResult(true, message, (JSONArray) data);
+            }
+
+            return new ApiArrayResult(true, message, new JSONArray());
+        } catch (Exception e) {
+            return new ApiArrayResult(false, "Không đọc được dữ liệu từ server.", new JSONArray());
+        }
+    }
+
     private void showAlert(Alert.AlertType type, String title, String content) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
@@ -403,5 +457,27 @@ public class SellerDashboardController {
         BigDecimal stepPrice = BigDecimal.ZERO;
         String endTime;
         String status;
+    }
+
+    private static class ApiResult {
+        boolean success;
+        String message;
+
+        ApiResult(boolean success, String message) {
+            this.success = success;
+            this.message = message;
+        }
+    }
+
+    private static class ApiArrayResult {
+        boolean success;
+        String message;
+        JSONArray data;
+
+        ApiArrayResult(boolean success, String message, JSONArray data) {
+            this.success = success;
+            this.message = message;
+            this.data = data;
+        }
     }
 }
