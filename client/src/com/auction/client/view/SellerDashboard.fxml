@@ -13,7 +13,9 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox spacing="15" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+<VBox spacing="15"
+      xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.auction.client.controller.SellerDashboardController"
       style="-fx-background-color: #f8fafc;">
 
@@ -33,10 +35,10 @@
                 style="-fx-background-color: #334155; -fx-text-fill: white; -fx-background-radius: 10;"/>
     </HBox>
 
-    <TabPane tabClosingPolicy="UNAVAILABLE">
-
+    <TabPane fx:id="sellerTabPane" tabClosingPolicy="UNAVAILABLE">
         <tabs>
-            <Tab text="Phiên của tôi">
+
+            <Tab fx:id="tabMySessions" text="Phiên của tôi">
                 <VBox spacing="12" style="-fx-background-color: white;">
                     <padding>
                         <Insets top="15" right="15" bottom="15" left="15"/>
@@ -55,6 +57,7 @@
                         <Button text="Sửa phiên đã chọn"
                                 onAction="#handleEditSelectedSession"
                                 style="-fx-background-color: #3b82f6; -fx-text-fill: white;"/>
+
                         <Button text="Hủy phiên đã chọn"
                                 onAction="#handleCancelSelectedSession"
                                 style="-fx-background-color: #ef4444; -fx-text-fill: white;"/>
@@ -62,7 +65,7 @@
                 </VBox>
             </Tab>
 
-            <Tab text="Tạo phiên">
+            <Tab fx:id="tabCreateSession" text="Tạo phiên">
                 <VBox spacing="10" style="-fx-background-color: white;">
                     <padding>
                         <Insets top="15" right="15" bottom="15" left="15"/>
@@ -89,7 +92,8 @@
                     <Label text="Thời gian kết thúc"/>
                     <TextField fx:id="endTimeField" promptText="2026-12-31T20:00:00"/>
 
-                    <Button text="Tạo phiên đấu giá"
+                    <Button fx:id="btnCreateOrUpdate"
+                            text="Tạo phiên"
                             onAction="#handleCreateSession"
                             prefHeight="40"
                             style="-fx-background-color: #22c55e; -fx-text-fill: white; -fx-font-size: 14;"/>
@@ -106,6 +110,7 @@
                     <TextArea fx:id="statsArea" editable="false" prefHeight="400"/>
                 </VBox>
             </Tab>
+
         </tabs>
     </TabPane>
 </VBox>
