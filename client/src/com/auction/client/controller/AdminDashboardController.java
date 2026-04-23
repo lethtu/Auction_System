@@ -94,13 +94,14 @@ public class AdminDashboardController {
                     .build();
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            ApiArrayResult api = extractDataArray(response.body(), response.statusCode());
 
-            if (response.statusCode() != 200) {
-                showAlert(Alert.AlertType.ERROR, "Lỗi", "Không tải được danh sách phiên chờ duyệt.");
+            if (!api.success) {
+                showAlert(Alert.AlertType.ERROR, "Lỗi", api.message);
                 return;
             }
 
-            List<PendingSessionRow> rows = parsePendingSessions(response.body());
+            List<PendingSessionRow> rows = parsePendingSessions(api.data);
             tablePending.setItems(FXCollections.observableArrayList(rows));
 
         } catch (Exception e) {
@@ -109,27 +110,8 @@ public class AdminDashboardController {
         }
     }
 
-    private List<PendingSessionRow> parsePendingSessions(String body) {
+    private List<PendingSessionRow> parsePendingSessions(JSONArray array) {
         List<PendingSessionRow> rows = new ArrayList<>();
-
-        if (body == null || body.isBlank()) {
-            return rows;
-        }
-
-        JSONArray array;
-        String trimmed = body.trim();
-
-        if (trimmed.startsWith("[")) {
-            array = new JSONArray(trimmed);
-        } else {
-            JSONObject obj = new JSONObject(trimmed);
-
-            if (obj.has("data") && obj.get("data") instanceof JSONArray) {
-                array = obj.getJSONArray("data");
-            } else {
-                array = new JSONArray();
-            }
-        }
 
         for (int i = 0; i < array.length(); i++) {
             JSONObject item = array.getJSONObject(i);
@@ -192,6 +174,37 @@ public class AdminDashboardController {
                 httpStatus >= 200 && httpStatus < 300 ? defaultSuccessMessage : body);
     }
 
+    private ApiArrayResult extractDataArray(String body, int httpStatus) {
+        if (body == null || body.isBlank()) {
+            return new ApiArrayResult(false, "Không có dữ liệu từ server.", new JSONArray());
+        }
+
+        try {
+            String trimmed = body.trim();
+
+            if (trimmed.startsWith("[")) {
+                return new ApiArrayResult(true, "OK", new JSONArray(trimmed));
+            }
+
+            JSONObject obj = new JSONObject(trimmed);
+            int status = obj.optInt("status", httpStatus);
+            String message = obj.optString("message", "Có lỗi xảy ra từ server.");
+
+            if (status < 200 || status >= 300) {
+                return new ApiArrayResult(false, message, new JSONArray());
+            }
+
+            Object data = obj.opt("data");
+            if (data instanceof JSONArray) {
+                return new ApiArrayResult(true, message, (JSONArray) data);
+            }
+
+            return new ApiArrayResult(true, message, new JSONArray());
+        } catch (Exception e) {
+            return new ApiArrayResult(false, "Không đọc được dữ liệu từ server.", new JSONArray());
+        }
+    }
+
     private int getCurrentAdminId() {
         try {
             Method method = User.class.getMethod("getId");
@@ -249,6 +262,18 @@ public class AdminDashboardController {
         ApiResult(boolean success, String message) {
             this.success = success;
             this.message = message;
+        }
+    }
+
+    private static class ApiArrayResult {
+        boolean success;
+        String message;
+        JSONArray data;
+
+        ApiArrayResult(boolean success, String message, JSONArray data) {
+            this.success = success;
+            this.message = message;
+            this.data = data;
         }
     }
 }
