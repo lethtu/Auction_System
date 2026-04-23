@@ -1,62 +1,40 @@
-package com.auction.server.model;
+package com.auction.server.dto;
 
-import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "auction_sessions")
-public class AuctionSession {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class SessionResponseDTO {
+
     private Integer id;
 
-    //Sợi dây liên kết 1 Sản phẩm - Nhiều Phiên đấu giá
-    @ManyToOne
-    @JoinColumn(name = "item_id")
-    private Item item;
+    private Integer productId;
+    private String productName;
+    private String productType;
+    private String imageUrl;
+    private String description;
 
-    @ManyToOne
-    @JoinColumn(name = "seller_id")
-    private Seller seller;
+    private Integer sellerId;
+    private String sellerUsername;
+    private String sellerFullname;
 
-    @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal startingPrice;
-
-    @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal currentPrice;
-
-    @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal stepPrice;
 
     private LocalDateTime createdAt;
     private LocalDateTime startTime;
-
-    @Column(name = "end_time")
     private LocalDateTime endTime;
     private LocalDateTime approvedAt;
     private LocalDateTime rejectedAt;
 
-    @Column(length = 30)
     private String status;
-
-    @Column(columnDefinition = "TEXT")
     private String rejectReason;
 
     private Integer approvedByAdminId;
     private Integer rejectedByAdminId;
 
-    public AuctionSession() {
+    public SessionResponseDTO() {
     }
-
-    @PrePersist
-    public void prePersist() {
-        if (this.createdAt == null) {
-            this.createdAt = LocalDateTime.now();
-        }
-    }
-    @Enumerated(EnumType.STRING)
-    private AuctionStatus status;
 
     public Integer getId() {
         return id;
@@ -66,31 +44,68 @@ public class AuctionSession {
         this.id = id;
     }
 
-    public Item getItem() { return item; }
-    public void setItem(Item item) { this.item = item; }
-    public Item getItem() {
-        return item;
+    public Integer getProductId() {
+        return productId;
     }
 
-    public void setItem(Item item) {
-        this.item = item;
+    public void setProductId(Integer productId) {
+        this.productId = productId;
     }
 
-    // Giữ thêm 2 hàm này để code cũ đỡ vỡ nhiều
-    public Item getProduct() {
-        return item;
+    public String getProductName() {
+        return productName;
     }
 
-    public void setProduct(Item item) {
-        this.item = item;
+    public void setProductName(String productName) {
+        this.productName = productName;
     }
 
-    public Seller getSeller() {
-        return seller;
+    public String getProductType() {
+        return productType;
     }
 
-    public void setSeller(Seller seller) {
-        this.seller = seller;
+    public void setProductType(String productType) {
+        this.productType = productType;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Integer getSellerId() {
+        return sellerId;
+    }
+
+    public void setSellerId(Integer sellerId) {
+        this.sellerId = sellerId;
+    }
+
+    public String getSellerUsername() {
+        return sellerUsername;
+    }
+
+    public void setSellerUsername(String sellerUsername) {
+        this.sellerUsername = sellerUsername;
+    }
+
+    public String getSellerFullname() {
+        return sellerFullname;
+    }
+
+    public void setSellerFullname(String sellerFullname) {
+        this.sellerFullname = sellerFullname;
     }
 
     public BigDecimal getStartingPrice() {
@@ -141,11 +156,27 @@ public class AuctionSession {
         this.endTime = endTime;
     }
 
-    public AuctionStatus getStatus() {
+    public LocalDateTime getApprovedAt() {
+        return approvedAt;
+    }
+
+    public void setApprovedAt(LocalDateTime approvedAt) {
+        this.approvedAt = approvedAt;
+    }
+
+    public LocalDateTime getRejectedAt() {
+        return rejectedAt;
+    }
+
+    public void setRejectedAt(LocalDateTime rejectedAt) {
+        this.rejectedAt = rejectedAt;
+    }
+
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(AuctionStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 

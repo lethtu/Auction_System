@@ -1,18 +1,18 @@
 package com.auction.server.view;
 
 public class ApiResponse<T>{
-    private int stauts;
+    private int status;
     private String message;
     private T data;
 
     public ApiResponse(int status, String message, T data){
-        this.stauts = status;
+        this.status = status;
         this.message = message;
         this.data = data;
     }
 
     public int getStatus(){
-        return stauts;
+        return status;
     }
 
     public String getMessage(){

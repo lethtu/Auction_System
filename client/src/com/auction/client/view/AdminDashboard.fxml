@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox spacing="15"
+      xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.auction.client.controller.AdminDashboardController"
+      style="-fx-background-color: #f8fafc;">
+
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+
+    <HBox spacing="12">
+        <Label text="ADMIN DASHBOARD">
+            <font>
+                <Font size="24"/>
+            </font>
+        </Label>
+    </HBox>
+
+    <Label text="Danh sách phiên chờ duyệt"
+           style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+
+    <TableView fx:id="tablePending" prefHeight="420">
+        <columns>
+            <TableColumn fx:id="colId" text="ID" prefWidth="100"/>
+            <TableColumn fx:id="colProduct" text="Tên sản phẩm" prefWidth="350"/>
+            <TableColumn fx:id="colPrice" text="Giá khởi điểm" prefWidth="180"/>
+        </columns>
+    </TableView>
+
+    <HBox spacing="10">
+        <Button text="Approve"
+                onAction="#handleApprove"
+                prefWidth="140" prefHeight="40"
+                style="-fx-background-color: #22c55e; -fx-text-fill: white; -fx-font-size: 14; -fx-background-radius: 10;"/>
+    </HBox>
+
+</VBox>

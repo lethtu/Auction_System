@@ -27,6 +27,7 @@ public interface AuctionSessionRepository extends JpaRepository<AuctionSession, 
             @Param("newStatus") AuctionStatus newStatus,
             @Param("now") LocalDateTime now
     );
+    List<AuctionSession> findBySeller_Id(Integer sellerId);
 
     // 2. Cập nhật trạng thái ACTIVE -> ENDED
     @Modifying
