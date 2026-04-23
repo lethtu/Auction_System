@@ -76,17 +76,24 @@ public class SellerDashboardController {
             BigDecimal stepPrice = new BigDecimal(stepPriceText.trim());
 
             JSONObject body = new JSONObject();
-            body.put("productName", productName);
-            body.put("productType", productType);
-            body.put("imageUrl", imageUrl);
+
+            // --- SỬA LẠI TÊN BIẾN CHO KHỚP VỚI CreateAuctionRequest TRÊN SERVER ---
+            body.put("name", productName);         // Sửa productName -> name
+            body.put("type", productType);         // Sửa productType -> type
+            body.put("imagePath", imageUrl);       // Sửa imageUrl -> imagePath
             body.put("description", description);
+
             body.put("startingPrice", startingPrice);
             body.put("stepPrice", stepPrice);
+
+            // Bổ sung startTime (mặc định lấy giờ hiện tại) vì Server có check cái này
+            body.put("startTime", LocalDateTime.now().plusMinutes(5).withNano(0).toString());
             body.put("endTime", endTime);
             body.put("sellerId", sellerId);
 
+            // --- SỬA LẠI URL CHO ĐÚNG CHUẨN ---
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("http://localhost:8080/api/seller/create"))
+                    .uri(URI.create("http://localhost:8080/api/seller/create-auction"))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
                     .build();
