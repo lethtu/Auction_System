@@ -2,11 +2,7 @@ package com.auction.server.service;
 
 import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.dto.UserResponseDTO;
-import com.auction.server.model.Admin;
-import com.auction.server.model.AdminRole;
-import com.auction.server.model.AuctionSession;
-import com.auction.server.model.Seller;
-import com.auction.server.model.User;
+import com.auction.server.model.*;
 import com.auction.server.repository.AuctionSessionRepository;
 import com.auction.server.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +39,8 @@ public class AdminService {
     }
 
     public List<SessionResponseDTO> getPendingSessions() {
-        return sessionRepository.findByStatus("PENDING")
+        // Sửa: Dùng Enum AuctionStatus.PENDING thay vì String "PENDING"
+        return sessionRepository.findByStatus(AuctionStatus.PENDING)
                 .stream()
                 .map(this::mapToSessionResponseDTO)
                 .toList();
@@ -53,12 +50,16 @@ public class AdminService {
         List<AuctionSession> sessions = sessionRepository.findAll();
 
         if (status != null && !status.trim().isEmpty()) {
-            String normalizedStatus = status.trim();
-
-            sessions = sessions.stream()
-                    .filter(session -> session.getStatus() != null
-                            && session.getStatus().equalsIgnoreCase(normalizedStatus))
-                    .toList();
+            try {
+                // Sửa: Chuyển String từ client gửi lên thành Enum để so sánh
+                AuctionStatus filterStatus = AuctionStatus.valueOf(status.trim().toUpperCase());
+                sessions = sessions.stream()
+                        .filter(session -> session.getStatus() == filterStatus)
+                        .toList();
+            } catch (IllegalArgumentException e) {
+                // Nếu status gửi lên không hợp lệ, trả về danh sách trống hoặc xử lý tùy ý
+                return List.of();
+            }
         }
 
         return sessions.stream()
@@ -80,17 +81,19 @@ public class AdminService {
         AuctionSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiên đấu giá"));
 
-        if (!"PENDING".equalsIgnoreCase(session.getStatus())) {
+        // Sửa: So sánh Enum bằng ==
+        if (session.getStatus() != AuctionStatus.PENDING) {
             throw new RuntimeException("Phiên này đã được xử lý hoặc không ở trạng thái chờ duyệt");
         }
 
         LocalDateTime now = LocalDateTime.now();
 
-        session.setStatus("ACTIVE");
+        session.setStatus(AuctionStatus.ACTIVE); // Sửa: Gán Enum
         session.setStartTime(now);
         session.setApprovedAt(now);
         session.setApprovedByAdminId(admin.getId());
 
+        // Đảm bảo các field này đã được khai báo chuẩn trong AuctionSession
         session.setRejectedAt(null);
         session.setRejectedByAdminId(null);
         session.setRejectReason(null);
@@ -109,13 +112,13 @@ public class AdminService {
         AuctionSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiên đấu giá"));
 
-        if (!"PENDING".equalsIgnoreCase(session.getStatus())) {
+        if (session.getStatus() != AuctionStatus.PENDING) {
             throw new RuntimeException("Chỉ được từ chối các phiên đang ở trạng thái chờ duyệt");
         }
 
         LocalDateTime now = LocalDateTime.now();
 
-        session.setStatus("REJECTED");
+        session.setStatus(AuctionStatus.REJECTED); // Sửa: Gán Enum REJECTED
         session.setRejectedAt(now);
         session.setRejectedByAdminId(admin.getId());
         session.setRejectReason(reason.trim());
@@ -174,7 +177,7 @@ public class AdminService {
             dto.setProductId(session.getItem().getId());
             dto.setProductName(session.getItem().getName());
             dto.setProductType(session.getItem().getType());
-            dto.setImageUrl(session.getItem().getImageUrl());
+            dto.setImageUrl(session.getItem().getImagePath()); // Sửa: getImagePath()
             dto.setDescription(session.getItem().getDescription());
         }
 
@@ -194,7 +197,11 @@ public class AdminService {
         dto.setApprovedAt(session.getApprovedAt());
         dto.setRejectedAt(session.getRejectedAt());
 
-        dto.setStatus(session.getStatus());
+        // Sửa: Convert Enum sang String để đưa vào DTO
+        if (session.getStatus() != null) {
+            dto.setStatus(session.getStatus().name());
+        }
+
         dto.setRejectReason(session.getRejectReason());
 
         dto.setApprovedByAdminId(session.getApprovedByAdminId());

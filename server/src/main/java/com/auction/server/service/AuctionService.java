@@ -1,6 +1,7 @@
 package com.auction.server.service;
 
 import com.auction.server.model.AuctionSession;
+import com.auction.server.model.AuctionStatus;
 import com.auction.server.repository.AuctionSessionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,7 +15,7 @@ public class AuctionService {
     private AuctionSessionRepository auctionSessionRepository;
 
     public List<AuctionSession> getActiveSessions() {
-        return auctionSessionRepository.findByStatus("ACTIVE");
+        return auctionSessionRepository.findByStatus(AuctionStatus.ACTIVE);
     }
 
     public AuctionSession getSessionById(Integer id) {

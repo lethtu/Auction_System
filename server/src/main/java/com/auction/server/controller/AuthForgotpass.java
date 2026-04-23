@@ -42,7 +42,7 @@ public class AuthForgotpass {
     private HandleLoginSignup Save;
 
     @PostMapping("/forgot_pass")
-    public ApiResponse forgot_pass(@RequestBody Map<String, String> requests) {
+    public ApiResponse<String> forgot_pass(@RequestBody Map<String, String> requests) {
         String email = requests.get("email");
         System.out.println("Yêu cầu quên mật khẩu từ: " + email);
         Optional<User> customer = forgotPass.forgot_pass(email);
@@ -66,7 +66,7 @@ public class AuthForgotpass {
     }
 
     @PostMapping("/check_code")
-    public ApiResponse check(@RequestBody Map<String, String> requests) {
+    public ApiResponse<String> check(@RequestBody Map<String, String> requests) {
         String email = requests.get("email");
         String code = requests.get("code");
         String pass = requests.get("password");

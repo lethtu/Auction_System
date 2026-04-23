@@ -32,9 +32,7 @@ public abstract class Item {
     public String getName() {
         return name;
     }
-    public void setName(String name) {
-        this.name = name;
-        }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -42,14 +40,6 @@ public abstract class Item {
     public String getType() {
         return type;
     }
-
-    public void setType(String type) {
-        this.type = type;
-        }
-
-    public String getType() {
-        return type;
-        }
     public void setType(String type) {
         this.type = type;
         }
