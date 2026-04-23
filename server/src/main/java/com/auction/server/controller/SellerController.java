@@ -5,9 +5,10 @@ import com.auction.server.dto.SellerStatsDTO;
 import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.service.SellerService;
+import com.auction.server.view.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,62 +21,94 @@ public class SellerController {
     private SellerService sellerService;
 
     @PostMapping("/create")
-    public ResponseEntity<?> createAuction(@Valid @RequestBody AuctionRequestDTO dto) {
+    public ApiResponse<?> createAuction(@Valid @RequestBody AuctionRequestDTO dto, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            String message = bindingResult.getFieldErrors().stream()
+                    .findFirst()
+                    .map(error -> error.getDefaultMessage())
+                    .orElse("Dữ liệu không hợp lệ");
+            return new ApiResponse<>(400, message, null);
+        }
+
         try {
             AuctionSession session = sellerService.createAuction(dto);
-            return ResponseEntity.ok("Đã gửi yêu cầu đấu giá cho món: " + session.getProduct().getName());
+            return new ApiResponse<>(200,
+                    "Đã gửi yêu cầu đấu giá cho món: " + session.getProduct().getName(),
+                    session.getId());
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return new ApiResponse<>(400, e.getMessage(), null);
         }
     }
 
     @GetMapping("/my-sessions/{sellerId}")
-    public ResponseEntity<List<SessionResponseDTO>> viewMySessions(
+    public ApiResponse<List<SessionResponseDTO>> viewMySessions(
             @PathVariable Integer sellerId,
             @RequestParam(required = false) String status
     ) {
-        return ResponseEntity.ok(sellerService.getMySessions(sellerId, status));
+        try {
+            List<SessionResponseDTO> data = sellerService.getMySessions(sellerId, status);
+            return new ApiResponse<>(200, "Lấy danh sách phiên thành công", data);
+        } catch (Exception e) {
+            return new ApiResponse<>(400, e.getMessage(), null);
+        }
     }
 
     @GetMapping("/session-detail/{sessionId}")
-    public ResponseEntity<?> getSessionDetail(
+    public ApiResponse<?> getSessionDetail(
             @PathVariable Integer sessionId,
             @RequestParam Integer sellerId
     ) {
         try {
-            return ResponseEntity.ok(sellerService.getSessionDetail(sessionId, sellerId));
+            return new ApiResponse<>(200, "Lấy chi tiết phiên thành công",
+                    sellerService.getSessionDetail(sessionId, sellerId));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return new ApiResponse<>(400, e.getMessage(), null);
         }
     }
 
     @PutMapping("/update-session/{sessionId}")
-    public ResponseEntity<?> updatePendingSession(
+    public ApiResponse<?> updatePendingSession(
             @PathVariable Integer sessionId,
             @RequestParam Integer sellerId,
-            @RequestBody AuctionRequestDTO dto
+            @Valid @RequestBody AuctionRequestDTO dto,
+            BindingResult bindingResult
     ) {
+        if (bindingResult.hasErrors()) {
+            String message = bindingResult.getFieldErrors().stream()
+                    .findFirst()
+                    .map(error -> error.getDefaultMessage())
+                    .orElse("Dữ liệu không hợp lệ");
+            return new ApiResponse<>(400, message, null);
+        }
+
         try {
             dto.setSellerId(sellerId);
             AuctionSession updatedSession = sellerService.updatePendingSession(sessionId, sellerId, dto);
-            return ResponseEntity.ok("Đã cập nhật phiên chờ duyệt cho món: " + updatedSession.getProduct().getName());
+            return new ApiResponse<>(200,
+                    "Đã cập nhật phiên chờ duyệt cho món: " + updatedSession.getProduct().getName(),
+                    updatedSession.getId());
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return new ApiResponse<>(400, e.getMessage(), null);
         }
     }
 
     @DeleteMapping("/cancel-session/{sessionId}")
-    public ResponseEntity<?> cancelAuction(@PathVariable Integer sessionId, @RequestParam Integer sellerId) {
+    public ApiResponse<?> cancelAuction(@PathVariable Integer sessionId, @RequestParam Integer sellerId) {
         try {
             sellerService.cancelSession(sessionId, sellerId);
-            return ResponseEntity.ok("Đã hủy phiên thành công");
+            return new ApiResponse<>(200, "Đã hủy phiên thành công", null);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return new ApiResponse<>(400, e.getMessage(), null);
         }
     }
 
     @GetMapping("/stats/{sellerId}")
-    public ResponseEntity<SellerStatsDTO> getStats(@PathVariable Integer sellerId) {
-        return ResponseEntity.ok(sellerService.getSellerStats(sellerId));
+    public ApiResponse<?> getStats(@PathVariable Integer sellerId) {
+        try {
+            SellerStatsDTO stats = sellerService.getSellerStats(sellerId);
+            return new ApiResponse<>(200, "Lấy thống kê thành công", stats);
+        } catch (Exception e) {
+            return new ApiResponse<>(400, e.getMessage(), null);
+        }
     }
 }
