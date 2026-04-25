@@ -3,8 +3,8 @@ package com.auction.server.controller;
 import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.dto.UserResponseDTO;
 import com.auction.server.service.AdminService;
-import com.auction.server.view.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,70 +17,54 @@ public class AdminController {
     private AdminService adminService;
 
     @GetMapping("/pending")
-    public ApiResponse<List<SessionResponseDTO>> getPendingSessions() {
-        try {
-            List<SessionResponseDTO> data = adminService.getPendingSessions();
-            return new ApiResponse<>(200, "Lấy danh sách phiên chờ duyệt thành công", data);
-        } catch (Exception e) {
-            return new ApiResponse<>(500, e.getMessage(), null);
-        }
+    public ResponseEntity<List<SessionResponseDTO>> getPendingSessions() {
+        return ResponseEntity.ok(adminService.getPendingSessions());
     }
 
     @GetMapping("/sessions")
-    public ApiResponse<List<SessionResponseDTO>> getAllSessions(
+    public ResponseEntity<List<SessionResponseDTO>> getAllSessions(
             @RequestParam(required = false) String status
     ) {
-        try {
-            List<SessionResponseDTO> data = adminService.getAllSessions(status);
-            return new ApiResponse<>(200, "Lấy danh sách phiên thành công", data);
-        } catch (Exception e) {
-            return new ApiResponse<>(500, e.getMessage(), null);
-        }
+        return ResponseEntity.ok(adminService.getAllSessions(status));
     }
 
     @GetMapping("/session-detail/{sessionId}")
-    public ApiResponse<SessionResponseDTO> getSessionDetail(@PathVariable Integer sessionId) {
+    public ResponseEntity<?> getSessionDetail(@PathVariable Integer sessionId) {
         try {
-            SessionResponseDTO data = adminService.getSessionDetail(sessionId);
-            return new ApiResponse<>(200, "Lấy chi tiết phiên thành công", data);
+            return ResponseEntity.ok(adminService.getSessionDetail(sessionId));
         } catch (Exception e) {
-            return new ApiResponse<>(500, e.getMessage(), null);
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @PostMapping("/approve/{sessionId}")
-    public ApiResponse<String> approveSession(@PathVariable Integer sessionId, @RequestParam Integer adminId) {
+    public ResponseEntity<?> approveSession(@PathVariable Integer sessionId, @RequestParam Integer adminId) {
         try {
             adminService.approveSession(sessionId, adminId);
-            return new ApiResponse<>(200, "Phê duyệt thành công! Phiên đấu giá đã bắt đầu.", null);
+            return ResponseEntity.ok("Phê duyệt thành công! Phiên đấu giá đã bắt đầu.");
         } catch (Exception e) {
-            return new ApiResponse<>(500, e.getMessage(), null);
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @PostMapping("/reject/{sessionId}")
-    public ApiResponse<String> rejectSession(
+    public ResponseEntity<?> rejectSession(
             @PathVariable Integer sessionId,
             @RequestParam Integer adminId,
             @RequestParam String reason
     ) {
         try {
             adminService.rejectSession(sessionId, adminId, reason);
-            return new ApiResponse<>(200, "Đã từ chối phiên đấu giá.", null);
+            return ResponseEntity.ok("Đã từ chối phiên đấu giá.");
         } catch (Exception e) {
-            return new ApiResponse<>(500, e.getMessage(), null);
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @GetMapping("/users")
-    public ApiResponse<List<UserResponseDTO>> getAllUsers(
+    public ResponseEntity<List<UserResponseDTO>> getAllUsers(
             @RequestParam(required = false) String role
     ) {
-        try {
-            List<UserResponseDTO> data = adminService.getAllUsers(role);
-            return new ApiResponse<>(200, "Lấy danh sách người dùng thành công", data);
-        } catch (Exception e) {
-            return new ApiResponse<>(500, e.getMessage(), null);
-        }
+        return ResponseEntity.ok(adminService.getAllUsers(role));
     }
 }
