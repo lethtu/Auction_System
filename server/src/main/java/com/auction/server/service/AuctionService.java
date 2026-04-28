@@ -1,6 +1,10 @@
 package com.auction.server.service;
 
 import com.auction.server.model.AuctionSession;
+<<<<<<< HEAD
+=======
+import com.auction.server.model.AuctionStatus;
+>>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
 import com.auction.server.repository.AuctionSessionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,7 +18,11 @@ public class AuctionService {
     private AuctionSessionRepository auctionSessionRepository;
 
     public List<AuctionSession> getActiveSessions() {
+<<<<<<< HEAD
         return auctionSessionRepository.findByStatus("ACTIVE");
+=======
+        return auctionSessionRepository.findByStatus(AuctionStatus.ACTIVE);
+>>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
     }
 
     public AuctionSession getSessionById(Integer id) {

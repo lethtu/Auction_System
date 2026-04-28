@@ -1,5 +1,10 @@
 package com.auction.server.service;
 
+<<<<<<< HEAD
+=======
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+>>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
 import com.auction.server.dto.CreateAuctionRequest;
 import com.auction.server.dto.SellerStatsDTO;
 import com.auction.server.dto.SessionResponseDTO;
@@ -22,6 +27,10 @@ import java.util.List;
 
 @Service
 public class SellerService {
+<<<<<<< HEAD
+=======
+    private static final Logger logger = LoggerFactory.getLogger(SellerService.class);
+>>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
 
     @Autowired
     private ItemRepository itemRepository;
@@ -37,6 +46,10 @@ public class SellerService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người bán"));
 
         if (!(user instanceof Seller)) {
+<<<<<<< HEAD
+=======
+            logger.error("Người dùng này không phải seller");
+>>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
             throw new RuntimeException("Người dùng này không phải seller");
         }
 
@@ -46,35 +59,68 @@ public class SellerService {
     // Gộp Validation của cả Khánh và Minh
     private void validateAuctionInput(CreateAuctionRequest request) {
         if (request.getName() == null || request.getName().trim().isEmpty()) {
+<<<<<<< HEAD
+=======
+            logger.error("Tên sản phẩm không được để trống");
+>>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
             throw new IllegalArgumentException("Tên sản phẩm không được để trống");
         }
 
         if (request.getType() == null || request.getType().trim().isEmpty()) {
+<<<<<<< HEAD
+=======
+            logger.error("Loại sản phẩm không được để trống");
+>>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
             throw new IllegalArgumentException("Loại sản phẩm không được để trống");
         }
 
         if (request.getDescription() != null && request.getDescription().length() > 1000) {
+<<<<<<< HEAD
+=======
+            logger.error("Mô tả không được quá 1000 ký tự");
+>>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
             throw new IllegalArgumentException("Mô tả không được quá 1000 ký tự");
         }
 
         if (request.getStartingPrice() == null || request.getStartingPrice().compareTo(BigDecimal.ZERO) <= 0) {
+<<<<<<< HEAD
+=======
+            logger.error("Giá khởi điểm phải lớn hơn 0");
+>>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
             throw new IllegalArgumentException("Giá khởi điểm phải lớn hơn 0");
         }
 
         if (request.getStepPrice() != null && request.getStepPrice().compareTo(BigDecimal.ZERO) <= 0) {
+<<<<<<< HEAD
+=======
+            logger.error("Bước giá phải lớn hơn 0");
+>>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
             throw new IllegalArgumentException("Bước giá phải lớn hơn 0");
         }
 
         LocalDateTime now = LocalDateTime.now();
+<<<<<<< HEAD
         if (request.getStartTime() != null && request.getStartTime().isBefore(now)) {
+=======
+        if (request.getStartTime() != null && request.getStartTime().isBefore(now)){
+            logger.error("Thời gian bắt đầu không được nằm trong quá khứ.");
+>>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
             throw new IllegalArgumentException("Thời gian bắt đầu không được nằm trong quá khứ.");
         }
 
         if (request.getEndTime() == null || !request.getEndTime().isAfter(now)) {
+<<<<<<< HEAD
+=======
+            logger.error("Thời gian kết thúc phải ở tương lai");
+>>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
             throw new IllegalArgumentException("Thời gian kết thúc phải ở tương lai");
         }
 
         if (request.getStartTime() != null && request.getEndTime().isBefore(request.getStartTime())) {
+<<<<<<< HEAD
+=======
+            logger.error("Thời gian kết thúc phải diễn ra sau thời gian bắt đầu.");
+>>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
             throw new IllegalArgumentException("Thời gian kết thúc phải diễn ra sau thời gian bắt đầu.");
         }
     }
@@ -146,6 +192,10 @@ public class SellerService {
                 .orElseThrow(() -> new RuntimeException("Phiên đấu giá không tồn tại"));
 
         if (!session.getSeller().getId().equals(seller.getId())) {
+<<<<<<< HEAD
+=======
+            logger.error("{} không có quyền xem phiên {}", sellerId, sessionId);
+>>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
             throw new RuntimeException("Bạn không có quyền xem phiên này");
         }
 
@@ -161,10 +211,18 @@ public class SellerService {
                 .orElseThrow(() -> new RuntimeException("Phiên đấu giá không tồn tại"));
 
         if (!session.getSeller().getId().equals(seller.getId())) {
+<<<<<<< HEAD
+=======
+            logger.error("{} không có quyền sửa phiên {}", sellerId, sessionId);
+>>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
             throw new RuntimeException("Bạn không có quyền sửa phiên này");
         }
 
         if (session.getStatus() != AuctionStatus.PENDING) {
+<<<<<<< HEAD
+=======
+            logger.error("Chỉ được sửa phiên đang chờ duyệt");
+>>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
             throw new RuntimeException("Chỉ được sửa phiên đang chờ duyệt");
         }
 
@@ -192,10 +250,18 @@ public class SellerService {
                 .orElseThrow(() -> new RuntimeException("Phiên đấu giá không tồn tại"));
 
         if (!session.getSeller().getId().equals(seller.getId())) {
+<<<<<<< HEAD
+=======
+            logger.error("{} không có quyền hủy phiên này", sellerId);
+>>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
             throw new RuntimeException("Bạn không có quyền hủy phiên này");
         }
 
         if (session.getStatus() != AuctionStatus.PENDING) {
+<<<<<<< HEAD
+=======
+            logger.error("Chỉ được hủy phiên ở trạng thái chờ duyệt");
+>>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
             throw new RuntimeException("Chỉ được hủy phiên ở trạng thái chờ duyệt");
         }
 

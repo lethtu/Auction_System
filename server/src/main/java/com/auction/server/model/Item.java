@@ -32,9 +32,13 @@ public abstract class Item {
     public String getName() {
         return name;
     }
+<<<<<<< HEAD
     public void setName(String name) {
         this.name = name;
         }
+=======
+
+>>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
     public void setName(String name) {
         this.name = name;
     }
@@ -42,6 +46,7 @@ public abstract class Item {
     public String getType() {
         return type;
     }
+<<<<<<< HEAD
 
     public void setType(String type) {
         this.type = type;
@@ -50,6 +55,8 @@ public abstract class Item {
     public String getType() {
         return type;
         }
+=======
+>>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
     public void setType(String type) {
         this.type = type;
         }

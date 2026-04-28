@@ -6,21 +6,14 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-<<<<<<< HEAD
-=======
-        <module name="Auction_System_Server" />
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
-        <module name="Auction_System" />
+        <module name="Auction_System (1)" />
+        <module name="Auction_System (3)" />
       </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="Auction_System" options="-parameters" />
-<<<<<<< HEAD
-=======
-      <module name="Auction_System_Server" options="-parameters" />
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
+      <module name="Auction_System (3)" options="-parameters" />
     </option>
   </component>
 </project>

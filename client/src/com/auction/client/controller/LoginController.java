@@ -1,5 +1,11 @@
 package com.auction.client.controller;
 
+<<<<<<< HEAD
+=======
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.auction.client.Config;
+>>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
 import com.auction.client.model.User;
 import javafx.scene.control.Alert;
 import javafx.event.ActionEvent;
@@ -15,7 +21,11 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 public class LoginController {
+<<<<<<< HEAD
 
+=======
+    private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
+>>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
     @FXML private TextField txtUsername;
     @FXML private PasswordField txtPassword;
 
@@ -36,7 +46,11 @@ public class LoginController {
 
         try {
             HttpRequest request = HttpRequest.newBuilder()
+<<<<<<< HEAD
                     .uri(URI.create("http://localhost:8080/api/login"))
+=======
+                    .uri(URI.create(Config.API_URL + "/api/login"))
+>>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                     .build();
@@ -46,6 +60,10 @@ public class LoginController {
 
             if (response.statusCode() != 200) {
                 showAlert(Alert.AlertType.ERROR, "Lỗi đăng nhập", "Sai tài khoản hoặc mật khẩu!");
+<<<<<<< HEAD
+=======
+                logger.error("Lỗi khi connect đến server");
+>>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
                 return;
             }
 
@@ -53,6 +71,10 @@ public class LoginController {
 
             if (responseJson.getInt("status") != 200) {
                 showAlert(Alert.AlertType.ERROR, "Lỗi đăng nhập", "Đăng nhập thất bại!");
+<<<<<<< HEAD
+=======
+                logger.error("Lỗi đăng nhập thất bại - status code: {}", responseJson.getInt("status"));
+>>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
                 return;
             }
 
@@ -71,7 +93,11 @@ public class LoginController {
             User.setSession(id, username, fullname, email, dob, placeOfBirth, role);
 
             showAlert(Alert.AlertType.INFORMATION, "Thành công", "Chào mừng bạn đã quay lại!");
+<<<<<<< HEAD
 
+=======
+            logger.info("Đăng nhập thành công");
+>>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
             String normalizedRole = role.trim().toUpperCase();
 
             if (normalizedRole.equals("SELLER")) {
@@ -84,7 +110,11 @@ public class LoginController {
             }
 
         } catch (Exception e) {
+<<<<<<< HEAD
             e.printStackTrace();
+=======
+            logger.error("Không thể kết nối máy chủ: {}", e.getMessage(), e);
+>>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
             showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
         }
     }
