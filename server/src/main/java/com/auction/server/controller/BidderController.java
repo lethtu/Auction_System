@@ -1,10 +1,7 @@
 package com.auction.server.controller;
 
-<<<<<<< HEAD
-=======
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
 import com.auction.server.model.AuctionSession;
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.repository.AuctionSessionRepository;
@@ -25,10 +22,7 @@ import java.time.LocalDateTime;
 @RestController
 @RequestMapping("/api/bidder")
 public class BidderController {
-<<<<<<< HEAD
-=======
     private static final Logger logger = LoggerFactory.getLogger(BidderController.class);
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
 
     @Autowired
     private AuctionSessionRepository auctionSessionRepository;
@@ -44,11 +38,7 @@ public class BidderController {
     public ApiResponse<Page<AuctionSession>> getActiveSessions(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size) {
-<<<<<<< HEAD
-
-=======
         logger.info("Đang lấy danh sách đấu giá");
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
         // Sắp xếp ưu tiên hiển thị những cái mới nhất (theo startTime giảm dần)
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "startTime"));
 
@@ -67,23 +57,15 @@ public class BidderController {
         // Đã sửa sessionRepository -> auctionSessionRepository
         AuctionSession session = auctionSessionRepository.findById(sessionId).orElse(null);
         User bidder = userRepository.findById(bidderId).orElse(null);
-<<<<<<< HEAD
-
-        if (session == null || bidder == null) {
-=======
         logger.info("Đang đặt giá");
         if (session == null || bidder == null) {
             logger.error("Lỗi phiên hoặc người dùng không hợp lệ");
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
             return ResponseEntity.badRequest().body("Invalid session or user");
         }
 
         // Đã sửa "ACTIVE".equals() -> Kiểm tra bằng Enum chuẩn
         if (session.getStatus() != AuctionStatus.ACTIVE) {
-<<<<<<< HEAD
-=======
             logger.error("Lỗi phiên chưa bắt đầu");
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
             return ResponseEntity.badRequest().body("Auction is not active");
         }
 

@@ -1,12 +1,9 @@
 package com.auction.client.controller;
 
-<<<<<<< HEAD
-=======
 
 import com.auction.client.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -17,10 +14,7 @@ import java.net.URI;
 import java.net.http.*;
 
 public class ForgotPasswordController {
-<<<<<<< HEAD
-=======
     private static final Logger logger = LoggerFactory.getLogger(ForgotPasswordController.class);
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
 
     @FXML private TextField txtEmail, txtOTP;
     @FXML private PasswordField txtNewPassword, txtConfirmNewPassword;
@@ -40,28 +34,16 @@ public class ForgotPasswordController {
 
         new Thread(() -> {
             try {
-<<<<<<< HEAD
-                // Sử dụng API 1 để kiểm tra email
-=======
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
                 JSONObject json = new JSONObject();
                 json.put("email", email);
 
                 HttpRequest request = HttpRequest.newBuilder()
-<<<<<<< HEAD
-                        .uri(URI.create("http://localhost:8080/api/forgot_pass"))
-=======
                         .uri(URI.create(Config.API_URL + "/api/forgot_pass"))
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
                         .header("Content-Type", "application/json")
                         .POST(HttpRequest.BodyPublishers.ofString(json.toString()))
                         .build();
 
                 HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-<<<<<<< HEAD
-                System.out.println(response.body());
-=======
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
                 JSONObject rq = new JSONObject(response.body());
                 Platform.runLater(() -> {
                     if (rq.getInt("status") == 200 && response.statusCode() == 200) {
@@ -69,16 +51,6 @@ public class ForgotPasswordController {
                         stepReset.setVisible(true);
                         stepReset.setManaged(true);
                         showAlert(Alert.AlertType.INFORMATION, "Thành công", rq.getString("message"));
-<<<<<<< HEAD
-                    } else {
-                        showAlert(Alert.AlertType.ERROR, "Lỗi", rq.getString("message"));
-                        btnGetOTP.setDisable(false);
-                        btnGetOTP.setText("Gửi lại mã");
-                    }
-                });
-            } catch (Exception e) {
-                e.printStackTrace();
-=======
                         logger.info("Gửi yêu cầu gửi OTP thành công");
                     }
                     else {
@@ -91,7 +63,6 @@ public class ForgotPasswordController {
             }
             catch (Exception e) {
                 logger.error("Lỗi khi gửi yêu cầu đến server: {}", e.getMessage(), e);
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
                 Platform.runLater(() -> btnGetOTP.setDisable(false));
             }
         }).start();
@@ -117,11 +88,7 @@ public class ForgotPasswordController {
                 json.put("password", newPass);
 
                 HttpRequest request = HttpRequest.newBuilder()
-<<<<<<< HEAD
-                        .uri(URI.create("http://localhost:8080/api/check_code"))
-=======
                         .uri(URI.create(Config.API_URL + "/api/check_code"))
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
                         .header("Content-Type", "application/json")
                         .POST(HttpRequest.BodyPublishers.ofString(json.toString()))
                         .build();
@@ -132,15 +99,6 @@ public class ForgotPasswordController {
                     if (response.statusCode() == 200) {
                         if (rq.getInt("status") == 200){
                             showAlert(Alert.AlertType.INFORMATION, "Thành công", rq.getString("message"));
-<<<<<<< HEAD
-                            try {
-                                goToLogin(event);
-                            }
-                            catch (Exception e) {}
-                        }
-                        else{
-                            showAlert(Alert.AlertType.ERROR, "Thất bại", rq.getString("message"));
-=======
                             logger.info("Đổi mật khẩu thành công");
                             try {
                                 goToLogin(event);
@@ -152,16 +110,10 @@ public class ForgotPasswordController {
                         else{
                             showAlert(Alert.AlertType.ERROR, "Thất bại", rq.getString("message"));
                             logger.info("Yêu cầu đổi mật khẩu thất bại");
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
                         }
                     }
                     else {
                         showAlert(Alert.AlertType.ERROR, "Lỗi", "Lỗi mạng");
-<<<<<<< HEAD
-                    }
-                });
-            } catch (Exception e) { e.printStackTrace(); }
-=======
                         logger.info("Lỗi phản hồi từ server - status: {}", response.statusCode());
                     }
                 });
@@ -169,17 +121,12 @@ public class ForgotPasswordController {
             catch (Exception e) {
                 logger.error("Lỗi trong quá trình thực thi: {}", e.getMessage(), e);
             }
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
         }).start();
     }
 
     @FXML
     public void goToLogin(ActionEvent event) throws Exception {
-<<<<<<< HEAD
-        SceneSwitcher.switchScene(event, "Login.fxml", 400, 500);
-=======
         SceneSwitcher.switchScene(event, "Login.fxml", Config.Width, Config.Height);
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
     }
 
     private void showAlert(Alert.AlertType type, String title, String content) {

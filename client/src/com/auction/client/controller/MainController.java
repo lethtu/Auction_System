@@ -1,11 +1,8 @@
 package com.auction.client.controller;
 
-<<<<<<< HEAD
-=======
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -32,10 +29,7 @@ import java.net.http.HttpResponse;
 import java.util.ResourceBundle;
 
 public class MainController implements Initializable {
-<<<<<<< HEAD
-=======
     private static final Logger logger = LoggerFactory.getLogger(MainController.class);
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
 
     @FXML private Label lblWelcome;
     @FXML private FlowPane productContainer;
@@ -52,14 +46,8 @@ public class MainController implements Initializable {
     private void loadProductsFromServer() {
         new Thread(() -> {
             try {
-<<<<<<< HEAD
-                // 1. GỌI VÀO API MỚI (Lấy danh sách phân trang)
-                HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create("http://localhost:8080/api/bidder/active-sessions"))
-=======
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create(Config.API_URL + "/api/bidder/active-sessions"))
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
                         .GET()
                         .build();
 
@@ -67,25 +55,12 @@ public class MainController implements Initializable {
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
                 if (response.statusCode() == 200) {
-<<<<<<< HEAD
-                    // 2. BÓC TÁCH JSON NHIỀU LỚP
-                    JSONObject responseJson = new JSONObject(response.body());
-
-                    // Check nếu status từ API trả về là 200 (Thành công)
-                    if (responseJson.getInt("status") == 200) {
-
-                        // Lấy ra cục "data" (chứa toàn bộ thông tin phân trang)
-                        JSONObject pageData = responseJson.getJSONObject("data");
-
-                        // Lấy mảng "content" (chứa danh sách sản phẩm thực sự)
-=======
                     JSONObject responseJson = new JSONObject(response.body());
 
                     if (responseJson.getInt("status") == 200) {
 
                         JSONObject pageData = responseJson.getJSONObject("data");
 
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
                         JSONArray jsonArray = pageData.getJSONArray("content");
 
                         Platform.runLater(() -> {
@@ -94,10 +69,6 @@ public class MainController implements Initializable {
                             for (int i = 0; i < jsonArray.length(); i++) {
                                 JSONObject sessionObj = jsonArray.getJSONObject(i);
 
-<<<<<<< HEAD
-                                // Lấy thông tin từ Session
-=======
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
                                 int id = sessionObj.getInt("id");
                                 String type = sessionObj.optString("status", "ACTIVE");
                                 double currentPrice = sessionObj.getDouble("currentPrice");
@@ -112,10 +83,6 @@ public class MainController implements Initializable {
                                     endTime = sessionObj.getString("endTime").replace("T", " ");
                                 }
 
-<<<<<<< HEAD
-                                // 3. LẤY THÔNG TIN HÀNG HÓA TỪ OBJECT "ITEM" LỒNG BÊN TRONG
-=======
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
                                 JSONObject itemObj = sessionObj.getJSONObject("item");
                                 String name = itemObj.getString("name");
                                 String imagePath = itemObj.optString("imagePath", "default.png");
@@ -126,20 +93,11 @@ public class MainController implements Initializable {
                         });
                     }
                 } else {
-<<<<<<< HEAD
-                    System.err.println("Lỗi từ Server: " + response.statusCode());
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.err.println("Lỗi hệ thống khi tải sản phẩm!");
-=======
                     logger.error("Lỗi từ Server: {}", response.statusCode());
                 }
 
             } catch (Exception e) {
                 logger.error("Lỗi hệ thống khi tải sản phẩm!: {}", e.getMessage(), e);
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
             }
         }).start();
     }
@@ -155,19 +113,12 @@ public class MainController implements Initializable {
         try {
             if (!imagePath.isEmpty()) {
                 System.out.println(imagePath);
-<<<<<<< HEAD
-                String imageUrl = "http://localhost:8080/api/files/images/" + imagePath;
-=======
                 String imageUrl = Config.API_URL + "/api/files/images/" + imagePath;
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
                 Image image = new Image(imageUrl, true);
                 imageView.setImage(image);
                 hasImage = true;
             } else {
-<<<<<<< HEAD
-=======
                 logger.info("Không có ảnh");
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
                 throw new Exception("Không có ảnh");
             }
         } catch (Exception e) {
@@ -216,11 +167,7 @@ public class MainController implements Initializable {
         bidBtn.setStyle("-fx-background-color: #007bff; -fx-text-fill: white; -fx-cursor: hand;");
 
         bidBtn.setOnAction(event -> {
-<<<<<<< HEAD
-            System.out.println(">>> Mở trang chi tiết cho sản phẩm ID: " + id);
-=======
             logger.info(">>> Mở trang chi tiết cho sản phẩm ID: " + id);
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
         });
 
         vbox.getChildren().addAll(nameLabel, typeLabel, priceLabel, startTimeLabel, endTimeLabel, bidBtn);

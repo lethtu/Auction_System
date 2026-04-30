@@ -4,11 +4,8 @@ import java.security.SecureRandom;
 import java.util.Optional;
 import java.util.Map;
 
-<<<<<<< HEAD
-=======
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
 import com.auction.server.repository.HandleLoginSignup;
 import com.auction.server.view.EmailServer;
 import com.auction.server.view.RqForgotPass;
@@ -38,10 +35,7 @@ class OTPGenerator {
 @RestController
 @RequestMapping("/api")
 public class AuthForgotpass {
-<<<<<<< HEAD
-=======
     private static final Logger logger = LoggerFactory.getLogger(AuthForgotpass.class);
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
     private Map<String, String> otpStorage = new ConcurrentHashMap<>();
     @Autowired
     private RqForgotPass forgotPass;
@@ -51,14 +45,6 @@ public class AuthForgotpass {
     private HandleLoginSignup Save;
 
     @PostMapping("/forgot_pass")
-<<<<<<< HEAD
-    public ApiResponse forgot_pass(@RequestBody Map<String, String> requests) {
-        String email = requests.get("email");
-        System.out.println("Yêu cầu quên mật khẩu từ: " + email);
-        Optional<User> customer = forgotPass.forgot_pass(email);
-
-        if (customer.isPresent()) {
-=======
     public ApiResponse<String> forgot_pass(@RequestBody Map<String, String> requests) {
         String email = requests.get("email");
         logger.info("Có yêu cầu quên mật khẩu từ {}", email);
@@ -66,7 +52,6 @@ public class AuthForgotpass {
         if (customer.isPresent()) {
             logger.info("Email {} tồn tại trong hệ thống", email);
             logger.info("Đang tạo mã OTP cho {}", email);
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
             String newOTP = OTPGenerator.generateOTP(6);
             if (otpStorage.get(email) != null) {
                 newOTP = otpStorage.get(email);
@@ -78,43 +63,20 @@ public class AuthForgotpass {
                     + "KHÔNG CUNG CẤP MÃ NÀY CHO BẤT CỨ AI\n\n"
                     + "Trân trọng,\nBan Quản Trị.";
             emailServer.SendEmail(email, "Mã xác thực để đổi mật khẩu", body);
-<<<<<<< HEAD
-            return new ApiResponse<String>(200, "Đã gửi mã xác nhận", "");
-        } else {
-=======
             logger.info("Xử lý thành công yêu cầu từ {}", email);
             return new ApiResponse<String>(200, "Đã gửi mã xác nhận", "");
         } else {
             logger.error("Không có tài khoản liên kết với {}", email);
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
             return new ApiResponse<String>(100, "Không có tài khoản nào liên kết với Email này", "");
         }
     }
 
     @PostMapping("/check_code")
-<<<<<<< HEAD
-    public ApiResponse check(@RequestBody Map<String, String> requests) {
-=======
     public ApiResponse<String> check(@RequestBody Map<String, String> requests) {
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
         String email = requests.get("email");
         String code = requests.get("code");
         String pass = requests.get("password");
         Optional<User> customer = forgotPass.forgot_pass(email);
-<<<<<<< HEAD
-        if (customer.isPresent()) {
-            String savedOTP = otpStorage.get(email);
-            if (savedOTP != null && savedOTP.equals(code)) {
-                otpStorage.remove(email);
-                customer.get().setPassword(pass);
-                Save.save(customer.get());
-                return new ApiResponse<String>(200, "Xác thực thành công, đã thay đổi mật khẩu thành công", "");
-            } else {
-                return new ApiResponse<String>(100, "Code sai hoặc đã hết hạn, vui lòng kiểm tra lại", "");
-            }
-        } else {
-            return new ApiResponse(100, "Không có tài khoản nào liên kết với Email này", "");
-=======
 //        Thay đổi logic mói
         String saveOTP = otpStorage.getOrDefault(email, "");
         if (!saveOTP.isEmpty()) {
@@ -133,7 +95,6 @@ public class AuthForgotpass {
         else {
             logger.error("Không có tài khoản nào liên kết với: {}", email);
             return new ApiResponse<String>(100, "Không có tài khoản nào liên kết với Email này", "");
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
         }
     }
 }

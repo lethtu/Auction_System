@@ -15,10 +15,7 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <javafx.version>21.0.2</javafx.version>
-<<<<<<< HEAD
-=======
         <logback.version>1.5.6</logback.version>
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
     </properties>
 
     <dependencies>
@@ -45,8 +42,6 @@
             <artifactId>json</artifactId>
             <version>20240303</version>
         </dependency>
-<<<<<<< HEAD
-=======
 
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -66,7 +61,6 @@
             <version>5.9.2</version>
             <scope>test</scope>
         </dependency>
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
     </dependencies>
 
     <build>
@@ -79,10 +73,7 @@
                     <include>**/*.css</include>
                     <include>**/*.png</include>
                     <include>**/*.jpg</include>
-<<<<<<< HEAD
-=======
                     <include>logback.xml</include>
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
                 </includes>
             </resource>
         </resources>
@@ -92,13 +83,6 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
-<<<<<<< HEAD
-                    <source>17</source>
-                    <target>17</target>
-                </configuration>
-            </plugin>
-            <plugin>
-=======
                     <source>21</source>
                     <target>21</target>
                 </configuration>
@@ -122,7 +106,6 @@
                 </executions>
             </plugin>
             <plugin>
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>

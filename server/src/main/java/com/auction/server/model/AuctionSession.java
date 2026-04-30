@@ -37,12 +37,6 @@ public class AuctionSession {
     private LocalDateTime approvedAt;
     private LocalDateTime rejectedAt;
 
-<<<<<<< HEAD
-    @Column(length = 30)
-    private String status;
-
-=======
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
     @Column(columnDefinition = "TEXT")
     private String rejectReason;
 
@@ -71,25 +65,6 @@ public class AuctionSession {
 
     public Item getItem() { return item; }
     public void setItem(Item item) { this.item = item; }
-<<<<<<< HEAD
-    public Item getItem() {
-        return item;
-    }
-
-    public void setItem(Item item) {
-        this.item = item;
-    }
-
-    // Giữ thêm 2 hàm này để code cũ đỡ vỡ nhiều
-    public Item getProduct() {
-        return item;
-    }
-
-    public void setProduct(Item item) {
-        this.item = item;
-    }
-=======
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
 
     public Seller getSeller() {
         return seller;
@@ -178,8 +153,6 @@ public class AuctionSession {
     public void setRejectedByAdminId(Integer rejectedByAdminId) {
         this.rejectedByAdminId = rejectedByAdminId;
     }
-<<<<<<< HEAD
-=======
 
     // Thêm Getter và Setter cho approvedAt
     public LocalDateTime getApprovedAt() {
@@ -198,5 +171,4 @@ public class AuctionSession {
     public void setRejectedAt(LocalDateTime rejectedAt) {
         this.rejectedAt = rejectedAt;
     }
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
 }

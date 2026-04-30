@@ -1,10 +1,7 @@
 package com.auction.server.service;
 
-<<<<<<< HEAD
-=======
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.repository.AuctionSessionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,11 +13,7 @@ import java.time.LocalDateTime;
 
 @Service
 public class AuctionSchedulerService {
-<<<<<<< HEAD
-
-=======
     private static final Logger logger = LoggerFactory.getLogger(AuctionSchedulerService.class);
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
     @Autowired
     private AuctionSessionRepository auctionSessionRepository;
 
@@ -49,11 +42,7 @@ public class AuctionSchedulerService {
 
         // In ra log để theo dõi (chỉ in khi có sự thay đổi để tránh rác console)
         if (activatedCount > 0 || endedCount > 0) {
-<<<<<<< HEAD
-            System.out.println("[SCHEDULER] Lúc " + now +
-=======
             logger.info("[SCHEDULER] Lúc " + now +
->>>>>>> 0e01b02 (Thêm log, lọc file, fix logic, kiểm tra và test toàn bộ, thêm checkstyle)
                     " | Đã mở " + activatedCount + " phiên | Đã đóng " + endedCount + " phiên.");
         }
     }
