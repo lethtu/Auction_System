@@ -1,5 +1,8 @@
 package com.auction.client.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.auction.client.Config;
 import com.auction.client.model.User;
 import javafx.scene.control.Alert;
 import javafx.event.ActionEvent;
@@ -15,7 +18,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 public class LoginController {
-
+    private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
     @FXML private TextField txtUsername;
     @FXML private PasswordField txtPassword;
 
@@ -36,7 +39,7 @@ public class LoginController {
 
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("http://localhost:8080/api/login"))
+                    .uri(URI.create(Config.API_URL + "/api/login"))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                     .build();
@@ -46,6 +49,7 @@ public class LoginController {
 
             if (response.statusCode() != 200) {
                 showAlert(Alert.AlertType.ERROR, "Lỗi đăng nhập", "Sai tài khoản hoặc mật khẩu!");
+                logger.error("Lỗi khi connect đến server");
                 return;
             }
 
@@ -53,6 +57,7 @@ public class LoginController {
 
             if (responseJson.getInt("status") != 200) {
                 showAlert(Alert.AlertType.ERROR, "Lỗi đăng nhập", "Đăng nhập thất bại!");
+                logger.error("Lỗi đăng nhập thất bại - status code: {}", responseJson.getInt("status"));
                 return;
             }
 
@@ -71,7 +76,7 @@ public class LoginController {
             User.setSession(id, username, fullname, email, dob, placeOfBirth, role);
 
             showAlert(Alert.AlertType.INFORMATION, "Thành công", "Chào mừng bạn đã quay lại!");
-
+            logger.info("Đăng nhập thành công");
             String normalizedRole = role.trim().toUpperCase();
 
             if (normalizedRole.equals("SELLER")) {
@@ -84,7 +89,7 @@ public class LoginController {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Không thể kết nối máy chủ: {}", e.getMessage(), e);
             showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
         }
     }

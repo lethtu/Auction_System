@@ -1,5 +1,8 @@
 package com.auction.client.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.auction.client.Config;
 import com.auction.client.model.User;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -19,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SellerDashboardController {
+    private static final Logger logger = LoggerFactory.getLogger(SellerDashboardController.class);
 
     @FXML private ListView<String> mySessionsList;
     @FXML private ComboBox<String> productTypeCombo;
@@ -48,6 +52,7 @@ public class SellerDashboardController {
     private void handleCreateSession() {
         Integer sellerId = User.getId();
         if (sellerId == null) {
+            logger.error("Không lấy được sellerId từ session");
             showAlert(Alert.AlertType.ERROR, "Lỗi", "Không lấy được sellerId từ session.");
             return;
         }
@@ -93,7 +98,7 @@ public class SellerDashboardController {
 
             // --- SỬA LẠI URL CHO ĐÚNG CHUẨN ---
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("http://localhost:8080/api/seller/create-auction"))
+                    .uri(URI.create(Config.API_URL + "/api/seller/create-auction"))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
                     .build();
@@ -106,13 +111,14 @@ public class SellerDashboardController {
                 loadMySessions();
                 showAlert(Alert.AlertType.INFORMATION, "Thành công", api.message);
             } else {
+                logger.error("Lỗi api: {}", api.message);
                 showAlert(Alert.AlertType.ERROR, "Lỗi", api.message);
             }
 
         } catch (NumberFormatException e) {
             showAlert(Alert.AlertType.ERROR, "Lỗi dữ liệu", "Giá khởi điểm và bước giá phải là số.");
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Lỗi không thể kết nối đến máy chủ: {}", e.getMessage(), e);
             showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
         }
     }
@@ -174,7 +180,7 @@ public class SellerDashboardController {
 
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("http://localhost:8080/api/seller/cancel-session/" + selected.id + "?sellerId=" + sellerId))
+                    .uri(URI.create(Config.API_URL + "/api/seller/cancel-session/" + selected.id + "?sellerId=" + sellerId))
                     .DELETE()
                     .build();
 
@@ -188,7 +194,7 @@ public class SellerDashboardController {
                 showAlert(Alert.AlertType.ERROR, "Lỗi", api.message);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Lỗi không thể kết nối đến máy chủ: {}", e.getMessage(), e);
             showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
         }
     }
@@ -201,13 +207,14 @@ public class SellerDashboardController {
     private void loadMySessions() {
         Integer sellerId = User.getId();
         if (sellerId == null) {
+            logger.error("Lỗi không lấy được sellerId từ session");
             showAlert(Alert.AlertType.ERROR, "Lỗi", "Không lấy được sellerId từ session.");
             return;
         }
 
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("http://localhost:8080/api/seller/my-sessions/" + sellerId))
+                    .uri(URI.create(Config.API_URL + "/api/seller/my-sessions/" + sellerId))
                     .GET()
                     .build();
 
@@ -228,7 +235,7 @@ public class SellerDashboardController {
             updateStats();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Lỗi không thể kết nối đến server: {}", e.getMessage(), e);
             showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể tải dữ liệu seller từ server.");
         }
     }

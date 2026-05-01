@@ -4,6 +4,8 @@ import java.security.SecureRandom;
 import java.util.Optional;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.auction.server.repository.HandleLoginSignup;
 import com.auction.server.view.EmailServer;
 import com.auction.server.view.RqForgotPass;
@@ -33,6 +35,7 @@ class OTPGenerator {
 @RestController
 @RequestMapping("/api")
 public class AuthForgotpass {
+    private static final Logger logger = LoggerFactory.getLogger(AuthForgotpass.class);
     private Map<String, String> otpStorage = new ConcurrentHashMap<>();
     @Autowired
     private RqForgotPass forgotPass;
@@ -44,10 +47,11 @@ public class AuthForgotpass {
     @PostMapping("/forgot_pass")
     public ApiResponse<String> forgot_pass(@RequestBody Map<String, String> requests) {
         String email = requests.get("email");
-        System.out.println("Yêu cầu quên mật khẩu từ: " + email);
+        logger.info("Có yêu cầu quên mật khẩu từ {}", email);
         Optional<User> customer = forgotPass.forgot_pass(email);
-
         if (customer.isPresent()) {
+            logger.info("Email {} tồn tại trong hệ thống", email);
+            logger.info("Đang tạo mã OTP cho {}", email);
             String newOTP = OTPGenerator.generateOTP(6);
             if (otpStorage.get(email) != null) {
                 newOTP = otpStorage.get(email);
@@ -59,8 +63,10 @@ public class AuthForgotpass {
                     + "KHÔNG CUNG CẤP MÃ NÀY CHO BẤT CỨ AI\n\n"
                     + "Trân trọng,\nBan Quản Trị.";
             emailServer.SendEmail(email, "Mã xác thực để đổi mật khẩu", body);
+            logger.info("Xử lý thành công yêu cầu từ {}", email);
             return new ApiResponse<String>(200, "Đã gửi mã xác nhận", "");
         } else {
+            logger.error("Không có tài khoản liên kết với {}", email);
             return new ApiResponse<String>(100, "Không có tài khoản nào liên kết với Email này", "");
         }
     }
@@ -71,18 +77,24 @@ public class AuthForgotpass {
         String code = requests.get("code");
         String pass = requests.get("password");
         Optional<User> customer = forgotPass.forgot_pass(email);
-        if (customer.isPresent()) {
-            String savedOTP = otpStorage.get(email);
-            if (savedOTP != null && savedOTP.equals(code)) {
+//        Thay đổi logic mói
+        String saveOTP = otpStorage.getOrDefault(email, "");
+        if (!saveOTP.isEmpty()) {
+            if (saveOTP.equals(code)) {
                 otpStorage.remove(email);
                 customer.get().setPassword(pass);
                 Save.save(customer.get());
+                logger.info("Xác thực và đổi mật khẩu thành công cho: {}", email);
                 return new ApiResponse<String>(200, "Xác thực thành công, đã thay đổi mật khẩu thành công", "");
-            } else {
+            }
+            else {
+                logger.error("Xác thực lỗi code cho: {}", email);
                 return new ApiResponse<String>(100, "Code sai hoặc đã hết hạn, vui lòng kiểm tra lại", "");
             }
-        } else {
-            return new ApiResponse(100, "Không có tài khoản nào liên kết với Email này", "");
+        }
+        else {
+            logger.error("Không có tài khoản nào liên kết với: {}", email);
+            return new ApiResponse<String>(100, "Không có tài khoản nào liên kết với Email này", "");
         }
     }
 }
