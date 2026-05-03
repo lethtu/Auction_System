@@ -1,5 +1,7 @@
 package com.auction.server.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.dto.UserResponseDTO;
 import com.auction.server.model.*;
@@ -14,7 +16,7 @@ import java.util.List;
 
 @Service
 public class AdminService {
-
+    private static final Logger logger = LoggerFactory.getLogger(AdminService.class);
     @Autowired
     private AuctionSessionRepository sessionRepository;
 
@@ -26,12 +28,14 @@ public class AdminService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
 
         if (!(user instanceof Admin)) {
+            logger.error("{} không phải là quản trị viên", adminId);
             throw new RuntimeException("Người này không phải là Quản trị viên");
         }
 
         Admin admin = (Admin) user;
 
         if (admin.getRole() == AdminRole.SUPPORT) {
+            logger.error("LỖI QUYỀN HẠN: Nhân viên Hỗ trợ không được phép duyệt/từ chối phiên đấu giá!");
             throw new RuntimeException("LỖI QUYỀN HẠN: Nhân viên Hỗ trợ không được phép duyệt/từ chối phiên đấu giá!");
         }
 
@@ -83,6 +87,7 @@ public class AdminService {
 
         // Sửa: So sánh Enum bằng ==
         if (session.getStatus() != AuctionStatus.PENDING) {
+            logger.error("Phiên {} đã được xử lý hoặc không ở trạng thái chờ duyệt", sessionId);
             throw new RuntimeException("Phiên này đã được xử lý hoặc không ở trạng thái chờ duyệt");
         }
 
@@ -113,6 +118,7 @@ public class AdminService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiên đấu giá"));
 
         if (session.getStatus() != AuctionStatus.PENDING) {
+            logger.error("Chỉ được từ chối các phiên đang ở trạng thái chờ duyệt");
             throw new RuntimeException("Chỉ được từ chối các phiên đang ở trạng thái chờ duyệt");
         }
 

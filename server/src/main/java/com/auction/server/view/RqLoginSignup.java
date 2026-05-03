@@ -1,5 +1,7 @@
 package com.auction.server.view;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.auction.server.model.User;
 import com.auction.server.repository.HandleLoginSignup;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +11,7 @@ import java.util.Optional;
 
 @Service
 public class RqLoginSignup {
+    private static final Logger logger = LoggerFactory.getLogger(RqLoginSignup.class);
     @Autowired
     private HandleLoginSignup LoginSignup;
     public Optional<User> login(String username, String pass){
@@ -16,15 +19,17 @@ public class RqLoginSignup {
     }
     public boolean signup(User newUser){
         if (!LoginSignup.existsByUsernameOrEmail(newUser.getUsername(), newUser.getEmail())){
-            System.out.println("Đang lưu user với pass: " + newUser.getPassword());
-
+            logger.info("Đang thêm user: {}", newUser.getUsername());
             if (newUser.getPassword() == null) {
+                logger.info("Lỗi password user {} bị null", newUser.getUsername());
                 throw new RuntimeException("Lỗi: Password gửi lên bị null!");
             }
 
             LoginSignup.save(newUser);
+            logger.info("Đã thêm thành công user: {} vào DB", newUser.getUsername());
             return false;
         }
+        logger.info("Username: {} hoặc Email: {} đã tồn tại trong DB", newUser.getUsername(), newUser.getEmail());
         return true;
     }
 }

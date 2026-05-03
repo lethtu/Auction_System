@@ -1,5 +1,9 @@
 package com.auction.client.controller;
 
+
+import com.auction.client.Config;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -10,6 +14,7 @@ import java.net.URI;
 import java.net.http.*;
 
 public class ForgotPasswordController {
+    private static final Logger logger = LoggerFactory.getLogger(ForgotPasswordController.class);
 
     @FXML private TextField txtEmail, txtOTP;
     @FXML private PasswordField txtNewPassword, txtConfirmNewPassword;
@@ -29,18 +34,16 @@ public class ForgotPasswordController {
 
         new Thread(() -> {
             try {
-                // Sử dụng API 1 để kiểm tra email
                 JSONObject json = new JSONObject();
                 json.put("email", email);
 
                 HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create("http://localhost:8080/api/forgot_pass"))
+                        .uri(URI.create(Config.API_URL + "/api/forgot_pass"))
                         .header("Content-Type", "application/json")
                         .POST(HttpRequest.BodyPublishers.ofString(json.toString()))
                         .build();
 
                 HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-                System.out.println(response.body());
                 JSONObject rq = new JSONObject(response.body());
                 Platform.runLater(() -> {
                     if (rq.getInt("status") == 200 && response.statusCode() == 200) {
@@ -48,14 +51,18 @@ public class ForgotPasswordController {
                         stepReset.setVisible(true);
                         stepReset.setManaged(true);
                         showAlert(Alert.AlertType.INFORMATION, "Thành công", rq.getString("message"));
-                    } else {
+                        logger.info("Gửi yêu cầu gửi OTP thành công");
+                    }
+                    else {
                         showAlert(Alert.AlertType.ERROR, "Lỗi", rq.getString("message"));
                         btnGetOTP.setDisable(false);
                         btnGetOTP.setText("Gửi lại mã");
+                        logger.info("Gửi yêu cầu thất bại, message trả về: {}", rq.getString("message"));
                     }
                 });
-            } catch (Exception e) {
-                e.printStackTrace();
+            }
+            catch (Exception e) {
+                logger.error("Lỗi khi gửi yêu cầu đến server: {}", e.getMessage(), e);
                 Platform.runLater(() -> btnGetOTP.setDisable(false));
             }
         }).start();
@@ -81,7 +88,7 @@ public class ForgotPasswordController {
                 json.put("password", newPass);
 
                 HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create("http://localhost:8080/api/check_code"))
+                        .uri(URI.create(Config.API_URL + "/api/check_code"))
                         .header("Content-Type", "application/json")
                         .POST(HttpRequest.BodyPublishers.ofString(json.toString()))
                         .build();
@@ -92,26 +99,34 @@ public class ForgotPasswordController {
                     if (response.statusCode() == 200) {
                         if (rq.getInt("status") == 200){
                             showAlert(Alert.AlertType.INFORMATION, "Thành công", rq.getString("message"));
+                            logger.info("Đổi mật khẩu thành công");
                             try {
                                 goToLogin(event);
                             }
-                            catch (Exception e) {}
+                            catch (Exception e) {
+                                logger.error("Lỗi khi chuyển giao diện: {}", e.getMessage(), e);
+                            }
                         }
                         else{
                             showAlert(Alert.AlertType.ERROR, "Thất bại", rq.getString("message"));
+                            logger.info("Yêu cầu đổi mật khẩu thất bại");
                         }
                     }
                     else {
                         showAlert(Alert.AlertType.ERROR, "Lỗi", "Lỗi mạng");
+                        logger.info("Lỗi phản hồi từ server - status: {}", response.statusCode());
                     }
                 });
-            } catch (Exception e) { e.printStackTrace(); }
+            }
+            catch (Exception e) {
+                logger.error("Lỗi trong quá trình thực thi: {}", e.getMessage(), e);
+            }
         }).start();
     }
 
     @FXML
     public void goToLogin(ActionEvent event) throws Exception {
-        SceneSwitcher.switchScene(event, "Login.fxml", 400, 500);
+        SceneSwitcher.switchScene(event, "Login.fxml", Config.Width, Config.Height);
     }
 
     private void showAlert(Alert.AlertType type, String title, String content) {

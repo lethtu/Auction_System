@@ -1,5 +1,7 @@
 package com.auction.server.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.repository.AuctionSessionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +13,7 @@ import java.time.LocalDateTime;
 
 @Service
 public class AuctionTaskService {
-
+    private static final Logger logger = LoggerFactory.getLogger(AuctionService.class);
     @Autowired
     private AuctionSessionRepository sessionRepository;
 
@@ -29,7 +31,7 @@ public class AuctionTaskService {
         );
 
         if (count > 0) {
-            System.out.println("🤖 Robot: Đã đóng tự động " + count + " phiên đấu giá hết hạn.");
+            logger.info("🤖 Robot: Đã đóng tự động " + count + " phiên đấu giá hết hạn.");
         }
     }
 }

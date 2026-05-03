@@ -1,9 +1,13 @@
 package com.auction.client.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+
+import com.auction.client.Config;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -14,6 +18,7 @@ import java.io.IOException;
 import org.json.JSONObject; // Đảm bảo bạn đã thêm thư viện org.json vào dự án
 
 public class SignUpController {
+    private static final Logger logger = LoggerFactory.getLogger(SignUpController.class);
 
     @FXML
     private TextField txtFullName;
@@ -34,7 +39,6 @@ public class SignUpController {
         String password = txtPassword.getText();
         String confirmPassword = txtConfirmPassword.getText();
 
-        // 1. Kiểm tra đầu vào
         if (fullname.isEmpty() || username.isEmpty() || email.isEmpty() || password.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Thông báo", "Vui lòng điền đầy đủ các trường!");
             return;
@@ -45,20 +49,18 @@ public class SignUpController {
             return;
         }
 
-        // 2. Tạo JSON Body bằng thư viện (Tránh lỗi SQL Null Password và lỗi ký tự đặc
-        // biệt)
         JSONObject json = new JSONObject();
         json.put("username", username);
-        json.put("password", password); // Key phải khớp chính xác với biến 'password' ở Server
+        json.put("password", password);
         json.put("email", email);
         json.put("fullname", fullname);
         String jsonBody = json.toString();
 
-        // 3. Chạy luồng riêng để không làm đơ giao diện
+        //Chạy luồng riêng để không làm đơ giao diện
         new Thread(() -> {
             try {
                 HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create("http://localhost:8080/api/signup"))
+                        .uri(URI.create(Config.API_URL + "/api/signup"))
                         .header("Content-Type", "application/json")
                         .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                         .build();
@@ -67,45 +69,49 @@ public class SignUpController {
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
                 if (response.statusCode() == 200) {
-                    // Phân tích kết quả từ ApiResponse của Server
                     JSONObject resObj = new JSONObject(response.body());
                     String message = resObj.optString("message", "");
 
                     Platform.runLater(() -> {
                         if (message.contains("thành công")) {
                             showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đăng ký tài khoản thành công!");
+                            logger.info("Đăng ký tài khoản thành công");
                             try {
-                                goToLogin(event); // Tự động quay về màn hình đăng nhập
-                            } catch (IOException e) {
-                                e.printStackTrace();
+                                goToLogin(event);
                             }
-                        } else {
-                            // Trường hợp trùng Username hoặc Email (Server trả về message lỗi)
+                            catch (IOException e) {
+                                logger.error("Lỗi khi chuyển giao diện: {}", e.getMessage(), e);
+                            }
+
+                        }
+                        else {
                             showAlert(Alert.AlertType.ERROR, "Thất bại", message);
+                            logger.info("Đăng ký thất bại");
                         }
                     });
-                } else {
+                }
+                else {
                     Platform.runLater(
                             () -> showAlert(Alert.AlertType.ERROR, "Lỗi Server", "Mã lỗi: " + response.statusCode()));
+                    logger.info("Lỗi đăng ký thất bại - status: {}", response.statusCode());
                 }
 
-            } catch (Exception e) {
-                e.printStackTrace();
+            }
+            catch (Exception e) {
                 Platform.runLater(
                         () -> showAlert(Alert.AlertType.ERROR, "Lỗi kết nối", "Không thể kết nối tới máy chủ!"));
+                logger.error("Lỗi trong quá trình kết nối đến máy chủ: {}", e.getMessage(), e);
             }
         }).start();
     }
 
     @FXML
     public void goToLogin(ActionEvent event) throws IOException {
-        // QUAN TRỌNG: Sửa đường dẫn FXML có dấu "/" ở đầu để SceneSwitcher tìm thấy
-        // file
-        SceneSwitcher.switchScene(event, "Login.fxml", 400, 500);
+        SceneSwitcher.switchScene(event, "Login.fxml", Config.Width, Config.Height);
     }
 
     private void showAlert(Alert.AlertType alertType, String title, String message) {
-        // Đảm bảo Alert luôn chạy trên luồng giao diện (UI Thread)
+        //Alert luôn chạy trên luồng giao diện (UI Thread)
         if (!Platform.isFxApplicationThread()) {
             Platform.runLater(() -> showAlert(alertType, title, message));
             return;
