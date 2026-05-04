@@ -15,7 +15,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import java.io.IOException;
-import org.json.JSONObject; // Đảm bảo bạn đã thêm thư viện org.json vào dự án
+import org.json.JSONObject;
 
 public class SignUpController {
     private static final Logger logger = LoggerFactory.getLogger(SignUpController.class);
