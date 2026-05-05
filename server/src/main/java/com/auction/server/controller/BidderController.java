@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.repository.AuctionSessionRepository;
-import com.auction.server.view.ApiResponse;
+import com.auction.server.service.ApiResponse;
 import com.auction.server.model.*;
 import com.auction.server.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;

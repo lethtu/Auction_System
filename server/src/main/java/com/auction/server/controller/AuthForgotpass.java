@@ -10,7 +10,7 @@ import com.auction.server.repository.HandleLoginSignup;
 import com.auction.server.view.EmailServer;
 import com.auction.server.view.RqForgotPass;
 import com.auction.server.model.User;
-import com.auction.server.view.ApiResponse;
+import com.auction.server.service.ApiResponse;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;

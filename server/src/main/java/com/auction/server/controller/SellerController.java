@@ -7,7 +7,7 @@ import com.auction.server.dto.SellerStatsDTO;
 import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.service.SellerService;
-import com.auction.server.view.ApiResponse;
+import com.auction.server.service.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
