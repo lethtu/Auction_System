@@ -1,11 +1,13 @@
 package com.auction.client.controller;
 
+import com.auction.client.common.AuctionStatus;
 import com.auction.client.dto.ApiResult;
 import com.auction.client.dto.CreateAuctionRequest;
 import com.auction.client.model.SessionItem;
 import com.auction.client.model.User;
 import com.auction.client.service.SellerDashboardService;
 import com.auction.client.util.AlertUtil;
+import com.auction.client.util.SellerStatsCalculator;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -14,7 +16,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -132,17 +133,17 @@ public class SellerDashboardController {
 
     @FXML
     private void handleShowPendingSessions() {
-        renderSessions(filterByStatus("PENDING"));
+        renderSessions(filterByStatus(AuctionStatus.PENDING));
     }
 
     @FXML
     private void handleShowActiveSessions() {
-        renderSessions(filterByStatus("ACTIVE"));
+        renderSessions(filterByStatus(AuctionStatus.ACTIVE));
     }
 
     @FXML
     private void handleShowRejectedSessions() {
-        renderSessions(filterByStatus("REJECTED"));
+        renderSessions(filterByStatus(AuctionStatus.REJECTED));
     }
 
     @FXML
@@ -154,16 +155,8 @@ public class SellerDashboardController {
 
     @FXML
     private void handleCancelSelectedSession() {
-        SessionItem selected = getSelectedSession();
-
+        SessionItem selected = getCancelableSelectedSession();
         if (selected == null) {
-            AlertUtil.show(Alert.AlertType.WARNING, "Chưa chọn phiên", "Bạn hãy chọn một phiên để hủy.");
-            return;
-        }
-
-        if (!"PENDING".equalsIgnoreCase(selected.status)) {
-            AlertUtil.show(Alert.AlertType.WARNING, "Không thể hủy",
-                    "Chỉ được hủy phiên đang ở trạng thái PENDING.");
             return;
         }
 
@@ -178,18 +171,39 @@ public class SellerDashboardController {
 
         try {
             ApiResult api = sellerDashboardService.cancelSession(selected.id, sellerId);
-
-            if (api.success) {
-                loadMySessions();
-                AlertUtil.show(Alert.AlertType.INFORMATION, "Thành công", api.message);
-            } else {
-                AlertUtil.show(Alert.AlertType.ERROR, "Lỗi", api.message);
-            }
+            handleCancelResult(api);
 
         } catch (Exception e) {
             logger.error("Lỗi không thể kết nối đến máy chủ: {}", e.getMessage(), e);
             AlertUtil.show(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
         }
+    }
+
+    private SessionItem getCancelableSelectedSession() {
+        SessionItem selected = getSelectedSession();
+
+        if (selected == null) {
+            AlertUtil.show(Alert.AlertType.WARNING, "Chưa chọn phiên", "Bạn hãy chọn một phiên để hủy.");
+            return null;
+        }
+
+        if (!AuctionStatus.PENDING.equalsIgnoreCase(selected.status)) {
+            AlertUtil.show(Alert.AlertType.WARNING, "Không thể hủy",
+                    "Chỉ được hủy phiên đang ở trạng thái PENDING.");
+            return null;
+        }
+
+        return selected;
+    }
+
+    private void handleCancelResult(ApiResult api) {
+        if (api.success) {
+            loadMySessions();
+            AlertUtil.show(Alert.AlertType.INFORMATION, "Thành công", api.message);
+            return;
+        }
+
+        AlertUtil.show(Alert.AlertType.ERROR, "Lỗi", api.message);
     }
 
     @FXML
@@ -222,8 +236,8 @@ public class SellerDashboardController {
 
         List<String> rendered = new ArrayList<>();
 
-        for (SessionItem s : sessions) {
-            rendered.add("Session #" + s.id + " | " + s.productName + " | " + s.status);
+        for (SessionItem session : sessions) {
+            rendered.add(session.toDisplayText());
         }
 
         mySessionsList.setItems(FXCollections.observableArrayList(rendered));
@@ -232,9 +246,9 @@ public class SellerDashboardController {
     private List<SessionItem> filterByStatus(String status) {
         List<SessionItem> filtered = new ArrayList<>();
 
-        for (SessionItem s : allSessions) {
-            if (s.status != null && s.status.equalsIgnoreCase(status)) {
-                filtered.add(s);
+        for (SessionItem session : allSessions) {
+            if (session.status != null && session.status.equalsIgnoreCase(status)) {
+                filtered.add(session);
             }
         }
 
@@ -261,43 +275,7 @@ public class SellerDashboardController {
     }
 
     private void updateStats() {
-        int pending = 0;
-        int active = 0;
-        int rejected = 0;
-        int completed = 0;
-        int canceled = 0;
-        BigDecimal revenue = BigDecimal.ZERO;
-
-        for (SessionItem s : allSessions) {
-            if (s.status == null) {
-                continue;
-            }
-
-            switch (s.status.toUpperCase()) {
-                case "PENDING" -> pending++;
-                case "ACTIVE" -> active++;
-                case "REJECTED" -> rejected++;
-                case "COMPLETED" -> {
-                    completed++;
-                    if (s.currentPrice != null) {
-                        revenue = revenue.add(s.currentPrice);
-                    }
-                }
-                case "CANCELED" -> canceled++;
-            }
-        }
-
-        DecimalFormat df = new DecimalFormat("#,##0.##");
-
-        statsArea.setText(
-                "Tổng số phiên: " + allSessions.size() + "\n" +
-                        "Số phiên chờ duyệt: " + pending + "\n" +
-                        "Số phiên đang hoạt động: " + active + "\n" +
-                        "Số phiên bị từ chối: " + rejected + "\n" +
-                        "Số phiên đã hoàn thành: " + completed + "\n" +
-                        "Số phiên đã hủy: " + canceled + "\n" +
-                        "Tổng doanh thu phiên hoàn thành: " + df.format(revenue)
-        );
+        statsArea.setText(SellerStatsCalculator.buildStatsText(allSessions));
     }
 
     private void clearForm() {

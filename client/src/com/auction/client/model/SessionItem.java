@@ -13,4 +13,8 @@ public class SessionItem {
     public BigDecimal stepPrice = BigDecimal.ZERO;
     public String endTime;
     public String status;
+
+    public String toDisplayText() {
+        return "Session #" + id + " | " + productName + " | " + status;
+    }
 }
