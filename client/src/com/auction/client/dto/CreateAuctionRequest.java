@@ -1,0 +1,34 @@
+package com.auction.client.dto;
+
+import java.math.BigDecimal;
+
+public class CreateAuctionRequest {
+    public final String productName;
+    public final String productType;
+    public final String imageUrl;
+    public final String description;
+    public final BigDecimal startingPrice;
+    public final BigDecimal stepPrice;
+    public final String endTime;
+    public final int sellerId;
+
+    public CreateAuctionRequest(
+            String productName,
+            String productType,
+            String imageUrl,
+            String description,
+            BigDecimal startingPrice,
+            BigDecimal stepPrice,
+            String endTime,
+            int sellerId
+    ) {
+        this.productName = productName;
+        this.productType = productType;
+        this.imageUrl = imageUrl;
+        this.description = description;
+        this.startingPrice = startingPrice;
+        this.stepPrice = stepPrice;
+        this.endTime = endTime;
+        this.sellerId = sellerId;
+    }
+}
