@@ -17,32 +17,21 @@ public class AdminResponseParser {
 
     public static ApiResult parseApiResponse(String body, int httpStatus, String defaultSuccessMessage) {
         if (body == null || body.isBlank()) {
-            return new ApiResult(
-                    httpStatus >= 200 && httpStatus < 300,
-                    httpStatus >= 200 && httpStatus < 300 ? defaultSuccessMessage : "Có lỗi xảy ra từ server."
-            );
+            return new ApiResult(isSuccess(httpStatus), getDefaultMessage(httpStatus, defaultSuccessMessage));
         }
 
         try {
-            String trimmed = body.trim();
+            JSONObject obj = new JSONObject(body.trim());
 
-            if (trimmed.startsWith("{")) {
-                JSONObject obj = new JSONObject(trimmed);
-                int status = obj.optInt("status", httpStatus);
-                String message = obj.optString(
-                        "message",
-                        status >= 200 && status < 300 ? defaultSuccessMessage : "Có lỗi xảy ra từ server."
-                );
+            int status = obj.optInt("status", httpStatus);
+            String message = obj.optString("message", getDefaultMessage(status, defaultSuccessMessage));
 
-                return new ApiResult(status >= 200 && status < 300, message);
-            }
-        } catch (Exception ignored) {
+            return new ApiResult(isSuccess(status), message);
+
+        } catch (Exception e) {
+            logger.error("Không đọc được phản hồi từ server: {}", e.getMessage(), e);
+            return new ApiResult(isSuccess(httpStatus), getDefaultMessage(httpStatus, defaultSuccessMessage));
         }
-
-        return new ApiResult(
-                httpStatus >= 200 && httpStatus < 300,
-                httpStatus >= 200 && httpStatus < 300 ? defaultSuccessMessage : body
-        );
     }
 
     public static ApiArrayResult extractDataArray(String body, int httpStatus) {
@@ -51,27 +40,22 @@ public class AdminResponseParser {
         }
 
         try {
-            String trimmed = body.trim();
+            JSONObject obj = new JSONObject(body.trim());
 
-            if (trimmed.startsWith("[")) {
-                return new ApiArrayResult(true, "OK", new JSONArray(trimmed));
-            }
-
-            JSONObject obj = new JSONObject(trimmed);
             int status = obj.optInt("status", httpStatus);
-            String message = obj.optString("message", "Có lỗi xảy ra từ server.");
+            String message = obj.optString("message", getDefaultMessage(status, "OK"));
 
-            if (status < 200 || status >= 300) {
+            if (!isSuccess(status)) {
                 return new ApiArrayResult(false, message, new JSONArray());
             }
 
-            Object data = obj.opt("data");
+            JSONArray data = obj.optJSONArray("data");
 
-            if (data instanceof JSONArray) {
-                return new ApiArrayResult(true, message, (JSONArray) data);
+            if (data == null) {
+                return new ApiArrayResult(true, message, new JSONArray());
             }
 
-            return new ApiArrayResult(true, message, new JSONArray());
+            return new ApiArrayResult(true, message, data);
 
         } catch (Exception e) {
             logger.error("Không đọc được dữ liệu từ server: {}", e.getMessage(), e);
@@ -86,7 +70,7 @@ public class AdminResponseParser {
             JSONObject item = array.getJSONObject(i);
 
             int id = item.optInt("id", 0);
-            String productName = extractProductName(item);
+            String productName = item.optString("productName", "Không rõ");
             BigDecimal startingPrice = extractStartingPrice(item);
 
             rows.add(new PendingSessionRow(id, productName, startingPrice));
@@ -95,30 +79,23 @@ public class AdminResponseParser {
         return rows;
     }
 
-    private static String extractProductName(JSONObject item) {
-        if (item.has("productName")) {
-            return item.optString("productName", "Không rõ");
-        }
-
-        if (item.has("product") && item.get("product") instanceof JSONObject) {
-            JSONObject product = item.getJSONObject("product");
-            return product.optString("name", "Không rõ");
-        }
-
-        return "Không rõ";
-    }
-
     private static BigDecimal extractStartingPrice(JSONObject item) {
         if (!item.has("startingPrice") || item.isNull("startingPrice")) {
             return BigDecimal.ZERO;
         }
 
-        Object value = item.get("startingPrice");
-
         try {
-            return new BigDecimal(value.toString());
+            return new BigDecimal(item.get("startingPrice").toString());
         } catch (Exception e) {
             return BigDecimal.ZERO;
         }
+    }
+
+    private static boolean isSuccess(int status) {
+        return status >= 200 && status < 300;
+    }
+
+    private static String getDefaultMessage(int status, String successMessage) {
+        return isSuccess(status) ? successMessage : "Có lỗi xảy ra từ server.";
     }
 }
