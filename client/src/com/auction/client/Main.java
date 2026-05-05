@@ -18,7 +18,9 @@ public class Main extends Application {
                 .load(Objects.requireNonNull(getClass().getResource("/com/auction/client/view/Login.fxml")));
         primaryStage.setTitle(Config.Title);
         primaryStage.setScene(new Scene(root, Config.Width, Config.Height));
-        primaryStage.setResizable(false);
+        primaryStage.setMinWidth(Config.Width);
+        primaryStage.setMinHeight(Config.Height);
+        primaryStage.setResizable(true);
         primaryStage.show();
     }
 

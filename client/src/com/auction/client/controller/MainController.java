@@ -44,6 +44,7 @@ public class MainController implements Initializable {
     }
 
     private void loadProductsFromServer() {
+        System.out.println("check");
         new Thread(() -> {
             try {
                 HttpRequest request = HttpRequest.newBuilder()
@@ -168,6 +169,11 @@ public class MainController implements Initializable {
 
         bidBtn.setOnAction(event -> {
             logger.info(">>> Mở trang chi tiết cho sản phẩm ID: " + id);
+            try {
+                SceneSwitcher.switchScene(event, "AuctionPage.fxml", 500, 400);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         });
 
         vbox.getChildren().addAll(nameLabel, typeLabel, priceLabel, startTimeLabel, endTimeLabel, bidBtn);
