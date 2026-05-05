@@ -9,6 +9,7 @@ public class CreateAuctionRequest {
     public final String description;
     public final BigDecimal startingPrice;
     public final BigDecimal stepPrice;
+    public final String startTime;
     public final String endTime;
     public final int sellerId;
 
@@ -19,6 +20,7 @@ public class CreateAuctionRequest {
             String description,
             BigDecimal startingPrice,
             BigDecimal stepPrice,
+            String startTime,
             String endTime,
             int sellerId
     ) {
@@ -28,6 +30,7 @@ public class CreateAuctionRequest {
         this.description = description;
         this.startingPrice = startingPrice;
         this.stepPrice = stepPrice;
+        this.startTime = startTime;
         this.endTime = endTime;
         this.sellerId = sellerId;
     }

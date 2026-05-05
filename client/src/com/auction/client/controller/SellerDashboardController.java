@@ -7,6 +7,7 @@ import com.auction.client.model.SessionItem;
 import com.auction.client.model.User;
 import com.auction.client.service.SellerDashboardService;
 import com.auction.client.util.AlertUtil;
+import com.auction.client.util.SellerAuctionFormBuilder;
 import com.auction.client.util.SellerStatsCalculator;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -15,8 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,22 +41,28 @@ public class SellerDashboardController {
     public void initialize() {
         productTypeCombo.setItems(FXCollections.observableArrayList("Electronics", "Art", "Vehicle"));
         productTypeCombo.setValue("Electronics");
-        fillDefaultEndTime();
+        SellerAuctionFormBuilder.fillDefaultEndTime(endTimeField);
         loadMySessions();
     }
 
     @FXML
     private void handleCreateSession() {
         Integer sellerId = getValidSellerId();
-        if (sellerId == null) {
-            return;
-        }
+        if (sellerId == null) return;
 
         try {
-            CreateAuctionRequest request = buildCreateAuctionRequest(sellerId);
-            if (request == null) {
-                return;
-            }
+            CreateAuctionRequest request = SellerAuctionFormBuilder.buildCreateRequest(
+                    sellerId,
+                    productTypeCombo,
+                    productNameField,
+                    imageUrlField,
+                    descriptionArea,
+                    startingPriceField,
+                    stepPriceField,
+                    endTimeField
+            );
+
+            if (request == null) return;
 
             ApiResult api = sellerDashboardService.createAuction(request);
             handleCreateResult(api);
@@ -70,48 +75,83 @@ public class SellerDashboardController {
         }
     }
 
-    private CreateAuctionRequest buildCreateAuctionRequest(int sellerId) {
-        String productName = productNameField.getText().trim();
-        String productType = productTypeCombo.getValue();
-        String imageUrl = textOrEmpty(imageUrlField);
-        String description = textOrEmpty(descriptionArea);
-        String startingPriceText = textOrEmpty(startingPriceField);
-        String stepPriceText = textOrEmpty(stepPriceField);
-        String endTime = textOrEmpty(endTimeField);
-
-        if (isCreateFormInvalid(productName, productType, startingPriceText, stepPriceText)) {
-            AlertUtil.show(Alert.AlertType.WARNING, "Thiếu dữ liệu",
-                    "Vui lòng nhập tên sản phẩm, loại, giá khởi điểm và bước giá.");
-            return null;
-        }
-
-        if (endTime.isEmpty()) {
-            endTime = defaultEndTime();
-            endTimeField.setText(endTime);
-        }
-
-        return new CreateAuctionRequest(
-                productName,
-                productType,
-                imageUrl,
-                description,
-                new BigDecimal(startingPriceText.trim()),
-                new BigDecimal(stepPriceText.trim()),
-                endTime,
-                sellerId
-        );
+    @FXML
+    private void handleShowAllSessions() {
+        loadMySessions();
     }
 
-    private boolean isCreateFormInvalid(
-            String productName,
-            String productType,
-            String startingPriceText,
-            String stepPriceText
-    ) {
-        return productName.isEmpty()
-                || productType == null
-                || startingPriceText.isEmpty()
-                || stepPriceText.isEmpty();
+    @FXML
+    private void handleShowPendingSessions() {
+        loadSessionsByStatus(AuctionStatus.PENDING);
+    }
+
+    @FXML
+    private void handleShowActiveSessions() {
+        loadSessionsByStatus(AuctionStatus.ACTIVE);
+    }
+
+    @FXML
+    private void handleShowRejectedSessions() {
+        loadSessionsByStatus(AuctionStatus.REJECTED);
+    }
+
+    @FXML
+    private void handleEditSelectedSession() {
+        SessionItem selected = getPendingSelectedSession("sửa");
+        if (selected == null) return;
+
+        Integer sellerId = getValidSellerId();
+        if (sellerId == null) return;
+
+        try {
+            CreateAuctionRequest request = SellerAuctionFormBuilder.buildUpdateRequest(
+                    sellerId,
+                    selected,
+                    productTypeCombo,
+                    productNameField,
+                    imageUrlField,
+                    descriptionArea,
+                    startingPriceField,
+                    stepPriceField,
+                    endTimeField
+            );
+
+            if (request == null) return;
+
+            ApiResult api = sellerDashboardService.updateSession(selected.id, sellerId, request);
+            handleUpdateResult(api);
+
+        } catch (NumberFormatException e) {
+            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi dữ liệu", "Giá khởi điểm và bước giá phải là số.");
+        } catch (Exception e) {
+            logger.error("Lỗi không thể kết nối đến máy chủ: {}", e.getMessage(), e);
+            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
+        }
+    }
+
+    @FXML
+    private void handleCancelSelectedSession() {
+        SessionItem selected = getPendingSelectedSession("hủy");
+        if (selected == null) return;
+
+        Integer sellerId = getValidSellerId();
+        if (sellerId == null) return;
+
+        if (!confirmCancelSession(selected.id)) return;
+
+        try {
+            ApiResult api = sellerDashboardService.cancelSession(selected.id, sellerId);
+            handleCancelResult(api);
+
+        } catch (Exception e) {
+            logger.error("Lỗi không thể kết nối đến máy chủ: {}", e.getMessage(), e);
+            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
+        }
+    }
+
+    @FXML
+    private void goBack(javafx.event.ActionEvent event) throws IOException {
+        SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1024, 768);
     }
 
     private void handleCreateResult(ApiResult api) {
@@ -126,74 +166,15 @@ public class SellerDashboardController {
         AlertUtil.show(Alert.AlertType.ERROR, "Lỗi", api.message);
     }
 
-    @FXML
-    private void handleShowAllSessions() {
-        renderSessions(allSessions);
-    }
-
-    @FXML
-    private void handleShowPendingSessions() {
-        renderSessions(filterByStatus(AuctionStatus.PENDING));
-    }
-
-    @FXML
-    private void handleShowActiveSessions() {
-        renderSessions(filterByStatus(AuctionStatus.ACTIVE));
-    }
-
-    @FXML
-    private void handleShowRejectedSessions() {
-        renderSessions(filterByStatus(AuctionStatus.REJECTED));
-    }
-
-    @FXML
-    private void handleEditSelectedSession() {
-        AlertUtil.show(Alert.AlertType.INFORMATION,
-                "Tạm khóa chức năng",
-                "Chức năng sửa phiên đang tạm khóa để bản demo ổn định hơn.\nBạn có thể demo tạo, xem, lọc, hủy phiên và phân quyền.");
-    }
-
-    @FXML
-    private void handleCancelSelectedSession() {
-        SessionItem selected = getCancelableSelectedSession();
-        if (selected == null) {
+    private void handleUpdateResult(ApiResult api) {
+        if (api.success) {
+            clearForm();
+            loadMySessions();
+            AlertUtil.show(Alert.AlertType.INFORMATION, "Thành công", api.message);
             return;
         }
 
-        Integer sellerId = getValidSellerId();
-        if (sellerId == null) {
-            return;
-        }
-
-        if (!confirmCancelSession(selected.id)) {
-            return;
-        }
-
-        try {
-            ApiResult api = sellerDashboardService.cancelSession(selected.id, sellerId);
-            handleCancelResult(api);
-
-        } catch (Exception e) {
-            logger.error("Lỗi không thể kết nối đến máy chủ: {}", e.getMessage(), e);
-            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
-        }
-    }
-
-    private SessionItem getCancelableSelectedSession() {
-        SessionItem selected = getSelectedSession();
-
-        if (selected == null) {
-            AlertUtil.show(Alert.AlertType.WARNING, "Chưa chọn phiên", "Bạn hãy chọn một phiên để hủy.");
-            return null;
-        }
-
-        if (!AuctionStatus.PENDING.equalsIgnoreCase(selected.status)) {
-            AlertUtil.show(Alert.AlertType.WARNING, "Không thể hủy",
-                    "Chỉ được hủy phiên đang ở trạng thái PENDING.");
-            return null;
-        }
-
-        return selected;
+        AlertUtil.show(Alert.AlertType.ERROR, "Lỗi", api.message);
     }
 
     private void handleCancelResult(ApiResult api) {
@@ -206,16 +187,9 @@ public class SellerDashboardController {
         AlertUtil.show(Alert.AlertType.ERROR, "Lỗi", api.message);
     }
 
-    @FXML
-    private void goBack(javafx.event.ActionEvent event) throws IOException {
-        SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1024, 768);
-    }
-
     private void loadMySessions() {
         Integer sellerId = getValidSellerId();
-        if (sellerId == null) {
-            return;
-        }
+        if (sellerId == null) return;
 
         try {
             allSessions.clear();
@@ -227,6 +201,20 @@ public class SellerDashboardController {
         } catch (Exception e) {
             logger.error("Lỗi không thể kết nối đến server: {}", e.getMessage(), e);
             AlertUtil.show(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể tải dữ liệu seller từ server.");
+        }
+    }
+
+    private void loadSessionsByStatus(String status) {
+        Integer sellerId = getValidSellerId();
+        if (sellerId == null) return;
+
+        try {
+            List<SessionItem> sessions = sellerDashboardService.getMySessions(sellerId, status);
+            renderSessions(sessions);
+
+        } catch (Exception e) {
+            logger.error("Lỗi không thể lọc phiên: {}", e.getMessage(), e);
+            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể lọc phiên từ server.");
         }
     }
 
@@ -243,18 +231,6 @@ public class SellerDashboardController {
         mySessionsList.setItems(FXCollections.observableArrayList(rendered));
     }
 
-    private List<SessionItem> filterByStatus(String status) {
-        List<SessionItem> filtered = new ArrayList<>();
-
-        for (SessionItem session : allSessions) {
-            if (session.status != null && session.status.equalsIgnoreCase(status)) {
-                filtered.add(session);
-            }
-        }
-
-        return filtered;
-    }
-
     private SessionItem getSelectedSession() {
         int index = mySessionsList.getSelectionModel().getSelectedIndex();
 
@@ -263,6 +239,24 @@ public class SellerDashboardController {
         }
 
         return displayedSessions.get(index);
+    }
+
+    private SessionItem getPendingSelectedSession(String actionName) {
+        SessionItem selected = getSelectedSession();
+
+        if (selected == null) {
+            AlertUtil.show(Alert.AlertType.WARNING, "Chưa chọn phiên",
+                    "Bạn hãy chọn một phiên để " + actionName + ".");
+            return null;
+        }
+
+        if (!AuctionStatus.PENDING.equalsIgnoreCase(selected.status)) {
+            AlertUtil.show(Alert.AlertType.WARNING, "Không thể " + actionName,
+                    "Chỉ được " + actionName + " phiên đang ở trạng thái PENDING.");
+            return null;
+        }
+
+        return selected;
     }
 
     private boolean confirmCancelSession(int sessionId) {
@@ -284,22 +278,8 @@ public class SellerDashboardController {
         descriptionArea.clear();
         startingPriceField.clear();
         stepPriceField.clear();
-        fillDefaultEndTime();
+        SellerAuctionFormBuilder.fillDefaultEndTime(endTimeField);
         productTypeCombo.setValue("Electronics");
-    }
-
-    private void fillDefaultEndTime() {
-        if (endTimeField != null && endTimeField.getText().trim().isEmpty()) {
-            endTimeField.setText(defaultEndTime());
-        }
-    }
-
-    private String defaultEndTime() {
-        return LocalDateTime.now().plusDays(7).withSecond(0).withNano(0).toString();
-    }
-
-    private String textOrEmpty(TextInputControl input) {
-        return input == null ? "" : input.getText().trim();
     }
 
     private Integer getValidSellerId() {
