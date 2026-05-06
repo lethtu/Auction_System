@@ -25,14 +25,6 @@ public interface AuctionSessionRepository extends JpaRepository<AuctionSession, 
     List<AuctionSession> findBySeller_IdAndStatus(Integer sellerId, AuctionStatus status);
 
     @Modifying
-    @Query("UPDATE AuctionSession a SET a.status = :newStatus WHERE a.status = :oldStatus AND a.startTime <= :now")
-    int updateStatusToActive(
-            @Param("oldStatus") AuctionStatus oldStatus,
-            @Param("newStatus") AuctionStatus newStatus,
-            @Param("now") LocalDateTime now
-    );
-
-    @Modifying
     @Query("UPDATE AuctionSession a SET a.status = :newStatus WHERE a.status = :oldStatus AND a.endTime <= :now")
     int updateStatusToEnded(
             @Param("oldStatus") AuctionStatus oldStatus,
