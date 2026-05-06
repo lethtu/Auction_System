@@ -16,10 +16,14 @@ import java.util.List;
 @Repository
 public interface AuctionSessionRepository extends JpaRepository<AuctionSession, Integer> {
 
-    //Tùng từng dùng String, tôi ép dùng Enum cho chuẩn
     List<AuctionSession> findByStatus(AuctionStatus status);
 
-    // 1. Cập nhật trạng thái PENDING -> ACTIVE
+    Page<AuctionSession> findByStatus(AuctionStatus status, Pageable pageable);
+
+    List<AuctionSession> findBySeller_Id(Integer sellerId);
+
+    List<AuctionSession> findBySeller_IdAndStatus(Integer sellerId, AuctionStatus status);
+
     @Modifying
     @Query("UPDATE AuctionSession a SET a.status = :newStatus WHERE a.status = :oldStatus AND a.startTime <= :now")
     int updateStatusToActive(
@@ -27,9 +31,7 @@ public interface AuctionSessionRepository extends JpaRepository<AuctionSession, 
             @Param("newStatus") AuctionStatus newStatus,
             @Param("now") LocalDateTime now
     );
-    List<AuctionSession> findBySeller_Id(Integer sellerId);
 
-    // 2. Cập nhật trạng thái ACTIVE -> ENDED
     @Modifying
     @Query("UPDATE AuctionSession a SET a.status = :newStatus WHERE a.status = :oldStatus AND a.endTime <= :now")
     int updateStatusToEnded(
@@ -37,6 +39,4 @@ public interface AuctionSessionRepository extends JpaRepository<AuctionSession, 
             @Param("newStatus") AuctionStatus newStatus,
             @Param("now") LocalDateTime now
     );
-
-    Page<AuctionSession> findByStatus(AuctionStatus status, Pageable pageable);
 }

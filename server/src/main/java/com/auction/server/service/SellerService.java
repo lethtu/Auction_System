@@ -64,22 +64,24 @@ public class SellerService {
     public List<SessionResponseDTO> getMySessions(Integer sellerId, String status) {
         getSellerById(sellerId);
 
-        List<AuctionSession> sessions = auctionSessionRepository.findBySeller_Id(sellerId);
-
-        if (status != null && !status.trim().isEmpty()) {
-            try {
-                AuctionStatus enumStatus = AuctionStatus.valueOf(status.trim().toUpperCase());
-                sessions = sessions.stream()
-                        .filter(session -> session.getStatus() == enumStatus)
-                        .toList();
-            } catch (IllegalArgumentException e) {
-                return List.of();
-            }
-        }
+        List<AuctionSession> sessions = findSessionsBySellerAndStatus(sellerId, status);
 
         return sessions.stream()
                 .map(SessionResponseMapper::toDTO)
                 .toList();
+    }
+
+    private List<AuctionSession> findSessionsBySellerAndStatus(Integer sellerId, String status) {
+        if (status == null || status.trim().isEmpty()) {
+            return auctionSessionRepository.findBySeller_Id(sellerId);
+        }
+
+        try {
+            AuctionStatus enumStatus = AuctionStatus.valueOf(status.trim().toUpperCase());
+            return auctionSessionRepository.findBySeller_IdAndStatus(sellerId, enumStatus);
+        } catch (IllegalArgumentException e) {
+            return List.of();
+        }
     }
 
     public SessionResponseDTO getSessionDetail(Integer sessionId, Integer sellerId) {
