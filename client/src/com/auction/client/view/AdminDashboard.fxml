@@ -43,6 +43,11 @@
                 onAction="#handleApprove"
                 prefWidth="140" prefHeight="40"
                 style="-fx-background-color: #22c55e; -fx-text-fill: white; -fx-font-size: 14; -fx-background-radius: 10;"/>
+
+        <Button text="Reject"
+                onAction="#handleReject"
+                prefWidth="140" prefHeight="40"
+                style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-size: 14; -fx-background-radius: 10;"/>
     </HBox>
 
 </VBox>
