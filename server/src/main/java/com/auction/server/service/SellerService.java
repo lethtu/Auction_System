@@ -13,13 +13,13 @@ import com.auction.server.model.User;
 import com.auction.server.repository.AuctionSessionRepository;
 import com.auction.server.repository.ItemRepository;
 import com.auction.server.repository.UserRepository;
+import com.auction.server.validator.SellerAuctionValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -42,7 +42,7 @@ public class SellerService {
 
     @Transactional
     public SessionResponseDTO createAuctionSession(CreateAuctionRequest request) {
-        validateAuctionInput(request);
+        SellerAuctionValidator.validate(request);
 
         Seller seller = getSellerById(request.getSellerId());
 
@@ -64,24 +64,10 @@ public class SellerService {
     public List<SessionResponseDTO> getMySessions(Integer sellerId, String status) {
         getSellerById(sellerId);
 
-        List<AuctionSession> sessions = findSessionsBySellerAndStatus(sellerId, status);
-
-        return sessions.stream()
+        return findSessionsBySellerAndStatus(sellerId, status)
+                .stream()
                 .map(SessionResponseMapper::toDTO)
                 .toList();
-    }
-
-    private List<AuctionSession> findSessionsBySellerAndStatus(Integer sellerId, String status) {
-        if (status == null || status.trim().isEmpty()) {
-            return auctionSessionRepository.findBySeller_Id(sellerId);
-        }
-
-        try {
-            AuctionStatus enumStatus = AuctionStatus.valueOf(status.trim().toUpperCase());
-            return auctionSessionRepository.findBySeller_IdAndStatus(sellerId, enumStatus);
-        } catch (IllegalArgumentException e) {
-            return List.of();
-        }
     }
 
     public SessionResponseDTO getSessionDetail(Integer sessionId, Integer sellerId) {
@@ -95,7 +81,7 @@ public class SellerService {
 
     @Transactional
     public SessionResponseDTO updatePendingSession(Integer sessionId, Integer sellerId, CreateAuctionRequest request) {
-        validateAuctionInput(request);
+        SellerAuctionValidator.validate(request);
         getSellerById(sellerId);
 
         AuctionSession session = getSessionById(sessionId);
@@ -127,19 +113,30 @@ public class SellerService {
     public SellerStatsDTO getSellerStats(Integer sellerId) {
         getSellerById(sellerId);
 
-        List<AuctionSession> endedSessions = auctionSessionRepository.findBySeller_Id(sellerId)
-                .stream()
-                .filter(session -> session.getStatus() == AuctionStatus.ENDED)
-                .toList();
-
-        long count = endedSessions.size();
+        List<AuctionSession> endedSessions = auctionSessionRepository.findBySeller_IdAndStatus(
+                sellerId,
+                AuctionStatus.ENDED
+        );
 
         BigDecimal revenue = endedSessions.stream()
                 .map(AuctionSession::getCurrentPrice)
                 .filter(price -> price != null)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        return new SellerStatsDTO(count, revenue);
+        return new SellerStatsDTO(endedSessions.size(), revenue);
+    }
+
+    private List<AuctionSession> findSessionsBySellerAndStatus(Integer sellerId, String status) {
+        if (status == null || status.trim().isEmpty()) {
+            return auctionSessionRepository.findBySeller_Id(sellerId);
+        }
+
+        try {
+            AuctionStatus enumStatus = AuctionStatus.valueOf(status.trim().toUpperCase());
+            return auctionSessionRepository.findBySeller_IdAndStatus(sellerId, enumStatus);
+        } catch (IllegalArgumentException e) {
+            return List.of();
+        }
     }
 
     private Seller getSellerById(Integer sellerId) {
@@ -168,48 +165,7 @@ public class SellerService {
 
     private void validatePendingSession(AuctionSession session) {
         if (session.getStatus() != AuctionStatus.PENDING) {
-            logger.error("Chỉ được thao tác với phiên đang chờ duyệt");
             throw new RuntimeException("Chỉ được thao tác với phiên đang chờ duyệt");
-        }
-    }
-
-    private void validateAuctionInput(CreateAuctionRequest request) {
-        if (request == null) {
-            throw new IllegalArgumentException("Dữ liệu phiên đấu giá không hợp lệ");
-        }
-
-        if (request.getName() == null || request.getName().trim().isEmpty()) {
-            throw new IllegalArgumentException("Tên sản phẩm không được để trống");
-        }
-
-        if (request.getType() == null || request.getType().trim().isEmpty()) {
-            throw new IllegalArgumentException("Loại sản phẩm không được để trống");
-        }
-
-        if (request.getDescription() != null && request.getDescription().length() > 1000) {
-            throw new IllegalArgumentException("Mô tả không được quá 1000 ký tự");
-        }
-
-        if (request.getStartingPrice() == null || request.getStartingPrice().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Giá khởi điểm phải lớn hơn 0");
-        }
-
-        if (request.getStepPrice() == null || request.getStepPrice().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Bước giá phải lớn hơn 0");
-        }
-
-        LocalDateTime now = LocalDateTime.now();
-
-        if (request.getStartTime() != null && request.getStartTime().isBefore(now)) {
-            throw new IllegalArgumentException("Thời gian bắt đầu không được nằm trong quá khứ.");
-        }
-
-        if (request.getEndTime() == null || !request.getEndTime().isAfter(now)) {
-            throw new IllegalArgumentException("Thời gian kết thúc phải ở tương lai");
-        }
-
-        if (request.getStartTime() != null && request.getEndTime().isBefore(request.getStartTime())) {
-            throw new IllegalArgumentException("Thời gian kết thúc phải diễn ra sau thời gian bắt đầu.");
         }
     }
 
