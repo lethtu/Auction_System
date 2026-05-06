@@ -1,131 +1,117 @@
 package com.auction.server.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.auction.server.dto.ApiResponse;
 import com.auction.server.dto.CreateAuctionRequest;
 import com.auction.server.dto.SellerStatsDTO;
 import com.auction.server.dto.SessionResponseDTO;
-import com.auction.server.model.AuctionSession;
 import com.auction.server.service.SellerService;
-import com.auction.server.service.ApiResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.function.Supplier;
 
-// @RestController: Báo cho Spring biết đây là nơi tiếp nhận API và sẽ trả về dữ liệu dạng JSON
 @RestController
-// @RequestMapping: Thiết lập đường dẫn gốc cho toàn bộ API trong class này
 @RequestMapping("/api/seller")
 public class SellerController {
     private static final Logger logger = LoggerFactory.getLogger(SellerController.class);
 
-    // Tiêm (Inject) Service vào Controller để sử dụng
-    @Autowired
-    private SellerService sellerService;
+    private final SellerService sellerService;
 
-    /**
-     * API tạo phiên đấu giá mới (Chuẩn của Khánh)
-     */
-    @PostMapping("/create-auction")
-    public ApiResponse<AuctionSession> createAuction(@RequestBody CreateAuctionRequest request) {
-        try {
-            logger.info("Đang tạo phiên đấu giá");
-            AuctionSession newSession = sellerService.createAuctionSession(request);
-            // Đã sửa thành getItem().getName() thay vì getProduct() của Minh
-            return new ApiResponse<>(200, "Tạo phiên đấu giá thành công cho món: " + newSession.getItem().getName(), newSession);
-        } catch (Exception e) {
-            logger.error("Lỗi khi tạo phiên đấu giá: {}", e.getMessage(), e);
-            return new ApiResponse<>(500, "Lỗi hệ thống khi tạo phiên: " + e.getMessage(), null);
-        }
+    public SellerController(SellerService sellerService) {
+        this.sellerService = sellerService;
     }
 
-    /**
-     * API Lấy danh sách phiên đấu giá của Seller (Tính năng của Minh, chuẩn hóa theo Khánh)
-     */
+    @PostMapping("/create-auction")
+    public ApiResponse<SessionResponseDTO> createAuction(@RequestBody CreateAuctionRequest request) {
+        return handleRequest(
+                "Đang tạo phiên đấu giá",
+                "Tạo phiên đấu giá thành công.",
+                () -> sellerService.createAuctionSession(request)
+        );
+    }
+
     @GetMapping("/my-sessions/{sellerId}")
     public ApiResponse<List<SessionResponseDTO>> viewMySessions(
             @PathVariable Integer sellerId,
             @RequestParam(required = false) String status
     ) {
-        try {
-            logger.info("Đang lấy danh sách");
-            List<SessionResponseDTO> data = sellerService.getMySessions(sellerId, status);
-            return new ApiResponse<>(200, "Lấy danh sách thành công", data);
-        } catch (Exception e) {
-            logger.error("Lỗi không mong muốn: {}", e.getMessage(), e);
-            return new ApiResponse<>(500, e.getMessage(), null);
-        }
+        return handleRequest(
+                "Đang lấy danh sách phiên của seller",
+                "Lấy danh sách thành công",
+                () -> sellerService.getMySessions(sellerId, status)
+        );
     }
 
-    /**
-     * API Xem chi tiết 1 phiên đấu giá
-     */
     @GetMapping("/session-detail/{sessionId}")
     public ApiResponse<SessionResponseDTO> getSessionDetail(
             @PathVariable Integer sessionId,
             @RequestParam Integer sellerId
     ) {
-        try {
-            logger.info("Đang lấy chi tiết phiên");
-            SessionResponseDTO data = sellerService.getSessionDetail(sessionId, sellerId);
-            return new ApiResponse<>(200, "Lấy chi tiết thành công", data);
-        } catch (Exception e) {
-            logger.error("Lỗi không mong muốn: {}", e.getMessage(), e);
-            return new ApiResponse<>(500, e.getMessage(), null);
-        }
+        return handleRequest(
+                "Đang lấy chi tiết phiên",
+                "Lấy chi tiết thành công",
+                () -> sellerService.getSessionDetail(sessionId, sellerId)
+        );
     }
 
-    /**
-     * API Sửa phiên đấu giá đang chờ duyệt
-     */
     @PutMapping("/update-session/{sessionId}")
-    public ApiResponse<AuctionSession> updatePendingSession(
+    public ApiResponse<SessionResponseDTO> updatePendingSession(
             @PathVariable Integer sessionId,
             @RequestParam Integer sellerId,
-            @RequestBody CreateAuctionRequest request // Đổi AuctionRequestDTO thành chuẩn
+            @RequestBody CreateAuctionRequest request
     ) {
-        try {
-            logger.info("Đang sửa phiên đấu giá, chờ duyệt");
-            request.setSellerId(sellerId);
-            AuctionSession updatedSession = sellerService.updatePendingSession(sessionId, sellerId, request);
-            return new ApiResponse<>(200, "Đã cập nhật phiên chờ duyệt cho món: " + updatedSession.getItem().getName(), updatedSession);
-        } catch (Exception e) {
-            logger.error("Lỗi không mong muốn: {}", e.getMessage(), e);
-            return new ApiResponse<>(500, e.getMessage(), null);
-        }
+        request.setSellerId(sellerId);
+
+        return handleRequest(
+                "Đang sửa phiên đấu giá chờ duyệt",
+                "Đã cập nhật phiên chờ duyệt thành công.",
+                () -> sellerService.updatePendingSession(sessionId, sellerId, request)
+        );
     }
 
-    /**
-     * API Hủy phiên đấu giá
-     */
     @DeleteMapping("/cancel-session/{sessionId}")
-    public ApiResponse<String> cancelAuction(
+    public ApiResponse<Void> cancelAuction(
             @PathVariable Integer sessionId,
             @RequestParam Integer sellerId
     ) {
-        try {
-            logger.info("Đang huỷ phiên đấu giá");
-            sellerService.cancelSession(sessionId, sellerId);
-            return new ApiResponse<>(200, "Đã hủy phiên thành công", null);
-        } catch (Exception e) {
-            logger.error("Lỗi không mong muốn: {}", e.getMessage(), e);
-            return new ApiResponse<>(500, e.getMessage(), null);
-        }
+        return handleRequest(
+                "Đang huỷ phiên đấu giá",
+                "Đã hủy phiên thành công",
+                () -> {
+                    sellerService.cancelSession(sessionId, sellerId);
+                    return null;
+                }
+        );
     }
 
-    /**
-     * API Thống kê cho Seller
-     */
     @GetMapping("/stats/{sellerId}")
     public ApiResponse<SellerStatsDTO> getStats(@PathVariable Integer sellerId) {
+        return handleRequest(
+                "Đang thống kê seller",
+                "Lấy thống kê thành công",
+                () -> sellerService.getSellerStats(sellerId)
+        );
+    }
+
+    private <T> ApiResponse<T> handleRequest(
+            String logMessage,
+            String successMessage,
+            Supplier<T> action
+    ) {
         try {
-            logger.info("Đang thống kê");
-            SellerStatsDTO stats = sellerService.getSellerStats(sellerId);
-            return new ApiResponse<>(200, "Lấy thống kê thành công", stats);
+            logger.info(logMessage);
+            T data = action.get();
+            return ApiResponse.success(successMessage, data);
+
+        } catch (IllegalArgumentException e) {
+            logger.warn("{} thất bại: {}", logMessage, e.getMessage());
+            return ApiResponse.error(400, e.getMessage());
+
         } catch (Exception e) {
-            logger.error("Lỗi không mong muốn: {}", e.getMessage(), e);
-            return new ApiResponse<>(500, e.getMessage(), null);
+            logger.error("{} thất bại: {}", logMessage, e.getMessage(), e);
+            return ApiResponse.error(e.getMessage());
         }
     }
 }
