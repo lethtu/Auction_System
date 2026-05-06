@@ -13,6 +13,7 @@ import com.auction.server.model.User;
 import com.auction.server.repository.AuctionSessionRepository;
 import com.auction.server.repository.ItemRepository;
 import com.auction.server.repository.UserRepository;
+import com.auction.server.util.SellerSessionUpdater;
 import com.auction.server.validator.SellerAuctionValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,14 +48,14 @@ public class SellerService {
         Seller seller = getSellerById(request.getSellerId());
 
         Item item = ItemFactory.createItem(request.getType());
-        updateItemFromRequest(item, request);
+        SellerSessionUpdater.updateItemFromRequest(item, request);
         Item savedItem = itemRepository.save(item);
 
         AuctionSession session = new AuctionSession();
         session.setItem(savedItem);
         session.setSeller(seller);
-        updateSessionFromRequest(session, request);
-        resetApprovalInfo(session);
+        SellerSessionUpdater.updateSessionFromRequest(session, request);
+        SellerSessionUpdater.resetApprovalInfo(session);
         session.setStatus(AuctionStatus.PENDING);
 
         AuctionSession savedSession = auctionSessionRepository.save(session);
@@ -89,10 +90,10 @@ public class SellerService {
         validatePendingSession(session);
 
         Item item = session.getItem();
-        updateItemFromRequest(item, request);
+        SellerSessionUpdater.updateItemFromRequest(item, request);
         itemRepository.save(item);
 
-        updateSessionFromRequest(session, request);
+        SellerSessionUpdater.updateSessionFromRequest(session, request);
 
         AuctionSession savedSession = auctionSessionRepository.save(session);
         return SessionResponseMapper.toDTO(savedSession);
@@ -167,28 +168,5 @@ public class SellerService {
         if (session.getStatus() != AuctionStatus.PENDING) {
             throw new RuntimeException("Chỉ được thao tác với phiên đang chờ duyệt");
         }
-    }
-
-    private void updateItemFromRequest(Item item, CreateAuctionRequest request) {
-        item.setName(request.getName());
-        item.setType(request.getType());
-        item.setImagePath(request.getImagePath());
-        item.setDescription(request.getDescription());
-    }
-
-    private void updateSessionFromRequest(AuctionSession session, CreateAuctionRequest request) {
-        session.setStartingPrice(request.getStartingPrice());
-        session.setCurrentPrice(request.getStartingPrice());
-        session.setStepPrice(request.getStepPrice());
-        session.setStartTime(request.getStartTime());
-        session.setEndTime(request.getEndTime());
-    }
-
-    private void resetApprovalInfo(AuctionSession session) {
-        session.setApprovedAt(null);
-        session.setRejectedAt(null);
-        session.setRejectReason(null);
-        session.setApprovedByAdminId(null);
-        session.setRejectedByAdminId(null);
     }
 }
