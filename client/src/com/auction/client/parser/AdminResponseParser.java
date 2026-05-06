@@ -5,97 +5,59 @@ import com.auction.client.dto.ApiResult;
 import com.auction.client.model.PendingSessionRow;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AdminResponseParser {
-    private static final Logger logger = LoggerFactory.getLogger(AdminResponseParser.class);
+public final class AdminResponseParser {
+
+    private AdminResponseParser() {
+    }
 
     public static ApiResult parseApiResponse(String body, int httpStatus, String defaultSuccessMessage) {
-        if (body == null || body.isBlank()) {
-            return new ApiResult(isSuccess(httpStatus), getDefaultMessage(httpStatus, defaultSuccessMessage));
-        }
-
-        try {
-            JSONObject obj = new JSONObject(body.trim());
-
-            int status = obj.optInt("status", httpStatus);
-            String message = obj.optString("message", getDefaultMessage(status, defaultSuccessMessage));
-
-            return new ApiResult(isSuccess(status), message);
-
-        } catch (Exception e) {
-            logger.error("Không đọc được phản hồi từ server: {}", e.getMessage(), e);
-            return new ApiResult(isSuccess(httpStatus), getDefaultMessage(httpStatus, defaultSuccessMessage));
-        }
+        return ApiResponseParser.parseApiResponse(body, httpStatus, defaultSuccessMessage);
     }
 
     public static ApiArrayResult extractDataArray(String body, int httpStatus) {
-        if (body == null || body.isBlank()) {
-            return new ApiArrayResult(false, "Không có dữ liệu từ server.", new JSONArray());
-        }
-
-        try {
-            JSONObject obj = new JSONObject(body.trim());
-
-            int status = obj.optInt("status", httpStatus);
-            String message = obj.optString("message", getDefaultMessage(status, "OK"));
-
-            if (!isSuccess(status)) {
-                return new ApiArrayResult(false, message, new JSONArray());
-            }
-
-            JSONArray data = obj.optJSONArray("data");
-
-            if (data == null) {
-                return new ApiArrayResult(true, message, new JSONArray());
-            }
-
-            return new ApiArrayResult(true, message, data);
-
-        } catch (Exception e) {
-            logger.error("Không đọc được dữ liệu từ server: {}", e.getMessage(), e);
-            return new ApiArrayResult(false, "Không đọc được dữ liệu từ server.", new JSONArray());
-        }
+        return ApiResponseParser.extractDataArray(body, httpStatus);
     }
 
     public static List<PendingSessionRow> parsePendingSessions(JSONArray array) {
         List<PendingSessionRow> rows = new ArrayList<>();
 
+        if (array == null) {
+            return rows;
+        }
+
         for (int i = 0; i < array.length(); i++) {
-            JSONObject item = array.getJSONObject(i);
+            JSONObject item = array.optJSONObject(i);
 
-            int id = item.optInt("id", 0);
-            String productName = item.optString("productName", "Không rõ");
-            BigDecimal startingPrice = extractStartingPrice(item);
-
-            rows.add(new PendingSessionRow(id, productName, startingPrice));
+            if (item != null) {
+                rows.add(parsePendingSession(item));
+            }
         }
 
         return rows;
     }
 
-    private static BigDecimal extractStartingPrice(JSONObject item) {
-        if (!item.has("startingPrice") || item.isNull("startingPrice")) {
+    private static PendingSessionRow parsePendingSession(JSONObject item) {
+        int id = item.optInt("id", 0);
+        String productName = item.optString("productName", "Không rõ");
+        BigDecimal startingPrice = parseBigDecimal(item, "startingPrice");
+
+        return new PendingSessionRow(id, productName, startingPrice);
+    }
+
+    private static BigDecimal parseBigDecimal(JSONObject item, String key) {
+        if (!item.has(key) || item.isNull(key)) {
             return BigDecimal.ZERO;
         }
 
         try {
-            return new BigDecimal(item.get("startingPrice").toString());
+            return new BigDecimal(item.get(key).toString());
         } catch (Exception e) {
             return BigDecimal.ZERO;
         }
-    }
-
-    private static boolean isSuccess(int status) {
-        return status >= 200 && status < 300;
-    }
-
-    private static String getDefaultMessage(int status, String successMessage) {
-        return isSuccess(status) ? successMessage : "Có lỗi xảy ra từ server.";
     }
 }

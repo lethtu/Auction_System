@@ -11,40 +11,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class SellerResponseParser {
-    private static final String DEFAULT_ERROR_MESSAGE = "Có lỗi xảy ra từ server.";
 
     private SellerResponseParser() {
     }
 
     public static ApiResult parseApiResponse(String body, int httpStatus, String defaultSuccessMessage) {
-        JSONObject obj = parseJson(body);
-
-        if (obj == null) {
-            return new ApiResult(isSuccess(httpStatus), defaultMessage(httpStatus, defaultSuccessMessage));
-        }
-
-        int status = readStatus(obj, httpStatus);
-        String message = readMessage(obj, status, defaultSuccessMessage);
-
-        return new ApiResult(isSuccess(status), message);
+        return ApiResponseParser.parseApiResponse(body, httpStatus, defaultSuccessMessage);
     }
 
     public static ApiArrayResult extractDataArray(String body, int httpStatus) {
-        JSONObject obj = parseJson(body);
-
-        if (obj == null) {
-            return new ApiArrayResult(false, "Không có dữ liệu từ server.", new JSONArray());
-        }
-
-        int status = readStatus(obj, httpStatus);
-        String message = readMessage(obj, status, "OK");
-
-        if (!isSuccess(status)) {
-            return new ApiArrayResult(false, message, new JSONArray());
-        }
-
-        JSONArray data = obj.optJSONArray("data");
-        return new ApiArrayResult(true, message, data == null ? new JSONArray() : data);
+        return ApiResponseParser.extractDataArray(body, httpStatus);
     }
 
     public static List<SessionItem> parseSessions(JSONArray data) {
@@ -82,26 +58,6 @@ public final class SellerResponseParser {
         return session;
     }
 
-    private static JSONObject parseJson(String body) {
-        if (body == null || body.isBlank()) {
-            return null;
-        }
-
-        try {
-            return new JSONObject(body.trim());
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private static int readStatus(JSONObject obj, int fallbackStatus) {
-        return obj.optInt("status", fallbackStatus);
-    }
-
-    private static String readMessage(JSONObject obj, int status, String successMessage) {
-        return obj.optString("message", defaultMessage(status, successMessage));
-    }
-
     private static BigDecimal parseBigDecimal(JSONObject item, String key) {
         if (!item.has(key) || item.isNull(key)) {
             return BigDecimal.ZERO;
@@ -112,13 +68,5 @@ public final class SellerResponseParser {
         } catch (Exception e) {
             return BigDecimal.ZERO;
         }
-    }
-
-    private static boolean isSuccess(int status) {
-        return status >= 200 && status < 300;
-    }
-
-    private static String defaultMessage(int status, String successMessage) {
-        return isSuccess(status) ? successMessage : DEFAULT_ERROR_MESSAGE;
     }
 }
