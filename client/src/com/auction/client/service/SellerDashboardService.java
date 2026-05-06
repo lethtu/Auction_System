@@ -6,7 +6,7 @@ import com.auction.client.dto.ApiResult;
 import com.auction.client.dto.CreateAuctionRequest;
 import com.auction.client.model.SessionItem;
 import com.auction.client.parser.SellerResponseParser;
-import org.json.JSONObject;
+import com.auction.client.util.SellerRequestBuilder;
 
 import java.net.http.HttpResponse;
 import java.util.List;
@@ -15,25 +15,21 @@ public class SellerDashboardService {
     private final SellerApiClient sellerApiClient = new SellerApiClient();
 
     public ApiResult createAuction(CreateAuctionRequest request) throws Exception {
-        JSONObject body = buildCreateAuctionBody(request);
-        HttpResponse<String> response = sellerApiClient.createAuction(body);
-
-        return SellerResponseParser.parseApiResponse(
-                response.body(),
-                response.statusCode(),
-                "Tạo phiên đấu giá thành công."
+        HttpResponse<String> response = sellerApiClient.createAuction(
+                SellerRequestBuilder.buildAuctionBody(request)
         );
+
+        return parseApiResult(response, "Tạo phiên đấu giá thành công.");
     }
 
     public ApiResult updateSession(int sessionId, int sellerId, CreateAuctionRequest request) throws Exception {
-        JSONObject body = buildCreateAuctionBody(request);
-        HttpResponse<String> response = sellerApiClient.updateSession(sessionId, sellerId, body);
-
-        return SellerResponseParser.parseApiResponse(
-                response.body(),
-                response.statusCode(),
-                "Đã cập nhật phiên thành công."
+        HttpResponse<String> response = sellerApiClient.updateSession(
+                sessionId,
+                sellerId,
+                SellerRequestBuilder.buildAuctionBody(request)
         );
+
+        return parseApiResult(response, "Đã cập nhật phiên thành công.");
     }
 
     public List<SessionItem> getMySessions(int sellerId) throws Exception {
@@ -48,11 +44,14 @@ public class SellerDashboardService {
 
     public ApiResult cancelSession(int sessionId, int sellerId) throws Exception {
         HttpResponse<String> response = sellerApiClient.cancelSession(sessionId, sellerId);
+        return parseApiResult(response, "Đã hủy phiên thành công.");
+    }
 
+    private ApiResult parseApiResult(HttpResponse<String> response, String successMessage) {
         return SellerResponseParser.parseApiResponse(
                 response.body(),
                 response.statusCode(),
-                "Đã hủy phiên thành công."
+                successMessage
         );
     }
 
@@ -67,21 +66,5 @@ public class SellerDashboardService {
         }
 
         return SellerResponseParser.parseSessions(api.data);
-    }
-
-    private JSONObject buildCreateAuctionBody(CreateAuctionRequest request) {
-        JSONObject body = new JSONObject();
-
-        body.put("name", request.productName);
-        body.put("type", request.productType);
-        body.put("imagePath", request.imageUrl);
-        body.put("description", request.description);
-        body.put("startingPrice", request.startingPrice);
-        body.put("stepPrice", request.stepPrice);
-        body.put("startTime", request.startTime);
-        body.put("endTime", request.endTime);
-        body.put("sellerId", request.sellerId);
-
-        return body;
     }
 }
