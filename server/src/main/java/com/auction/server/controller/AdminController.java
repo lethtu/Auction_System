@@ -1,100 +1,114 @@
 package com.auction.server.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.auction.server.dto.ApiResponse;
 import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.dto.UserResponseDTO;
 import com.auction.server.service.AdminService;
-import com.auction.server.service.ApiResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController {
     private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
 
-    @Autowired
-    private AdminService adminService;
+    private final AdminService adminService;
+
+    public AdminController(AdminService adminService) {
+        this.adminService = adminService;
+    }
 
     @GetMapping("/pending")
     public ApiResponse<List<SessionResponseDTO>> getPendingSessions() {
-        try {
-            logger.info("Đang lấy danh sách chờ duyệt");
-            List<SessionResponseDTO> data = adminService.getPendingSessions();
-            return new ApiResponse<>(200, "Lấy danh sách phiên chờ duyệt thành công", data);
-        } catch (Exception e) {
-            logger.error("Lỗi không mong muốn: {}", e.getMessage(), e);
-            return new ApiResponse<>(500, e.getMessage(), null);
-        }
+        return handleRequest(
+                "Đang lấy danh sách chờ duyệt",
+                "Lấy danh sách phiên chờ duyệt thành công",
+                adminService::getPendingSessions
+        );
     }
 
     @GetMapping("/sessions")
     public ApiResponse<List<SessionResponseDTO>> getAllSessions(
             @RequestParam(required = false) String status
     ) {
-        try {
-            logger.info("Đang lấy danh sách phiên");
-            List<SessionResponseDTO> data = adminService.getAllSessions(status);
-            return new ApiResponse<>(200, "Lấy danh sách phiên thành công", data);
-        } catch (Exception e) {
-            logger.error("Lỗi không mong muốn: {}", e.getMessage(), e);
-            return new ApiResponse<>(500, e.getMessage(), null);
-        }
+        return handleRequest(
+                "Đang lấy danh sách phiên",
+                "Lấy danh sách phiên thành công",
+                () -> adminService.getAllSessions(status)
+        );
     }
 
     @GetMapping("/session-detail/{sessionId}")
     public ApiResponse<SessionResponseDTO> getSessionDetail(@PathVariable Integer sessionId) {
-        try {
-            logger.info("Đang lấy chi tiết phiên: {}", sessionId);
-            SessionResponseDTO data = adminService.getSessionDetail(sessionId);
-            return new ApiResponse<>(200, "Lấy chi tiết phiên thành công", data);
-        } catch (Exception e) {
-            logger.error("Lỗi không mong muốn: {}", e.getMessage(), e);
-            return new ApiResponse<>(500, e.getMessage(), null);
-        }
+        return handleRequest(
+                "Đang lấy chi tiết phiên " + sessionId,
+                "Lấy chi tiết phiên thành công",
+                () -> adminService.getSessionDetail(sessionId)
+        );
     }
 
     @PostMapping("/approve/{sessionId}")
-    public ApiResponse<String> approveSession(@PathVariable Integer sessionId, @RequestParam Integer adminId) {
-        try {
-            logger.info("Đang phê duyệt phiên: {}", sessionId);
-            adminService.approveSession(sessionId, adminId);
-            return new ApiResponse<>(200, "Phê duyệt thành công! Phiên đấu giá đã bắt đầu.", null);
-        } catch (Exception e) {
-            logger.error("Lỗi không mong muốn: {}", e.getMessage(), e);
-            return new ApiResponse<>(500, e.getMessage(), null);
-        }
+    public ApiResponse<Void> approveSession(
+            @PathVariable Integer sessionId,
+            @RequestParam Integer adminId
+    ) {
+        return handleRequest(
+                "Đang phê duyệt phiên " + sessionId,
+                "Phê duyệt thành công! Phiên đấu giá đã bắt đầu.",
+                () -> {
+                    adminService.approveSession(sessionId, adminId);
+                    return null;
+                }
+        );
     }
 
     @PostMapping("/reject/{sessionId}")
-    public ApiResponse<String> rejectSession(
+    public ApiResponse<Void> rejectSession(
             @PathVariable Integer sessionId,
             @RequestParam Integer adminId,
             @RequestParam String reason
     ) {
-        try {
-            logger.info("Đang từ chối phiên đấu giá: {}", sessionId);
-            adminService.rejectSession(sessionId, adminId, reason);
-            return new ApiResponse<>(200, "Đã từ chối phiên đấu giá.", null);
-        } catch (Exception e) {
-            logger.error("Lỗi không mong muốn: {}", e.getMessage(), e);
-            return new ApiResponse<>(500, e.getMessage(), null);
-        }
+        return handleRequest(
+                "Đang từ chối phiên đấu giá " + sessionId,
+                "Đã từ chối phiên đấu giá.",
+                () -> {
+                    adminService.rejectSession(sessionId, adminId, reason);
+                    return null;
+                }
+        );
     }
 
+    @GetMapping("/users")
     public ApiResponse<List<UserResponseDTO>> getAllUsers(
             @RequestParam(required = false) String role
     ) {
+        return handleRequest(
+                "Đang lấy danh sách người dùng",
+                "Lấy danh sách người dùng thành công",
+                () -> adminService.getAllUsers(role)
+        );
+    }
+
+    private <T> ApiResponse<T> handleRequest(
+            String logMessage,
+            String successMessage,
+            Supplier<T> action
+    ) {
         try {
-            logger.info("Đang lấy danh sách người dùng");
-            List<UserResponseDTO> data = adminService.getAllUsers(role);
-            return new ApiResponse<>(200, "Lấy danh sách người dùng thành công", data);
+            logger.info(logMessage);
+            return ApiResponse.success(successMessage, action.get());
+
+        } catch (IllegalArgumentException e) {
+            logger.warn("{} thất bại: {}", logMessage, e.getMessage());
+            return ApiResponse.error(400, e.getMessage());
+
         } catch (Exception e) {
-            logger.error("Lỗi không mong muốn: {}", e.getMessage(), e);
-            return new ApiResponse<>(500, e.getMessage(), null);
+            logger.error("{} thất bại: {}", logMessage, e.getMessage(), e);
+            return ApiResponse.error(e.getMessage());
         }
     }
 }
