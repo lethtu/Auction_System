@@ -1,7 +1,7 @@
 package com.auction.server.controller;
 
 import com.auction.server.model.User;
-import com.auction.server.service.ApiResponse;
+import com.auction.server.dto.ApiResponse;
 import com.auction.server.view.EmailServer;
 import com.auction.server.view.RqLoginSignup;
 import org.slf4j.Logger;
