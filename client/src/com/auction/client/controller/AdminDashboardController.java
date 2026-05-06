@@ -11,6 +11,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextInputDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,11 +78,31 @@ public class AdminDashboardController {
         approveSelectedSession(selected, adminId);
     }
 
+    @FXML
+    public void handleReject() {
+        PendingSessionRow selected = getSelectedPendingSession();
+        if (selected == null) {
+            return;
+        }
+
+        Integer adminId = getValidAdminId();
+        if (adminId == null) {
+            return;
+        }
+
+        String reason = askRejectReason();
+        if (reason == null) {
+            return;
+        }
+
+        rejectSelectedSession(selected, adminId, reason);
+    }
+
     private PendingSessionRow getSelectedPendingSession() {
         PendingSessionRow selected = tablePending.getSelectionModel().getSelectedItem();
 
         if (selected == null) {
-            AlertUtil.show(Alert.AlertType.WARNING, "Chưa chọn phiên", "Hãy chọn một phiên để phê duyệt.");
+            AlertUtil.show(Alert.AlertType.WARNING, "Chưa chọn phiên", "Hãy chọn một phiên để thao tác.");
             return null;
         }
 
@@ -100,10 +121,26 @@ public class AdminDashboardController {
         return adminId;
     }
 
+    private String askRejectReason() {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Từ chối phiên");
+        dialog.setHeaderText(null);
+        dialog.setContentText("Nhập lý do từ chối:");
+
+        String reason = dialog.showAndWait().orElse("").trim();
+
+        if (reason.isEmpty()) {
+            AlertUtil.show(Alert.AlertType.WARNING, "Thiếu lý do", "Vui lòng nhập lý do từ chối.");
+            return null;
+        }
+
+        return reason;
+    }
+
     private void approveSelectedSession(PendingSessionRow selected, int adminId) {
         try {
             ApiResult api = adminDashboardService.approveSession(selected.getId(), adminId);
-            handleApproveResult(api);
+            handleActionResult(api);
 
         } catch (Exception e) {
             logger.error("Lỗi không kết nối được đến máy chủ: {}", e.getMessage(), e);
@@ -111,7 +148,18 @@ public class AdminDashboardController {
         }
     }
 
-    private void handleApproveResult(ApiResult api) {
+    private void rejectSelectedSession(PendingSessionRow selected, int adminId, String reason) {
+        try {
+            ApiResult api = adminDashboardService.rejectSession(selected.getId(), adminId, reason);
+            handleActionResult(api);
+
+        } catch (Exception e) {
+            logger.error("Lỗi không kết nối được đến máy chủ: {}", e.getMessage(), e);
+            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ.");
+        }
+    }
+
+    private void handleActionResult(ApiResult api) {
         if (api.success) {
             AlertUtil.show(Alert.AlertType.INFORMATION, "Thành công", api.message);
             loadPendingSessions();

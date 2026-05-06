@@ -30,10 +30,20 @@ public class AdminDashboardService {
     public ApiResult approveSession(int sessionId, int adminId) throws Exception {
         HttpResponse<String> response = adminApiClient.approveSession(sessionId, adminId);
 
+        return parseApiResult(response, "Phê duyệt phiên thành công.");
+    }
+
+    public ApiResult rejectSession(int sessionId, int adminId, String reason) throws Exception {
+        HttpResponse<String> response = adminApiClient.rejectSession(sessionId, adminId, reason);
+
+        return parseApiResult(response, "Đã từ chối phiên đấu giá.");
+    }
+
+    private ApiResult parseApiResult(HttpResponse<String> response, String successMessage) {
         return AdminResponseParser.parseApiResponse(
                 response.body(),
                 response.statusCode(),
-                "Phê duyệt phiên thành công."
+                successMessage
         );
     }
 }
