@@ -38,14 +38,14 @@ public class AuthLoginSignup {
     }
 
     @PostMapping("/signup")
-    public ApiResponse<?> Signup(@RequestBody Bidder newUser) {
+    public ApiResponse<?> Signup(@RequestBody User newUser) {
+        logger.info("Thông tin User mới tạo: {}", newUser);
+        logger.info("Email: {}, Fullname: {}, Password: {}", newUser.getEmail(), newUser.getFullname(), newUser.getPassword());
         boolean check = rq.signup(newUser);
-        System.out.println(newUser);
-        System.out.println(newUser.getEmail() + " " + newUser.getFullname() + " " + newUser.getPassword());
         if (!check) {
             String body = "Xin chào " + newUser.getFullname() + ",\n\n"
                     + "Tài khoản của bạn (" + newUser.getUsername() + ") đã được tạo thành công.\n"
-                    + "Chúc bạn có những phiên đấu giá tuyệt vời!\n\n"
+                    + "Chúc bạn  có những phiên đấu giá tuyệt vời!\n\n"
                     + "Trân trọng,\nBan Quản Trị.";
             emailServer.SendEmail(newUser.getEmail(), "Đăng ký tài khoản thành công", body);
             logger.info("User {} đăng ký thành công", newUser.getUsername());
