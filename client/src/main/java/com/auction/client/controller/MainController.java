@@ -42,6 +42,7 @@ public class MainController implements Initializable {
     @FXML private TextField txtSearch;
     @FXML private ComboBox<String> cbCategory;
     @FXML private ComboBox<String> cbStatus;
+    @FXML private Button btnDashboard;
 
     // Kho lưu trữ Caching cục bộ, giúp Real-time filter không bị trễ
     private final List<JSONObject> allProducts = new ArrayList<>();
@@ -50,6 +51,11 @@ public class MainController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         if (User.getFullname() != null) {
             lblWelcome.setText("Chào, " + User.getFullname());
+        }
+
+        if (User.getRole() != null && User.getRole().equalsIgnoreCase("seller")) {
+            btnDashboard.setVisible(true);
+            btnDashboard.setManaged(true);
         }
 
         // Khởi tạo ComboBox
@@ -243,5 +249,15 @@ public class MainController implements Initializable {
     public void handleLogout(ActionEvent event) throws IOException {
         User.clearSession();
         SceneSwitcher.switchScene(event, "Login.fxml", 400, 500);
+    }
+
+    @FXML
+    public void handleGoToDashboard(ActionEvent event) {
+        try {
+            // Có thể chỉnh lại kích thước width, height cho vừa vặn.
+            SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1024, 768);
+        } catch (Exception e) {
+            logger.error("Lỗi khi chuyển về trang Quản lý Seller: ", e);
+        }
     }
 }
