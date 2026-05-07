@@ -3,6 +3,8 @@ package com.auction.server.model;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "auction_sessions")
@@ -11,7 +13,7 @@ public class AuctionSession {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    //Sợi dây liên kết 1 Sản phẩm - Nhiều Phiên đấu giá
+    // Sợi dây liên kết 1 Sản phẩm - Nhiều Phiên đấu giá
     @ManyToOne
     @JoinColumn(name = "item_id")
     private Item item;
@@ -43,6 +45,13 @@ public class AuctionSession {
     private Integer approvedByAdminId;
     private Integer rejectedByAdminId;
 
+    @Enumerated(EnumType.STRING)
+    private AuctionStatus status;
+
+    // TỐI ƯU HÓA QUAN HỆ 1-N (AUCTION_SESSION - BIDS)
+    @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<Bid> bids = new ArrayList<>();
+
     public AuctionSession() {
     }
 
@@ -52,8 +61,17 @@ public class AuctionSession {
             this.createdAt = LocalDateTime.now();
         }
     }
-    @Enumerated(EnumType.STRING)
-    private AuctionStatus status;
+
+    // HELPER METHODS: ĐỒNG BỘ HAI CHIỀU
+    public void addBid(Bid bid) {
+        bids.add(bid);
+        bid.setSession(this);
+    }
+
+    public void removeBid(Bid bid) {
+        bids.remove(bid);
+        bid.setSession(null);
+    }
 
     public Integer getId() {
         return id;
@@ -154,7 +172,6 @@ public class AuctionSession {
         this.rejectedByAdminId = rejectedByAdminId;
     }
 
-    // Thêm Getter và Setter cho approvedAt
     public LocalDateTime getApprovedAt() {
         return approvedAt;
     }
@@ -163,12 +180,19 @@ public class AuctionSession {
         this.approvedAt = approvedAt;
     }
 
-    // Thêm Getter và Setter cho rejectedAt
     public LocalDateTime getRejectedAt() {
         return rejectedAt;
     }
 
     public void setRejectedAt(LocalDateTime rejectedAt) {
         this.rejectedAt = rejectedAt;
+    }
+
+    public List<Bid> getBids() {
+        return bids;
+    }
+
+    public void setBids(List<Bid> bids) {
+        this.bids = bids;
     }
 }
