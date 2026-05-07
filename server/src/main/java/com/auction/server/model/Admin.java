@@ -6,9 +6,9 @@ import jakarta.persistence.*;
 @DiscriminatorValue("admin")
 public class Admin extends User {
     @Enumerated(EnumType.STRING)
-    @Column(name = "admin_role", nullable = false, length = 50)
+    @Column(name = "admin_role", length = 50)
     private AdminRole role;
-    @Column(name = "employee_code", unique = true, nullable = false, length = 20)
+    @Column(name = "employee_code", unique = true, length = 20)
     private String employeeCode;
     public Admin() {
         super();
