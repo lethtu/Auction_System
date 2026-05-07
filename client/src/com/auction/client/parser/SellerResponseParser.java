@@ -1,6 +1,5 @@
 package com.auction.client.parser;
 
-import com.auction.client.dto.ApiArrayResult;
 import com.auction.client.dto.ApiResult;
 import com.auction.client.model.SessionItem;
 import org.json.JSONArray;
@@ -15,11 +14,11 @@ public final class SellerResponseParser {
     private SellerResponseParser() {
     }
 
-    public static ApiResult parseApiResponse(String body, int httpStatus, String defaultSuccessMessage) {
+    public static ApiResult<Void> parseApiResponse(String body, int httpStatus, String defaultSuccessMessage) {
         return ApiResponseParser.parseApiResponse(body, httpStatus, defaultSuccessMessage);
     }
 
-    public static ApiArrayResult extractDataArray(String body, int httpStatus) {
+    public static ApiResult<JSONArray> extractDataArray(String body, int httpStatus) {
         return ApiResponseParser.extractDataArray(body, httpStatus);
     }
 

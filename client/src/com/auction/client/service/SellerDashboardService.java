@@ -1,12 +1,12 @@
 package com.auction.client.service;
 
 import com.auction.client.api.SellerApiClient;
-import com.auction.client.dto.ApiArrayResult;
 import com.auction.client.dto.ApiResult;
 import com.auction.client.dto.CreateAuctionRequest;
 import com.auction.client.model.SessionItem;
 import com.auction.client.parser.SellerResponseParser;
 import com.auction.client.util.SellerRequestBuilder;
+import org.json.JSONArray;
 
 import java.net.http.HttpResponse;
 import java.util.List;
@@ -14,7 +14,7 @@ import java.util.List;
 public class SellerDashboardService {
     private final SellerApiClient sellerApiClient = new SellerApiClient();
 
-    public ApiResult createAuction(CreateAuctionRequest request) throws Exception {
+    public ApiResult<Void> createAuction(CreateAuctionRequest request) throws Exception {
         HttpResponse<String> response = sellerApiClient.createAuction(
                 SellerRequestBuilder.buildAuctionBody(request)
         );
@@ -22,7 +22,7 @@ public class SellerDashboardService {
         return parseApiResult(response, "Tạo phiên đấu giá thành công.");
     }
 
-    public ApiResult updateSession(int sessionId, int sellerId, CreateAuctionRequest request) throws Exception {
+    public ApiResult<Void> updateSession(int sessionId, int sellerId, CreateAuctionRequest request) throws Exception {
         HttpResponse<String> response = sellerApiClient.updateSession(
                 sessionId,
                 sellerId,
@@ -42,12 +42,12 @@ public class SellerDashboardService {
         return parseSessionList(response);
     }
 
-    public ApiResult cancelSession(int sessionId, int sellerId) throws Exception {
+    public ApiResult<Void> cancelSession(int sessionId, int sellerId) throws Exception {
         HttpResponse<String> response = sellerApiClient.cancelSession(sessionId, sellerId);
         return parseApiResult(response, "Đã hủy phiên thành công.");
     }
 
-    private ApiResult parseApiResult(HttpResponse<String> response, String successMessage) {
+    private ApiResult<Void> parseApiResult(HttpResponse<String> response, String successMessage) {
         return SellerResponseParser.parseApiResponse(
                 response.body(),
                 response.statusCode(),
@@ -56,7 +56,7 @@ public class SellerDashboardService {
     }
 
     private List<SessionItem> parseSessionList(HttpResponse<String> response) {
-        ApiArrayResult api = SellerResponseParser.extractDataArray(
+        ApiResult<JSONArray> api = SellerResponseParser.extractDataArray(
                 response.body(),
                 response.statusCode()
         );

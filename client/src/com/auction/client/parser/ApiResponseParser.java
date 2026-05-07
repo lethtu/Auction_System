@@ -1,6 +1,5 @@
 package com.auction.client.parser;
 
-import com.auction.client.dto.ApiArrayResult;
 import com.auction.client.dto.ApiResult;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -11,35 +10,38 @@ public final class ApiResponseParser {
     private ApiResponseParser() {
     }
 
-    public static ApiResult parseApiResponse(String body, int httpStatus, String defaultSuccessMessage) {
+    public static ApiResult<Void> parseApiResponse(String body, int httpStatus, String defaultSuccessMessage) {
         JSONObject obj = parseJson(body);
 
         if (obj == null) {
-            return new ApiResult(isSuccess(httpStatus), defaultMessage(httpStatus, defaultSuccessMessage));
+            return new ApiResult<>(
+                    isSuccess(httpStatus),
+                    defaultMessage(httpStatus, defaultSuccessMessage)
+            );
         }
 
         int status = obj.optInt("status", httpStatus);
         String message = obj.optString("message", defaultMessage(status, defaultSuccessMessage));
 
-        return new ApiResult(isSuccess(status), message);
+        return new ApiResult<>(isSuccess(status), message);
     }
 
-    public static ApiArrayResult extractDataArray(String body, int httpStatus) {
+    public static ApiResult<JSONArray> extractDataArray(String body, int httpStatus) {
         JSONObject obj = parseJson(body);
 
         if (obj == null) {
-            return new ApiArrayResult(false, "Không có dữ liệu từ server.", new JSONArray());
+            return new ApiResult<>(false, "Không có dữ liệu từ server.", new JSONArray());
         }
 
         int status = obj.optInt("status", httpStatus);
         String message = obj.optString("message", defaultMessage(status, "OK"));
 
         if (!isSuccess(status)) {
-            return new ApiArrayResult(false, message, new JSONArray());
+            return new ApiResult<>(false, message, new JSONArray());
         }
 
         JSONArray data = obj.optJSONArray("data");
-        return new ApiArrayResult(true, message, data == null ? new JSONArray() : data);
+        return new ApiResult<>(true, message, data == null ? new JSONArray() : data);
     }
 
     private static JSONObject parseJson(String body) {
