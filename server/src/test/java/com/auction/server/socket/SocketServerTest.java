@@ -1,8 +1,12 @@
 package com.auction.server.socket;
 
+import com.auction.server.dto.BidRequest;
+import com.auction.server.dto.BidResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
@@ -62,6 +66,27 @@ public class SocketServerTest {
                 } catch (Exception ex) {
                     System.err.println("Lỗi khi đóng tài nguyên: " + ex.getMessage());
                 }
+            }
+        });
+    }
+    @Test
+    public void testBidRequestSerialization() {
+        assertDoesNotThrow(() -> {
+            try (Socket socket = new Socket("127.0.0.1", TEST_PORT);
+                 ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+                 ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
+
+                BidRequest bid = new BidRequest(1, 100, 1500.0);
+                out.writeObject(bid);
+                out.flush();
+                System.out.println("TEST: Đã gửi BidRequest");
+
+                Object obj = in.readObject();
+                assertTrue(obj instanceof BidResponse, "Phải nhận được BidResponse");
+
+                BidResponse res = (BidResponse) obj;
+                System.out.println("TEST: Server phản hồi: " + res.getMessage());
+                assertTrue(res.isSuccess());
             }
         });
     }

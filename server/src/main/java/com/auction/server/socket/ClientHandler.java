@@ -1,5 +1,8 @@
 package com.auction.server.socket;
 
+
+import com.auction.server.dto.BidRequest;
+import com.auction.server.dto.BidResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.*;
@@ -17,18 +20,28 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         try (
-                // Khởi tạo luồng vào/ra để gửi nhận Object (Task 2)
                 ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
                 ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream())
         ) {
             logger.info("Đã kết nối với Client: {}", clientSocket.getInetAddress());
 
             while (true) {
-                // Đọc dữ liệu từ Client gửi lên
-                Object input = in.readObject();
-                logger.info("Nhận dữ liệu từ Client: {}", input);
+                try {
+                    Object input = in.readObject();
 
-                // Logic xử lý sẽ được thêm vào các Task sau
+                    if (input instanceof BidRequest) {
+                        BidRequest request = (BidRequest) input;
+                        logger.info("SERVER: Nhận lệnh đặt giá: {}", request);
+
+                        String msg = "Người dùng " + request.getUserId() + " đặt giá thành công!";
+                        BidResponse response = new BidResponse(true, msg, request.getBidAmount());
+
+                        out.writeObject(response);
+                        out.flush();
+                    }
+                } catch (ClassNotFoundException e) {
+                    logger.error("SERVER SOCKET: Không hiểu định dạng dữ liệu nhận được");
+                }
             }
         } catch (EOFException | SocketException e) {
             logger.info("Client {} đã ngắt kết nối.", clientSocket.getInetAddress());
