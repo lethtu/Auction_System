@@ -1,5 +1,6 @@
 package com.auction.client.controller;
 
+import javafx.event.ActionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
@@ -89,6 +90,18 @@ public class AdminDashboardController {
         } catch (Exception e) {
             logger.error("Lỗi không kết nối được đến máy chủ: {}", e.getMessage(), e);
             showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ.");
+        }
+    }
+
+    @FXML
+    public void handleLogout(ActionEvent event) {
+        try {
+            // Xóa thông tin user đang lưu ở bộ nhớ tạm
+            User.clearSession();
+            // Chuyển về màn hình đăng nhập
+            SceneSwitcher.switchScene(event, "Login.fxml", 400, 500);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
