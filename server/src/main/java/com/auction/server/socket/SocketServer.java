@@ -9,12 +9,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import org.springframework.beans.factory.annotation.Value;
 
 @Component
 public class SocketServer {
-    @Value("${socket.port}")
-    private int PORT;
+    private final int PORT = 8081;
     private static final Logger logger = LoggerFactory.getLogger(SocketServer.class);
     private final int systemCores = Runtime.getRuntime().availableProcessors();
     private final ExecutorService threadPool = Executors.newFixedThreadPool(systemCores);
