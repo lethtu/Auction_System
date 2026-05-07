@@ -2,6 +2,8 @@ package com.auction.server.model;
 
 import java.time.LocalDate;
 import java.math.BigDecimal;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -43,7 +45,7 @@ public abstract class User {
     public Integer getId() { return id; }
     public String getUsername() { return username; }
 
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     public String getPassword() { return password; }
     public String getFullname() { return fullname; }
     public String getEmail() { return email; }
