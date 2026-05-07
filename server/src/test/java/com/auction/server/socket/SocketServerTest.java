@@ -17,7 +17,7 @@ public class SocketServerTest {
     public void setUp() throws Exception {
         socketServer = new SocketServer();
         socketServer.start();
-        Thread.sleep(200);
+        Thread.sleep(2000);
     }
 
     @Test
@@ -30,7 +30,7 @@ public class SocketServerTest {
             try {
                 // 1. Bắt đầu khởi tạo kết nối (Mở máy tính, gọi đến số cổng)
                 System.out.println("TEST: Đang thử kết nối tới Server cổng " + TEST_PORT);
-                clientSocket = new Socket("localhost", TEST_PORT);
+                clientSocket = new Socket("127.0.0.1", TEST_PORT);
 
                 out = new ObjectOutputStream(clientSocket.getOutputStream());
 
