@@ -1,6 +1,5 @@
 package com.auction.client.controller;
 
-import javafx.fxml.FXMLLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
@@ -171,10 +170,7 @@ public class MainController implements Initializable {
         bidBtn.setOnAction(event -> {
             logger.info(">>> Mở trang chi tiết cho sản phẩm ID: " + id);
             try {
-                FXMLLoader loader = SceneSwitcher.switchScene(event, "AuctionPage.fxml", 500, 400);
-                AuctionPageController controller = loader.getController();
-//                controller.setItem()
-
+                SceneSwitcher.switchScene(event, "AuctionPage.fxml", 500, 400);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
