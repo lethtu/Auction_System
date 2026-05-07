@@ -42,8 +42,7 @@ public class SellerService {
 
         Seller seller = sellerSessionGuard.getSellerById(request.getSellerId());
 
-        Item item = ItemFactory.createItem(request.getType());
-        SellerSessionUpdater.updateItemFromRequest(item, request);
+        Item item = ItemFactory.createItem(request.getType(), request);
         Item savedItem = itemRepository.save(item);
 
         AuctionSession session = new AuctionSession();

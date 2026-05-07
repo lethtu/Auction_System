@@ -82,6 +82,37 @@ public class AdminController {
         );
     }
 
+
+    @PostMapping("/ban-user/{userId}")
+    public ApiResponse<Void> banUser(
+            @PathVariable Integer userId,
+            @RequestParam Integer adminId
+    ) {
+        return handleRequest(
+                "Đang khóa tài khoản user " + userId,
+                "Đã khóa tài khoản user.",
+                () -> {
+                    adminService.banUser(userId, adminId);
+                    return null;
+                }
+        );
+    }
+
+    @PostMapping("/cancel-auction/{sessionId}")
+    public ApiResponse<Void> cancelAuction(
+            @PathVariable Integer sessionId,
+            @RequestParam Integer adminId
+    ) {
+        return handleRequest(
+                "Đang hủy phiên đấu giá " + sessionId,
+                "Đã hủy phiên đấu giá.",
+                () -> {
+                    adminService.cancelAuction(sessionId, adminId);
+                    return null;
+                }
+        );
+    }
+
     @GetMapping("/users")
     public ApiResponse<List<UserResponseDTO>> getAllUsers(
             @RequestParam(required = false) String role

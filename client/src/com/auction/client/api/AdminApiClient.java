@@ -23,18 +23,14 @@ public class AdminApiClient {
     }
 
     public HttpResponse<String> approveSession(int sessionId, int adminId) throws Exception {
-        return HttpRequestUtil.postNoBody(
-                ADMIN_API,
-                "/approve/" + sessionId + "?adminId=" + adminId
-        );
+        return HttpRequestUtil.postNoBody(ADMIN_API, "/approve/" + sessionId + "?adminId=" + adminId);
     }
 
     public HttpResponse<String> rejectSession(int sessionId, int adminId, String reason) throws Exception {
+        String safeReason = reason == null ? "" : reason.trim();
         return HttpRequestUtil.postNoBody(
                 ADMIN_API,
-                "/reject/" + sessionId
-                        + "?adminId=" + adminId
-                        + "&reason=" + HttpRequestUtil.encode(reason)
+                "/reject/" + sessionId + "?adminId=" + adminId + "&reason=" + HttpRequestUtil.encode(safeReason)
         );
     }
 
@@ -46,5 +42,13 @@ public class AdminApiClient {
         }
 
         return HttpRequestUtil.get(ADMIN_API, path);
+    }
+
+    public HttpResponse<String> banUser(int userId, int adminId) throws Exception {
+        return HttpRequestUtil.postNoBody(ADMIN_API, "/ban-user/" + userId + "?adminId=" + adminId);
+    }
+
+    public HttpResponse<String> cancelAuction(int sessionId, int adminId) throws Exception {
+        return HttpRequestUtil.postNoBody(ADMIN_API, "/cancel-auction/" + sessionId + "?adminId=" + adminId);
     }
 }

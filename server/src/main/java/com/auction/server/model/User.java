@@ -29,6 +29,9 @@ public abstract class User {
 
     private BigDecimal balance = BigDecimal.ZERO;
 
+    @Column(nullable = false)
+    private boolean banned = false;
+
     public User() {}
 
     public void setId(Integer id) { this.id = id; }
@@ -39,6 +42,7 @@ public abstract class User {
     public void setDob(LocalDate dob) { this.dob = dob; }
     public void setPlaceOfBirth(String placeOfBirth) { this.placeOfBirth = placeOfBirth; }
     public void setBalance(BigDecimal balance) { this.balance = balance; }
+    public void setBanned(boolean banned) { this.banned = banned; }
 
     public Integer getId() { return id; }
     public String getUsername() { return username; }
@@ -51,6 +55,7 @@ public abstract class User {
     public String getPlaceOfBirth() { return placeOfBirth; }
     public String getAccountType() { return accountType; }
     public BigDecimal getBalance() { return balance; }
+    public boolean isBanned() { return banned; }
 
     @Override
     public String toString() {

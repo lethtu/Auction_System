@@ -10,6 +10,7 @@ public class UserResponseDTO {
     private String email;
     private String accountType;
     private BigDecimal balance;
+    private boolean banned;
 
     private String shopName;
     private String employeeCode;
@@ -64,6 +65,14 @@ public class UserResponseDTO {
 
     public void setBalance(BigDecimal balance) {
         this.balance = balance;
+    }
+
+    public boolean isBanned() {
+        return banned;
+    }
+
+    public void setBanned(boolean banned) {
+        this.banned = banned;
     }
 
     public String getShopName() {

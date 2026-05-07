@@ -22,6 +22,8 @@ import java.util.List;
 public class SellerDashboardController {
     private static final Logger logger = LoggerFactory.getLogger(SellerDashboardController.class);
 
+    @FXML private TabPane sellerTabPane;
+    @FXML private Tab tabCreateSession;
     @FXML private ListView<String> mySessionsList;
     @FXML private ComboBox<String> productTypeCombo;
     @FXML private TextField productNameField;
@@ -31,11 +33,14 @@ public class SellerDashboardController {
     @FXML private TextField stepPriceField;
     @FXML private TextField endTimeField;
     @FXML private TextArea statsArea;
+    @FXML private Button btnCreateOrUpdate;
 
     private final SellerDashboardService sellerDashboardService = new SellerDashboardService();
 
     private final List<SessionItem> allSessions = new ArrayList<>();
     private final List<SessionItem> displayedSessions = new ArrayList<>();
+
+    private SessionItem editingSession;
 
     @FXML
     public void initialize() {
@@ -43,10 +48,20 @@ public class SellerDashboardController {
         productTypeCombo.setValue("Electronics");
         SellerAuctionFormBuilder.fillDefaultEndTime(endTimeField);
         loadMySessions();
+        resetSubmitButton();
     }
 
     @FXML
     private void handleCreateSession() {
+        if (editingSession != null) {
+            updateEditingSession();
+            return;
+        }
+
+        createNewSession();
+    }
+
+    private void createNewSession() {
         Integer sellerId = getValidSellerId();
         if (sellerId == null) return;
 
@@ -66,6 +81,36 @@ public class SellerDashboardController {
 
             ApiResult api = sellerDashboardService.createAuction(request);
             handleCreateResult(api);
+
+        } catch (NumberFormatException e) {
+            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi dữ liệu", "Giá khởi điểm và bước giá phải là số.");
+        } catch (Exception e) {
+            logger.error("Lỗi không thể kết nối đến máy chủ: {}", e.getMessage(), e);
+            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
+        }
+    }
+
+    private void updateEditingSession() {
+        Integer sellerId = getValidSellerId();
+        if (sellerId == null) return;
+
+        try {
+            CreateAuctionRequest request = SellerAuctionFormBuilder.buildUpdateRequest(
+                    sellerId,
+                    editingSession,
+                    productTypeCombo,
+                    productNameField,
+                    imageUrlField,
+                    descriptionArea,
+                    startingPriceField,
+                    stepPriceField,
+                    endTimeField
+            );
+
+            if (request == null) return;
+
+            ApiResult api = sellerDashboardService.updateSession(editingSession.id, sellerId, request);
+            handleUpdateResult(api);
 
         } catch (NumberFormatException e) {
             AlertUtil.show(Alert.AlertType.ERROR, "Lỗi dữ liệu", "Giá khởi điểm và bước giá phải là số.");
@@ -100,33 +145,17 @@ public class SellerDashboardController {
         SessionItem selected = getPendingSelectedSession("sửa");
         if (selected == null) return;
 
-        Integer sellerId = getValidSellerId();
-        if (sellerId == null) return;
+        editingSession = selected;
+        fillFormFromSession(selected);
+        btnCreateOrUpdate.setText("Lưu thay đổi");
 
-        try {
-            CreateAuctionRequest request = SellerAuctionFormBuilder.buildUpdateRequest(
-                    sellerId,
-                    selected,
-                    productTypeCombo,
-                    productNameField,
-                    imageUrlField,
-                    descriptionArea,
-                    startingPriceField,
-                    stepPriceField,
-                    endTimeField
-            );
-
-            if (request == null) return;
-
-            ApiResult api = sellerDashboardService.updateSession(selected.id, sellerId, request);
-            handleUpdateResult(api);
-
-        } catch (NumberFormatException e) {
-            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi dữ liệu", "Giá khởi điểm và bước giá phải là số.");
-        } catch (Exception e) {
-            logger.error("Lỗi không thể kết nối đến máy chủ: {}", e.getMessage(), e);
-            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
+        if (sellerTabPane != null && tabCreateSession != null) {
+            sellerTabPane.getSelectionModel().select(tabCreateSession);
         }
+
+        AlertUtil.show(Alert.AlertType.INFORMATION,
+                "Chế độ sửa",
+                "Dữ liệu phiên đã được đưa vào form. Hãy chỉnh sửa rồi bấm Lưu thay đổi.");
     }
 
     @FXML
@@ -154,6 +183,16 @@ public class SellerDashboardController {
         SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1024, 768);
     }
 
+    private void fillFormFromSession(SessionItem session) {
+        productNameField.setText(safeText(session.productName));
+        productTypeCombo.setValue(safeText(session.productType));
+        imageUrlField.setText(safeText(session.imageUrl));
+        descriptionArea.setText(safeText(session.description));
+        startingPriceField.setText(session.startingPrice == null ? "" : session.startingPrice.toPlainString());
+        stepPriceField.setText(session.stepPrice == null ? "" : session.stepPrice.toPlainString());
+        endTimeField.setText(safeText(session.endTime));
+    }
+
     private void handleCreateResult(ApiResult api) {
         if (api.success) {
             clearForm();
@@ -179,6 +218,7 @@ public class SellerDashboardController {
 
     private void handleCancelResult(ApiResult api) {
         if (api.success) {
+            clearForm();
             loadMySessions();
             AlertUtil.show(Alert.AlertType.INFORMATION, "Thành công", api.message);
             return;
@@ -273,13 +313,28 @@ public class SellerDashboardController {
     }
 
     private void clearForm() {
+        editingSession = null;
+
         productNameField.clear();
         imageUrlField.clear();
         descriptionArea.clear();
         startingPriceField.clear();
         stepPriceField.clear();
+        endTimeField.clear();
+
         SellerAuctionFormBuilder.fillDefaultEndTime(endTimeField);
         productTypeCombo.setValue("Electronics");
+        resetSubmitButton();
+    }
+
+    private void resetSubmitButton() {
+        if (btnCreateOrUpdate != null) {
+            btnCreateOrUpdate.setText("Tạo phiên");
+        }
+    }
+
+    private String safeText(String value) {
+        return value == null ? "" : value;
     }
 
     private Integer getValidSellerId() {

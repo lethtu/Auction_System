@@ -21,10 +21,7 @@ public class AdminService {
     private final AuctionSessionRepository sessionRepository;
     private final UserRepository userRepository;
 
-    public AdminService(
-            AuctionSessionRepository sessionRepository,
-            UserRepository userRepository
-    ) {
+    public AdminService(AuctionSessionRepository sessionRepository, UserRepository userRepository) {
         this.sessionRepository = sessionRepository;
         this.userRepository = userRepository;
     }
@@ -44,24 +41,27 @@ public class AdminService {
     }
 
     public SessionResponseDTO getSessionDetail(Integer sessionId) {
-        AuctionSession session = getSessionById(sessionId);
-        return SessionResponseMapper.toDTO(session);
+        return SessionResponseMapper.toDTO(getSessionById(sessionId));
+    }
+
+    public List<UserResponseDTO> getAllUsers(String role) {
+        return findUsersByRole(role)
+                .stream()
+                .map(this::mapToUserResponseDTO)
+                .toList();
     }
 
     @Transactional
     public void approveSession(Integer sessionId, Integer adminId) {
         Admin admin = checkAdminPermission(adminId);
         AuctionSession session = getSessionById(sessionId);
-
         validatePendingSession(session, "Phiên này đã được xử lý hoặc không ở trạng thái chờ duyệt");
 
         LocalDateTime now = LocalDateTime.now();
-
         session.setStatus(AuctionStatus.ACTIVE);
         session.setStartTime(now);
         session.setApprovedAt(now);
         session.setApprovedByAdminId(admin.getId());
-
         session.setRejectedAt(null);
         session.setRejectedByAdminId(null);
         session.setRejectReason(null);
@@ -81,12 +81,10 @@ public class AdminService {
         validatePendingSession(session, "Chỉ được từ chối các phiên đang ở trạng thái chờ duyệt");
 
         LocalDateTime now = LocalDateTime.now();
-
         session.setStatus(AuctionStatus.REJECTED);
         session.setRejectedAt(now);
         session.setRejectedByAdminId(admin.getId());
         session.setRejectReason(reason.trim());
-
         session.setApprovedAt(null);
         session.setApprovedByAdminId(null);
         session.setStartTime(null);
@@ -94,11 +92,36 @@ public class AdminService {
         sessionRepository.save(session);
     }
 
-    public List<UserResponseDTO> getAllUsers(String role) {
-        return findUsersByRole(role)
-                .stream()
-                .map(this::mapToUserResponseDTO)
-                .toList();
+    @Transactional
+    public void banUser(Integer targetUserId, Integer adminId) {
+        checkAdminPermission(adminId);
+
+        if (targetUserId == null || targetUserId.equals(adminId)) {
+            throw new RuntimeException("Không thể khóa chính tài khoản admin hiện tại");
+        }
+
+        User target = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy user cần khóa"));
+
+        if (target instanceof Admin) {
+            throw new RuntimeException("Không được khóa tài khoản Admin khác");
+        }
+
+        target.setBanned(true);
+        userRepository.save(target);
+    }
+
+    @Transactional
+    public void cancelAuction(Integer sessionId, Integer adminId) {
+        checkAdminPermission(adminId);
+        AuctionSession session = getSessionById(sessionId);
+
+        if (session.getStatus() == AuctionStatus.ENDED || session.getStatus() == AuctionStatus.CANCELED) {
+            throw new RuntimeException("Phiên này đã kết thúc hoặc đã bị hủy");
+        }
+
+        session.setStatus(AuctionStatus.CANCELED);
+        sessionRepository.save(session);
     }
 
     private List<AuctionSession> findSessionsByStatus(String status) {
@@ -121,11 +144,9 @@ public class AdminService {
             return users;
         }
 
-        String normalizedRole = role.trim();
-
         return users.stream()
                 .filter(user -> user.getAccountType() != null
-                        && user.getAccountType().equalsIgnoreCase(normalizedRole))
+                        && user.getAccountType().equalsIgnoreCase(role.trim()))
                 .toList();
     }
 
@@ -153,8 +174,7 @@ public class AdminService {
         Admin admin = (Admin) user;
 
         if (admin.getRole() == AdminRole.SUPPORT) {
-            logger.error("Nhân viên hỗ trợ không được phép duyệt/từ chối phiên đấu giá");
-            throw new RuntimeException("Nhân viên Hỗ trợ không được phép duyệt/từ chối phiên đấu giá!");
+            throw new RuntimeException("Nhân viên Hỗ trợ không được phép thao tác Admin");
         }
 
         return admin;
@@ -162,13 +182,13 @@ public class AdminService {
 
     private UserResponseDTO mapToUserResponseDTO(User user) {
         UserResponseDTO dto = new UserResponseDTO();
-
         dto.setId(user.getId());
         dto.setUsername(user.getUsername());
         dto.setFullname(user.getFullname());
         dto.setEmail(user.getEmail());
         dto.setAccountType(user.getAccountType());
         dto.setBalance(user.getBalance());
+        dto.setBanned(user.isBanned());
 
         if (user instanceof Seller seller) {
             dto.setShopName(seller.getShopName());

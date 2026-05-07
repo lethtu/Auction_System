@@ -27,6 +27,10 @@ public class AuthLoginSignup {
         String password = requests.get("password");
         Optional<User> res = rq.login(username, password);
         if (res.isPresent()) {
+            if (res.get().isBanned()) {
+                logger.warn("User {} bị khóa tài khoản", username);
+                return new ApiResponse<String>(403, "Tài khoản đã bị khóa", "");
+            }
             logger.info("User {} đăng nhập thành công", username);
             return new ApiResponse<Optional<User>>(200, "Đăng nhập thành công", res);
         }

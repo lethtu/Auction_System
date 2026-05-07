@@ -2,6 +2,8 @@ package com.auction.client.parser;
 
 import com.auction.client.dto.ApiArrayResult;
 import com.auction.client.dto.ApiResult;
+import com.auction.client.model.AdminSessionRow;
+import com.auction.client.model.AdminUserRow;
 import com.auction.client.model.PendingSessionRow;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -34,19 +36,64 @@ public final class AdminResponseParser {
             JSONObject item = array.optJSONObject(i);
 
             if (item != null) {
-                rows.add(parsePendingSession(item));
+                rows.add(new PendingSessionRow(
+                        item.optInt("id", 0),
+                        item.optString("productName", "Không rõ"),
+                        parseBigDecimal(item, "startingPrice")
+                ));
             }
         }
 
         return rows;
     }
 
-    private static PendingSessionRow parsePendingSession(JSONObject item) {
-        int id = item.optInt("id", 0);
-        String productName = item.optString("productName", "Không rõ");
-        BigDecimal startingPrice = parseBigDecimal(item, "startingPrice");
+    public static List<AdminSessionRow> parseAllSessions(JSONArray array) {
+        List<AdminSessionRow> rows = new ArrayList<>();
 
-        return new PendingSessionRow(id, productName, startingPrice);
+        if (array == null) {
+            return rows;
+        }
+
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject item = array.optJSONObject(i);
+
+            if (item != null) {
+                rows.add(new AdminSessionRow(
+                        item.optInt("id", 0),
+                        item.optString("productName", "Không rõ"),
+                        item.optString("sellerUsername", "Không rõ"),
+                        parseBigDecimal(item, "startingPrice"),
+                        item.optString("status", "UNKNOWN")
+                ));
+            }
+        }
+
+        return rows;
+    }
+
+    public static List<AdminUserRow> parseUsers(JSONArray array) {
+        List<AdminUserRow> rows = new ArrayList<>();
+
+        if (array == null) {
+            return rows;
+        }
+
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject user = array.optJSONObject(i);
+
+            if (user != null) {
+                rows.add(new AdminUserRow(
+                        user.optInt("id", 0),
+                        user.optString("username", ""),
+                        user.optString("fullname", ""),
+                        user.optString("email", ""),
+                        user.optString("accountType", ""),
+                        user.optBoolean("banned", false)
+                ));
+            }
+        }
+
+        return rows;
     }
 
     private static BigDecimal parseBigDecimal(JSONObject item, String key) {
