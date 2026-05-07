@@ -33,6 +33,10 @@ public class SellerDashboardController {
     @FXML private TextField stepPriceField;
     @FXML private TextField endTimeField;
     @FXML private TextArea statsArea;
+    @FXML private DatePicker datePickerStart;
+    @FXML private TextField txtStartTime;
+    @FXML private DatePicker datePickerEnd;
+    @FXML private TextField txtEndTime;
 
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final List<SessionItem> allSessions = new ArrayList<>();
@@ -63,17 +67,11 @@ public class SellerDashboardController {
         String description = productNameOrEmpty(descriptionArea);
         String startingPriceText = productNameOrEmpty(startingPriceField);
         String stepPriceText = productNameOrEmpty(stepPriceField);
-        String endTime = productNameOrEmpty(endTimeField);
 
         if (productName.isEmpty() || productType == null || startingPriceText.isEmpty() || stepPriceText.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Thiếu dữ liệu",
                     "Vui lòng nhập tên sản phẩm, loại, giá khởi điểm và bước giá.");
             return;
-        }
-
-        if (endTime.isEmpty()) {
-            endTime = defaultEndTime();
-            endTimeField.setText(endTime);
         }
 
         try {
@@ -82,21 +80,46 @@ public class SellerDashboardController {
 
             JSONObject body = new JSONObject();
 
-            // --- SỬA LẠI TÊN BIẾN CHO KHỚP VỚI CreateAuctionRequest TRÊN SERVER ---
-            body.put("name", productName);         // Sửa productName -> name
-            body.put("type", productType);         // Sửa productType -> type
-            body.put("imagePath", imageUrl);       // Sửa imageUrl -> imagePath
+            body.put("name", productName);
+            body.put("type", productType);
+            body.put("imagePath", imageUrl);
             body.put("description", description);
-
             body.put("startingPrice", startingPrice);
             body.put("stepPrice", stepPrice);
-
-            // Bổ sung startTime (mặc định lấy giờ hiện tại) vì Server có check cái này
-            body.put("startTime", LocalDateTime.now().plusMinutes(5).withNano(0).toString());
-            body.put("endTime", endTime);
             body.put("sellerId", sellerId);
 
-            // --- SỬA LẠI URL CHO ĐÚNG CHUẨN ---
+            // --- XỬ LÝ THỜI GIAN BẮT ĐẦU ---
+            if (datePickerStart.getValue() == null) {
+                // Để trống -> Gửi Null để Server tự gán giờ hiện tại
+                body.put("startTime", JSONObject.NULL);
+            } else {
+                String timePart = txtStartTime.getText().trim().isEmpty() ? "00:00" : txtStartTime.getText().trim();
+                LocalDateTime startDT = LocalDateTime.of(datePickerStart.getValue(), java.time.LocalTime.parse(timePart));
+
+                // Validation: Không cho phép nhập quá khứ
+                if (startDT.isBefore(LocalDateTime.now())) {
+                    showAlert(Alert.AlertType.WARNING, "Lỗi thời gian", "Thời gian bắt đầu không được ở quá khứ!");
+                    return;
+                }
+                body.put("startTime", startDT.toString());
+            }
+
+            // --- XỬ LÝ THỜI GIAN KẾT THÚC ---
+            if (datePickerEnd.getValue() == null) {
+                showAlert(Alert.AlertType.WARNING, "Thiếu dữ liệu", "Vui lòng chọn ngày kết thúc!");
+                return;
+            }
+
+            String endTimePart = txtEndTime.getText().trim().isEmpty() ? "23:59" : txtEndTime.getText().trim();
+            LocalDateTime endDT = LocalDateTime.of(datePickerEnd.getValue(), java.time.LocalTime.parse(endTimePart));
+
+            if (!endDT.isAfter(LocalDateTime.now())) {
+                showAlert(Alert.AlertType.WARNING, "Lỗi thời gian", "Thời gian kết thúc phải ở tương lai!");
+                return;
+            }
+            body.put("endTime", endDT.toString());
+
+            // --- GỬI REQUEST LÊN SERVER ---
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(Config.API_URL + "/api/seller/create-auction"))
                     .header("Content-Type", "application/json")
@@ -117,6 +140,9 @@ public class SellerDashboardController {
 
         } catch (NumberFormatException e) {
             showAlert(Alert.AlertType.ERROR, "Lỗi dữ liệu", "Giá khởi điểm và bước giá phải là số.");
+        } catch (java.time.format.DateTimeParseException e) {
+            // Bắt lỗi nếu gõ sai định dạng giờ (VD: gõ "abc" thay vì "14:00")
+            showAlert(Alert.AlertType.ERROR, "Sai định dạng giờ", "Vui lòng nhập giờ theo định dạng HH:mm (ví dụ 08:30 hoặc 14:00)");
         } catch (Exception e) {
             logger.error("Lỗi không thể kết nối đến máy chủ: {}", e.getMessage(), e);
             showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");

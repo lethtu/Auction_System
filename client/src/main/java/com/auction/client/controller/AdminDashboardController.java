@@ -44,9 +44,10 @@ public class AdminDashboardController {
 
     @FXML
     public void initialize() {
-        colId.setCellValueFactory(new PropertyValueFactory<>("id"));
-        colProduct.setCellValueFactory(new PropertyValueFactory<>("productName"));
-        colPrice.setCellValueFactory(new PropertyValueFactory<>("startingPrice"));
+        // Thay thế PropertyValueFactory bằng Lambda (Dùng SimpleObjectProperty và SimpleStringProperty)
+        colId.setCellValueFactory(cellData -> new javafx.beans.property.SimpleObjectProperty<>(cellData.getValue().getId()));
+        colProduct.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getProductName()));
+        colPrice.setCellValueFactory(cellData -> new javafx.beans.property.SimpleObjectProperty<>(cellData.getValue().getStartingPrice()));
 
         loadPendingSessions();
     }
@@ -252,26 +253,27 @@ public class AdminDashboardController {
     }
 
     public static class PendingSessionRow {
-        private final SimpleIntegerProperty id;
-        private final SimpleStringProperty productName;
-        private final SimpleDoubleProperty startingPrice;
+        private final Integer id;
+        private final String productName;
+        private final Double startingPrice;
 
         public PendingSessionRow(int id, String productName, double startingPrice) {
-            this.id = new SimpleIntegerProperty(id);
-            this.productName = new SimpleStringProperty(productName);
-            this.startingPrice = new SimpleDoubleProperty(startingPrice);
+            this.id = id;
+            this.productName = productName;
+            this.startingPrice = startingPrice;
         }
 
-        public int getId() {
-            return id.get();
+        // Bắt buộc trả về Integer, String, Double (Kiểu Object) để khớp 100% với TableColumn
+        public Integer getId() {
+            return id;
         }
 
         public String getProductName() {
-            return productName.get();
+            return productName;
         }
 
-        public double getStartingPrice() {
-            return startingPrice.get();
+        public Double getStartingPrice() {
+            return startingPrice;
         }
     }
 

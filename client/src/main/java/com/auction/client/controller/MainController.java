@@ -62,7 +62,8 @@ public class MainController implements Initializable {
         cbCategory.getItems().addAll("Tất cả", "Electronics", "Art", "Vehicle");
         cbCategory.setValue("Tất cả");
 
-        cbStatus.getItems().addAll("Tất cả", "ACTIVE", "PENDING", "ENDED");
+        // ĐÃ SỬA: Xóa "PENDING" khỏi bộ lọc trên giao diện sàn chính
+        cbStatus.getItems().addAll("Tất cả", "ACTIVE", "ENDED");
         cbStatus.setValue("Tất cả");
 
         // Lắng nghe sự kiện để lọc Real-time
@@ -137,6 +138,11 @@ public class MainController implements Initializable {
                 String type = itemObj.optString("type", "");
                 String status = sessionObj.optString("status", "ACTIVE");
 
+                // ĐÃ SỬA: Chặn đứng PENDING, REJECTED, CANCELED. Chỉ cho ACTIVE và ENDED lên sàn chính.
+                if ("PENDING".equalsIgnoreCase(status) || "REJECTED".equalsIgnoreCase(status) || "CANCELED".equalsIgnoreCase(status)) {
+                    continue;
+                }
+
                 // Logic lọc 3 lớp
                 boolean matchKeyword = keyword.isEmpty() || name.toLowerCase().contains(keyword);
                 boolean matchCategory = "Tất cả".equals(selectedCategory) || type.equalsIgnoreCase(selectedCategory);
@@ -192,12 +198,12 @@ public class MainController implements Initializable {
         nameLabel.setFont(Font.font("System", FontWeight.BOLD, 14.0));
         nameLabel.setWrapText(true);
 
-        // THÊM MỚI: In Thể loại
+        // In Thể loại
         Label categoryLabel = new Label("Thể loại: " + type);
         categoryLabel.setFont(Font.font("System", 11.0));
         categoryLabel.setTextFill(Color.web("#28a745")); // Màu xanh lá cho thể loại
 
-        // SỬA LẠI: In Trạng thái
+        // In Trạng thái
         Label statusLabel = new Label("Trạng thái: " + status);
         statusLabel.setFont(Font.font("System", 11.0));
         statusLabel.setStyle("-fx-font-style: italic;");
@@ -221,13 +227,11 @@ public class MainController implements Initializable {
         Button bidBtn = new Button("Đấu giá ngay");
         bidBtn.setMaxWidth(Double.MAX_VALUE);
 
-        // Tối ưu nút: Nếu phiên Ended hoặc Pending thì disable nút bid
-        if (!"ACTIVE".equalsIgnoreCase(type)) {
-            bidBtn.setDisable(true);
-            bidBtn.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white;");
-            bidBtn.setText("Đã đóng / Chờ duyệt");
-        } else {
-            bidBtn.setStyle("-fx-background-color: #007bff; -fx-text-fill: white; -fx-cursor: hand;");
+        // ĐÃ SỬA: So sánh đúng biến "status", đổi màu nút theo trạng thái
+        if ("ACTIVE".equalsIgnoreCase(status)) {
+            bidBtn.setText("Đấu giá ngay");
+            bidBtn.setStyle("-fx-background-color: #28a745; -fx-text-fill: white; -fx-cursor: hand; -fx-font-weight: bold;");
+            bidBtn.setDisable(false);
             bidBtn.setOnAction(event -> {
                 logger.info(">>> Mở trang chi tiết cho sản phẩm ID: " + id);
                 try {
@@ -238,6 +242,14 @@ public class MainController implements Initializable {
                     throw new RuntimeException(e);
                 }
             });
+        } else if ("ENDED".equalsIgnoreCase(status)) {
+            bidBtn.setText("Đã kết thúc");
+            bidBtn.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white;");
+            bidBtn.setDisable(true);
+        } else {
+            bidBtn.setText("Chờ xử lý");
+            bidBtn.setStyle("-fx-background-color: #ced4da; -fx-text-fill: #495057;");
+            bidBtn.setDisable(true);
         }
 
         vbox.getChildren().addAll(nameLabel, categoryLabel, statusLabel, priceLabel, startTimeLabel, endTimeLabel, bidBtn);
