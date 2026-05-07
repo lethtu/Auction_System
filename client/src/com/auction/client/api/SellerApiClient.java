@@ -23,9 +23,8 @@ public class SellerApiClient {
     }
 
     public HttpResponse<String> getMySessions(int sellerId) throws Exception {
-        return HttpRequestUtil.get(SELLER_API, "/my-sessions/" + sellerId);
+        return getMySessions(sellerId, null);
     }
-
     public HttpResponse<String> getMySessions(int sellerId, String status) throws Exception {
         String path = "/my-sessions/" + sellerId;
 
