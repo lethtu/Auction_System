@@ -6,6 +6,7 @@
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
@@ -19,12 +20,19 @@
         <Insets top="20" right="20" bottom="20" left="20"/>
     </padding>
 
-    <HBox spacing="12">
+    <HBox spacing="12" alignment="CENTER_LEFT">
         <Label text="ADMIN DASHBOARD">
             <font>
                 <Font size="24"/>
             </font>
         </Label>
+
+        <Region HBox.hgrow="ALWAYS" />
+
+        <Button text="Đăng xuất"
+                onAction="#handleLogout"
+                prefWidth="100" prefHeight="35"
+                style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 5;"/>
     </HBox>
 
     <Label text="Danh sách phiên chờ duyệt"

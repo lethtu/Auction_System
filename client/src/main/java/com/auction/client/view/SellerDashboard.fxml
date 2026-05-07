@@ -13,6 +13,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
+<?import javafx.scene.control.DatePicker?>
 <VBox spacing="15"
       xmlns="http://javafx.com/javafx/21"
       xmlns:fx="http://javafx.com/fxml/1"
@@ -89,8 +90,17 @@
                     <Label text="Bước giá"/>
                     <TextField fx:id="stepPriceField" promptText="500000"/>
 
-                    <Label text="Thời gian kết thúc"/>
-                    <TextField fx:id="endTimeField" promptText="2026-12-31T20:00:00"/>
+                    <Label text="Thời gian bắt đầu (Để trống nếu muốn bắt đầu ngay):" style="-fx-font-weight: bold;"/>
+                    <HBox spacing="10">
+                        <DatePicker fx:id="datePickerStart" prefWidth="150" promptText="Chọn ngày"/>
+                        <TextField fx:id="txtStartTime" prefWidth="100" promptText="HH:mm" text="00:00"/>
+                    </HBox>
+
+                    <Label text="Thời gian kết thúc (Bắt buộc):" style="-fx-font-weight: bold;"/>
+                    <HBox spacing="10">
+                        <DatePicker fx:id="datePickerEnd" prefWidth="150" promptText="Chọn ngày"/>
+                        <TextField fx:id="txtEndTime" prefWidth="100" promptText="HH:mm" text="23:59"/>
+                    </HBox>
 
                     <Button fx:id="btnCreateOrUpdate"
                             text="Tạo phiên"
