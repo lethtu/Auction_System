@@ -216,7 +216,7 @@ public class MainController implements Initializable {
         bidBtn.setMaxWidth(Double.MAX_VALUE);
 
         // Tối ưu nút: Nếu phiên Ended hoặc Pending thì disable nút bid
-        if (!"ACTIVE".equalsIgnoreCase(type)) {
+        if (!"ACTIVE".equalsIgnoreCase(status)) {
             bidBtn.setDisable(true);
             bidBtn.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white;");
             bidBtn.setText("Đã đóng / Chờ duyệt");
