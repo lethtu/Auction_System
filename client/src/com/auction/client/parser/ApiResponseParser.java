@@ -14,10 +14,7 @@ public final class ApiResponseParser {
         JSONObject obj = parseJson(body);
 
         if (obj == null) {
-            return new ApiResult<>(
-                    isSuccess(httpStatus),
-                    defaultMessage(httpStatus, defaultSuccessMessage)
-            );
+            return new ApiResult<>(isSuccess(httpStatus), defaultMessage(httpStatus, defaultSuccessMessage));
         }
 
         int status = obj.optInt("status", httpStatus);

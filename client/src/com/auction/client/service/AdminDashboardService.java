@@ -53,10 +53,7 @@ public class AdminDashboardService {
     }
 
     private ApiResult<JSONArray> extractArray(HttpResponse<String> response) {
-        ApiResult<JSONArray> api = AdminResponseParser.extractDataArray(
-                response.body(),
-                response.statusCode()
-        );
+        ApiResult<JSONArray> api = AdminResponseParser.extractDataArray(response.body(), response.statusCode());
 
         if (!api.success) {
             throw new IllegalStateException(api.message);
