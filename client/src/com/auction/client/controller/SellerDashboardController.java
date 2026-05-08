@@ -226,7 +226,7 @@ public class SellerDashboardController {
             return;
         }
 
-        logger.error("Lỗi api: {}", api.message);
+        logger.error("Lỗi API: {}", api.message);
         AlertUtil.show(Alert.AlertType.ERROR, "Lỗi", api.message);
     }
 

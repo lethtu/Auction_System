@@ -16,8 +16,13 @@ public abstract class User {
     private Integer id;
 
     private String username;
+
+    @JsonIgnore
     private String password;
+
+    @Column(name = "full_name")
     private String fullname;
+
     private String email;
     private LocalDate dob;
 
@@ -34,28 +39,82 @@ public abstract class User {
 
     public User() {}
 
-    public void setId(Integer id) { this.id = id; }
-    public void setUsername(String username) { this.username = username; }
-    public void setPassword(String password) { this.password = password; }
-    public void setFullname(String fullname) { this.fullname = fullname; }
-    public void setEmail(String email) { this.email = email; }
-    public void setDob(LocalDate dob) { this.dob = dob; }
-    public void setPlaceOfBirth(String placeOfBirth) { this.placeOfBirth = placeOfBirth; }
-    public void setBalance(BigDecimal balance) { this.balance = balance; }
-    public void setBanned(boolean banned) { this.banned = banned; }
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-    public Integer getId() { return id; }
-    public String getUsername() { return username; }
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setFullname(String fullname) {
+        this.fullname = fullname;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setDob(LocalDate dob) {
+        this.dob = dob;
+    }
+
+    public void setPlaceOfBirth(String placeOfBirth) {
+        this.placeOfBirth = placeOfBirth;
+    }
+
+    public void setBalance(BigDecimal balance) {
+        this.balance = balance;
+    }
+
+    public void setBanned(boolean banned) {
+        this.banned = banned;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
 
     @JsonIgnore
-    public String getPassword() { return password; }
-    public String getFullname() { return fullname; }
-    public String getEmail() { return email; }
-    public LocalDate getDob() { return dob; }
-    public String getPlaceOfBirth() { return placeOfBirth; }
-    public String getAccountType() { return accountType; }
-    public BigDecimal getBalance() { return balance; }
-    public boolean isBanned() { return banned; }
+    public String getPassword() {
+        return password;
+    }
+
+    public String getFullname() {
+        return fullname;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public LocalDate getDob() {
+        return dob;
+    }
+
+    public String getPlaceOfBirth() {
+        return placeOfBirth;
+    }
+
+    public String getAccountType() {
+        return accountType;
+    }
+
+    public BigDecimal getBalance() {
+        return balance;
+    }
+
+    public boolean isBanned() {
+        return banned;
+    }
 
     @Override
     public String toString() {
