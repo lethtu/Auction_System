@@ -157,14 +157,26 @@ public class MainController implements Initializable {
                     String imagePath = itemObj.optString("imagePath", "default.png");
 
                     // Truyền cả type (thể loại) và status (trạng thái) vào
-                    VBox card = createProductCard(id, name, type, status, currentPrice, startTime, endTime, imagePath);
+                    VBox card = createProductCard(sessionObj, itemObj);
                     productContainer.getChildren().add(card);
                 }
             }
         });
     }
 
-    private VBox createProductCard(int id, String name, String type, String status, double currentPrice, String startTime, String endTime, String imagePath) {
+    private VBox createProductCard(JSONObject sessionObj, JSONObject itemObj) {
+        int id = sessionObj.getInt("id");
+
+        String type = itemObj.optString("type", "");
+        String name = itemObj.optString("name", "");
+        double currentPrice = sessionObj.getDouble("currentPrice");
+
+        String status = sessionObj.optString("status", "ACTIVE");
+
+        String startTime = sessionObj.isNull("startTime") ? "Chưa bắt đầu" : sessionObj.getString("startTime").replace("T", " ");
+        String endTime = sessionObj.isNull("endTime") ? "Chưa rõ" : sessionObj.getString("endTime").replace("T", " ");
+        String imagePath = itemObj.optString("imagePath", "default.png");
+
         VBox vbox = new VBox();
         vbox.setSpacing(10.0);
         vbox.setPrefWidth(220.0);
@@ -177,6 +189,7 @@ public class MainController implements Initializable {
                 Image image = new Image(imageUrl, true);
                 imageView.setImage(image);
             } else {
+                logger.info("Không có ảnh");
                 throw new Exception("Không có ảnh");
             }
         } catch (Exception e) {
@@ -209,6 +222,7 @@ public class MainController implements Initializable {
         statusLabel.setStyle("-fx-font-style: italic;");
         statusLabel.setTextFill(Color.web("#6c757d"));
 
+        // Giá hiện tại
         Label priceLabel = new Label("Giá: " + String.format("%,.0f", currentPrice) + " VNĐ");
         priceLabel.setTextFill(Color.web("#d32f2f"));
         priceLabel.setFont(Font.font("System", FontWeight.BOLD, 13.0));
@@ -226,6 +240,7 @@ public class MainController implements Initializable {
 
         Button bidBtn = new Button("Đấu giá ngay");
         bidBtn.setMaxWidth(Double.MAX_VALUE);
+        bidBtn.setStyle("-fx-background-color: #007bff; -fx-text-fill: white; -fx-cursor: hand;");
 
         // ĐÃ SỬA: So sánh đúng biến "status", đổi màu nút theo trạng thái
         if ("ACTIVE".equalsIgnoreCase(status)) {
@@ -237,7 +252,8 @@ public class MainController implements Initializable {
                 try {
                     FXMLLoader loader = SceneSwitcher.switchScene(event, "AuctionPage.fxml", 500, 400);
                     AuctionPageController controller = loader.getController();
-                    // Bạn có thể truyền dữ liệu sang trang chi tiết qua controller ở đây
+                    controller.setItem(sessionObj, itemObj);
+
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
