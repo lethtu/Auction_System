@@ -46,7 +46,9 @@ public class SellerDashboardController {
     public void initialize() {
         productTypeCombo.setItems(FXCollections.observableArrayList("Electronics", "Art", "Vehicle"));
         productTypeCombo.setValue("Electronics");
+
         SellerAuctionFormBuilder.fillDefaultEndTime(endTimeField);
+
         loadMySessions();
         resetSubmitButton();
     }
@@ -63,7 +65,10 @@ public class SellerDashboardController {
 
     private void createNewSession() {
         Integer sellerId = getValidSellerId();
-        if (sellerId == null) return;
+
+        if (sellerId == null) {
+            return;
+        }
 
         try {
             CreateAuctionRequest request = SellerAuctionFormBuilder.buildCreateRequest(
@@ -77,10 +82,12 @@ public class SellerDashboardController {
                     endTimeField
             );
 
-            if (request == null) return;
+            if (request == null) {
+                return;
+            }
 
-            ApiResult api = sellerDashboardService.createAuction(request);
-            handleCreateResult(api);
+            ApiResult<Void> api = sellerDashboardService.createAuction(request);
+            handleMutationResult(api);
 
         } catch (NumberFormatException e) {
             AlertUtil.show(Alert.AlertType.ERROR, "Lỗi dữ liệu", "Giá khởi điểm và bước giá phải là số.");
@@ -92,7 +99,10 @@ public class SellerDashboardController {
 
     private void updateEditingSession() {
         Integer sellerId = getValidSellerId();
-        if (sellerId == null) return;
+
+        if (sellerId == null) {
+            return;
+        }
 
         try {
             CreateAuctionRequest request = SellerAuctionFormBuilder.buildUpdateRequest(
@@ -107,10 +117,12 @@ public class SellerDashboardController {
                     endTimeField
             );
 
-            if (request == null) return;
+            if (request == null) {
+                return;
+            }
 
-            ApiResult api = sellerDashboardService.updateSession(editingSession.id, sellerId, request);
-            handleUpdateResult(api);
+            ApiResult<Void> api = sellerDashboardService.updateSession(editingSession.id, sellerId, request);
+            handleMutationResult(api);
 
         } catch (NumberFormatException e) {
             AlertUtil.show(Alert.AlertType.ERROR, "Lỗi dữ liệu", "Giá khởi điểm và bước giá phải là số.");
@@ -143,7 +155,10 @@ public class SellerDashboardController {
     @FXML
     private void handleEditSelectedSession() {
         SessionItem selected = getPendingSelectedSession("sửa");
-        if (selected == null) return;
+
+        if (selected == null) {
+            return;
+        }
 
         editingSession = selected;
         fillFormFromSession(selected);
@@ -153,24 +168,34 @@ public class SellerDashboardController {
             sellerTabPane.getSelectionModel().select(tabCreateSession);
         }
 
-        AlertUtil.show(Alert.AlertType.INFORMATION,
+        AlertUtil.show(
+                Alert.AlertType.INFORMATION,
                 "Chế độ sửa",
-                "Dữ liệu phiên đã được đưa vào form. Hãy chỉnh sửa rồi bấm Lưu thay đổi.");
+                "Dữ liệu phiên đã được đưa vào form. Hãy chỉnh sửa rồi bấm Lưu thay đổi."
+        );
     }
 
     @FXML
     private void handleCancelSelectedSession() {
         SessionItem selected = getPendingSelectedSession("hủy");
-        if (selected == null) return;
+
+        if (selected == null) {
+            return;
+        }
 
         Integer sellerId = getValidSellerId();
-        if (sellerId == null) return;
 
-        if (!confirmCancelSession(selected.id)) return;
+        if (sellerId == null) {
+            return;
+        }
+
+        if (!confirmCancelSession(selected.id)) {
+            return;
+        }
 
         try {
-            ApiResult api = sellerDashboardService.cancelSession(selected.id, sellerId);
-            handleCancelResult(api);
+            ApiResult<Void> api = sellerDashboardService.cancelSession(selected.id, sellerId);
+            handleMutationResult(api);
 
         } catch (Exception e) {
             logger.error("Lỗi không thể kết nối đến máy chủ: {}", e.getMessage(), e);
@@ -193,7 +218,7 @@ public class SellerDashboardController {
         endTimeField.setText(safeText(session.endTime));
     }
 
-    private void handleCreateResult(ApiResult api) {
+    private void handleMutationResult(ApiResult<Void> api) {
         if (api.success) {
             clearForm();
             loadMySessions();
@@ -205,31 +230,12 @@ public class SellerDashboardController {
         AlertUtil.show(Alert.AlertType.ERROR, "Lỗi", api.message);
     }
 
-    private void handleUpdateResult(ApiResult api) {
-        if (api.success) {
-            clearForm();
-            loadMySessions();
-            AlertUtil.show(Alert.AlertType.INFORMATION, "Thành công", api.message);
-            return;
-        }
-
-        AlertUtil.show(Alert.AlertType.ERROR, "Lỗi", api.message);
-    }
-
-    private void handleCancelResult(ApiResult api) {
-        if (api.success) {
-            clearForm();
-            loadMySessions();
-            AlertUtil.show(Alert.AlertType.INFORMATION, "Thành công", api.message);
-            return;
-        }
-
-        AlertUtil.show(Alert.AlertType.ERROR, "Lỗi", api.message);
-    }
-
     private void loadMySessions() {
         Integer sellerId = getValidSellerId();
-        if (sellerId == null) return;
+
+        if (sellerId == null) {
+            return;
+        }
 
         try {
             allSessions.clear();
@@ -246,7 +252,10 @@ public class SellerDashboardController {
 
     private void loadSessionsByStatus(String status) {
         Integer sellerId = getValidSellerId();
-        if (sellerId == null) return;
+
+        if (sellerId == null) {
+            return;
+        }
 
         try {
             List<SessionItem> sessions = sellerDashboardService.getMySessions(sellerId, status);
@@ -285,14 +294,20 @@ public class SellerDashboardController {
         SessionItem selected = getSelectedSession();
 
         if (selected == null) {
-            AlertUtil.show(Alert.AlertType.WARNING, "Chưa chọn phiên",
-                    "Bạn hãy chọn một phiên để " + actionName + ".");
+            AlertUtil.show(
+                    Alert.AlertType.WARNING,
+                    "Chưa chọn phiên",
+                    "Bạn hãy chọn một phiên để " + actionName + "."
+            );
             return null;
         }
 
         if (!AuctionStatus.PENDING.equalsIgnoreCase(selected.status)) {
-            AlertUtil.show(Alert.AlertType.WARNING, "Không thể " + actionName,
-                    "Chỉ được " + actionName + " phiên đang ở trạng thái PENDING.");
+            AlertUtil.show(
+                    Alert.AlertType.WARNING,
+                    "Không thể " + actionName,
+                    "Chỉ được " + actionName + " phiên đang ở trạng thái PENDING."
+            );
             return null;
         }
 
