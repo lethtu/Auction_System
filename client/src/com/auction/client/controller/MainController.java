@@ -70,26 +70,9 @@ public class MainController implements Initializable {
 
                             for (int i = 0; i < jsonArray.length(); i++) {
                                 JSONObject sessionObj = jsonArray.getJSONObject(i);
-
-                                int id = sessionObj.getInt("id");
-                                String type = sessionObj.optString("status", "ACTIVE");
-                                double currentPrice = sessionObj.getDouble("currentPrice");
-
-                                String startTime = "Chưa bắt đầu";
-                                if (!sessionObj.isNull("startTime")) {
-                                    startTime = sessionObj.getString("startTime").replace("T", " ");
-                                }
-
-                                String endTime = "Chưa rõ";
-                                if (!sessionObj.isNull("endTime")) {
-                                    endTime = sessionObj.getString("endTime").replace("T", " ");
-                                }
-
                                 JSONObject itemObj = sessionObj.getJSONObject("item");
-                                String name = itemObj.getString("name");
-                                String imagePath = itemObj.optString("imagePath", "default.png");
-
-                                VBox card = createProductCard(id, name, type, currentPrice, startTime, endTime, imagePath);
+                                logger.info("Session: {}, item: {}", sessionObj, itemObj);
+                                VBox card = createProductCard(sessionObj, itemObj);
                                 productContainer.getChildren().add(card);
                             }
                         });
@@ -104,7 +87,24 @@ public class MainController implements Initializable {
         }).start();
     }
 
-    private VBox createProductCard(int id, String name, String type, double currentPrice, String startTime, String endTime, String imagePath) {
+    private VBox createProductCard(JSONObject sessionObj, JSONObject itemObj) {
+        int id = sessionObj.getInt("id");
+        String type = sessionObj.optString("status", "ACTIVE");
+        double currentPrice = sessionObj.getDouble("currentPrice");
+
+        String startTime = "Chưa bắt đầu";
+        if (!sessionObj.isNull("startTime")) {
+            startTime = sessionObj.getString("startTime").replace("T", " ");
+        }
+
+        String endTime = "Chưa rõ";
+        if (!sessionObj.isNull("endTime")) {
+            endTime = sessionObj.getString("endTime").replace("T", " ");
+        }
+
+        String name = itemObj.getString("name");
+        String imagePath = itemObj.optString("imagePath", "default.png");
+
         VBox vbox = new VBox();
         vbox.setSpacing(10.0);
         vbox.setPrefWidth(220.0);
@@ -173,7 +173,7 @@ public class MainController implements Initializable {
             try {
                 FXMLLoader loader = SceneSwitcher.switchScene(event, "AuctionPage.fxml", 500, 400);
                 AuctionPageController controller = loader.getController();
-//                controller.setItem()
+                controller.setItem(sessionObj, itemObj);
 
             } catch (IOException e) {
                 throw new RuntimeException(e);
