@@ -1,13 +1,16 @@
 package com.auction.server.socket;
 
+import com.auction.server.controller.BiddingController;
 import com.auction.server.dto.BidRequest;
 import com.auction.server.dto.BidResponse;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.math.BigDecimal;
 import java.net.Socket;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -19,9 +22,25 @@ public class SocketServerTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        socketServer = new SocketServer();
+        // We pass a BiddingController with a dummy AuctionService to avoid DB dependencies in this unit test
+        BiddingController biddingController = new BiddingController();
+        biddingController.setAuctionService(new com.auction.server.service.AuctionService() {
+            @Override
+            public com.auction.server.dto.BidResponse updateBid(Integer itemId, Integer bidderId, java.math.BigDecimal amount) {
+                return new com.auction.server.dto.BidResponse(true, "TEST: Đặt giá thành công!", amount);
+            }
+        });
+        
+        socketServer = new SocketServer(biddingController);
         socketServer.start();
-        Thread.sleep(2000);
+        Thread.sleep(1000);
+    }
+
+    @AfterEach
+    public void tearDown() {
+        if (socketServer != null) {
+            socketServer.stop();
+        }
     }
 
     @Test
@@ -76,7 +95,7 @@ public class SocketServerTest {
                  ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
                  ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
 
-                BidRequest bid = new BidRequest(1, 100, 1500.0);
+                BidRequest bid = new BidRequest(1, 100, new BigDecimal("1000"));
                 out.writeObject(bid);
                 out.flush();
                 System.out.println("TEST: Đã gửi BidRequest");

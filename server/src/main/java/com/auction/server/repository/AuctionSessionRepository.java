@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AuctionSessionRepository extends JpaRepository<AuctionSession, Integer> {
@@ -21,6 +22,7 @@ public interface AuctionSessionRepository extends JpaRepository<AuctionSession, 
 
     Page<AuctionSession> findByStatus(AuctionStatus status, Pageable pageable);
 
+    Optional<AuctionSession> findById(Integer ItemAuctionId);
     // SCHEDULER QUERIES - FETCH & UPDATE ĐỂ AN TOÀN CHO ĐA LUỒNG
 
     // Hàm 1: Lấy các phiên đang PENDING nhưng đã tới giờ mở (startTime <= now)

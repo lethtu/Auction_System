@@ -1,26 +1,32 @@
 package com.auction.server.dto;
 
+import com.auction.server.model.AuctionSession;
+import com.auction.server.model.Bidder;
+import com.auction.server.model.User;
+
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 public class BidRequest implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private int auctionId;
-    private int userId;
-    private double bidAmount;
+    private Integer auctionId;
+    private Integer bidderId;
+    private BigDecimal bidAmount;
 
-    public BidRequest(int auctionId, int userId, double bidAmount) {
+    public BidRequest(Integer auctionId, Integer BidderId, BigDecimal bidAmount) {
         this.auctionId = auctionId;
-        this.userId = userId;
+        this.bidderId = BidderId;
         this.bidAmount = bidAmount;
     }
 
-    public int getAuctionId() { return auctionId; }
-    public int getUserId() { return userId; }
-    public double getBidAmount() { return bidAmount; }
+    public Integer getAuctionId() { return auctionId; }
+    public Integer getBidderId() { return bidderId; }
+    public BigDecimal getBidAmount() { return bidAmount; }
+
 
     @Override
     public String toString() {
-        return "BidRequest{auctionId=" + auctionId + ", userId=" + userId + ", amount=" + bidAmount + "}";
+        return "BidRequest{auctionId=" + auctionId + ", bidder=" + bidderId + ", amount=" + bidAmount + "}";
     }
 }

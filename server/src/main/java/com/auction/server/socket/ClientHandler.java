@@ -1,6 +1,7 @@
 package com.auction.server.socket;
 
-
+import com.auction.server.dto.PriceUpdateNotification;
+import com.auction.server.controller.BiddingController;
 import com.auction.server.dto.BidRequest;
 import com.auction.server.dto.BidResponse;
 import org.slf4j.Logger;
@@ -12,46 +13,56 @@ import java.net.SocketException;
 public class ClientHandler implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(ClientHandler.class);
     private final Socket clientSocket;
+    private final BiddingController biddingController;
 
-    public ClientHandler(Socket socket) {
+    public ClientHandler(Socket socket, BiddingController biddingController) {
         this.clientSocket = socket;
+        this.biddingController = biddingController;
     }
 
     @Override
     public void run() {
-        try (
-                ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
-                ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream())
-        ) {
-            logger.info("Đã kết nối với Client: {}", clientSocket.getInetAddress());
+        ObjectOutputStream out = null;
+        try {
+            out = new ObjectOutputStream(clientSocket.getOutputStream());
+            ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
 
             while (true) {
-                try {
-                    Object input = in.readObject();
+                Object input = in.readObject();
 
-                    if (input instanceof BidRequest) {
-                        BidRequest request = (BidRequest) input;
-                        logger.info("SERVER: Nhận lệnh đặt giá: {}", request);
+                if (input instanceof BidRequest) {
+                    BidRequest request = (BidRequest) input;
 
-                        String msg = "Người dùng " + request.getUserId() + " đặt giá thành công!";
-                        BidResponse response = new BidResponse(true, msg, request.getBidAmount());
+                    SocketServer.joinRoom(request.getAuctionId(), out);
 
-                        out.writeObject(response);
-                        out.flush();
+                    BidResponse response = biddingController.handleBid(request);
+
+                    out.writeObject(response);
+                    out.flush();
+
+                    if (response.isSuccess()) {
+                        PriceUpdateNotification notice = new PriceUpdateNotification(
+                                request.getAuctionId(),
+                                response.getCurrentPrice(),
+                                "Giá sản phẩm đã được cập nhật!"
+                        );
+                        SocketServer.broadcastToRoom(request.getAuctionId(), notice);
                     }
-                } catch (ClassNotFoundException e) {
-                    logger.error("SERVER SOCKET: Không hiểu định dạng dữ liệu nhận được");
                 }
             }
-        } catch (EOFException | SocketException e) {
-            logger.info("Client {} đã ngắt kết nối.", clientSocket.getInetAddress());
-        } catch (Exception e) {
-            logger.error("Lỗi xử lý Client {}: {}", clientSocket.getInetAddress(), e.getMessage());
-        } finally {
+        }
+        catch (Exception e) {
+            logger.error("Lỗi Client: {}", e.getMessage());
+        }
+        finally {
+            if (out != null) {
+                SocketServer.removeFromAllRooms(out);
+            }
             try {
                 clientSocket.close();
-            } catch (IOException e) {
-                logger.error("Không thể đóng socket của client.");
+            }
+            catch (IOException e) {
+                logger.error("Lỗi không mong muốn: {}", e.getMessage(), e);
             }
         }
     }

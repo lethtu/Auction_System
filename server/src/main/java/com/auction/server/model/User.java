@@ -1,5 +1,6 @@
 package com.auction.server.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -14,6 +15,7 @@ public class User {
     private Integer id;
 
     private String username;
+    @JsonIgnore
     private String password;
     private String fullname;
     private String email;
