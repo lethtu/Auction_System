@@ -1,10 +1,14 @@
 package com.auction.client.controller;
 
+import java.io.*;
+import java.net.Socket;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import org.json.JSONObject;
+
 import java.io.IOException;
 
 public class AuctionPageController {
@@ -28,13 +32,25 @@ public class AuctionPageController {
     @FXML
     private Label messageLabel;
 
+//    private Socket socket;
+//    private PrintWriter out;
+//    private BufferedReader in;
+//    private String serverAddress = "localhost";
+//    private int port = 8080;
+
     // Hàm khởi tạo (chạy ngay sau khi FXML được load)
     @FXML
     public void initialize() {
         // Bạn có thể set dữ liệu test ở đây
-        productNameLabel.setText("Sản phẩm: Đồng hồ Rolex Test");
-        currentPriceLabel.setText("Giá cao nhất hiện tại: 50,000 VNĐ");
-        endTimeLabel.setText("Thời gian kết thúc: 04/05/2026");
+        productNameLabel.setText("Sản phẩm: Loading...");
+        currentPriceLabel.setText("Giá cao nhất hiện tại: Loading...");
+        endTimeLabel.setText("Thời gian kết thúc: Loading...");
+    }
+
+    public void setItem(JSONObject sessionsObj, JSONObject itemObj) {
+        productNameLabel.setText("Sản phẩm: " + itemObj.getString("name"));
+        currentPriceLabel.setText("Giá hiện tại: " + sessionsObj.getBigDecimal("currentPrice"));
+        endTimeLabel.setText("Thời gian kết thúc: " + sessionsObj.getString("endTime").split("T")[0]);
     }
 
     // Sự kiện khi bấm nút "Đặt giá"
