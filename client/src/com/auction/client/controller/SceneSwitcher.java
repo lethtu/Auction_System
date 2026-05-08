@@ -14,6 +14,7 @@ import java.net.URL;
 
 public class SceneSwitcher {
     private static final Logger logger = LoggerFactory.getLogger(SceneSwitcher.class);
+
     public static FXMLLoader Switch(ActionEvent event, String fxmlFile, Integer width, Integer height) throws IOException {
         String path = "/com/auction/client/view/" + fxmlFile;
         URL xmlResource = SceneSwitcher.class.getResource(path);
