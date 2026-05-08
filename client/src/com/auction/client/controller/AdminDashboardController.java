@@ -9,7 +9,6 @@ import com.auction.client.service.AdminDashboardService;
 import com.auction.client.util.AlertUtil;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -105,9 +104,13 @@ public class AdminDashboardController {
                 "Hãy chọn một phiên để phê duyệt."
         );
 
+        if (selected == null) {
+            return;
+        }
+
         Integer adminId = getValidAdminId();
 
-        if (selected == null || adminId == null) {
+        if (adminId == null) {
             return;
         }
 
@@ -122,9 +125,13 @@ public class AdminDashboardController {
                 "Hãy chọn một phiên để từ chối."
         );
 
+        if (selected == null) {
+            return;
+        }
+
         Integer adminId = getValidAdminId();
 
-        if (selected == null || adminId == null) {
+        if (adminId == null) {
             return;
         }
 
@@ -145,9 +152,13 @@ public class AdminDashboardController {
                 "Hãy chọn user cần khóa."
         );
 
+        if (selected == null) {
+            return;
+        }
+
         Integer adminId = getValidAdminId();
 
-        if (selected == null || adminId == null) {
+        if (adminId == null) {
             return;
         }
 
@@ -162,9 +173,13 @@ public class AdminDashboardController {
                 "Hãy chọn phiên cần hủy."
         );
 
+        if (selected == null) {
+            return;
+        }
+
         Integer adminId = getValidAdminId();
 
-        if (selected == null || adminId == null) {
+        if (adminId == null) {
             return;
         }
 
@@ -180,7 +195,7 @@ public class AdminDashboardController {
         T selected = table.getSelectionModel().getSelectedItem();
 
         if (selected == null) {
-            AlertUtil.show(Alert.AlertType.WARNING, title, message);
+            AlertUtil.showWarning(title, message);
         }
 
         return selected;
@@ -190,7 +205,7 @@ public class AdminDashboardController {
         Integer adminId = User.getId();
 
         if (adminId == null || adminId <= 0) {
-            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi", "Không lấy được ID admin hiện tại.");
+            AlertUtil.showError("Không lấy được ID admin hiện tại.");
             return null;
         }
 
@@ -206,7 +221,7 @@ public class AdminDashboardController {
         String reason = dialog.showAndWait().orElse("").trim();
 
         if (reason.isEmpty()) {
-            AlertUtil.show(Alert.AlertType.WARNING, "Thiếu lý do", "Vui lòng nhập lý do từ chối.");
+            AlertUtil.showWarning("Thiếu lý do", "Vui lòng nhập lý do từ chối.");
             return null;
         }
 
@@ -218,19 +233,18 @@ public class AdminDashboardController {
             ApiResult<Void> api = action.run();
             handleActionResult(api);
         } catch (Exception e) {
-            e.printStackTrace();
-            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ.");
+            AlertUtil.showError(e, "Không thể kết nối đến máy chủ.");
         }
     }
 
     private void handleActionResult(ApiResult<Void> api) {
         if (api.success) {
-            AlertUtil.show(Alert.AlertType.INFORMATION, "Thành công", api.message);
+            AlertUtil.showInfo(api.message);
             loadAllData();
             return;
         }
 
-        AlertUtil.show(Alert.AlertType.ERROR, "Lỗi", api.message);
+        AlertUtil.showError(api.message);
     }
 
     private void loadAllData() {
@@ -244,7 +258,7 @@ public class AdminDashboardController {
             List<PendingSessionRow> rows = adminDashboardService.getPendingSessions();
             tablePending.setItems(FXCollections.observableArrayList(rows));
         } catch (Exception e) {
-            showLoadError(e, "Không thể tải dữ liệu pending từ server.");
+            AlertUtil.showError(e, "Không thể tải dữ liệu pending từ server.");
         }
     }
 
@@ -253,7 +267,7 @@ public class AdminDashboardController {
             List<AdminUserRow> rows = adminDashboardService.getAllUsers();
             tableUsers.setItems(FXCollections.observableArrayList(rows));
         } catch (Exception e) {
-            showLoadError(e, "Không thể tải danh sách user từ server.");
+            AlertUtil.showError(e, "Không thể tải danh sách user từ server.");
         }
     }
 
@@ -262,20 +276,8 @@ public class AdminDashboardController {
             List<AdminSessionRow> rows = adminDashboardService.getAllSessions();
             tableSessions.setItems(FXCollections.observableArrayList(rows));
         } catch (Exception e) {
-            showLoadError(e, "Không thể tải danh sách phiên từ server.");
+            AlertUtil.showError(e, "Không thể tải danh sách phiên từ server.");
         }
-    }
-
-    private void showLoadError(Exception e, String defaultMessage) {
-        e.printStackTrace();
-
-        String message = e.getMessage();
-
-        AlertUtil.show(
-                Alert.AlertType.ERROR,
-                "Lỗi",
-                message == null || message.isBlank() ? defaultMessage : message
-        );
     }
 
     @FunctionalInterface
