@@ -1,5 +1,6 @@
 package com.auction.client.controller;
 
+import javafx.event.ActionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
@@ -43,9 +44,10 @@ public class AdminDashboardController {
 
     @FXML
     public void initialize() {
-        colId.setCellValueFactory(new PropertyValueFactory<>("id"));
-        colProduct.setCellValueFactory(new PropertyValueFactory<>("productName"));
-        colPrice.setCellValueFactory(new PropertyValueFactory<>("startingPrice"));
+        // Thay thế PropertyValueFactory bằng Lambda (Dùng SimpleObjectProperty và SimpleStringProperty)
+        colId.setCellValueFactory(cellData -> new javafx.beans.property.SimpleObjectProperty<>(cellData.getValue().getId()));
+        colProduct.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getProductName()));
+        colPrice.setCellValueFactory(cellData -> new javafx.beans.property.SimpleObjectProperty<>(cellData.getValue().getStartingPrice()));
 
         loadPendingSessions();
     }
@@ -89,6 +91,18 @@ public class AdminDashboardController {
         } catch (Exception e) {
             logger.error("Lỗi không kết nối được đến máy chủ: {}", e.getMessage(), e);
             showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ.");
+        }
+    }
+
+    @FXML
+    public void handleLogout(ActionEvent event) {
+        try {
+            // Xóa thông tin user đang lưu ở bộ nhớ tạm
+            User.clearSession();
+            // Chuyển về màn hình đăng nhập
+            SceneSwitcher.switchScene(event, "Login.fxml", 400, 500);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -239,26 +253,27 @@ public class AdminDashboardController {
     }
 
     public static class PendingSessionRow {
-        private final SimpleIntegerProperty id;
-        private final SimpleStringProperty productName;
-        private final SimpleDoubleProperty startingPrice;
+        private final Integer id;
+        private final String productName;
+        private final Double startingPrice;
 
         public PendingSessionRow(int id, String productName, double startingPrice) {
-            this.id = new SimpleIntegerProperty(id);
-            this.productName = new SimpleStringProperty(productName);
-            this.startingPrice = new SimpleDoubleProperty(startingPrice);
+            this.id = id;
+            this.productName = productName;
+            this.startingPrice = startingPrice;
         }
 
-        public int getId() {
-            return id.get();
+        // Bắt buộc trả về Integer, String, Double (Kiểu Object) để khớp 100% với TableColumn
+        public Integer getId() {
+            return id;
         }
 
         public String getProductName() {
-            return productName.get();
+            return productName;
         }
 
-        public double getStartingPrice() {
-            return startingPrice.get();
+        public Double getStartingPrice() {
+            return startingPrice;
         }
     }
 

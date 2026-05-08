@@ -47,7 +47,6 @@ public class SellerService {
         return (Seller) user;
     }
 
-    // Gộp Validation của cả Khánh và Minh
     private void validateAuctionInput(CreateAuctionRequest request) {
         if (request.getName() == null || request.getName().trim().isEmpty()) {
             logger.error("Tên sản phẩm không được để trống");
@@ -75,17 +74,17 @@ public class SellerService {
         }
 
         LocalDateTime now = LocalDateTime.now();
-        if (request.getStartTime() != null && request.getStartTime().isBefore(now)){
+
+        // Cho phép dung sai 10 giây do độ trễ mạng (Network Latency) nếu Client có gửi startTime
+        if (request.getStartTime() != null && request.getStartTime().isBefore(now.minusSeconds(10))) {
             logger.error("Thời gian bắt đầu không được nằm trong quá khứ.");
             throw new IllegalArgumentException("Thời gian bắt đầu không được nằm trong quá khứ.");
         }
 
-        if (request.getEndTime() == null || !request.getEndTime().isAfter(now)) {
-            logger.error("Thời gian kết thúc phải ở tương lai");
-            throw new IllegalArgumentException("Thời gian kết thúc phải ở tương lai");
-        }
+        // Xác định thời gian bắt đầu thực tế để làm mốc so sánh với thời gian kết thúc
+        LocalDateTime actualStart = (request.getStartTime() == null) ? now : request.getStartTime();
 
-        if (request.getStartTime() != null && request.getEndTime().isBefore(request.getStartTime())) {
+        if (request.getEndTime() == null || !request.getEndTime().isAfter(actualStart)) {
             logger.error("Thời gian kết thúc phải diễn ra sau thời gian bắt đầu.");
             throw new IllegalArgumentException("Thời gian kết thúc phải diễn ra sau thời gian bắt đầu.");
         }
@@ -114,7 +113,14 @@ public class SellerService {
         session.setStartingPrice(request.getStartingPrice());
         session.setCurrentPrice(request.getStartingPrice());
         session.setStepPrice(request.getStepPrice());
-        session.setStartTime(request.getStartTime());
+
+        // Tối ưu Server-side Timing: Nếu Client để trống, Server tự gán giờ hiện hành
+        if (request.getStartTime() == null) {
+            session.setStartTime(LocalDateTime.now());
+        } else {
+            session.setStartTime(request.getStartTime());
+        }
+
         session.setEndTime(request.getEndTime());
 
         session.setApprovedAt(null);
