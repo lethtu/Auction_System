@@ -15,6 +15,7 @@ import java.net.http.*;
 
 public class ForgotPasswordController {
     private static final Logger logger = LoggerFactory.getLogger(ForgotPasswordController.class);
+    private HttpClient client = HttpClient.newHttpClient();
 
     @FXML private TextField txtEmail, txtOTP;
     @FXML private PasswordField txtNewPassword, txtConfirmNewPassword;
@@ -42,8 +43,7 @@ public class ForgotPasswordController {
                         .header("Content-Type", "application/json")
                         .POST(HttpRequest.BodyPublishers.ofString(json.toString()))
                         .build();
-
-                HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
                 JSONObject rq = new JSONObject(response.body());
                 Platform.runLater(() -> {
                     if (rq.getInt("status") == 200 && response.statusCode() == 200) {
@@ -93,7 +93,7 @@ public class ForgotPasswordController {
                         .POST(HttpRequest.BodyPublishers.ofString(json.toString()))
                         .build();
 
-                HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
                 JSONObject rq = new JSONObject(response.body());
                 Platform.runLater(() -> {
                     if (response.statusCode() == 200) {
@@ -122,6 +122,10 @@ public class ForgotPasswordController {
                 logger.error("Lỗi trong quá trình thực thi: {}", e.getMessage(), e);
             }
         }).start();
+    }
+
+    public void setHttpClient(HttpClient httpClient) {
+        this.client = httpClient;
     }
 
     @FXML

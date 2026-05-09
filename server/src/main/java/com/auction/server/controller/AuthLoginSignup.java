@@ -33,7 +33,7 @@ public class AuthLoginSignup {
         }
         else {
             logger.error("User {} đăng nhập thất bại", username);
-            return new ApiResponse<String>(100, "Đăng nhập thất bại", "");
+            return new ApiResponse<String>(400, "Đăng nhập thất bại", "");
         }
     }
 
@@ -53,7 +53,7 @@ public class AuthLoginSignup {
         }
         else {
             logger.error("Lỗi đăng ký, username: {} hoặc email: {} đã tồn tại", newUser.getUsername(), newUser.getEmail());
-            return new ApiResponse<User>(100, "Email hoặc Username đã tồn tại", newUser);
+            return new ApiResponse<User>(400, "Email hoặc Username đã tồn tại", newUser);
         }
     }
 }

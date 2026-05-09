@@ -3,54 +3,158 @@ package com.auction.client.controller;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.TextField;
-import javafx.scene.control.PasswordField;
 import javafx.stage.Stage;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.testfx.api.FxAssert;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
-import org.testfx.matcher.control.LabeledMatchers;
+import org.testfx.matcher.base.NodeMatchers;
+
+import org.mockito.Mockito;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 import static org.testfx.api.FxAssert.verifyThat;
-import static org.testfx.matcher.base.NodeMatchers.isVisible;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(ApplicationExtension.class)
 public class LoginControllerTest {
 
+    private HttpClient mockHttpClient;
+    private HttpResponse<String> mockHttpResponse;
+
     @Start
     public void start(Stage stage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("/com/auction/client/view/Login.fxml"));
+
+        mockHttpClient = Mockito.mock(HttpClient.class);
+        mockHttpResponse = (HttpResponse<String>) Mockito.mock(HttpResponse.class);
+
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/auction/client/view/Login.fxml"));
+        Parent root = loader.load();
+
+        // Tiêm Mock HttpClient vào Controller
+        LoginController controller = loader.getController();
+        controller.setHttpClient(mockHttpClient);
+
         stage.setScene(new Scene(root, 400, 500));
         stage.show();
     }
 
-    @Test
-    public void should_have_login_fields(FxRobot robot) {
-        verifyThat("#txtUsername", isVisible());
-        verifyThat("#txtPassword", isVisible());
-    }
+    // TEST 1: SAI MẬT KHẨU (HTTP STATUS != 200)
 
     @Test
-    public void should_show_warning_on_empty_login(FxRobot robot) {
-        // Click login without entering anything
-        robot.clickOn(".button"); 
-        
-        // Note: Testing alerts with TestFX can be tricky as they are separate windows.
-        // Usually, we would mock the showAlert method or check for the alert window.
+    @DisplayName("Test: Server trả về 401 -> Hiện cảnh báo sai mật khẩu")
+    public void testLogin_SaiMatKhau(FxRobot robot) throws Exception {
+        when(mockHttpClient.<String>send(any(HttpRequest.class), any()))
+                .thenReturn(mockHttpResponse);
+        when(mockHttpResponse.statusCode()).thenReturn(401);
+
+        robot.clickOn("#txtUsername").write("tung_dep_trai");
+        robot.clickOn("#txtPassword").write("123");
+        robot.clickOn("#btnLogin");
+
+        verifyThat("Sai tài khoản hoặc mật khẩu!", NodeMatchers.isVisible());
+        robot.clickOn("OK");
     }
 
-    @Test
-    public void should_allow_typing_username(FxRobot robot) {
-        robot.clickOn("#txtUsername").write("testuser");
-        FxAssert.verifyThat("#txtUsername", (TextField t) -> t.getText().equals("testuser"));
-    }
+    // TEST 2: ĐĂNG NHẬP ADMIN THÀNH CÔNG
 
     @Test
-    public void should_allow_typing_password(FxRobot robot) {
-        robot.clickOn("#txtPassword").write("password123");
-        FxAssert.verifyThat("#txtPassword", (PasswordField p) -> p.getText().equals("password123"));
+    @DisplayName("Test: Server trả về ADMIN -> Check Popup Thành công")
+    public void testLogin_AdminRole(FxRobot robot) throws Exception {
+        String jsonAdmin = """
+            {
+                "status": 200,
+                "data": {
+                    "id": 1,
+                    "username": "admin_test",
+                    "fullname": "Lê Thanh Tùng",
+                    "email": "admin@gmail.com",
+                    "role": "ADMIN"
+                }
+            }
+            """;
+
+        when(mockHttpClient.<String>send(any(HttpRequest.class), any())).thenReturn(mockHttpResponse);
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(jsonAdmin);
+
+        robot.clickOn("#txtUsername").write("admin_test");
+        robot.clickOn("#txtPassword").write("123456");
+        robot.clickOn("#btnLogin");
+
+        verifyThat("Chào mừng bạn đã quay lại!", NodeMatchers.isVisible());
+        robot.clickOn("OK");
+
+        robot.sleep(500);
+    }
+
+    // TEST 3: ĐĂNG NHẬP SELLER THÀNH CÔNG
+
+    @Test
+    @DisplayName("Test: Server trả về SELLER -> Check Popup Thành công")
+    public void testLogin_SellerRole(FxRobot robot) throws Exception {
+        String jsonSeller = """
+            {
+                "status": 200,
+                "data": {
+                    "id": 2,
+                    "username": "seller_test",
+                    "fullname": "Lê Thanh Tùng",
+                    "role": "SELLER"
+                }
+            }
+            """;
+
+        when(mockHttpClient.<String>send(any(HttpRequest.class), any())).thenReturn(mockHttpResponse);
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(jsonSeller);
+
+        robot.clickOn("#txtUsername").write("seller_test");
+        robot.clickOn("#txtPassword").write("123456");
+        robot.clickOn("#btnLogin");
+
+        verifyThat("Chào mừng bạn đã quay lại!", NodeMatchers.isVisible());
+        robot.clickOn("OK");
+
+        robot.sleep(500);
+    }
+
+    // TEST 4: ĐĂNG NHẬP BIDDER THÀNH CÔNG
+
+    @Test
+    @DisplayName("Test: Server trả về BIDDER -> Check Popup Thành công")
+    public void testLogin_BidderRole(FxRobot robot) throws Exception {
+        // Nặn JSON giả với Role là BIDDER
+        String jsonBidder = """
+            {
+                "status": 200,
+                "data": {
+                    "id": 3,
+                    "username": "bidder_test",
+                    "fullname": "Lê Thanh Tùng",
+                    "role": "BIDDER"
+                }
+            }
+            """;
+
+        when(mockHttpClient.<String>send(any(HttpRequest.class), any())).thenReturn(mockHttpResponse);
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(jsonBidder);
+
+        robot.clickOn("#txtUsername").write("bidder_test");
+        robot.clickOn("#txtPassword").write("123456");
+        robot.clickOn("#btnLogin");
+
+        // Bắt Alert Thành công
+        verifyThat("Chào mừng bạn đã quay lại!", NodeMatchers.isVisible());
+        robot.clickOn("OK");
+
+        // Chờ load màn hình của Bidder (MainTemplate.fxml)
+        robot.sleep(500);
     }
 }
