@@ -58,7 +58,7 @@ public class AuctionServiceTest {
     @DisplayName("Đặt giá hợp lệ: Giá mới lớn hơn giá hiện tại")
     public void testBid_HopLe() {
         // 1. Giả lập Database trả về dữ liệu khi được gọi
-        when(auctionSessionRepository.findById(1)).thenReturn(Optional.of(mockSession));
+        when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
         when(userRepository.findById(99)).thenReturn(Optional.of(mockUser));
 
         // 2. Chạy hành động đặt giá (Giá mới = 1500 > 1000)

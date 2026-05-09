@@ -95,7 +95,7 @@ public class SocketServerTest {
                  ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
                  ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
 
-                BidRequest bid = new BidRequest(1, 100, new BigDecimal("1000"));
+                BidRequest bid = new BidRequest(1, 100, new BigDecimal("9999999"));
                 out.writeObject(bid);
                 out.flush();
                 System.out.println("TEST: Đã gửi BidRequest");
