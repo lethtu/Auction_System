@@ -13,7 +13,7 @@ jobs:
       mysql:
         image: mysql:8.0
         env:
-          MYSQL_ROOT_PASSWORD: Tungpro@123
+          MYSQL_ROOT_PASSWORD: pw
           MYSQL_DATABASE: auction_system
         ports:
           - 3306:3306
