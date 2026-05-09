@@ -18,6 +18,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 public class LoginController {
+    private HttpClient client = HttpClient.newHttpClient();
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
     @FXML private TextField txtUsername;
     @FXML private PasswordField txtPassword;
@@ -44,7 +45,6 @@ public class LoginController {
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                     .build();
 
-            HttpClient client = HttpClient.newHttpClient();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
@@ -102,6 +102,10 @@ public class LoginController {
     @FXML
     public void handleForgotPassword(ActionEvent event) throws IOException {
         SceneSwitcher.switchScene(event, "ForgotPassword.fxml", 400, 450);
+    }
+
+    public void setHttpClient(HttpClient httpClient) {
+        this.client = httpClient;
     }
 
     private void showAlert(Alert.AlertType alertType, String title, String message) {

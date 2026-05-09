@@ -36,6 +36,7 @@ import java.util.ResourceBundle;
 
 public class MainController implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(MainController.class);
+    private HttpClient client = HttpClient.newHttpClient();
 
     @FXML private Label lblWelcome;
     @FXML private FlowPane productContainer;
@@ -82,7 +83,6 @@ public class MainController implements Initializable {
                         .GET()
                         .build();
 
-                HttpClient client = HttpClient.newHttpClient();
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
                 if (response.statusCode() == 200) {
@@ -277,6 +277,10 @@ public class MainController implements Initializable {
     public void handleLogout(ActionEvent event) throws IOException {
         User.clearSession();
         SceneSwitcher.switchScene(event, "Login.fxml", 400, 500);
+    }
+
+    public void setHttpClient(HttpClient httpClient) {
+        this.client = httpClient;
     }
 
     @FXML
