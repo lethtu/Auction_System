@@ -80,7 +80,7 @@ public class AuctionServiceTest {
     @DisplayName("Đặt giá không hợp lệ: Giá mới nhỏ hơn hoặc bằng giá hiện tại")
     public void testBid_KhongHopLe_GiaThap() {
         // 1. Giả lập Database
-        when(auctionSessionRepository.findById(1)).thenReturn(Optional.of(mockSession));
+        when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
         // Không cần mock User vì code sẽ bị chặn trước khi gọi đến User
 
         // 2. Đặt giá (Giá mới = 900 < 1000)
@@ -102,7 +102,7 @@ public class AuctionServiceTest {
     @DisplayName("Kết thúc phiên: Cập nhật trạng thái thành CLOSED")
     public void testKetThucPhien_HopLe() {
         // 1. Giả lập Database
-        when(auctionSessionRepository.findById(1)).thenReturn(Optional.of(mockSession));
+        when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
 
         // 2. Chạy hành động
         boolean isSuccess = auctionService.endSession(1);
