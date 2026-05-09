@@ -8,8 +8,8 @@ public class Admin extends User {
     @Enumerated(EnumType.STRING)
     @Column(name = "admin_role", length = 50)
     private AdminRole role;
-    @Column(name = "employee_code", unique = true, length = 20)
-    private String employeeCode;
+    @Column(name = "employee_code", unique = true, nullable = false, length = 20)
+    private String employeeCode = "PASS";
     public Admin() {
         super();
     }

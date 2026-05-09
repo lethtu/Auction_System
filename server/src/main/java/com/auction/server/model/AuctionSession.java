@@ -1,6 +1,8 @@
 package com.auction.server.model;
 
 import jakarta.persistence.*;
+
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -8,7 +10,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "auction_sessions")
-public class AuctionSession {
+public class AuctionSession implements Serializable{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -65,12 +67,12 @@ public class AuctionSession {
     // HELPER METHODS: ĐỒNG BỘ HAI CHIỀU
     public void addBid(Bid bid) {
         bids.add(bid);
-        bid.setSession(this);
+//        bid.setSession(this);
     }
 
     public void removeBid(Bid bid) {
         bids.remove(bid);
-        bid.setSession(null);
+//        bid.setSession(null);
     }
 
     public Integer getId() {
@@ -194,5 +196,19 @@ public class AuctionSession {
 
     public void setBids(List<Bid> bids) {
         this.bids = bids;
+    }
+    @Override
+    public String toString() {
+        return "AuctionSession{" +
+                "id=" + id +
+                ", itemId=" + (item != null ? item.getId() : "null") +
+                ", sellerId=" + (seller != null ? seller.getId() : "null") +
+                ", startingPrice=" + startingPrice +
+                ", currentPrice=" + currentPrice +
+                ", stepPrice=" + stepPrice +
+                ", status=" + status +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                '}';
     }
 }
