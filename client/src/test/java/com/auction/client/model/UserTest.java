@@ -17,7 +17,7 @@ public class UserTest {
         
         Assertions.assertEquals(1, User.getId());
         Assertions.assertEquals("testuser", User.getUsername());
-        Assertions.assertEquals("Test Fullname", User.getFullname());
+        Assertions.assertEquals("Nguyen Van A", User.getFullname());
         Assertions.assertEquals("test@example.com", User.getEmail());
         Assertions.assertEquals("2000-01-01", User.getDob());
         Assertions.assertEquals("Hanoi", User.getPlace_of_birth());
@@ -26,7 +26,7 @@ public class UserTest {
 
     @Test
     public void testClearSession() {
-        User.setSession(1, "testuser", "Test Fullname", "test@example.com", "2000-01-01", "Hanoi", "USER");
+        User.setSession(1, "testuser", "Nguyen Van A", "test@example.com", "2000-01-01", "Hanoi", "USER");
         User.clearSession();
         
         Assertions.assertNull(User.getId());
