@@ -35,6 +35,11 @@
                         <Font size="14.0" />
                     </font>
                 </Label>
+                <Label fx:id="remainingTimeLabel" text="Thời gian còn lại: Đang cập nhật...">
+                    <font>
+                        <Font size="14.0" />
+                    </font>
+                </Label>
             </children>
         </VBox>
 
