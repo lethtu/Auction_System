@@ -7,6 +7,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -22,7 +24,10 @@ public interface AuctionSessionRepository extends JpaRepository<AuctionSession, 
 
     Page<AuctionSession> findByStatus(AuctionStatus status, Pageable pageable);
 
-    Optional<AuctionSession> findById(Integer ItemAuctionId);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT s FROM AuctionSession s WHERE s.id = :id")
+    Optional<AuctionSession> findByIdForUpdate(@Param("id") Integer id);
+
     // SCHEDULER QUERIES - FETCH & UPDATE ĐỂ AN TOÀN CHO ĐA LUỒNG
 
     // Hàm 1: Lấy các phiên đang PENDING nhưng đã tới giờ mở (startTime <= now)

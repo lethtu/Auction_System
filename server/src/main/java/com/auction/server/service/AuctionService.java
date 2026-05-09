@@ -63,7 +63,7 @@ public class AuctionService {
 
     @Transactional
     public BidResponse updateBid(Integer ItemAuctionId, Integer BidderId, BigDecimal newBidAmount) {
-        Optional<AuctionSession> itemOptional = auctionSessionRepository.findById(ItemAuctionId);
+        Optional<AuctionSession> itemOptional = auctionSessionRepository.findByIdForUpdate(ItemAuctionId);
         if (itemOptional.isEmpty()) {
             logger.error("Không tìm thấy sản phẩm với ID: {}", ItemAuctionId);
             return new BidResponse(false, "LỖI: Không tìm thấy sản phẩm với ID: " + ItemAuctionId, new BigDecimal("0"));
