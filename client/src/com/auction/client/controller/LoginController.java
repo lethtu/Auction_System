@@ -106,8 +106,7 @@ public class LoginController {
         try {
             if (normalizedRole.equals("SELLER")) {
                 SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1000, 650);
-            } else if (normalizedRole.equals("ADMIN")
-                    || normalizedRole.equals("SUPER_ADMIN")) {
+            } else if (normalizedRole.equals("ADMIN")) {
                 SceneSwitcher.switchScene(event, "AdminDashboard.fxml", 1000, 650);
             } else {
                 SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1024, 768);
