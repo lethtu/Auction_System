@@ -8,6 +8,10 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import org.json.JSONObject;
+import java.time.LocalDateTime;
+import java.time.Duration;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 
 import java.io.IOException;
 
@@ -32,6 +36,9 @@ public class AuctionPageController {
     @FXML
     private Label messageLabel;
 
+    @FXML
+    private Label remainingTimeLabel;
+
 //    private Socket socket;
 //    private PrintWriter out;
 //    private BufferedReader in;
@@ -47,10 +54,39 @@ public class AuctionPageController {
         endTimeLabel.setText("Thời gian kết thúc: Loading...");
     }
 
+    private Timeline timeline;
+    public void setRemainingTime(String endTimeStr) {
+        LocalDateTime timeEnd = LocalDateTime.parse(endTimeStr);
+
+        timeline = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1), event -> {
+            LocalDateTime timeNow = LocalDateTime.now();
+            long secondsLeft = Duration.between(timeNow, timeEnd).getSeconds();
+
+            if (secondsLeft <= 0) {
+                timeline.stop();
+                remainingTimeLabel.setText("Phiên đấu giá đã kết thúc!");
+                handleAuctionEnd(); // Gọi hàm khóa nút "Đặt giá" hoặc cập nhật CSD
+            }
+            long hours = secondsLeft / 3600;
+            long minutes = (secondsLeft % 3600) / 60;
+            long seconds = secondsLeft % 60;
+
+            remainingTimeLabel.setText(String.format("Thời gian còn lại: %02d:%02d:%02d", hours, minutes, seconds));
+        }));
+
+        timeline.setCycleCount(Timeline.INDEFINITE);
+        timeline.play();
+    }
+
     public void setItem(JSONObject sessionsObj, JSONObject itemObj) {
         productNameLabel.setText("Sản phẩm: " + itemObj.getString("name"));
         currentPriceLabel.setText("Giá hiện tại: " + sessionsObj.getBigDecimal("currentPrice"));
         endTimeLabel.setText("Thời gian kết thúc: " + sessionsObj.getString("endTime").split("T")[0]);
+        setRemainingTime(sessionsObj.getString("endTime"));
+    }
+
+    private void handleAuctionEnd() {
+
     }
 
     // Sự kiện khi bấm nút "Đặt giá"
