@@ -1,73 +1,122 @@
-# Auction System
+<h1 align="center">Hệ thống Đấu giá Trực tuyến (Auction System)</h1>
 
-## Thành viên nhóm
-- Lê Thanh Tùng username: lethtu MSV: 25022003
-- Lê Đình Quốc Khánh username: Ledinhquockhanh2007 MSV: 25021824
-- Nguyễn Lê Quang Minh username: nguyenlequangminh2409-png MSV: 25021877
-- Nguyên Hà Phan username: nhphan0505 MSV: 25021927
+<p align="center">
+  <i>Hệ thống quản lý và tham gia đấu giá trực tuyến được phát triển bằng Java, ứng dụng kiến trúc Client-Server với khả năng cập nhật thời gian thực.</i>
+</p>
 
-## Mô tả bài toán và phạm vi hệ thống
-Hệ thống đấu giá trực tuyến (Auction System) được phát triển bằng Java, sử dụng kiến trúc Client-Server. Hệ thống cho phép người dùng tham gia đấu giá các sản phẩm trong thời gian thực, quản lý phiên đấu giá và đặt giá. Phạm vi bao gồm một máy chủ trung tâm quản lý dữ liệu và kết nối, cùng với nhiều client cho người dùng cuối thao tác.
+---
 
-## Công nghệ sử dụng, môi trường chạy và yêu cầu cài đặt
-**Công nghệ sử dụng:**
-- **Server**: Spring Boot 3.2.4, Java 17.
-- **Client**: JavaFX 21, Java 21.
-- **Giao tiếp**: Kết hợp REST API và Socket (cho các tính năng thời gian thực).
-- **Cơ sở dữ liệu**: MySQL.
+## 1. Thành viên Nhóm
 
-**Môi trường chạy và yêu cầu cài đặt:**
-- Java JDK 21 (khuyến nghị để tương thích cả hai thành phần).
-- Maven 3.8+.
-- MySQL Server 8.0+.
+| STT | Họ và Tên | Mã Sinh Viên | Username (GitHub) |
+| :---: | :--- | :---: | :--- |
+| 1 | Lê Thanh Tùng | 25022003 | `lethtu` |
+| 2 | Lê Đình Quốc Khánh | 25021824 | `Ledinhquockhanh2007` |
+| 3 | Nguyễn Lê Quang Minh | 25021877 | `nguyenlequangminh2409-png` |
+| 4 | Nguyên Hà Phan | 25021927 | `nhphan0505` |
 
-## Cấu trúc thư mục hoặc các module chính
-Dự án bao gồm hai thành phần chính:
-- `server/`: Mã nguồn của Server (Spring Boot) cung cấp REST API và xử lý Socket.
-- `client/`: Mã nguồn của ứng dụng desktop Client (JavaFX).
-- `Data.sql`: File SQL dùng để khởi tạo cơ sở dữ liệu.
-- `.github/workflows/`: Cấu hình CI/CD tự động.
+---
 
-## Vị trí các file .jar
-- Bản build .jar của Server sau khi đóng gói sẽ nằm trong thư mục `server/target/`.
-- Bản build .jar của Client sau khi đóng gói sẽ nằm trong thư mục `client/target/`.
+## 2. Mô tả bài toán và Phạm vi hệ thống
 
-## Hướng dẫn chạy Server/Client theo thứ tự cụ thể
+**Mô tả bài toán:**  
+Dự án số hóa quy trình đấu giá truyền thống thành một hệ sinh thái thương mại trực tuyến minh bạch và có tính tương tác cao. Bài toán giải quyết bao phủ toàn bộ luồng nghiệp vụ với sự tham gia của nhiều vai trò:
+- **Quản lý Định danh & Tài khoản:** Hỗ trợ đăng nhập, đăng ký, khôi phục mật khẩu an toàn và quản lý hồ sơ cá nhân.
+- **Dành cho Người bán (Seller):** Cho phép người dùng tạo mới sản phẩm, tự do thiết lập thông tin, giá khởi điểm, bước giá và khoảng thời gian diễn ra đấu giá.
+- **Dành cho Người mua (Bidder):** Duyệt danh mục sản phẩm công khai. Khi tham gia một phiên, người dùng có thể "đặt giá (bid)" liên tục. Lịch sử đặt giá và đồng hồ đếm ngược được cập nhật theo thời gian thực (real-time) để đảm bảo tính công bằng.
+- **Dành cho Quản trị viên (Admin):** Cung cấp các công cụ đặc quyền để giám sát hệ thống, quản lý người dùng và trực tiếp kiểm duyệt các phiên đấu giá trước khi chúng được hiển thị công khai.
 
-### Bước 1: Thiết lập cơ sở dữ liệu
-1. Mở MySQL và tạo cơ sở dữ liệu mới:
+**Phạm vi hệ thống:**  
+Hệ thống được thiết kế theo kiến trúc Client-Server, phân chia trách nhiệm rõ ràng:
+- **Máy chủ (Server - Spring Boot):** Kiểm soát toàn bộ logic nghiệp vụ, giao tiếp với cơ sở dữ liệu, phân quyền bảo mật qua REST API. Đặc biệt, Server chịu trách nhiệm quản lý kết nối Socket để phát sóng (broadcast) trạng thái đấu giá đồng bộ tới toàn bộ Client ngay tức thì.
+- **Máy trạm (Client - JavaFX):** Cung cấp giao diện đồ họa (GUI) trực quan. Client tiếp nhận thao tác của người dùng cuối, hiển thị dữ liệu và duy trì kết nối liên tục (Socket) để cập nhật các biến động giá mới nhất không có độ trễ.
+
+---
+
+## 3. Công nghệ sử dụng và Yêu cầu cài đặt
+
+### Công nghệ cốt lõi
+- **Server:** Java 17, Spring Boot 3.2.4.
+- **Client:** Java 21, JavaFX 21.
+- **Giao tiếp:** Kết hợp REST API (cho các thao tác CRUD) và **Socket** (đảm bảo cập nhật thời gian thực cho phiên đấu giá).
+- **Cơ sở dữ liệu:** MySQL 8.0+.
+
+### Yêu cầu môi trường
+- **Java Development Kit (JDK):** Phiên bản 21 (được khuyến nghị để tương thích tốt nhất với cả Server và Client).
+- **Build Tool:** Maven 3.8 trở lên.
+- **Database:** MySQL Server bản 8.0 trở lên.
+
+---
+
+## 4. Cấu trúc thư mục chính
+
+Hệ thống được chia làm hai module độc lập để dễ quản lý và triển khai:
+
+- `server/` : Chứa mã nguồn của backend (Spring Boot), cung cấp RESTful API và xử lý các kết nối qua Socket.
+- `client/` : Chứa mã nguồn của giao diện ứng dụng desktop (JavaFX).
+- `Data.sql` : File kịch bản SQL dùng để khởi tạo cơ sở dữ liệu và dữ liệu mẫu.
+- `.github/workflows/` : Chứa các file cấu hình tự động hóa (CI/CD Pipeline) bằng GitHub Actions.
+
+---
+
+## 5. Vị trí các file thực thi (.jar)
+
+Sau khi quá trình build hoàn tất, các file thực thi sẽ được đặt tại:
+- **Server:** `server/target/`
+- **Client:** `client/target/`
+
+---
+
+## 6. Hướng dẫn cài đặt và Khởi chạy hệ thống
+
+Vui lòng thực hiện tuần tự các bước dưới đây để khởi chạy hệ thống trên máy cá nhân (Localhost).
+
+### Bước 6.1: Khởi tạo Cơ sở dữ liệu
+
+1. Truy cập vào MySQL và tạo cơ sở dữ liệu:
    ```sql
    CREATE DATABASE auction_system;
    ```
-2. Import dữ liệu từ file `Data.sql`:
+2. Nạp dữ liệu cấu trúc vào hệ thống từ file `Data.sql`:
    ```bash
    mysql -u root -p auction_system < Data.sql
    ```
-3. Kiểm tra cấu hình kết nối trong file `server/src/main/resources/application.properties` và cập nhật username/password để kết nối.
+3. Mở file cấu hình `server/src/main/resources/application.properties` và điều chỉnh `spring.datasource.username` / `spring.datasource.password` cho phù hợp với môi trường của bạn.
 
-### Bước 2: Chạy Server (Yêu cầu chạy trước)
-Mở terminal tại thư mục gốc của dự án:
+### Bước 6.2: Khởi chạy Server (Bắt buộc chạy trước)
+
+Server cần được khởi động trước để có thể lắng nghe kết nối Socket và các truy xuất API từ Client. Mở terminal tại thư mục gốc dự án:
+
 ```bash
 cd server
 mvn clean install
 mvn spring-boot:run
 ```
-Server sẽ chạy tại `http://localhost:8080`.
+> Server sẽ được khởi chạy tại địa chỉ: `http://localhost:8080`
 
-### Bước 3: Chạy Client
-Mở một terminal mới tại thư mục gốc của dự án (sau khi Server đã chạy thành công):
+### Bước 6.3: Khởi chạy Client
+
+Sau khi Server đã báo khởi chạy thành công, hãy mở một cửa sổ terminal mới từ thư mục gốc của dự án:
+
 ```bash
 cd client
 mvn clean install
 mvn javafx:run
 ```
 
-## Danh sách chức năng đã hoàn thành
-- Quản lý phiên đấu giá và sản phẩm.
-- Đăng nhập, đăng ký và xác thực tài khoản.
-- Tham gia đấu giá thời gian thực sử dụng Socket.
-- Tự động hóa kiểm thử và tích hợp CI/CD với GitHub Actions.
+---
 
-## Link báo cáo PDF và video demo
-- **Báo cáo PDF**: *(Link pdf)*
-- **Video demo**: *(Link demo)*
+## 7. Danh sách Chức năng đã hoàn thành
+
+- Quản lý phiên đấu giá và danh mục sản phẩm.
+- Quản lý định danh: Đăng ký, Đăng nhập và Xác thực tài khoản người dùng an toàn.
+- Tham gia đấu giá thời gian thực với độ trễ thấp thông qua công nghệ **Socket**.
+- Tự động hóa quy trình kiểm thử và tích hợp liên tục (CI/CD) qua GitHub Actions.
+
+---
+
+## 8. Tài nguyên đính kèm
+
+- **Báo cáo PDF:** [*(Nhấn vào đây để cập nhật link báo cáo)*](#)
+- **Video Demo:** [*(Nhấn vào đây để cập nhật link video)*](#)
+
