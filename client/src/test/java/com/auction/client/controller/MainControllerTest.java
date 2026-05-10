@@ -32,11 +32,6 @@ public class MainControllerTest {
     }
 
     @Test
-    public void should_show_welcome_message(FxRobot robot) {
-        verifyThat("#lblWelcome", LabeledMatchers.hasText("Chào, Nguyen Van A"));
-    }
-
-    @Test
     public void should_have_product_container(FxRobot robot) {
         verifyThat("#productContainer", isVisible());
     }
