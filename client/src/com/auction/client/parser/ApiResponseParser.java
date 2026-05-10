@@ -4,60 +4,72 @@ import com.auction.client.dto.ApiResult;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public final class ApiResponseParser {
-    private static final String DEFAULT_ERROR_MESSAGE = "Có lỗi xảy ra từ server.";
-
-    private ApiResponseParser() {
-    }
+public class ApiResponseParser {
 
     public static ApiResult<Void> parseApiResponse(String body, int httpStatus, String defaultSuccessMessage) {
-        JSONObject obj = parseJson(body);
-
-        if (obj == null) {
-            return new ApiResult<>(isSuccess(httpStatus), defaultMessage(httpStatus, defaultSuccessMessage));
+        if (body == null || body.isBlank()) {
+            return new ApiResult<>(
+                    isSuccess(httpStatus),
+                    httpStatus,
+                    defaultMessage(httpStatus, defaultSuccessMessage),
+                    null
+            );
         }
 
-        int status = obj.optInt("status", httpStatus);
-        String message = obj.optString("message", defaultMessage(status, defaultSuccessMessage));
+        JSONObject json = new JSONObject(body);
+        int status = json.optInt("status", httpStatus);
+        String message = json.optString("message", defaultMessage(status, defaultSuccessMessage));
 
-        return new ApiResult<>(isSuccess(status), message);
+        return new ApiResult<>(
+                isSuccess(status),
+                status,
+                message,
+                null
+        );
     }
 
     public static ApiResult<JSONArray> extractDataArray(String body, int httpStatus) {
-        JSONObject obj = parseJson(body);
-
-        if (obj == null) {
-            return new ApiResult<>(false, "Không có dữ liệu từ server.", new JSONArray());
+        if (body == null || body.isBlank()) {
+            return new ApiResult<>(
+                    false,
+                    httpStatus,
+                    "Không có dữ liệu từ server.",
+                    new JSONArray()
+            );
         }
 
-        int status = obj.optInt("status", httpStatus);
-        String message = obj.optString("message", defaultMessage(status, "OK"));
+        JSONObject json = new JSONObject(body);
+        int status = json.optInt("status", httpStatus);
+        String message = json.optString("message", defaultMessage(status, "Lấy dữ liệu thành công."));
 
         if (!isSuccess(status)) {
-            return new ApiResult<>(false, message, new JSONArray());
+            return new ApiResult<>(
+                    false,
+                    status,
+                    message,
+                    new JSONArray()
+            );
         }
 
-        JSONArray data = obj.optJSONArray("data");
-        return new ApiResult<>(true, message, data == null ? new JSONArray() : data);
-    }
+        JSONArray data = json.optJSONArray("data");
 
-    private static JSONObject parseJson(String body) {
-        if (body == null || body.isBlank()) {
-            return null;
-        }
-
-        try {
-            return new JSONObject(body.trim());
-        } catch (Exception e) {
-            return null;
-        }
+        return new ApiResult<>(
+                true,
+                status,
+                message,
+                data == null ? new JSONArray() : data
+        );
     }
 
     private static boolean isSuccess(int status) {
         return status >= 200 && status < 300;
     }
 
-    private static String defaultMessage(int status, String successMessage) {
-        return isSuccess(status) ? successMessage : DEFAULT_ERROR_MESSAGE;
+    private static String defaultMessage(int status, String defaultSuccessMessage) {
+        if (isSuccess(status)) {
+            return defaultSuccessMessage;
+        }
+
+        return "Thao tác thất bại.";
     }
 }
