@@ -44,6 +44,7 @@ public class MainControllerTest {
     @Test
     @DisplayName("Test: Logout -> Quay về màn hình Login")
     public void testLogout(FxRobot robot) {
+        verifyThat("#profile-menu", isVisible());
 // 1. Click vào MenuButton (Tên user) để mở Dropdown
         robot.clickOn("#profile-menu");
 
