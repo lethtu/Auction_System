@@ -49,8 +49,19 @@ public class MainControllerTest {
     @Test
     @DisplayName("Test: Logout -> Quay về màn hình Login")
     public void testLogout(FxRobot robot) {
-        robot.clickOn("Đăng xuất");
+// 1. Click vào MenuButton (Tên user) để mở Dropdown
+        robot.clickOn("#userMenuButton");
+
+        // 2. Chờ 300 mili-giây cho giao diện menu xổ xuống hoàn toàn
+        robot.sleep(300);
+
+        // 3. Click vào chữ Đăng xuất
+        robot.clickOn("Đăng Xuất");
+
+        // 4. Chờ hiệu ứng chuyển cảnh
         robot.sleep(500);
+
+        // 5. Kiểm tra xem đã bay sang màn hình Login chưa
         verifyThat("Đăng nhập Hệ thống Đấu giá", NodeMatchers.isVisible());
     }
 }
