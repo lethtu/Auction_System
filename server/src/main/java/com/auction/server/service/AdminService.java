@@ -3,7 +3,11 @@ package com.auction.server.service;
 import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.dto.UserResponseDTO;
 import com.auction.server.mapper.SessionResponseMapper;
-import com.auction.server.model.*;
+import com.auction.server.model.Admin;
+import com.auction.server.model.AuctionSession;
+import com.auction.server.model.AuctionStatus;
+import com.auction.server.model.Seller;
+import com.auction.server.model.User;
 import com.auction.server.repository.AuctionSessionRepository;
 import com.auction.server.repository.UserRepository;
 import org.slf4j.Logger;
@@ -164,17 +168,11 @@ public class AdminService {
 
     private Admin checkAdminPermission(Integer adminId) {
         User user = userRepository.findById(adminId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy admin"));
 
-        if (!(user instanceof Admin)) {
+        if (!(user instanceof Admin admin)) {
             logger.error("{} không phải là quản trị viên", adminId);
             throw new RuntimeException("Người này không phải là Quản trị viên");
-        }
-
-        Admin admin = (Admin) user;
-
-        if (admin.getRole() == AdminRole.SUPPORT) {
-            throw new RuntimeException("Nhân viên Hỗ trợ không được phép thao tác Admin");
         }
 
         return admin;
@@ -192,11 +190,6 @@ public class AdminService {
 
         if (user instanceof Seller seller) {
             dto.setShopName(seller.getShopName());
-        }
-
-        if (user instanceof Admin admin) {
-            dto.setEmployeeCode(admin.getEmployeeCode());
-            dto.setAdminRole(admin.getRole() != null ? admin.getRole().name() : null);
         }
 
         return dto;
