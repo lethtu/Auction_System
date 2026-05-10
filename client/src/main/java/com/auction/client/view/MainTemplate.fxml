@@ -18,9 +18,9 @@
             <!-- Tạm ẩn nút Tìm kiếm do đã có tính năng Real-time search -->
             <!-- <Button text="Tìm kiếm" style="-fx-background-color: #ffc107; -fx-text-fill: black;" prefHeight="30.0" /> -->
             <Region HBox.hgrow="ALWAYS" />
-            <Label fx:id="lblWelcome" text="Chào, User" textFill="WHITE" />
+            <MenuButton fx:id="userMenuButton" id="profile-menu" text="Chào, User" />
             <Button fx:id="btnDashboard" onAction="#handleGoToDashboard" text="Kênh Người Bán" style="-fx-background-color: #17a2b8; -fx-text-fill: white; -fx-cursor: hand; -fx-font-weight: bold;" visible="false" managed="false" />
-            <Button onAction="#handleLogout" text="Đăng xuất" style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-cursor: hand;" />
+<!--            <Button onAction="#handleLogout" text="Đăng xuất" style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-cursor: hand;" />-->
         </HBox>
     </top>
 

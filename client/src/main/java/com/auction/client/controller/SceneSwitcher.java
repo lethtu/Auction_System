@@ -10,6 +10,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import java.io.IOException;
 import java.net.URL;
+import javafx.scene.control.MenuItem;
 
 
 public class SceneSwitcher {
@@ -24,13 +25,35 @@ public class SceneSwitcher {
 
         FXMLLoader loader = new FXMLLoader(xmlResource);
         Parent root = loader.load();
-        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+
+        Stage stage = null;
+        Object source = event.getSource();
+
+        if (source instanceof Node) {
+            // Trường hợp 1: Chuyển cảnh từ Button, Label, AnchorPane...
+            stage = (Stage) ((Node) source).getScene().getWindow();
+        } else if (source instanceof MenuItem) {
+            // Trường hợp 2: Chuyển cảnh từ menu xổ xuống (Dropdown Menu)
+            MenuItem menuItem = (MenuItem) source;
+            stage = (Stage) menuItem.getParentPopup().getOwnerWindow();
+        }
+
+        // Bắt lỗi nếu gọi hàm từ một nguồn không hợp lệ
+        if (stage == null) {
+            throw new RuntimeException("Không thể xác định được Stage hiện tại để chuyển cảnh!");
+        }
 
         Scene scene;
         if (width == null || height == null) {
             scene = new Scene(root);
         } else {
             scene = new Scene(root, width, height);
+        }
+
+        String cssPath = "/com/auction/client/controller/style.css";
+        URL cssResource = SceneSwitcher.class.getResource(cssPath);
+        if (cssResource != null) {
+            scene.getStylesheets().add(cssResource.toExternalForm());
         }
 
         stage.setScene(scene);

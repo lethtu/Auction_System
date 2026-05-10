@@ -1,5 +1,8 @@
 package com.auction.client.controller;
 
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
+import javafx.scene.Cursor;
 import javafx.fxml.FXMLLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +41,7 @@ public class MainController implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(MainController.class);
     private HttpClient client = HttpClient.newHttpClient();
 
-    @FXML private Label lblWelcome;
+    @FXML private MenuButton userMenuButton;
     @FXML private FlowPane productContainer;
     @FXML private TextField txtSearch;
     @FXML private ComboBox<String> cbCategory;
@@ -51,7 +54,7 @@ public class MainController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         if (User.getFullname() != null) {
-            lblWelcome.setText("Chào, " + User.getFullname());
+            createUserOption("Chào, " + User.getFullname());
         }
 
         if (User.getRole() != null && User.getRole().equalsIgnoreCase("seller")) {
@@ -73,6 +76,28 @@ public class MainController implements Initializable {
         cbStatus.setOnAction(event -> filterAndRenderProducts());
 
         loadProductsFromServer();
+    }
+
+    private void createUserOption(String text) {
+        Label titleLabel = new Label(text);
+        userMenuButton.setText(text);
+
+        MenuItem accountItem = new MenuItem("Tài Khoản Của Tôi");
+        MenuItem depositMoney = new MenuItem("Nạp tiền");
+        MenuItem logoutItem = new MenuItem("Đăng Xuất");
+        logoutItem.setOnAction(e -> System.out.println("Thực hiện Đăng xuất..."));
+
+        logoutItem.setOnAction(event -> {
+            try {
+                handleLogout(event); // Gọi cái hàm có sẵn của bạn
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.out.println("Lỗi khi chuyển sang màn hình Login!");
+            }
+        });
+
+        userMenuButton.getItems().addAll(accountItem, depositMoney, logoutItem);
+
     }
 
     private void loadProductsFromServer() {
@@ -273,7 +298,6 @@ public class MainController implements Initializable {
         return vbox;
     }
 
-    @FXML
     public void handleLogout(ActionEvent event) throws IOException {
         User.clearSession();
         SceneSwitcher.switchScene(event, "Login.fxml", 400, 500);
