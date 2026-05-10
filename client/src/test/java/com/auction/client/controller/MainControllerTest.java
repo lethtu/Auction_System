@@ -50,7 +50,7 @@ public class MainControllerTest {
     @DisplayName("Test: Logout -> Quay về màn hình Login")
     public void testLogout(FxRobot robot) {
 // 1. Click vào MenuButton (Tên user) để mở Dropdown
-        robot.clickOn("#userMenuButton");
+        robot.clickOn("#profile-menu");
 
         // 2. Chờ 300 mili-giây cho giao diện menu xổ xuống hoàn toàn
         robot.sleep(300);
