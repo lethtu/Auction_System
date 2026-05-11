@@ -104,7 +104,7 @@ public class MainController implements Initializable {
         new Thread(() -> {
             try {
                 HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(Config.API_URL + "/api/auctions/all"))
+                        .uri(URI.create(Config.API_URL + ":" + Config.PORT_API + "/api/auctions/all"))
                         .GET()
                         .build();
 
@@ -210,7 +210,7 @@ public class MainController implements Initializable {
         ImageView imageView = new ImageView();
         try {
             if (!imagePath.isEmpty()) {
-                String imageUrl = Config.API_URL + "/api/files/images/" + imagePath;
+                String imageUrl = Config.API_URL + ":" + Config.PORT_API + "/api/files/images/" + imagePath;
                 Image image = new Image(imageUrl, true);
                 imageView.setImage(image);
             } else {

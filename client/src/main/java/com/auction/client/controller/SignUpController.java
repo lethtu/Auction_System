@@ -60,7 +60,7 @@ public class SignUpController {
         new Thread(() -> {
             try {
                 HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(Config.API_URL + "/api/signup"))
+                        .uri(URI.create(Config.API_URL + ":" + Config.PORT_API + "/api/signup"))
                         .header("Content-Type", "application/json")
                         .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                         .build();

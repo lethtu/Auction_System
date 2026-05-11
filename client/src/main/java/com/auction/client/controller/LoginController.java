@@ -40,7 +40,7 @@ public class LoginController {
 
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(Config.API_URL + "/api/login"))
+                    .uri(URI.create(Config.API_URL + ":" + Config.PORT_API + "/api/login"))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                     .build();
