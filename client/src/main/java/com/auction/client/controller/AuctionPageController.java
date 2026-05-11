@@ -48,11 +48,12 @@ public class AuctionPageController {
 
     public void setItem(JSONObject sessionsObj, JSONObject itemObj) {
         this.currentSessionId = sessionsObj.getInt("id");
-        this.currentPrice = sessionsObj.getBigDecimal("currentPrice");
+        this.currentPrice = sessionsObj.getBigDecimal("currentPrice"); // Lưu giá vào biến toàn cục
 
         productNameLabel.setText("Sản phẩm: " + itemObj.getString("name"));
         currentPriceLabel.setText("Giá hiện tại: " + String.format("%,.0f", currentPrice) + " VNĐ");
 
+        // Hiển thị ngày giờ cho đẹp
         String endTimeStr = sessionsObj.getString("endTime");
         endTimeLabel.setText("Thời gian kết thúc: " + endTimeStr.replace("T", " ").substring(0, 16));
 
@@ -72,23 +73,25 @@ public class AuctionPageController {
 
                 while (!socket.isClosed() && (serverResponse = in.readLine()) != null) {
 
+                    // 1. NHẬN THÔNG BÁO CHUNG CHO TOÀN PHÒNG (CÓ NGƯỜI ĐẶT GIÁ MỚI)
                     if (serverResponse.startsWith("NOTICE:")) {
                         String jsonString = serverResponse.substring(7);
                         JSONObject noticeObj = new JSONObject(jsonString);
 
                         Platform.runLater(() -> {
+                            // Cập nhật giá mới cho biến toàn cục để Validate các lần sau
                             BigDecimal newPrice = noticeObj.getBigDecimal("newPrice");
                             this.currentPrice = newPrice;
 
                             currentPriceLabel.setText("Giá cao nhất hiện tại: " + String.format("%,.0f", newPrice) + " VNĐ");
 
-                            // LOGIC ANTI-SNIPING (ĐỒNG HỒ NẢY LÊN)
+                            // ==========================================
+                            // BẮT SỰ KIỆN ANTI-SNIPING Ở CLIENT
+                            // ==========================================
                             if (noticeObj.has("newEndTime")) {
                                 String newEndTime = noticeObj.getString("newEndTime");
 
-                                // ==========================================
                                 // XỬ LÝ CHUỖI AN TOÀN CHỐNG LỖI THIẾU GIÂY
-                                // ==========================================
                                 String displayTime = newEndTime.replace("T", " ");
                                 if (displayTime.length() == 16) {
                                     displayTime += ":00"; // Bù thêm :00 nếu Java tự động cắt mất
@@ -96,18 +99,27 @@ public class AuctionPageController {
                                     displayTime = displayTime.substring(0, 19);
                                 }
 
+                                // Cập nhật lại nhãn thời gian kết thúc trên giao diện
                                 endTimeLabel.setText("Thời gian kết thúc: " + displayTime);
+
+                                // Đổi màu thông báo sang cam rực rỡ để gây chú ý
                                 messageLabel.setStyle("-fx-text-fill: #ff8c00; -fx-font-weight: bold;");
                                 messageLabel.setText("Phiên đấu giá vừa được gia hạn thêm 60 giây!");
 
-                                if (timeline != null) timeline.stop();
+                                // Xóa đồng hồ đếm ngược cũ và khởi động lại với thời gian mới!
+                                if (timeline != null) {
+                                    timeline.stop();
+                                }
                                 setRemainingTime(newEndTime);
                             } else {
+                                // Nếu chỉ đổi giá bình thường (không gia hạn)
                                 messageLabel.setStyle("-fx-text-fill: blue;");
                                 messageLabel.setText("Có người vừa ra giá mới!");
                             }
                         });
                     }
+
+                    // 2. NHẬN KẾT QUẢ ĐẶT GIÁ CỦA CHÍNH MÌNH
                     else if (serverResponse.startsWith("RESPONSE:")) {
                         String jsonString = serverResponse.substring(9);
                         JSONObject responseObj = new JSONObject(jsonString);
@@ -116,7 +128,7 @@ public class AuctionPageController {
                             if (responseObj.getBoolean("success")) {
                                 messageLabel.setStyle("-fx-text-fill: green;");
                                 messageLabel.setText(responseObj.getString("message"));
-                                bidAmountField.clear();
+                                bidAmountField.clear(); // Xóa ô nhập sau khi đặt thành công
                             } else {
                                 messageLabel.setStyle("-fx-text-fill: red;");
                                 messageLabel.setText(responseObj.getString("message"));
@@ -142,17 +154,23 @@ public class AuctionPageController {
         try {
             if (out != null) out.close();
             if (in != null) in.close();
-            if (socket != null && !socket.isClosed()) socket.close();
-        } catch (IOException e) { e.printStackTrace(); }
+            if (socket != null && !socket.isClosed()) {
+                socket.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
     public void handlePlaceBid(ActionEvent event) {
+        // 1. Kiểm tra đăng nhập
         if (User.getId() == null) {
             showError("Vui lòng đăng nhập để đấu giá!");
             return;
         }
 
+        // 2. Lấy và kiểm tra định dạng giá nhập vào
         String inputStr = bidAmountField.getText().trim();
         if (inputStr.isEmpty()) {
             showError("Vui lòng nhập mức giá!");
@@ -160,14 +178,19 @@ public class AuctionPageController {
         }
 
         BigDecimal bidAmount;
-        try { bidAmount = new BigDecimal(inputStr); }
-        catch (NumberFormatException e) { showError("Mức giá phải là con số hợp lệ!"); return; }
+        try {
+            bidAmount = new BigDecimal(inputStr);
+        } catch (NumberFormatException e) {
+            showError("Mức giá phải là con số hợp lệ!");
+            return;
+        }
 
         if (bidAmount.compareTo(this.currentPrice) <= 0) {
             showError("Giá đặt phải LỚN HƠN giá hiện tại (" + String.format("%,.0f", this.currentPrice) + ")!");
             return;
         }
 
+        // 4. Gửi lên server nếu các bước trên đã pass
         if (socket == null || socket.isClosed() || out == null) {
             showError("Lỗi kết nối máy chủ Socket!");
             return;
@@ -179,6 +202,7 @@ public class AuctionPageController {
         jsonBid.put("amount", bidAmount);
 
         out.println("BID:" + jsonBid.toString());
+
         messageLabel.setStyle("-fx-text-fill: orange;");
         messageLabel.setText("Đang xử lý yêu cầu...");
     }
@@ -191,11 +215,19 @@ public class AuctionPageController {
     @FXML
     public void handleGoBack(ActionEvent event) {
         disconnectSocket();
-        try { SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1024, 768); }
-        catch (IOException e) { e.printStackTrace(); messageLabel.setText("Lỗi khi quay lại trang trước."); }
+
+        try {
+            SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1024, 768);
+        } catch (IOException e) {
+            e.printStackTrace();
+            messageLabel.setText("Lỗi khi quay lại trang trước.");
+        }
     }
 
+    // ================== LOGIC THỜI GIAN ================== //
+
     public void setRemainingTime(String endTimeStr) {
+        // Parse chuẩn định dạng ISO từ JSON gửi về (VD: "2026-05-15T20:00:00")
         LocalDateTime timeEnd = LocalDateTime.parse(endTimeStr);
 
         timeline = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1), event -> {
@@ -213,6 +245,7 @@ public class AuctionPageController {
                 remainingTimeLabel.setText(String.format("Thời gian còn lại: %02d:%02d:%02d", hours, minutes, seconds));
             }
         }));
+
         timeline.setCycleCount(Timeline.INDEFINITE);
         timeline.play();
     }
