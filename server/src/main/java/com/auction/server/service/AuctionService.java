@@ -83,18 +83,27 @@ public class AuctionService {
             item.setCurrentPrice(newBidAmount);
 
             // ==========================================
-            // THUẬT TOÁN ANTI-SNIPING (CHỐNG BẮN TỈA)
+            // THUẬT TOÁN ANTI-SNIPING (CHỐNG BẮN TỈA) - ĐÃ BỌC GIÁP
             // ==========================================
             LocalDateTime currentEndTime = item.getEndTime();
-            long secondsLeft = java.time.Duration.between(time, currentEndTime).getSeconds();
             String updatedEndTimeStr = null;
 
-            // Nếu thời gian còn lại dưới 60 giây, tự động cộng thêm 60 giây
-            if (secondsLeft < 60 && secondsLeft >= 0) {
-                LocalDateTime newEndTime = currentEndTime.plusSeconds(60);
-                item.setEndTime(newEndTime);
-                updatedEndTimeStr = newEndTime.toString();
-                logger.info("Anti-Sniping: Gia hạn phiên {} thêm 60s. Thời gian mới: {}", ItemAuctionId, newEndTime);
+            // KIỂM TRA NULL: Nếu endTime bị null (do dữ liệu test ẩu), bỏ qua logic gia hạn
+            if (currentEndTime != null) {
+                try {
+                    long secondsLeft = java.time.Duration.between(time, currentEndTime).getSeconds();
+
+                    // Nếu thời gian còn lại dưới 60 giây, tự động cộng thêm 60 giây
+                    if (secondsLeft < 60 && secondsLeft >= 0) {
+                        LocalDateTime newEndTime = currentEndTime.plusSeconds(60);
+                        item.setEndTime(newEndTime);
+                        updatedEndTimeStr = newEndTime.toString();
+                        logger.info("Anti-Sniping: Gia hạn phiên {} thêm 60s. Thời gian mới: {}", ItemAuctionId, newEndTime);
+                    }
+                } catch (Exception e) {
+                    // Đề phòng các lỗi tính toán thời gian hiếm gặp khác để không làm sập luồng Đặt giá
+                    logger.warn("Cảnh báo: Lỗi tính toán Anti-sniping cho phiên {}: {}", ItemAuctionId, e.getMessage());
+                }
             }
             // ==========================================
 
