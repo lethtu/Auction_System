@@ -51,10 +51,13 @@ public class AuctionPageController {
         this.currentPrice = sessionsObj.getBigDecimal("currentPrice"); // Lưu giá vào biến toàn cục
 
         productNameLabel.setText("Sản phẩm: " + itemObj.getString("name"));
-        currentPriceLabel.setText("Giá hiện tại: " + currentPrice + " VNĐ");
-        endTimeLabel.setText("Thời gian kết thúc: " + sessionsObj.getString("endTime").split("T")[0]);
+        currentPriceLabel.setText("Giá hiện tại: " + String.format("%,.0f", currentPrice) + " VNĐ");
 
-        setRemainingTime(sessionsObj.getString("endTime"));
+        // Hiển thị ngày giờ cho đẹp
+        String endTimeStr = sessionsObj.getString("endTime");
+        endTimeLabel.setText("Thời gian kết thúc: " + endTimeStr.replace("T", " ").substring(0, 16));
+
+        setRemainingTime(endTimeStr);
         connectToServer();
     }
 
@@ -62,29 +65,61 @@ public class AuctionPageController {
         listenerThread = new Thread(() -> {
             try {
                 socket = new Socket(Config.SOCKET_HOST, Config.PORT_SOCKET);
-
                 out = new PrintWriter(socket.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-                // Gửi yêu cầu Join phòng
                 out.println("JOIN:" + currentSessionId);
-
                 String serverResponse;
-                // ĐÃ SỬA: Đọc từng dòng text (readLine) thay vì readObject
+
                 while (!socket.isClosed() && (serverResponse = in.readLine()) != null) {
 
-                    // Nếu là thông báo có người đặt giá thành công (từ hàm broadcastToRoom của Server)
+                    // 1. NHẬN THÔNG BÁO CHUNG CHO TOÀN PHÒNG (CÓ NGƯỜI ĐẶT GIÁ MỚI)
                     if (serverResponse.startsWith("NOTICE:")) {
                         String jsonString = serverResponse.substring(7);
                         JSONObject noticeObj = new JSONObject(jsonString);
 
                         Platform.runLater(() -> {
-                            currentPriceLabel.setText("Giá cao nhất hiện tại: " + noticeObj.getBigDecimal("newPrice") + " VNĐ");
-                            messageLabel.setStyle("-fx-text-fill: blue;");
-                            messageLabel.setText("Có người vừa ra giá mới!");
+                            // Cập nhật giá mới cho biến toàn cục để Validate các lần sau
+                            BigDecimal newPrice = noticeObj.getBigDecimal("newPrice");
+                            this.currentPrice = newPrice;
+
+                            currentPriceLabel.setText("Giá cao nhất hiện tại: " + String.format("%,.0f", newPrice) + " VNĐ");
+
+                            // ==========================================
+                            // BẮT SỰ KIỆN ANTI-SNIPING Ở CLIENT
+                            // ==========================================
+                            if (noticeObj.has("newEndTime")) {
+                                String newEndTime = noticeObj.getString("newEndTime");
+
+                                // XỬ LÝ CHUỖI AN TOÀN CHỐNG LỖI THIẾU GIÂY
+                                String displayTime = newEndTime.replace("T", " ");
+                                if (displayTime.length() == 16) {
+                                    displayTime += ":00"; // Bù thêm :00 nếu Java tự động cắt mất
+                                } else if (displayTime.length() > 19) {
+                                    displayTime = displayTime.substring(0, 19);
+                                }
+
+                                // Cập nhật lại nhãn thời gian kết thúc trên giao diện
+                                endTimeLabel.setText("Thời gian kết thúc: " + displayTime);
+
+                                // Đổi màu thông báo sang cam rực rỡ để gây chú ý
+                                messageLabel.setStyle("-fx-text-fill: #ff8c00; -fx-font-weight: bold;");
+                                messageLabel.setText("Phiên đấu giá vừa được gia hạn thêm 60 giây!");
+
+                                // Xóa đồng hồ đếm ngược cũ và khởi động lại với thời gian mới!
+                                if (timeline != null) {
+                                    timeline.stop();
+                                }
+                                setRemainingTime(newEndTime);
+                            } else {
+                                // Nếu chỉ đổi giá bình thường (không gia hạn)
+                                messageLabel.setStyle("-fx-text-fill: blue;");
+                                messageLabel.setText("Có người vừa ra giá mới!");
+                            }
                         });
                     }
-                    // Nếu là kết quả trả về trực tiếp cho mình (đặt giá thành công hay thất bại)
+
+                    // 2. NHẬN KẾT QUẢ ĐẶT GIÁ CỦA CHÍNH MÌNH
                     else if (serverResponse.startsWith("RESPONSE:")) {
                         String jsonString = serverResponse.substring(9);
                         JSONObject responseObj = new JSONObject(jsonString);
@@ -151,7 +186,7 @@ public class AuctionPageController {
         }
 
         if (bidAmount.compareTo(this.currentPrice) <= 0) {
-            showError("Giá đặt phải LỚN HƠN giá hiện tại (" + this.currentPrice + ")!");
+            showError("Giá đặt phải LỚN HƠN giá hiện tại (" + String.format("%,.0f", this.currentPrice) + ")!");
             return;
         }
 
@@ -192,6 +227,7 @@ public class AuctionPageController {
     // ================== LOGIC THỜI GIAN ================== //
 
     public void setRemainingTime(String endTimeStr) {
+        // Parse chuẩn định dạng ISO từ JSON gửi về (VD: "2026-05-15T20:00:00")
         LocalDateTime timeEnd = LocalDateTime.parse(endTimeStr);
 
         timeline = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1), event -> {
