@@ -39,7 +39,7 @@ public class ForgotPasswordController {
                 json.put("email", email);
 
                 HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(Config.API_URL + ":" + Config.PORT_API + "/api/forgot_pass"))
+                        .uri(URI.create(Config.API_URL + "/api/forgot_pass"))
                         .header("Content-Type", "application/json")
                         .POST(HttpRequest.BodyPublishers.ofString(json.toString()))
                         .build();

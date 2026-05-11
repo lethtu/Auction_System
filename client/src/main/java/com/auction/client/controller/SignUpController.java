@@ -18,6 +18,7 @@ import java.io.IOException;
 import org.json.JSONObject;
 
 public class SignUpController {
+    private HttpClient client = HttpClient.newHttpClient();
     private static final Logger logger = LoggerFactory.getLogger(SignUpController.class);
 
     @FXML
@@ -55,17 +56,16 @@ public class SignUpController {
         json.put("email", email);
         json.put("fullname", fullname);
         String jsonBody = json.toString();
-
+        logger.info(jsonBody);
         //Chạy luồng riêng để không làm đơ giao diện
         new Thread(() -> {
             try {
                 HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(Config.API_URL + ":" + Config.PORT_API + "/api/signup"))
+                        .uri(URI.create(Config.API_URL + "/api/signup"))
                         .header("Content-Type", "application/json")
                         .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                         .build();
 
-                HttpClient client = HttpClient.newHttpClient();
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
                 if (response.statusCode() == 200) {
@@ -103,6 +103,10 @@ public class SignUpController {
                 logger.error("Lỗi trong quá trình kết nối đến máy chủ: {}", e.getMessage(), e);
             }
         }).start();
+    }
+
+    public void setHttpClient(HttpClient httpClient) {
+        this.client = httpClient;
     }
 
     @FXML
