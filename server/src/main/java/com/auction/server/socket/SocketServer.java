@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import jakarta.annotation.PostConstruct;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
@@ -20,7 +19,7 @@ import java.util.concurrent.Executors;
 
 @Component
 public class SocketServer {
-    private final int PORT = 8081;
+    private int port = 8081; // Bỏ final để có thể thay đổi khi Test
     private static final Logger logger = LoggerFactory.getLogger(SocketServer.class);
     private final int systemCores = Runtime.getRuntime().availableProcessors();
     private final ExecutorService threadPool = Executors.newFixedThreadPool(systemCores);
@@ -35,27 +34,29 @@ public class SocketServer {
         this.biddingController = biddingController;
     }
 
+    // Gán cổng thủ công (Dùng cho bài Test)
+    public void setPort(int port) {
+        this.port = port;
+    }
+
     @PostConstruct
     public void start() {
         new Thread(() -> {
             try {
                 serverSocket = new ServerSocket();
                 serverSocket.setReuseAddress(true);
-                serverSocket.bind(new java.net.InetSocketAddress(PORT));
-                logger.info("SERVER SOCKET: Đang lắng nghe tại cổng {}...", PORT);
+                serverSocket.bind(new java.net.InetSocketAddress(this.port));
+                logger.info("SERVER SOCKET: Đang lắng nghe tại cổng {}...", this.port);
                 while (running) {
                     try {
                         Socket clientSocket = serverSocket.accept();
-                        logger.info("SERVER: Có kết nối mới từ {}", clientSocket.getInetAddress());
                         threadPool.execute(new ClientHandler(clientSocket, biddingController));
                     } catch (SocketException e) {
-                        if (running) {
-                            logger.error("SERVER SOCKET: Lỗi accept: {}", e.getMessage());
-                        }
+                        if (running) logger.error("Lỗi accept: {}", e.getMessage());
                     }
                 }
             } catch (IOException e) {
-                logger.error("SERVER SOCKET: Lỗi khởi động ServerSocket: {}", e.getMessage());
+                logger.error("Lỗi khởi động ServerSocket tại cổng {}: {}", this.port, e.getMessage());
             } finally {
                 stop();
             }
@@ -64,7 +65,7 @@ public class SocketServer {
 
     public static void joinRoom(Integer sessionId, PrintWriter out) {
         rooms.computeIfAbsent(sessionId, k -> new CopyOnWriteArrayList<>()).add(out);
-        logger.info("SERVER: Client đã tham gia vào phòng đấu giá ID: {}", sessionId);
+        logger.info("SERVER: Client đã tham gia vào phòng ID: {}", sessionId);
     }
 
     public static void broadcastToRoom(Integer sessionId, String message) {
@@ -77,7 +78,6 @@ public class SocketServer {
         }
     }
 
-    // Xóa theo PrintWriter
     public static void removeFromAllRooms(PrintWriter out) {
         rooms.values().forEach(list -> list.remove(out));
     }
@@ -85,11 +85,9 @@ public class SocketServer {
     public void stop() {
         running = false;
         try {
-            if (serverSocket != null && !serverSocket.isClosed()) {
-                serverSocket.close();
-            }
+            if (serverSocket != null && !serverSocket.isClosed()) serverSocket.close();
         } catch (IOException e) {
-            logger.error("SERVER SOCKET: Lỗi khi đóng ServerSocket: {}", e.getMessage());
+            logger.error("Lỗi khi đóng ServerSocket: {}", e.getMessage());
         }
     }
 }
