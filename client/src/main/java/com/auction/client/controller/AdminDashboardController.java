@@ -8,6 +8,7 @@ import com.auction.client.model.User;
 import com.auction.client.service.AdminDashboardService;
 import com.auction.client.util.AlertUtil;
 import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -189,6 +190,16 @@ public class AdminDashboardController {
     @FXML
     public void handleRefresh() {
         loadAllData();
+    }
+
+    @FXML
+    public void handleLogout(ActionEvent event) {
+        try {
+            User.clearSession();
+            SceneSwitcher.switchScene(event, "Login.fxml", 400, 500);
+        } catch (Exception e) {
+            AlertUtil.showError(e, "Không thể đăng xuất.");
+        }
     }
 
     private <T> T getSelectedItem(TableView<T> table, String title, String message) {

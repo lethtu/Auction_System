@@ -36,19 +36,19 @@ public class AuthLoginSignup {
         }
         else {
             logger.error("User {} đăng nhập thất bại", username);
-            return new ApiResponse<String>(100, "Đăng nhập thất bại", "");
+            return new ApiResponse<String>(400, "Đăng nhập thất bại", "");
         }
     }
 
     @PostMapping("/signup")
     public ApiResponse<?> Signup(@RequestBody User newUser) {
+        logger.info("Thông tin User mới tạo: {}", newUser);
+        logger.info("Email: {}, Fullname: {}, Password: {}", newUser.getEmail(), newUser.getFullname(), newUser.getPassword());
         boolean check = rq.signup(newUser);
-        System.out.println(newUser);
-        System.out.println(newUser.getEmail() + " " + newUser.getFullname() + " " + newUser.getPassword());
         if (!check) {
             String body = "Xin chào " + newUser.getFullname() + ",\n\n"
                     + "Tài khoản của bạn (" + newUser.getUsername() + ") đã được tạo thành công.\n"
-                    + "Chúc bạn có những phiên đấu giá tuyệt vời!\n\n"
+                    + "Chúc bạn  có những phiên đấu giá tuyệt vời!\n\n"
                     + "Trân trọng,\nBan Quản Trị.";
             emailServer.SendEmail(newUser.getEmail(), "Đăng ký tài khoản thành công", body);
             logger.info("User {} đăng ký thành công", newUser.getUsername());
@@ -56,7 +56,7 @@ public class AuthLoginSignup {
         }
         else {
             logger.error("Lỗi đăng ký, username: {} hoặc email: {} đã tồn tại", newUser.getUsername(), newUser.getEmail());
-            return new ApiResponse<User>(100, "Email hoặc Username đã tồn tại", newUser);
+            return new ApiResponse<User>(400, "Email hoặc Username đã tồn tại", newUser);
         }
     }
 }

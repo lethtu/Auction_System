@@ -49,45 +49,6 @@ public class BidderController {
         return new ApiResponse<>(200, "Lấy danh sách đấu giá thành công", activeSessions);
     }
 
-    // API Đặt giá
-    @PostMapping("/place-bid")
-    public synchronized ResponseEntity<?> placeBid(@RequestParam Integer sessionId,
-                                                   @RequestParam Integer bidderId,
-                                                   @RequestParam BigDecimal bidAmount) {
-        // Đã sửa sessionRepository -> auctionSessionRepository
-        AuctionSession session = auctionSessionRepository.findById(sessionId).orElse(null);
-        User bidder = userRepository.findById(bidderId).orElse(null);
-        logger.info("Đang đặt giá");
-        if (session == null || bidder == null) {
-            logger.error("Lỗi phiên hoặc người dùng không hợp lệ");
-            return ResponseEntity.badRequest().body("Invalid session or user");
-        }
-
-        // Đã sửa "ACTIVE".equals() -> Kiểm tra bằng Enum chuẩn
-        if (session.getStatus() != AuctionStatus.ACTIVE) {
-            logger.error("Lỗi phiên chưa bắt đầu");
-            return ResponseEntity.badRequest().body("Auction is not active");
-        }
-
-        BigDecimal minBid = session.getCurrentPrice().add(session.getStepPrice());
-        if (bidAmount.compareTo(minBid) < 0) {
-            return ResponseEntity.badRequest().body("Bid amount must be at least " + minBid);
-        }
-
-        session.setCurrentPrice(bidAmount);
-        // Đã sửa sessionRepository -> auctionSessionRepository
-        auctionSessionRepository.save(session);
-
-        Bid bid = new Bid();
-        bid.setSession(session);
-        bid.setBidder(bidder);
-        bid.setAmount(bidAmount);
-        bid.setTime(LocalDateTime.now());
-        bidRepository.save(bid);
-
-        return ResponseEntity.ok("Bid placed successfully");
-    }
-
     // API Nạp tiền
     @PostMapping("/deposit")
     public ResponseEntity<?> depositMoney(@RequestParam Integer bidderId, @RequestParam BigDecimal amount) {

@@ -8,39 +8,42 @@
 
     <top>
         <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-background-color: #343a40; -fx-padding: 15px;">
-            <Label text="Sàn đấu giá" textFill="WHITE">
+            <Label text="Sàn Đấu giá" textFill="WHITE">
                 <font>
                     <Font name="System Bold" size="24.0" />
                 </font>
             </Label>
             <Region HBox.hgrow="ALWAYS" />
             <TextField fx:id="txtSearch" promptText="Tìm kiếm sản phẩm đấu giá..." prefWidth="350.0" prefHeight="30.0" />
-            <Button text="Tìm kiếm" style="-fx-background-color: #ffc107; -fx-text-fill: black;" prefHeight="30.0" />
+            <!-- Tạm ẩn nút Tìm kiếm do đã có tính năng Real-time search -->
+            <!-- <Button text="Tìm kiếm" style="-fx-background-color: #ffc107; -fx-text-fill: black;" prefHeight="30.0" /> -->
             <Region HBox.hgrow="ALWAYS" />
-            <Label fx:id="lblWelcome" text="Chào, User" textFill="WHITE" />
-            <Button onAction="#handleLogout" text="Đăng xuất" style="-fx-background-color: #dc3545; -fx-text-fill: white;" />
+            <MenuButton fx:id="userMenuButton" id="profile-menu" text="Chào, User" />
+            <Button fx:id="btnDashboard" onAction="#handleGoToDashboard" text="Kênh Người Bán" style="-fx-background-color: #17a2b8; -fx-text-fill: white; -fx-cursor: hand; -fx-font-weight: bold;" visible="false" managed="false" />
+<!--            <Button onAction="#handleLogout" text="Đăng xuất" style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-cursor: hand;" />-->
         </HBox>
     </top>
 
     <left>
         <VBox spacing="15.0" style="-fx-background-color: #f8f9fa; -fx-padding: 20px;" prefWidth="220.0">
-            <Label text="Danh mục">
+            <Label text="Bộ Lọc Sản Phẩm">
                 <font>
                     <Font name="System Bold" size="16.0" />
                 </font>
             </Label>
-            <Hyperlink text="Đồ cổ &amp; Sưu tầm" />
-            <Hyperlink text="Trang sức &amp; Đồng hồ" />
-            <Hyperlink text="Nghệ thuật" />
-            <Hyperlink text="Bất động sản" />
-            <Hyperlink text="Xe cộ" />
+
+            <Label text="Thể loại:" style="-fx-font-weight: bold;" textFill="#495057"/>
+            <ComboBox fx:id="cbCategory" prefWidth="200.0" />
+
+            <Label text="Trạng thái:" style="-fx-font-weight: bold;" textFill="#495057"/>
+            <ComboBox fx:id="cbStatus" prefWidth="200.0" />
         </VBox>
     </left>
 
     <center>
         <ScrollPane fitToWidth="true" style="-fx-background-color: white;">
             <VBox spacing="20.0" style="-fx-padding: 20px;">
-                <Label text="Sản phẩm đang đấu giá nổi bật">
+                <Label text="Danh sách Sản phẩm">
                     <font>
                         <Font name="System Bold" size="20.0" />
                     </font>

@@ -1,21 +1,25 @@
 package com.auction.client.controller;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Locale;
 
 public class AuctionPageController {
 
     private final NumberFormat currencyFormat = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
 
-    // Khai báo các thành phần giao diện (phải khớp chính xác tên fx:id trong FXML)
     @FXML
     private Label productNameLabel;
 
@@ -34,16 +38,73 @@ public class AuctionPageController {
     @FXML
     private Label messageLabel;
 
-    // Hàm khởi tạo (chạy ngay sau khi FXML được load)
+    @FXML
+    private Label remainingTimeLabel;
+
+    private Timeline timeline;
+
     @FXML
     public void initialize() {
-        // Bạn có thể set dữ liệu test ở đây
-        productNameLabel.setText("Sản phẩm: Đồng hồ Rolex Test");
-        currentPriceLabel.setText("Giá cao nhất hiện tại: " + formatMoney(new BigDecimal("50000")));
-        endTimeLabel.setText("Thời gian kết thúc: 04/05/2026");
+        productNameLabel.setText("Sản phẩm: Loading...");
+        currentPriceLabel.setText("Giá cao nhất hiện tại: Loading...");
+        endTimeLabel.setText("Thời gian kết thúc: Loading...");
+
+        if (remainingTimeLabel != null) {
+            remainingTimeLabel.setText("Thời gian còn lại: Loading...");
+        }
     }
 
-    // Sự kiện khi bấm nút "Đặt giá"
+    public void setItem(JSONObject sessionObj, JSONObject itemObj) {
+        String productName = itemObj.optString("name", "Không rõ");
+        BigDecimal currentPrice = sessionObj.optBigDecimal("currentPrice", BigDecimal.ZERO);
+        String endTime = sessionObj.optString("endTime", "");
+
+        productNameLabel.setText("Sản phẩm: " + productName);
+        currentPriceLabel.setText("Giá hiện tại: " + formatMoney(currentPrice));
+
+        if (!endTime.isBlank()) {
+            endTimeLabel.setText("Thời gian kết thúc: " + endTime.split("T")[0]);
+            setRemainingTime(endTime);
+        }
+    }
+
+    public void setRemainingTime(String endTimeStr) {
+        LocalDateTime timeEnd = LocalDateTime.parse(endTimeStr);
+
+        if (timeline != null) {
+            timeline.stop();
+        }
+
+        timeline = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1), event -> {
+            LocalDateTime timeNow = LocalDateTime.now();
+            long secondsLeft = Duration.between(timeNow, timeEnd).getSeconds();
+
+            if (secondsLeft <= 0) {
+                timeline.stop();
+                remainingTimeLabel.setText("Phiên đấu giá đã kết thúc!");
+                handleAuctionEnd();
+                return;
+            }
+
+            long hours = secondsLeft / 3600;
+            long minutes = (secondsLeft % 3600) / 60;
+            long seconds = secondsLeft % 60;
+
+            remainingTimeLabel.setText(
+                    String.format("Thời gian còn lại: %02d:%02d:%02d", hours, minutes, seconds)
+            );
+        }));
+
+        timeline.setCycleCount(Timeline.INDEFINITE);
+        timeline.play();
+    }
+
+    private void handleAuctionEnd() {
+        placeBidBtn.setDisable(true);
+        messageLabel.setStyle("-fx-text-fill: red;");
+        messageLabel.setText("Phiên đấu giá đã kết thúc, không thể đặt giá.");
+    }
+
     @FXML
     public void handlePlaceBid(ActionEvent event) {
         String inputPrice = bidAmountField.getText();
@@ -63,8 +124,6 @@ public class AuctionPageController {
                 return;
             }
 
-            // Xử lý logic lưu DB hoặc gửi qua server ở đây
-
             messageLabel.setStyle("-fx-text-fill: green;");
             messageLabel.setText("Đặt giá thành công: " + formatMoney(price));
             currentPriceLabel.setText("Giá cao nhất hiện tại: " + formatMoney(price));
@@ -75,11 +134,9 @@ public class AuctionPageController {
         }
     }
 
-    // Sự kiện khi bấm nút "Quay lại"
     @FXML
     public void handleGoBack(ActionEvent event) {
         try {
-            // Đảm bảo bạn có file trang-chu.fxml hoặc đổi lại tên cho đúng
             SceneSwitcher.switchScene(event, "MainTemplate.fxml", 500, 400);
         } catch (IOException e) {
             e.printStackTrace();

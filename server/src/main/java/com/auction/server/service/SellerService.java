@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -48,7 +49,13 @@ public class SellerService {
         AuctionSession session = new AuctionSession();
         session.setItem(savedItem);
         session.setSeller(seller);
+
         SellerSessionUpdater.updateSessionFromRequest(session, request);
+
+        if (session.getStartTime() == null) {
+            session.setStartTime(LocalDateTime.now());
+        }
+
         SellerSessionUpdater.resetApprovalInfo(session);
         session.setStatus(AuctionStatus.PENDING);
 

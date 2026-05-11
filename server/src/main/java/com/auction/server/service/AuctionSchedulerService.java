@@ -1,5 +1,6 @@
 package com.auction.server.service;
 
+import com.auction.server.model.AuctionSession;
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.repository.AuctionSessionRepository;
 import org.slf4j.Logger;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class AuctionSchedulerService {
@@ -25,14 +27,35 @@ public class AuctionSchedulerService {
     public void scanAndUpdateAuctionStatus() {
         LocalDateTime now = LocalDateTime.now();
 
-        int endedCount = auctionSessionRepository.updateStatusToEnded(
-                AuctionStatus.ACTIVE,
-                AuctionStatus.ENDED,
-                now
-        );
+        List<AuctionSession> pendingSessions = auctionSessionRepository
+                .findByStatusAndStartTimeLessThanEqual(AuctionStatus.PENDING, now);
 
-        if (endedCount > 0) {
-            logger.info("[SCHEDULER] Lúc {} | Đã đóng {} phiên.", now, endedCount);
+        for (AuctionSession session : pendingSessions) {
+            session.setStatus(AuctionStatus.ACTIVE);
+        }
+
+        if (!pendingSessions.isEmpty()) {
+            auctionSessionRepository.saveAll(pendingSessions);
+        }
+
+        List<AuctionSession> activeSessions = auctionSessionRepository
+                .findByStatusAndEndTimeLessThanEqual(AuctionStatus.ACTIVE, now);
+
+        for (AuctionSession session : activeSessions) {
+            session.setStatus(AuctionStatus.ENDED);
+        }
+
+        if (!activeSessions.isEmpty()) {
+            auctionSessionRepository.saveAll(activeSessions);
+        }
+
+        if (!pendingSessions.isEmpty() || !activeSessions.isEmpty()) {
+            logger.info(
+                    "[SCHEDULER] Lúc {} | Đã mở {} phiên | Đã đóng {} phiên.",
+                    now,
+                    pendingSessions.size(),
+                    activeSessions.size()
+            );
         }
     }
 }

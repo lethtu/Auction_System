@@ -67,7 +67,7 @@ public class AuthForgotpass {
             return new ApiResponse<String>(200, "Đã gửi mã xác nhận", "");
         } else {
             logger.error("Không có tài khoản liên kết với {}", email);
-            return new ApiResponse<String>(100, "Không có tài khoản nào liên kết với Email này", "");
+            return new ApiResponse<String>(404, "Không có tài khoản nào liên kết với Email này", "");
         }
     }
 
@@ -82,19 +82,25 @@ public class AuthForgotpass {
         if (!saveOTP.isEmpty()) {
             if (saveOTP.equals(code)) {
                 otpStorage.remove(email);
-                customer.get().setPassword(pass);
-                Save.save(customer.get());
-                logger.info("Xác thực và đổi mật khẩu thành công cho: {}", email);
-                return new ApiResponse<String>(200, "Xác thực thành công, đã thay đổi mật khẩu thành công", "");
+                if (customer.isPresent()) {
+                    customer.get().setPassword(pass);
+                    Save.save(customer.get());
+                    logger.info("Xác thực và đổi mật khẩu thành công cho: {}", email);
+                    return new ApiResponse<String>(200, "Xác thực thành công, đã thay đổi mật khẩu thành công", "");
+                }
+                else{
+                    logger.error("Không tìm thấy customer");
+                    return new ApiResponse<String>(404, "Không có tài khoản nào liên kết với Email này", "");
+                }
             }
             else {
                 logger.error("Xác thực lỗi code cho: {}", email);
-                return new ApiResponse<String>(100, "Code sai hoặc đã hết hạn, vui lòng kiểm tra lại", "");
+                return new ApiResponse<String>(400, "Code sai hoặc đã hết hạn, vui lòng kiểm tra lại", "");
             }
         }
         else {
             logger.error("Không có tài khoản nào liên kết với: {}", email);
-            return new ApiResponse<String>(100, "Không có tài khoản nào liên kết với Email này", "");
+            return new ApiResponse<String>(404, "Không có tài khoản nào liên kết với Email này", "");
         }
     }
 }
