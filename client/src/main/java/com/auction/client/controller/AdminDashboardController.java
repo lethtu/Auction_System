@@ -69,7 +69,7 @@ public class AdminDashboardController {
         }
 
         try {
-            String url = Config.API_URL + "/api/admin/approve/" + selected.getId() + "?adminId=" + adminId;
+            String url = Config.API_URL + ":" + Config.PORT_API + "/api/admin/approve/" + selected.getId() + "?adminId=" + adminId;
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -109,7 +109,7 @@ public class AdminDashboardController {
     private void loadPendingSessions() {
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(Config.API_URL + "/api/admin/pending"))
+                    .uri(URI.create(Config.API_URL + ":" + Config.PORT_API + "/api/admin/pending"))
                     .GET()
                     .build();
 

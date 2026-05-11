@@ -67,12 +67,12 @@ public class AuctionSession implements Serializable{
     // HELPER METHODS: ĐỒNG BỘ HAI CHIỀU
     public void addBid(Bid bid) {
         bids.add(bid);
-//        bid.setSession(this);
+        bid.setSession(this);
     }
 
     public void removeBid(Bid bid) {
         bids.remove(bid);
-//        bid.setSession(null);
+        bid.setSession(null);
     }
 
     public Integer getId() {
