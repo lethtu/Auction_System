@@ -26,7 +26,7 @@ public class ClientHandler implements Runnable {
             while ((inputLine = in.readLine()) != null) {
                 if (inputLine.startsWith("JOIN:")) {
                     int sessionId = Integer.parseInt(inputLine.substring(5));
-                    SocketServer.joinRoom(sessionId, out); // Đã khớp với PrintWriter
+                    SocketServer.joinRoom(sessionId, out);
                 }
                 else if (inputLine.startsWith("BID:")) {
                     String jsonString = inputLine.substring(4);
@@ -40,18 +40,27 @@ public class ClientHandler implements Runnable {
 
                     BidResponse response = biddingController.handleBid(request);
 
-                    // SỬA: Prefix phải là "RESPONSE:" để bài Test cắt chuỗi (substring(9)) không bị lỗi
                     JSONObject jsonResponse = new JSONObject();
                     jsonResponse.put("success", response.isSuccess());
                     jsonResponse.put("message", response.getMessage());
                     jsonResponse.put("currentPrice", response.getCurrentPrice());
 
+                    // QUAN TRỌNG: Nhét thời gian mới vào JSON gửi cho người đặt giá
+                    if (response.getNewEndTime() != null) {
+                        jsonResponse.put("newEndTime", response.getNewEndTime());
+                    }
+
                     out.println("RESPONSE:" + jsonResponse.toString());
 
-                    // Broadcast nếu thành công
+                    // Broadcast nếu thành công cho toàn bộ người trong phòng
                     if (response.isSuccess()) {
                         JSONObject notice = new JSONObject();
                         notice.put("newPrice", response.getCurrentPrice());
+
+                        // QUAN TRỌNG: Nhét thời gian mới vào JSON để mọi người cùng thấy đồng hồ nảy lên
+                        if (response.getNewEndTime() != null) {
+                            notice.put("newEndTime", response.getNewEndTime());
+                        }
                         SocketServer.broadcastToRoom(request.getAuctionId(), "NOTICE:" + notice.toString());
                     }
                 }
