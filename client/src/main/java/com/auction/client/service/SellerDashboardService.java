@@ -12,7 +12,15 @@ import java.net.http.HttpResponse;
 import java.util.List;
 
 public class SellerDashboardService {
-    private final SellerApiClient sellerApiClient = new SellerApiClient();
+    private final SellerApiClient sellerApiClient;
+
+    public SellerDashboardService() {
+        this(new SellerApiClient());
+    }
+
+    SellerDashboardService(SellerApiClient sellerApiClient) {
+        this.sellerApiClient = sellerApiClient;
+    }
 
     public ApiResult<Void> createAuction(CreateAuctionRequest request) throws Exception {
         HttpResponse<String> response = sellerApiClient.createAuction(

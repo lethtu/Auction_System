@@ -12,7 +12,15 @@ import java.net.http.HttpResponse;
 import java.util.List;
 
 public class AdminDashboardService {
-    private final AdminApiClient adminApiClient = new AdminApiClient();
+    private final AdminApiClient adminApiClient;
+
+    public AdminDashboardService() {
+        this(new AdminApiClient());
+    }
+
+    AdminDashboardService(AdminApiClient adminApiClient) {
+        this.adminApiClient = adminApiClient;
+    }
 
     public List<PendingSessionRow> getPendingSessions() throws Exception {
         HttpResponse<String> response = adminApiClient.getPendingSessions();
