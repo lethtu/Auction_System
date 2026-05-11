@@ -21,16 +21,15 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class AdminDashboardServiceTest {
 
-    private final AdminApiClient adminApiClient = mock(AdminApiClient.class);
+    private final FakeAdminApiClient adminApiClient = new FakeAdminApiClient();
     private final AdminDashboardService service = new AdminDashboardService(adminApiClient);
 
     @Test
     void getPendingSessions_success_returnsPendingRows() throws Exception {
-        String body = """
+        adminApiClient.pendingResponse = response(200, """
                 {
                   "status": 200,
                   "message": "OK",
@@ -42,9 +41,7 @@ class AdminDashboardServiceTest {
                     }
                   ]
                 }
-                """;
-
-        when(adminApiClient.getPendingSessions()).thenReturn(response(200, body));
+                """);
 
         List<PendingSessionRow> result = service.getPendingSessions();
 
@@ -52,18 +49,17 @@ class AdminDashboardServiceTest {
         assertEquals(1, read(result.get(0), "id", "sessionId"));
         assertEquals("Laptop", read(result.get(0), "productName", "product"));
         assertEquals(new BigDecimal("1000000"), read(result.get(0), "startingPrice", "price"));
+        assertTrue(adminApiClient.getPendingCalled);
     }
 
     @Test
     void getPendingSessions_errorResponse_throwsException() throws Exception {
-        String body = """
+        adminApiClient.pendingResponse = response(403, """
                 {
                   "status": 403,
                   "message": "Không có quyền"
                 }
-                """;
-
-        when(adminApiClient.getPendingSessions()).thenReturn(response(403, body));
+                """);
 
         IllegalStateException ex = assertThrows(
                 IllegalStateException.class,
@@ -75,7 +71,7 @@ class AdminDashboardServiceTest {
 
     @Test
     void getAllSessions_success_returnsSessionRows() throws Exception {
-        String body = """
+        adminApiClient.allSessionsResponse = response(200, """
                 {
                   "status": 200,
                   "data": [
@@ -88,9 +84,7 @@ class AdminDashboardServiceTest {
                     }
                   ]
                 }
-                """;
-
-        when(adminApiClient.getAllSessions(null)).thenReturn(response(200, body));
+                """);
 
         List<AdminSessionRow> result = service.getAllSessions();
 
@@ -100,11 +94,12 @@ class AdminDashboardServiceTest {
         assertEquals("seller01", read(result.get(0), "sellerUsername"));
         assertEquals(new BigDecimal("500000"), read(result.get(0), "startingPrice", "price"));
         assertEquals("APPROVED", read(result.get(0), "status"));
+        assertNull(adminApiClient.lastStatus);
     }
 
     @Test
     void getAllUsers_success_returnsUserRows() throws Exception {
-        String body = """
+        adminApiClient.usersResponse = response(200, """
                 {
                   "status": 200,
                   "data": [
@@ -118,9 +113,7 @@ class AdminDashboardServiceTest {
                     }
                   ]
                 }
-                """;
-
-        when(adminApiClient.getAllUsers(null)).thenReturn(response(200, body));
+                """);
 
         List<AdminUserRow> result = service.getAllUsers();
 
@@ -131,53 +124,58 @@ class AdminDashboardServiceTest {
         assertEquals("a@gmail.com", read(result.get(0), "email"));
         assertEquals("SELLER", read(result.get(0), "accountType", "role"));
         assertEquals(true, read(result.get(0), "banned"));
+        assertNull(adminApiClient.lastRole);
     }
 
     @Test
     void approveSession_success_returnsSuccessResult() throws Exception {
-        when(adminApiClient.approveSession(10, 1))
-                .thenReturn(response(200, "{\"status\":200,\"message\":\"Đã duyệt\"}"));
+        adminApiClient.approveResponse = response(200, "{\"status\":200,\"message\":\"Đã duyệt\"}");
 
         ApiResult<Void> result = service.approveSession(10, 1);
 
         assertTrue(result.success);
         assertEquals(200, result.status);
         assertEquals("Đã duyệt", result.message);
+        assertEquals(10, adminApiClient.lastSessionId);
+        assertEquals(1, adminApiClient.lastAdminId);
     }
 
     @Test
     void rejectSession_error_returnsErrorResult() throws Exception {
-        when(adminApiClient.rejectSession(10, 1, "Sai thông tin"))
-                .thenReturn(response(400, "{\"status\":400,\"message\":\"Từ chối thất bại\"}"));
+        adminApiClient.rejectResponse = response(400, "{\"status\":400,\"message\":\"Từ chối thất bại\"}");
 
         ApiResult<Void> result = service.rejectSession(10, 1, "Sai thông tin");
 
         assertFalse(result.success);
         assertEquals(400, result.status);
         assertEquals("Từ chối thất bại", result.message);
+        assertEquals("Sai thông tin", adminApiClient.lastReason);
     }
 
     @Test
     void banUser_successEmptyBody_usesDefaultMessage() throws Exception {
-        when(adminApiClient.banUser(5, 1)).thenReturn(response(200, ""));
+        adminApiClient.banResponse = response(200, "");
 
         ApiResult<Void> result = service.banUser(5, 1);
 
         assertTrue(result.success);
         assertEquals(200, result.status);
         assertEquals("Đã khóa tài khoản user.", result.message);
+        assertEquals(5, adminApiClient.lastUserId);
+        assertEquals(1, adminApiClient.lastAdminId);
     }
 
     @Test
     void cancelAuction_success_returnsSuccessResult() throws Exception {
-        when(adminApiClient.cancelAuction(7, 1))
-                .thenReturn(response(200, "{\"status\":200,\"message\":\"Đã hủy\"}"));
+        adminApiClient.cancelResponse = response(200, "{\"status\":200,\"message\":\"Đã hủy\"}");
 
         ApiResult<Void> result = service.cancelAuction(7, 1);
 
         assertTrue(result.success);
         assertEquals(200, result.status);
         assertEquals("Đã hủy", result.message);
+        assertEquals(7, adminApiClient.lastSessionId);
+        assertEquals(1, adminApiClient.lastAdminId);
     }
 
     private HttpResponse<String> response(int status, String body) {
@@ -234,6 +232,72 @@ class AdminDashboardServiceTest {
         }
 
         return null;
+    }
+
+    private static class FakeAdminApiClient extends AdminApiClient {
+        private HttpResponse<String> pendingResponse;
+        private HttpResponse<String> allSessionsResponse;
+        private HttpResponse<String> usersResponse;
+        private HttpResponse<String> approveResponse;
+        private HttpResponse<String> rejectResponse;
+        private HttpResponse<String> banResponse;
+        private HttpResponse<String> cancelResponse;
+
+        private boolean getPendingCalled;
+
+        private Integer lastSessionId;
+        private Integer lastAdminId;
+        private Integer lastUserId;
+        private String lastReason;
+        private String lastStatus;
+        private String lastRole;
+
+        @Override
+        public HttpResponse<String> getPendingSessions() {
+            getPendingCalled = true;
+            return pendingResponse;
+        }
+
+        @Override
+        public HttpResponse<String> getAllSessions(String status) {
+            lastStatus = status;
+            return allSessionsResponse;
+        }
+
+        @Override
+        public HttpResponse<String> approveSession(int sessionId, int adminId) {
+            lastSessionId = sessionId;
+            lastAdminId = adminId;
+            return approveResponse;
+        }
+
+        @Override
+        public HttpResponse<String> rejectSession(int sessionId, int adminId, String reason) {
+            lastSessionId = sessionId;
+            lastAdminId = adminId;
+            lastReason = reason;
+            return rejectResponse;
+        }
+
+        @Override
+        public HttpResponse<String> getAllUsers(String role) {
+            lastRole = role;
+            return usersResponse;
+        }
+
+        @Override
+        public HttpResponse<String> banUser(int userId, int adminId) {
+            lastUserId = userId;
+            lastAdminId = adminId;
+            return banResponse;
+        }
+
+        @Override
+        public HttpResponse<String> cancelAuction(int sessionId, int adminId) {
+            lastSessionId = sessionId;
+            lastAdminId = adminId;
+            return cancelResponse;
+        }
     }
 
     private record FakeHttpResponse(int statusCode, String body) implements HttpResponse<String> {
