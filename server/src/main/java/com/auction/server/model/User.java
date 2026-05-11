@@ -1,5 +1,6 @@
 package com.auction.server.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
@@ -15,8 +16,7 @@ public class User {
     private Integer id;
 
     private String username;
-    @JsonIgnore
-    private String password;
+    @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)    private String password;
     private String fullname;
     private String email;
     private String dob;

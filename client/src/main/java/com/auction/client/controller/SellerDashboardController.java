@@ -121,7 +121,7 @@ public class SellerDashboardController {
 
             // --- GỬI REQUEST LÊN SERVER ---
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(Config.API_URL + ":" + Config.PORT_API + "/api/seller/create-auction"))
+                    .uri(URI.create(Config.API_URL + "/api/seller/create-auction"))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
                     .build();
@@ -206,7 +206,7 @@ public class SellerDashboardController {
 
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(Config.API_URL + ":" + Config.PORT_API + "/api/seller/cancel-session/" + selected.id + "?sellerId=" + sellerId))
+                    .uri(URI.create(Config.API_URL + "/api/seller/cancel-session/" + selected.id + "?sellerId=" + sellerId))
                     .DELETE()
                     .build();
 
@@ -240,7 +240,7 @@ public class SellerDashboardController {
 
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(Config.API_URL + ":" + Config.PORT_API + "/api/seller/my-sessions/" + sellerId))
+                    .uri(URI.create(Config.API_URL + "/api/seller/my-sessions/" + sellerId))
                     .GET()
                     .build();
 
