@@ -28,6 +28,9 @@ public class ClientHandler implements Runnable {
                     int sessionId = Integer.parseInt(inputLine.substring(5));
                     SocketServer.joinRoom(sessionId, out);
                 }
+                else if ("JOIN_HOME".equals(inputLine)) {
+                    SocketServer.joinHome(out);
+                }
                 else if (inputLine.startsWith("BID:")) {
                     String jsonString = inputLine.substring(4);
                     JSONObject jsonObj = new JSONObject(jsonString);

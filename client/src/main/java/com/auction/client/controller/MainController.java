@@ -27,14 +27,19 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import com.auction.client.model.User;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.Socket;
 import java.net.URI;
 import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 public class MainController implements Initializable {
@@ -50,6 +55,9 @@ public class MainController implements Initializable {
 
     // Kho lưu trữ Caching cục bộ, giúp Real-time filter không bị trễ
     private final List<JSONObject> allProducts = new ArrayList<>();
+
+    // Map lưu tham chiếu Card theo sessionId - lookup O(1) cho real-time update
+    private final Map<Integer, VBox> sessionCardMap = new HashMap<>();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -76,6 +84,7 @@ public class MainController implements Initializable {
         cbStatus.setOnAction(event -> filterAndRenderProducts());
 
         loadProductsFromServer();
+        connectHomeSocket();
     }
 
     private void createUserOption(String text) {
@@ -154,6 +163,7 @@ public class MainController implements Initializable {
         // Toàn bộ tương tác dọn dẹp và thêm Component UI bắt buộc phải nhét vào luồng chính JavaFX
         Platform.runLater(() -> {
             productContainer.getChildren().clear();
+            sessionCardMap.clear();
 
             for (JSONObject sessionObj : allProducts) {
                 JSONObject itemObj = sessionObj.optJSONObject("item");
@@ -184,6 +194,7 @@ public class MainController implements Initializable {
                     // Truyền cả type (thể loại) và status (trạng thái) vào
                     VBox card = createProductCard(sessionObj, itemObj);
                     productContainer.getChildren().add(card);
+                    sessionCardMap.put(id, card);
                 }
             }
         });
@@ -305,6 +316,61 @@ public class MainController implements Initializable {
 
     public void setHttpClient(HttpClient httpClient) {
         this.client = httpClient;
+    }
+
+    /**
+     * Kết nối Socket để nhận event real-time từ server (VD: AUCTION_ENDED)
+     * Reuse hạ tầng Socket của nhphan0505, gửi command JOIN_HOME để đăng ký nhận event global.
+     */
+    private void connectHomeSocket() {
+        Thread homeSocketThread = new Thread(() -> {
+            try {
+                Socket socket = new Socket(Config.SOCKET_HOST, Config.PORT_SOCKET);
+                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                java.io.PrintWriter out = new java.io.PrintWriter(socket.getOutputStream(), true);
+
+                // Đăng ký với server rằng đây là client Home
+                out.println("JOIN_HOME");
+
+                String line;
+                while ((line = in.readLine()) != null) {
+                    if (line.startsWith("EVENT:")) {
+                        String json = line.substring(6);
+                        JSONObject event = new JSONObject(json);
+                        if ("AUCTION_ENDED".equals(event.optString("type"))) {
+                            int sessionId = event.getInt("sessionId");
+                            Platform.runLater(() -> markCardAsEnded(sessionId));
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                logger.error("Home Socket listener error: {}", e.getMessage());
+            }
+        });
+        homeSocketThread.setDaemon(true);
+        homeSocketThread.start();
+    }
+
+    /**
+     * Cập nhật giao diện Card khi phiên đấu giá kết thúc: xám nhạt + vô hiệu hóa nút.
+     */
+    private void markCardAsEnded(int sessionId) {
+        VBox card = sessionCardMap.get(sessionId);
+        if (card != null) {
+            card.setOpacity(0.6);
+            card.setStyle("-fx-border-color: #dee2e6; -fx-border-radius: 5px; -fx-padding: 10px; -fx-background-color: #f4f4f4;");
+
+            // Tìm Button trong Card và cập nhật
+            card.getChildren().stream()
+                .filter(node -> node instanceof Button)
+                .map(node -> (Button) node)
+                .findFirst()
+                .ifPresent(btn -> {
+                    btn.setText("Hết giờ");
+                    btn.setDisable(true);
+                    btn.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white;");
+                });
+        }
     }
 
     @FXML
