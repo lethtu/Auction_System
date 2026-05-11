@@ -3,7 +3,6 @@ package com.auction.client.controller;
 import com.auction.client.Config;
 import com.auction.client.model.User;
 import com.auction.client.util.AlertUtil;
-import com.auction.client.util.HttpRequestUtil;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
@@ -13,16 +12,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 public class LoginController {
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
+
+    private HttpClient httpClient = HttpClient.newHttpClient();
 
     @FXML
     private TextField txtUsername;
 
     @FXML
     private PasswordField txtPassword;
+
+    public void setHttpClient(HttpClient httpClient) {
+        this.httpClient = httpClient;
+    }
 
     @FXML
     public void handleLogin(ActionEvent event) {
@@ -39,11 +47,15 @@ public class LoginController {
         body.put("password", password);
 
         try {
-            HttpResponse<String> response = HttpRequestUtil.sendJson(
-                    "POST",
-                    Config.API_URL,
-                    "/api/login",
-                    body
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Config.API_URL + "/api/login"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(
+                    request,
+                    HttpResponse.BodyHandlers.ofString()
             );
 
             if (response.statusCode() != 200) {
@@ -68,9 +80,7 @@ public class LoginController {
             String email = data.optString("email", "");
             String dob = data.optString("dob", null);
             String placeOfBirth = data.optString("place_of_birth", null);
-
-            String role = data.optString("role",
-                    data.optString("accountType", "USER"));
+            String role = data.optString("role", data.optString("accountType", "USER"));
 
             User.setSession(id, username, fullname, email, dob, placeOfBirth, role);
 

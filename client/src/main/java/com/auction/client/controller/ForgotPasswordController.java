@@ -2,7 +2,6 @@ package com.auction.client.controller;
 
 import com.auction.client.Config;
 import com.auction.client.util.AlertUtil;
-import com.auction.client.util.HttpRequestUtil;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -14,10 +13,15 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 public class ForgotPasswordController {
     private static final Logger logger = LoggerFactory.getLogger(ForgotPasswordController.class);
+
+    private HttpClient httpClient = HttpClient.newHttpClient();
 
     @FXML
     private TextField txtEmail;
@@ -40,6 +44,10 @@ public class ForgotPasswordController {
     @FXML
     private Button btnGetOTP;
 
+    public void setHttpClient(HttpClient httpClient) {
+        this.httpClient = httpClient;
+    }
+
     @FXML
     public void handleGetOTP(ActionEvent event) {
         String email = txtEmail.getText().trim();
@@ -57,13 +65,7 @@ public class ForgotPasswordController {
                 JSONObject body = new JSONObject();
                 body.put("email", email);
 
-                HttpResponse<String> response = HttpRequestUtil.sendJson(
-                        "POST",
-                        Config.API_URL,
-                        "/api/forgot_pass",
-                        body
-                );
-
+                HttpResponse<String> response = sendPost("/api/forgot_pass", body);
                 JSONObject responseBody = new JSONObject(response.body());
 
                 Platform.runLater(() -> handleGetOTPResponse(response, responseBody));
@@ -77,6 +79,16 @@ public class ForgotPasswordController {
                 });
             }
         }).start();
+    }
+
+    private HttpResponse<String> sendPost(String endpoint, JSONObject body) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(Config.API_URL + endpoint))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
+                .build();
+
+        return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
     private void handleGetOTPResponse(HttpResponse<String> response, JSONObject responseBody) {
@@ -116,13 +128,7 @@ public class ForgotPasswordController {
                 body.put("code", code);
                 body.put("password", newPass);
 
-                HttpResponse<String> response = HttpRequestUtil.sendJson(
-                        "POST",
-                        Config.API_URL,
-                        "/api/check_code",
-                        body
-                );
-
+                HttpResponse<String> response = sendPost("/api/check_code", body);
                 JSONObject responseBody = new JSONObject(response.body());
 
                 Platform.runLater(() -> handleResetPasswordResponse(event, response, responseBody));
