@@ -17,16 +17,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.math.BigDecimal;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class SellerDashboardController {
     private static final Logger logger = LoggerFactory.getLogger(SellerDashboardController.class);
+    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
 
     @FXML private TabPane sellerTabPane;
+    @FXML private Tab tabMySessions;
     @FXML private Tab tabCreateSession;
+    @FXML private Tab tabStats;
     @FXML private ListView<String> mySessionsList;
     @FXML private ComboBox<String> productTypeCombo;
     @FXML private TextField productNameField;
@@ -35,6 +43,10 @@ public class SellerDashboardController {
     @FXML private TextField startingPriceField;
     @FXML private TextField stepPriceField;
     @FXML private TextField endTimeField;
+    @FXML private DatePicker datePickerStart;
+    @FXML private TextField txtStartTime;
+    @FXML private DatePicker datePickerEnd;
+    @FXML private TextField txtEndTime;
     @FXML private TextArea statsArea;
     @FXML private Button btnCreateOrUpdate;
 
@@ -52,6 +64,7 @@ public class SellerDashboardController {
         productTypeCombo.setValue("Electronics");
 
         SellerAuctionFormBuilder.fillDefaultEndTime(endTimeField);
+        initializeDateInputs();
 
         loadMySessions();
         resetSubmitButton();
@@ -94,7 +107,8 @@ public class SellerDashboardController {
                     imagePathField,
                     startingPriceField,
                     stepPriceField,
-                    endTimeField
+                    buildStartDateTimeText(),
+                    buildEndDateTimeText()
             );
 
             return request == null ? null : sellerDashboardService.createAuction(request, selectedImageFile);
@@ -111,13 +125,29 @@ public class SellerDashboardController {
                     imagePathField,
                     startingPriceField,
                     stepPriceField,
-                    endTimeField
+                    buildStartDateTimeText(),
+                    buildEndDateTimeText()
             );
 
             return request == null
                     ? null
                     : sellerDashboardService.updateSession(editingSession.id, sellerId, request, selectedImageFile);
         });
+    }
+
+    @FXML
+    private void showMySessionsTab() {
+        selectTab(tabMySessions);
+    }
+
+    @FXML
+    private void showCreateAuctionTab() {
+        selectTab(tabCreateSession);
+    }
+
+    @FXML
+    private void showStatsTab() {
+        selectTab(tabStats);
     }
 
     @FXML
@@ -152,9 +182,7 @@ public class SellerDashboardController {
         fillFormFromSession(selected);
         btnCreateOrUpdate.setText("Lưu thay đổi");
 
-        if (sellerTabPane != null && tabCreateSession != null) {
-            sellerTabPane.getSelectionModel().select(tabCreateSession);
-        }
+        selectTab(tabCreateSession);
 
         AlertUtil.show(
                 Alert.AlertType.INFORMATION,
@@ -193,6 +221,7 @@ public class SellerDashboardController {
         if (endTimeField != null) {
             endTimeField.setText(safeText(session.endTime));
         }
+        fillEndDateTimeInputs(session.endTime);
         selectedImageFile = null;
     }
 
@@ -338,6 +367,69 @@ public class SellerDashboardController {
         statsArea.setText(SellerStatsCalculator.buildStatsText(allSessions));
     }
 
+    private void selectTab(Tab tab) {
+        if (sellerTabPane != null && tab != null) {
+            sellerTabPane.getSelectionModel().select(tab);
+        }
+    }
+
+    private void initializeDateInputs() {
+        if (txtStartTime != null && txtStartTime.getText().isBlank()) {
+            txtStartTime.setText("00:00");
+        }
+
+        if (datePickerEnd != null && datePickerEnd.getValue() == null) {
+            datePickerEnd.setValue(LocalDate.now().plusDays(7));
+        }
+
+        if (txtEndTime != null && txtEndTime.getText().isBlank()) {
+            txtEndTime.setText("23:59");
+        }
+    }
+
+    private String buildStartDateTimeText() {
+        if (datePickerStart == null || datePickerStart.getValue() == null) {
+            return "";
+        }
+
+        return buildDateTimeText(datePickerStart.getValue(), txtStartTime, "00:00", "thời gian bắt đầu");
+    }
+
+    private String buildEndDateTimeText() {
+        if (datePickerEnd == null || datePickerEnd.getValue() == null) {
+            throw new IllegalArgumentException("Vui lòng chọn thời gian kết thúc.");
+        }
+
+        return buildDateTimeText(datePickerEnd.getValue(), txtEndTime, "23:59", "thời gian kết thúc");
+    }
+
+    private String buildDateTimeText(LocalDate date, TextField timeField, String defaultTime, String fieldName) {
+        String timeText = timeField == null || timeField.getText().isBlank()
+                ? defaultTime
+                : timeField.getText().trim();
+
+        try {
+            LocalTime time = LocalTime.parse(timeText, TIME_FORMAT);
+            return LocalDateTime.of(date, time).toString();
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("Định dạng " + fieldName + " phải là HH:mm, ví dụ 23:59.");
+        }
+    }
+
+    private void fillEndDateTimeInputs(String endTime) {
+        if (datePickerEnd == null || txtEndTime == null || endTime == null || endTime.isBlank()) {
+            return;
+        }
+
+        try {
+            LocalDateTime dateTime = LocalDateTime.parse(endTime);
+            datePickerEnd.setValue(dateTime.toLocalDate());
+            txtEndTime.setText(dateTime.toLocalTime().format(TIME_FORMAT));
+        } catch (DateTimeParseException e) {
+            logger.warn("Không parse được endTime: {}", endTime);
+        }
+    }
+
     private void clearForm() {
         editingSession = null;
         selectedImageFile = null;
@@ -351,6 +443,19 @@ public class SellerDashboardController {
         if (endTimeField != null) {
             endTimeField.clear();
             SellerAuctionFormBuilder.fillDefaultEndTime(endTimeField);
+        }
+
+        if (datePickerStart != null) {
+            datePickerStart.setValue(null);
+        }
+        if (txtStartTime != null) {
+            txtStartTime.setText("00:00");
+        }
+        if (datePickerEnd != null) {
+            datePickerEnd.setValue(LocalDate.now().plusDays(7));
+        }
+        if (txtEndTime != null) {
+            txtEndTime.setText("23:59");
         }
 
         productTypeCombo.setValue("Electronics");

@@ -7,107 +7,133 @@
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox spacing="15"
-      xmlns="http://javafx.com/javafx/21"
-      xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.auction.client.controller.AdminDashboardController"
-      style="-fx-background-color: #f8fafc;">
+<BorderPane prefWidth="1280" prefHeight="720"
+            stylesheets="@styles.css"
+            xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.auction.client.controller.AdminDashboardController"
+            style="-fx-background-color: #fef7ff; -fx-font-family: 'DM Sans';">
 
-    <padding>
-        <Insets top="20" right="20" bottom="20" left="20"/>
-    </padding>
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="22"
+              style="-fx-background-color: #ffffff; -fx-padding: 14px 28px; -fx-border-color: #f2e8f2; -fx-border-width: 0 0 2px 0;">
+            <Label text="☰" style="-fx-text-fill: #604868; -fx-font-size: 22px;"/>
+            <Label text="HY Admin" style="-fx-text-fill: #e040a0; -fx-font-size: 28px; -fx-font-weight: bold;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Đăng xuất"
+                    onAction="#handleLogout"
+                    prefHeight="36"
+                    style="-fx-background-color: #17183b; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 18; -fx-padding: 8px 18px; -fx-cursor: hand;"/>
+        </HBox>
+    </top>
 
-    <HBox spacing="12" alignment="CENTER_LEFT">
-        <Label text="ADMIN DASHBOARD">
-            <font>
-                <Font size="24"/>
-            </font>
-        </Label>
+    <left>
+        <VBox spacing="8" prefWidth="240" minWidth="240"
+              style="-fx-background-color: #ffffff; -fx-padding: 28px 14px; -fx-border-color: #f2e8f2; -fx-border-width: 0 2px 0 0;">
+            <Label text="ADMIN MENU"
+                   style="-fx-text-fill: #907898; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 0 0 6px 16px;"/>
+            <Button text="Pending Auctions" alignment="CENTER_LEFT" prefWidth="200"
+                    style="-fx-font-size: 14px; -fx-background-color: #fef7ff; -fx-text-fill: #e040a0; -fx-font-weight: bold; -fx-background-radius: 22; -fx-padding: 10px 18px; -fx-cursor: hand;"/>
+            <Button text="Users" alignment="CENTER_LEFT" prefWidth="200"
+                    style="-fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 22; -fx-padding: 10px 18px; -fx-cursor: hand;"/>
+            <Button text="All Sessions" alignment="CENTER_LEFT" prefWidth="200"
+                    style="-fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 22; -fx-padding: 10px 18px; -fx-cursor: hand;"/>
+            <Region VBox.vgrow="ALWAYS"/>
+            <Button text="Refresh Data" onAction="#handleRefresh" prefWidth="200"
+                    style="-fx-font-size: 14px; -fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 22; -fx-padding: 13px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.30), 16, 0, 0, 4);"/>
+        </VBox>
+    </left>
 
-        <Region HBox.hgrow="ALWAYS" />
+    <center>
+        <VBox spacing="18" style="-fx-padding: 28px 34px 30px 34px;">
+            <HBox alignment="CENTER_LEFT" spacing="18">
+                <VBox spacing="3">
+                    <Label text="Admin Center" textFill="#2e1a28">
+                        <font>
+                            <Font name="System Bold" size="30"/>
+                        </font>
+                    </Label>
+                    <Label text="Duyệt phiên đấu giá, quản lý người dùng và kiểm soát hoạt động hệ thống."
+                           style="-fx-text-fill: #907898; -fx-font-size: 13px;"/>
+                </VBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="Admin Dashboard"
+                       style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 18; -fx-background-radius: 18; -fx-padding: 9px 16px; -fx-text-fill: #604868; -fx-font-weight: bold;"/>
+            </HBox>
 
-        <Button text="Đăng xuất"
-                onAction="#handleLogout"
-                prefWidth="100" prefHeight="35"
-                style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-radius: 5;"/>
-    </HBox>
+            <TabPane prefHeight="560" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS"
+                     style="-fx-background-color: #ffffff; -fx-background-radius: 26; -fx-border-color: #f2e8f2; -fx-border-radius: 26; -fx-padding: 12;">
+                <Tab text="Phiên chờ duyệt">
+                    <VBox spacing="14" style="-fx-background-color: #ffffff; -fx-padding: 18;">
+                        <TableView fx:id="tablePending" prefHeight="430" VBox.vgrow="ALWAYS"
+                                   style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 18; -fx-background-radius: 18;">
+                            <columns>
+                                <TableColumn fx:id="colId" text="ID" prefWidth="80"/>
+                                <TableColumn fx:id="colProduct" text="Tên sản phẩm" prefWidth="360"/>
+                                <TableColumn fx:id="colPrice" text="Giá khởi điểm" prefWidth="180"/>
+                            </columns>
+                        </TableView>
 
-    <TabPane prefHeight="560" tabClosingPolicy="UNAVAILABLE">
-        <Tab text="Phiên chờ duyệt">
-            <VBox spacing="12">
-                <padding>
-                    <Insets top="15" right="15" bottom="15" left="15"/>
-                </padding>
+                        <HBox spacing="10">
+                            <Button text="Approve" onAction="#handleApprove" prefWidth="140" prefHeight="40"
+                                    style="-fx-background-color: #22c55e; -fx-text-fill: white; -fx-font-size: 14; -fx-font-weight: bold; -fx-background-radius: 18; -fx-cursor: hand;"/>
+                            <Button text="Reject" onAction="#handleReject" prefWidth="140" prefHeight="40"
+                                    style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-size: 14; -fx-font-weight: bold; -fx-background-radius: 18; -fx-cursor: hand;"/>
+                        </HBox>
+                    </VBox>
+                </Tab>
 
-                <TableView fx:id="tablePending" prefHeight="430">
-                    <columns>
-                        <TableColumn fx:id="colId" text="ID" prefWidth="80"/>
-                        <TableColumn fx:id="colProduct" text="Tên sản phẩm" prefWidth="360"/>
-                        <TableColumn fx:id="colPrice" text="Giá khởi điểm" prefWidth="180"/>
-                    </columns>
-                </TableView>
+                <Tab text="Danh sách User">
+                    <VBox spacing="14" style="-fx-background-color: #ffffff; -fx-padding: 18;">
+                        <TableView fx:id="tableUsers" prefHeight="430" VBox.vgrow="ALWAYS"
+                                   style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 18; -fx-background-radius: 18;">
+                            <columns>
+                                <TableColumn fx:id="colUserId" text="ID" prefWidth="70"/>
+                                <TableColumn fx:id="colUsername" text="Username" prefWidth="150"/>
+                                <TableColumn fx:id="colFullname" text="Họ tên" prefWidth="190"/>
+                                <TableColumn fx:id="colEmail" text="Email" prefWidth="230"/>
+                                <TableColumn fx:id="colRole" text="Role" prefWidth="100"/>
+                                <TableColumn fx:id="colBanned" text="Banned" prefWidth="90"/>
+                            </columns>
+                        </TableView>
 
-                <HBox spacing="10">
-                    <Button text="Approve" onAction="#handleApprove" prefWidth="140" prefHeight="40"
-                            style="-fx-background-color: #22c55e; -fx-text-fill: white; -fx-font-size: 14; -fx-background-radius: 10;"/>
-                    <Button text="Reject" onAction="#handleReject" prefWidth="140" prefHeight="40"
-                            style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-size: 14; -fx-background-radius: 10;"/>
-                </HBox>
-            </VBox>
-        </Tab>
+                        <HBox spacing="10">
+                            <Button text="Khóa tài khoản" onAction="#handleBanUser" prefWidth="160" prefHeight="40"
+                                    style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-size: 14; -fx-font-weight: bold; -fx-background-radius: 18; -fx-cursor: hand;"/>
+                            <Button text="Refresh" onAction="#handleRefresh" prefWidth="120" prefHeight="40"
+                                    style="-fx-background-color: #fef7ff; -fx-text-fill: #e040a0; -fx-font-weight: bold; -fx-border-color: #f2e8f2; -fx-border-radius: 18; -fx-background-radius: 18; -fx-cursor: hand;"/>
+                        </HBox>
+                    </VBox>
+                </Tab>
 
-        <Tab text="Danh sách User">
-            <VBox spacing="12">
-                <padding>
-                    <Insets top="15" right="15" bottom="15" left="15"/>
-                </padding>
+                <Tab text="Tất cả phiên đấu giá">
+                    <VBox spacing="14" style="-fx-background-color: #ffffff; -fx-padding: 18;">
+                        <TableView fx:id="tableSessions" prefHeight="430" VBox.vgrow="ALWAYS"
+                                   style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 18; -fx-background-radius: 18;">
+                            <columns>
+                                <TableColumn fx:id="colSessionId" text="ID" prefWidth="70"/>
+                                <TableColumn fx:id="colSessionProduct" text="Tên sản phẩm" prefWidth="300"/>
+                                <TableColumn fx:id="colSessionSeller" text="Seller" prefWidth="150"/>
+                                <TableColumn fx:id="colSessionPrice" text="Giá khởi điểm" prefWidth="170"/>
+                                <TableColumn fx:id="colSessionStatus" text="Trạng thái" prefWidth="130"/>
+                            </columns>
+                        </TableView>
 
-                <TableView fx:id="tableUsers" prefHeight="430">
-                    <columns>
-                        <TableColumn fx:id="colUserId" text="ID" prefWidth="70"/>
-                        <TableColumn fx:id="colUsername" text="Username" prefWidth="150"/>
-                        <TableColumn fx:id="colFullname" text="Họ tên" prefWidth="190"/>
-                        <TableColumn fx:id="colEmail" text="Email" prefWidth="230"/>
-                        <TableColumn fx:id="colRole" text="Role" prefWidth="100"/>
-                        <TableColumn fx:id="colBanned" text="Banned" prefWidth="90"/>
-                    </columns>
-                </TableView>
-
-                <HBox spacing="10">
-                    <Button text="Khóa tài khoản" onAction="#handleBanUser" prefWidth="160" prefHeight="40"
-                            style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-size: 14; -fx-background-radius: 10;"/>
-                    <Button text="Refresh" onAction="#handleRefresh" prefWidth="120" prefHeight="40"/>
-                </HBox>
-            </VBox>
-        </Tab>
-
-        <Tab text="Tất cả phiên đấu giá">
-            <VBox spacing="12">
-                <padding>
-                    <Insets top="15" right="15" bottom="15" left="15"/>
-                </padding>
-
-                <TableView fx:id="tableSessions" prefHeight="430">
-                    <columns>
-                        <TableColumn fx:id="colSessionId" text="ID" prefWidth="70"/>
-                        <TableColumn fx:id="colSessionProduct" text="Tên sản phẩm" prefWidth="300"/>
-                        <TableColumn fx:id="colSessionSeller" text="Seller" prefWidth="150"/>
-                        <TableColumn fx:id="colSessionPrice" text="Giá khởi điểm" prefWidth="170"/>
-                        <TableColumn fx:id="colSessionStatus" text="Trạng thái" prefWidth="130"/>
-                    </columns>
-                </TableView>
-
-                <HBox spacing="10">
-                    <Button text="Hủy phiên" onAction="#handleCancelAuction" prefWidth="140" prefHeight="40"
-                            style="-fx-background-color: #f97316; -fx-text-fill: white; -fx-font-size: 14; -fx-background-radius: 10;"/>
-                    <Button text="Refresh" onAction="#handleRefresh" prefWidth="120" prefHeight="40"/>
-                </HBox>
-            </VBox>
-        </Tab>
-    </TabPane>
-</VBox>
+                        <HBox spacing="10">
+                            <Button text="Hủy phiên" onAction="#handleCancelAuction" prefWidth="140" prefHeight="40"
+                                    style="-fx-background-color: #f97316; -fx-text-fill: white; -fx-font-size: 14; -fx-font-weight: bold; -fx-background-radius: 18; -fx-cursor: hand;"/>
+                            <Button text="Refresh" onAction="#handleRefresh" prefWidth="120" prefHeight="40"
+                                    style="-fx-background-color: #fef7ff; -fx-text-fill: #e040a0; -fx-font-weight: bold; -fx-border-color: #f2e8f2; -fx-border-radius: 18; -fx-background-radius: 18; -fx-cursor: hand;"/>
+                        </HBox>
+                    </VBox>
+                </Tab>
+            </TabPane>
+        </VBox>
+    </center>
+</BorderPane>
