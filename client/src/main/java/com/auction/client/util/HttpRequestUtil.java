@@ -66,13 +66,8 @@ public final class HttpRequestUtil {
 
     public static HttpResponse<String> uploadImage(String baseUrl, String path, File imageFile) throws Exception {
         String boundary = "----AuctionBoundary" + UUID.randomUUID();
-        String fileName = imageFile.getName();
-        String contentType = Files.probeContentType(imageFile.toPath());
-
-        if (contentType == null || contentType.isBlank()) {
-            contentType = "application/octet-stream";
-        }
-
+        String fileName = safeFileName(imageFile.getName());
+        String contentType = detectContentType(imageFile);
         byte[] fileBytes = Files.readAllBytes(imageFile.toPath());
         byte[] body = buildMultipartBody(boundary, fileName, contentType, fileBytes);
 
@@ -95,6 +90,41 @@ public final class HttpRequestUtil {
 
     private static URI uri(String baseUrl, String path) {
         return URI.create(baseUrl + path);
+    }
+
+    private static String detectContentType(File imageFile) throws Exception {
+        String contentType = Files.probeContentType(imageFile.toPath());
+
+        if (contentType != null && !contentType.isBlank()) {
+            return contentType;
+        }
+
+        String fileName = imageFile.getName().toLowerCase();
+        if (fileName.endsWith(".png")) {
+            return "image/png";
+        }
+        if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
+            return "image/jpeg";
+        }
+        if (fileName.endsWith(".gif")) {
+            return "image/gif";
+        }
+        if (fileName.endsWith(".webp")) {
+            return "image/webp";
+        }
+        if (fileName.endsWith(".bmp")) {
+            return "image/bmp";
+        }
+
+        return "application/octet-stream";
+    }
+
+    private static String safeFileName(String fileName) {
+        if (fileName == null || fileName.isBlank()) {
+            return "image.png";
+        }
+
+        return fileName.replace("\\", "_").replace("/", "_").replace("\"", "_");
     }
 
     private static byte[] buildMultipartBody(String boundary, String fileName, String contentType, byte[] fileBytes) {

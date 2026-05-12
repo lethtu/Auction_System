@@ -1,7 +1,6 @@
 package com.auction.client.util;
 
 import com.auction.client.dto.CreateAuctionRequest;
-import com.auction.client.model.SessionItem;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextInputControl;
@@ -15,6 +14,56 @@ public final class SellerAuctionFormBuilder {
     }
 
     public static CreateAuctionRequest buildCreateRequest(
+            int sellerId,
+            ComboBox<String> productTypeCombo,
+            TextInputControl productNameField,
+            TextInputControl descriptionArea,
+            TextInputControl imagePathField,
+            TextInputControl startingPriceField,
+            TextInputControl stepPriceField,
+            TextInputControl endTimeField
+    ) {
+        return buildRequest(
+                sellerId,
+                productTypeCombo,
+                productNameField,
+                descriptionArea,
+                imagePathField,
+                startingPriceField,
+                stepPriceField,
+                endTimeField
+        );
+    }
+
+    public static CreateAuctionRequest buildUpdateRequest(
+            int sellerId,
+            ComboBox<String> productTypeCombo,
+            TextInputControl productNameField,
+            TextInputControl descriptionArea,
+            TextInputControl imagePathField,
+            TextInputControl startingPriceField,
+            TextInputControl stepPriceField,
+            TextInputControl endTimeField
+    ) {
+        return buildRequest(
+                sellerId,
+                productTypeCombo,
+                productNameField,
+                descriptionArea,
+                imagePathField,
+                startingPriceField,
+                stepPriceField,
+                endTimeField
+        );
+    }
+
+    public static void fillDefaultEndTime(TextInputControl endTimeField) {
+        if (endTimeField != null && endTimeField.getText().trim().isEmpty()) {
+            endTimeField.setText(defaultEndTime());
+        }
+    }
+
+    private static CreateAuctionRequest buildRequest(
             int sellerId,
             ComboBox<String> productTypeCombo,
             TextInputControl productNameField,
@@ -49,7 +98,7 @@ public final class SellerAuctionFormBuilder {
 
         return new CreateAuctionRequest(
                 productName,
-                productType,
+                productType.trim(),
                 description,
                 imagePath,
                 new BigDecimal(startingPriceText.trim()),
@@ -58,51 +107,6 @@ public final class SellerAuctionFormBuilder {
                 endTime,
                 sellerId
         );
-    }
-
-    public static CreateAuctionRequest buildUpdateRequest(
-            int sellerId,
-            SessionItem selected,
-            ComboBox<String> productTypeCombo,
-            TextInputControl productNameField,
-            TextInputControl descriptionArea,
-            TextInputControl imagePathField,
-            TextInputControl startingPriceField,
-            TextInputControl stepPriceField,
-            TextInputControl endTimeField
-    ) {
-        String productName = valueOrDefault(textOrEmpty(productNameField), selected.productName);
-        String productType = valueOrDefault(productTypeCombo == null ? null : productTypeCombo.getValue(), selected.productType);
-        String description = valueOrDefault(textOrEmpty(descriptionArea), selected.description);
-        String imagePath = valueOrDefault(textOrEmpty(imagePathField), selected.imagePath);
-        String startingPriceText = valueOrDefault(textOrEmpty(startingPriceField), bigDecimalText(selected.startingPrice));
-        String stepPriceText = valueOrDefault(textOrEmpty(stepPriceField), bigDecimalText(selected.stepPrice));
-        String startTime = defaultStartTime();
-        String endTime = valueOrDefault(textOrEmpty(endTimeField), selected.endTime);
-
-        if (isFormInvalid(productName, productType, startingPriceText, stepPriceText)) {
-            AlertUtil.show(Alert.AlertType.WARNING, "Thiếu dữ liệu",
-                    "Vui lòng nhập tên sản phẩm, loại, giá khởi điểm và bước giá.");
-            return null;
-        }
-
-        return new CreateAuctionRequest(
-                productName,
-                productType,
-                description,
-                imagePath,
-                new BigDecimal(startingPriceText.trim()),
-                new BigDecimal(stepPriceText.trim()),
-                startTime,
-                endTime,
-                sellerId
-        );
-    }
-
-    public static void fillDefaultEndTime(TextInputControl endTimeField) {
-        if (endTimeField != null && endTimeField.getText().trim().isEmpty()) {
-            endTimeField.setText(defaultEndTime());
-        }
     }
 
     private static boolean isFormInvalid(
@@ -128,17 +132,5 @@ public final class SellerAuctionFormBuilder {
 
     private static String textOrEmpty(TextInputControl input) {
         return input == null ? "" : input.getText().trim();
-    }
-
-    private static String valueOrDefault(String value, String fallback) {
-        if (value != null && !value.trim().isEmpty()) {
-            return value.trim();
-        }
-
-        return fallback == null ? "" : fallback.trim();
-    }
-
-    private static String bigDecimalText(BigDecimal value) {
-        return value == null ? "" : value.toPlainString();
     }
 }

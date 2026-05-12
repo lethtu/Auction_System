@@ -1,8 +1,12 @@
 package com.auction.client.model;
 
 import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.util.Locale;
 
 public class SessionItem {
+    private static final NumberFormat MONEY_FORMAT = createMoneyFormat();
+
     public int id;
     public String productName = "";
     public String productType = "";
@@ -15,7 +19,7 @@ public class SessionItem {
     public String status = "UNKNOWN";
 
     public String toDisplayText() {
-        return "Session #" + id
+        return "Mã phiên #" + id
                 + " | " + safe(productName)
                 + " | " + safe(status)
                 + " | Giá hiện tại: " + safePrice(currentPrice);
@@ -26,6 +30,14 @@ public class SessionItem {
     }
 
     private String safePrice(BigDecimal value) {
-        return value == null ? "0" : value.toPlainString();
+        BigDecimal safeValue = value == null ? BigDecimal.ZERO : value;
+        return MONEY_FORMAT.format(safeValue) + " VND";
+    }
+
+    private static NumberFormat createMoneyFormat() {
+        NumberFormat format = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
+        format.setMinimumFractionDigits(0);
+        format.setMaximumFractionDigits(2);
+        return format;
     }
 }

@@ -4,6 +4,7 @@ import com.auction.client.api.SellerApiClient;
 import com.auction.client.dto.ApiResult;
 import com.auction.client.dto.CreateAuctionRequest;
 import com.auction.client.model.SessionItem;
+import com.auction.client.parser.ApiResponseParser;
 import com.auction.client.parser.SellerResponseParser;
 import com.auction.client.util.SellerRequestBuilder;
 import org.json.JSONArray;
@@ -14,6 +15,8 @@ import java.net.http.HttpResponse;
 import java.util.List;
 
 public class SellerDashboardService {
+    private static final int HTTP_PAYLOAD_TOO_LARGE = 413;
+
     private final SellerApiClient sellerApiClient;
 
     public SellerDashboardService() {
@@ -41,7 +44,12 @@ public class SellerDashboardService {
         return updateSession(sessionId, sellerId, request, null);
     }
 
-    public ApiResult<Void> updateSession(int sessionId, int sellerId, CreateAuctionRequest request, File imageFile) throws Exception {
+    public ApiResult<Void> updateSession(
+            int sessionId,
+            int sellerId,
+            CreateAuctionRequest request,
+            File imageFile
+    ) throws Exception {
         CreateAuctionRequest finalRequest = withUploadedImage(request, imageFile);
         HttpResponse<String> response = sellerApiClient.updateSession(
                 sessionId,
@@ -87,24 +95,47 @@ public class SellerDashboardService {
     }
 
     private String uploadImage(File imageFile) throws Exception {
+        validateImageFile(imageFile);
+
         HttpResponse<String> response = sellerApiClient.uploadImage(imageFile);
-        JSONObject json = new JSONObject(response.body());
+        ApiResult<JSONObject> api = ApiResponseParser.extractDataObject(response.body(), response.statusCode());
 
-        if (response.statusCode() < 200 || response.statusCode() >= 300) {
-            throw new IllegalStateException(json.optString("message", "Upload ảnh thất bại."));
+        if (!api.success) {
+            throw new IllegalStateException(buildUploadErrorMessage(response, api));
         }
 
-        JSONObject data = json.optJSONObject("data");
-        if (data == null) {
-            throw new IllegalStateException(json.optString("message", "Không nhận được đường dẫn ảnh."));
-        }
-
-        String imagePath = data.optString("imagePath", "");
-        if (imagePath.isBlank()) {
-            throw new IllegalStateException("Không nhận được đường dẫn ảnh.");
+        String imagePath = api.data.optString("imagePath", "").trim();
+        if (imagePath.isEmpty()) {
+            throw new IllegalStateException("Server đã nhận ảnh nhưng không trả về đường dẫn ảnh.");
         }
 
         return imagePath;
+    }
+
+    private void validateImageFile(File imageFile) {
+        if (imageFile == null) {
+            throw new IllegalArgumentException("Chưa chọn file ảnh.");
+        }
+
+        if (!imageFile.exists() || !imageFile.isFile()) {
+            throw new IllegalArgumentException("File ảnh không tồn tại hoặc không hợp lệ.");
+        }
+
+        if (!imageFile.canRead()) {
+            throw new IllegalArgumentException("Không có quyền đọc file ảnh đã chọn.");
+        }
+    }
+
+    private String buildUploadErrorMessage(HttpResponse<String> response, ApiResult<JSONObject> api) {
+        if (response.statusCode() == HTTP_PAYLOAD_TOO_LARGE) {
+            return "Ảnh quá lớn. Hãy chọn ảnh nhỏ hơn hoặc tăng giới hạn upload của server.";
+        }
+
+        if (api.message != null && !api.message.isBlank()) {
+            return api.message;
+        }
+
+        return "Upload ảnh thất bại. HTTP status: " + response.statusCode();
     }
 
     private ApiResult<Void> parseApiResult(HttpResponse<String> response, String successMessage) {

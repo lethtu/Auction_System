@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -84,13 +85,7 @@ public class SellerDashboardController {
     }
 
     private void createNewSession() {
-        Integer sellerId = getValidSellerId();
-
-        if (sellerId == null) {
-            return;
-        }
-
-        try {
+        runSellerMutation(sellerId -> {
             CreateAuctionRequest request = SellerAuctionFormBuilder.buildCreateRequest(
                     sellerId,
                     productTypeCombo,
@@ -102,34 +97,14 @@ public class SellerDashboardController {
                     endTimeField
             );
 
-            if (request == null) {
-                return;
-            }
-
-            ApiResult<Void> api = sellerDashboardService.createAuction(request, selectedImageFile);
-            handleMutationResult(api);
-
-        } catch (NumberFormatException e) {
-            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi dữ liệu", "Giá khởi điểm và bước giá phải là số.");
-        } catch (IllegalStateException e) {
-            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi upload ảnh", e.getMessage());
-        } catch (Exception e) {
-            logger.error("Lỗi không thể kết nối đến máy chủ: {}", e.getMessage(), e);
-            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
-        }
+            return request == null ? null : sellerDashboardService.createAuction(request, selectedImageFile);
+        });
     }
 
     private void updateEditingSession() {
-        Integer sellerId = getValidSellerId();
-
-        if (sellerId == null) {
-            return;
-        }
-
-        try {
+        runSellerMutation(sellerId -> {
             CreateAuctionRequest request = SellerAuctionFormBuilder.buildUpdateRequest(
                     sellerId,
-                    editingSession,
                     productTypeCombo,
                     productNameField,
                     descriptionArea,
@@ -139,21 +114,10 @@ public class SellerDashboardController {
                     endTimeField
             );
 
-            if (request == null) {
-                return;
-            }
-
-            ApiResult<Void> api = sellerDashboardService.updateSession(editingSession.id, sellerId, request, selectedImageFile);
-            handleMutationResult(api);
-
-        } catch (NumberFormatException e) {
-            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi dữ liệu", "Giá khởi điểm và bước giá phải là số.");
-        } catch (IllegalStateException e) {
-            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi upload ảnh", e.getMessage());
-        } catch (Exception e) {
-            logger.error("Lỗi không thể kết nối đến máy chủ: {}", e.getMessage(), e);
-            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
-        }
+            return request == null
+                    ? null
+                    : sellerDashboardService.updateSession(editingSession.id, sellerId, request, selectedImageFile);
+        });
     }
 
     @FXML
@@ -207,24 +171,11 @@ public class SellerDashboardController {
             return;
         }
 
-        Integer sellerId = getValidSellerId();
-
-        if (sellerId == null) {
-            return;
-        }
-
         if (!confirmCancelSession(selected.id)) {
             return;
         }
 
-        try {
-            ApiResult<Void> api = sellerDashboardService.cancelSession(selected.id, sellerId);
-            handleMutationResult(api);
-
-        } catch (Exception e) {
-            logger.error("Lỗi không thể kết nối đến máy chủ: {}", e.getMessage(), e);
-            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
-        }
+        runSellerMutation(sellerId -> sellerDashboardService.cancelSession(selected.id, sellerId));
     }
 
     @FXML
@@ -237,12 +188,45 @@ public class SellerDashboardController {
         productTypeCombo.setValue(safeText(session.productType));
         descriptionArea.setText(safeText(session.description));
         imagePathField.setText(safeText(session.imagePath));
-        startingPriceField.setText(session.startingPrice == null ? "" : session.startingPrice.toPlainString());
-        stepPriceField.setText(session.stepPrice == null ? "" : session.stepPrice.toPlainString());
+        startingPriceField.setText(toEditableMoneyText(session.startingPrice));
+        stepPriceField.setText(toEditableMoneyText(session.stepPrice));
         if (endTimeField != null) {
             endTimeField.setText(safeText(session.endTime));
         }
         selectedImageFile = null;
+    }
+
+    private void runSellerMutation(SellerMutation mutation) {
+        Integer sellerId = getValidSellerId();
+
+        if (sellerId == null) {
+            return;
+        }
+
+        try {
+            ApiResult<Void> api = mutation.run(sellerId);
+
+            if (api != null) {
+                handleMutationResult(api);
+            }
+        } catch (NumberFormatException e) {
+            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi dữ liệu", "Giá khởi điểm và bước giá phải là số.");
+        } catch (IllegalArgumentException e) {
+            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi dữ liệu", e.getMessage());
+        } catch (IllegalStateException e) {
+            logger.error("Lỗi xử lý seller: {}", e.getMessage(), e);
+            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi thao tác", e.getMessage());
+        } catch (IOException e) {
+            logger.error("Lỗi kết nối hoặc đọc file: {}", e.getMessage(), e);
+            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ hoặc đọc file ảnh.");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.error("Thao tác seller bị gián đoạn: {}", e.getMessage(), e);
+            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi", "Thao tác bị gián đoạn. Vui lòng thử lại.");
+        } catch (Exception e) {
+            logger.error("Lỗi không xác định khi xử lý seller: {}", e.getMessage(), e);
+            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi hệ thống", safeErrorMessage(e));
+        }
     }
 
     private void handleMutationResult(ApiResult<Void> api) {
@@ -379,8 +363,31 @@ public class SellerDashboardController {
         }
     }
 
+    private String safeErrorMessage(Exception e) {
+        String message = e.getMessage();
+        return message == null || message.isBlank()
+                ? "Có lỗi không xác định. Vui lòng xem log để biết chi tiết."
+                : message;
+    }
+
     private String safeText(String value) {
         return value == null ? "" : value;
+    }
+
+    private String toEditableMoneyText(BigDecimal value) {
+        if (value == null) {
+            return "";
+        }
+
+        BigDecimal normalized = value.stripTrailingZeros();
+        return normalized.scale() < 0
+                ? normalized.setScale(0).toPlainString()
+                : normalized.toPlainString();
+    }
+
+    @FunctionalInterface
+    private interface SellerMutation {
+        ApiResult<Void> run(int sellerId) throws Exception;
     }
 
     private Integer getValidSellerId() {

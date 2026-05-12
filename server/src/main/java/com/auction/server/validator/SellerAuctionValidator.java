@@ -5,8 +5,11 @@ import com.auction.server.exception.InvalidItemException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 public final class SellerAuctionValidator {
+    private static final Set<String> ALLOWED_TYPES = Set.of("electronics", "art", "vehicle");
+    private static final int MAX_DESCRIPTION_LENGTH = 1000;
 
     private SellerAuctionValidator() {
     }
@@ -16,37 +19,52 @@ public final class SellerAuctionValidator {
             throw new InvalidItemException("Dữ liệu phiên đấu giá không hợp lệ");
         }
 
-        if (request.getName() == null || request.getName().trim().isEmpty()) {
-            throw new InvalidItemException("Tên sản phẩm không được để trống");
-        }
+        validateRequiredText(request.getName(), "Tên sản phẩm không được để trống");
+        validateItemType(request.getType());
+        validateDescription(request.getDescription());
+        validatePositivePrice(request.getStartingPrice(), "Giá khởi điểm phải lớn hơn 0");
+        validatePositivePrice(request.getStepPrice(), "Bước giá phải lớn hơn 0");
+        validateAuctionTime(request.getStartTime(), request.getEndTime());
+    }
 
-        if (request.getType() == null || request.getType().trim().isEmpty()) {
-            throw new InvalidItemException("Loại sản phẩm không được để trống");
+    private static void validateRequiredText(String value, String message) {
+        if (value == null || value.trim().isEmpty()) {
+            throw new InvalidItemException(message);
         }
+    }
 
-        if (request.getDescription() != null && request.getDescription().length() > 1000) {
+    private static void validateItemType(String type) {
+        validateRequiredText(type, "Loại sản phẩm không được để trống");
+
+        if (!ALLOWED_TYPES.contains(type.trim().toLowerCase())) {
+            throw new InvalidItemException("Loại sản phẩm không hợp lệ");
+        }
+    }
+
+    private static void validateDescription(String description) {
+        if (description != null && description.length() > MAX_DESCRIPTION_LENGTH) {
             throw new InvalidItemException("Mô tả không được quá 1000 ký tự");
         }
+    }
 
-        if (request.getStartingPrice() == null || request.getStartingPrice().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new InvalidItemException("Giá khởi điểm phải lớn hơn 0");
+    private static void validatePositivePrice(BigDecimal price, String message) {
+        if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidItemException(message);
         }
+    }
 
-        if (request.getStepPrice() == null || request.getStepPrice().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new InvalidItemException("Bước giá phải lớn hơn 0");
-        }
-
+    private static void validateAuctionTime(LocalDateTime startTime, LocalDateTime endTime) {
         LocalDateTime now = LocalDateTime.now();
 
-        if (request.getStartTime() != null && request.getStartTime().isBefore(now)) {
+        if (startTime != null && startTime.isBefore(now)) {
             throw new InvalidItemException("Thời gian bắt đầu không được nằm trong quá khứ");
         }
 
-        if (request.getEndTime() == null || !request.getEndTime().isAfter(now)) {
+        if (endTime == null || !endTime.isAfter(now)) {
             throw new InvalidItemException("Thời gian kết thúc phải ở tương lai");
         }
 
-        if (request.getStartTime() != null && request.getEndTime().isBefore(request.getStartTime())) {
+        if (startTime != null && endTime.isBefore(startTime)) {
             throw new InvalidItemException("Thời gian kết thúc phải diễn ra sau thời gian bắt đầu");
         }
     }
