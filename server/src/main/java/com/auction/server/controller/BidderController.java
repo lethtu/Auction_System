@@ -15,14 +15,18 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.auction.server.service.BidderService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/bidder")
 public class BidderController {
     private static final Logger logger = LoggerFactory.getLogger(BidderController.class);
+    @Autowired
+    private BidderService bidderService;
 
     @Autowired
     private AuctionSessionRepository auctionSessionRepository;
@@ -59,5 +63,17 @@ public class BidderController {
                     return ResponseEntity.ok("New balance: " + user.getBalance());
                 })
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/up-to-seller")
+    public ApiResponse<String> upToSeller(@RequestParam Integer userId) {
+        Map<String, Object> result = bidderService.upToSeller(userId);
+        boolean isSuccess = (boolean) result.get("success");
+        String message = (String) result.get("message");
+        if (isSuccess) {
+            return new ApiResponse<>(200, message, "SUCCESS");
+        } else {
+            return new ApiResponse<>(400, message, "FAILED");
+        }
     }
 }

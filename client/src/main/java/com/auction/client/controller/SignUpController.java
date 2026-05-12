@@ -8,6 +8,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 import com.auction.client.Config;
+import com.auction.client.HttpClientSingleton;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -18,7 +19,7 @@ import java.io.IOException;
 import org.json.JSONObject;
 
 public class SignUpController {
-    private HttpClient client = HttpClient.newHttpClient();
+    private HttpClient client = HttpClientSingleton.getInstance().getHttpClient();
     private static final Logger logger = LoggerFactory.getLogger(SignUpController.class);
 
     @FXML
