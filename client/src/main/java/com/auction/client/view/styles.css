@@ -51,3 +51,19 @@
     -fx-pref-height: 0;
     -fx-padding: 0;
 }
+
+/* Ẩn tab header khi sidebar đã là nơi điều hướng chính. */
+.navigationless-tab-pane > .tab-header-area {
+    -fx-min-height: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+    -fx-padding: 0;
+    -fx-opacity: 0;
+}
+
+.navigationless-tab-pane > .tab-header-area > .headers-region,
+.navigationless-tab-pane > .tab-header-area > .tab-header-background {
+    -fx-min-height: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+}

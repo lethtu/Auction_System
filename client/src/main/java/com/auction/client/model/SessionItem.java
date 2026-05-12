@@ -19,7 +19,15 @@ public class SessionItem {
     public String status = "UNKNOWN";
 
     public String toDisplayText() {
-        return "Mã phiên #" + id
+        return toDisplayText(0);
+    }
+
+    public String toDisplayText(int displayIndex) {
+        String prefix = displayIndex > 0
+                ? "STT " + displayIndex + " | Mã phiên #" + id
+                : "Mã phiên #" + id;
+
+        return prefix
                 + " | " + safe(productName)
                 + " | " + safe(status)
                 + " | Giá hiện tại: " + safePrice(currentPrice);

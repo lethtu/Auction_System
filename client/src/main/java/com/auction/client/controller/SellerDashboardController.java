@@ -313,8 +313,8 @@ public class SellerDashboardController {
 
         List<String> rendered = new ArrayList<>();
 
-        for (SessionItem session : sessions) {
-            rendered.add(session.toDisplayText());
+        for (int i = 0; i < sessions.size(); i++) {
+            rendered.add(sessions.get(i).toDisplayText(i + 1));
         }
 
         mySessionsList.setItems(FXCollections.observableArrayList(rendered));

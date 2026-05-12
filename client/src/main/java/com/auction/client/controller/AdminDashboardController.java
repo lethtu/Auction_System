@@ -10,9 +10,11 @@ import com.auction.client.util.AlertUtil;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TextInputDialog;
 
 import java.math.BigDecimal;
@@ -23,6 +25,11 @@ import java.util.Locale;
 public class AdminDashboardController {
     private final AdminDashboardService adminDashboardService = new AdminDashboardService();
     private final NumberFormat currencyFormat = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
+
+    @FXML private TabPane adminTabPane;
+    @FXML private Tab tabPending;
+    @FXML private Tab tabUsers;
+    @FXML private Tab tabSessions;
 
     @FXML private TableView<PendingSessionRow> tablePending;
     @FXML private TableColumn<PendingSessionRow, Integer> colId;
@@ -188,6 +195,21 @@ public class AdminDashboardController {
     }
 
     @FXML
+    public void showPendingTab() {
+        selectTab(tabPending);
+    }
+
+    @FXML
+    public void showUsersTab() {
+        selectTab(tabUsers);
+    }
+
+    @FXML
+    public void showSessionsTab() {
+        selectTab(tabSessions);
+    }
+
+    @FXML
     public void handleRefresh() {
         loadAllData();
     }
@@ -199,6 +221,12 @@ public class AdminDashboardController {
             SceneSwitcher.switchScene(event, "Login.fxml", 400, 500);
         } catch (Exception e) {
             AlertUtil.showError(e, "Không thể đăng xuất.");
+        }
+    }
+
+    private void selectTab(Tab tab) {
+        if (adminTabPane != null && tab != null) {
+            adminTabPane.getSelectionModel().select(tab);
         }
     }
 
@@ -243,8 +271,10 @@ public class AdminDashboardController {
         try {
             ApiResult<Void> api = action.run();
             handleActionResult(api);
+        } catch (IllegalStateException e) {
+            AlertUtil.showError(e.getMessage());
         } catch (Exception e) {
-            AlertUtil.showError(e, "Không thể kết nối đến máy chủ.");
+            AlertUtil.showError(e, "Không thể thực hiện thao tác admin.");
         }
     }
 

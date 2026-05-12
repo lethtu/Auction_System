@@ -12,9 +12,14 @@ import com.auction.server.repository.AuctionSessionRepository;
 import com.auction.server.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -24,10 +29,21 @@ public class AdminService {
 
     private final AuctionSessionRepository sessionRepository;
     private final UserRepository userRepository;
+    private final JdbcTemplate jdbcTemplate;
 
-    public AdminService(AuctionSessionRepository sessionRepository, UserRepository userRepository) {
+    @Autowired
+    public AdminService(
+            AuctionSessionRepository sessionRepository,
+            UserRepository userRepository,
+            JdbcTemplate jdbcTemplate
+    ) {
         this.sessionRepository = sessionRepository;
         this.userRepository = userRepository;
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    public AdminService(AuctionSessionRepository sessionRepository, UserRepository userRepository) {
+        this(sessionRepository, userRepository, null);
     }
 
     public List<SessionResponseDTO> getPendingSessions() {
@@ -49,10 +65,28 @@ public class AdminService {
     }
 
     public List<UserResponseDTO> getAllUsers(String role) {
-        return findUsersByRole(role)
-                .stream()
-                .map(this::mapToUserResponseDTO)
-                .toList();
+        if (jdbcTemplate == null) {
+            return findUsersByRole(role)
+                    .stream()
+                    .map(this::mapToUserResponseDTO)
+                    .toList();
+        }
+
+        String sql = """
+                SELECT id, username, COALESCE(fullname, full_name, '') AS display_name,
+                       email, role, balance, banned, shop_name
+                FROM users
+                """;
+
+        if (role == null || role.trim().isEmpty()) {
+            return jdbcTemplate.query(sql + " ORDER BY id", this::mapUserRow);
+        }
+
+        return jdbcTemplate.query(
+                sql + " WHERE LOWER(role) = LOWER(?) ORDER BY id",
+                this::mapUserRow,
+                role.trim()
+        );
     }
 
     @Transactional
@@ -104,15 +138,22 @@ public class AdminService {
             throw new RuntimeException("Không thể khóa chính tài khoản admin hiện tại");
         }
 
-        User target = userRepository.findById(targetUserId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy user cần khóa"));
+        if (jdbcTemplate == null) {
+            banUserWithRepository(targetUserId);
+            return;
+        }
 
-        if (target instanceof Admin) {
+        UserSummary target = findUserSummaryById(targetUserId);
+
+        if (isAdminRole(target.role())) {
             throw new RuntimeException("Không được khóa tài khoản Admin khác");
         }
 
-        target.setBanned(true);
-        userRepository.save(target);
+        int updated = jdbcTemplate.update("UPDATE users SET banned = TRUE WHERE id = ?", targetUserId);
+
+        if (updated == 0) {
+            throw new RuntimeException("Không tìm thấy user cần khóa");
+        }
     }
 
     @Transactional
@@ -178,13 +219,52 @@ public class AdminService {
         return admin;
     }
 
+    private void banUserWithRepository(Integer targetUserId) {
+        User target = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy user cần khóa"));
+
+        if (target instanceof Admin) {
+            throw new RuntimeException("Không được khóa tài khoản Admin khác");
+        }
+
+        target.setBanned(true);
+        userRepository.save(target);
+    }
+
+    private UserSummary findUserSummaryById(Integer userId) {
+        List<UserSummary> users = jdbcTemplate.query(
+                "SELECT id, role FROM users WHERE id = ?",
+                (rs, rowNum) -> new UserSummary(rs.getInt("id"), rs.getString("role")),
+                userId
+        );
+
+        if (users.isEmpty()) {
+            throw new RuntimeException("Không tìm thấy user cần khóa");
+        }
+
+        return users.get(0);
+    }
+
+    private UserResponseDTO mapUserRow(ResultSet rs, int rowNum) throws SQLException {
+        UserResponseDTO dto = new UserResponseDTO();
+        dto.setId(rs.getInt("id"));
+        dto.setUsername(nullToEmpty(rs.getString("username")));
+        dto.setFullname(nullToEmpty(rs.getString("display_name")));
+        dto.setEmail(nullToEmpty(rs.getString("email")));
+        dto.setAccountType(normalizeRole(rs.getString("role")));
+        dto.setBalance(defaultMoney(rs.getBigDecimal("balance")));
+        dto.setBanned(rs.getBoolean("banned"));
+        dto.setShopName(nullToEmpty(rs.getString("shop_name")));
+        return dto;
+    }
+
     private UserResponseDTO mapToUserResponseDTO(User user) {
         UserResponseDTO dto = new UserResponseDTO();
         dto.setId(user.getId());
         dto.setUsername(user.getUsername());
         dto.setFullname(user.getFullname());
         dto.setEmail(user.getEmail());
-        dto.setAccountType(user.getAccountType());
+        dto.setAccountType(normalizeRole(user.getAccountType()));
         dto.setBalance(user.getBalance());
         dto.setBanned(user.isBanned());
 
@@ -193,5 +273,28 @@ public class AdminService {
         }
 
         return dto;
+    }
+
+    private String normalizeRole(String role) {
+        if (role == null || role.isBlank()) {
+            return "USER";
+        }
+
+        return role.trim().toUpperCase();
+    }
+
+    private boolean isAdminRole(String role) {
+        return role != null && role.trim().equalsIgnoreCase("admin");
+    }
+
+    private String nullToEmpty(String value) {
+        return value == null ? "" : value;
+    }
+
+    private BigDecimal defaultMoney(BigDecimal value) {
+        return value == null ? BigDecimal.ZERO : value;
+    }
+
+    private record UserSummary(Integer id, String role) {
     }
 }

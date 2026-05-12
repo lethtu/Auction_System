@@ -136,6 +136,9 @@ public final class SellerAuctionFormBuilder {
             return null;
         }
 
+        BigDecimal startingPrice = parsePositiveMoney(startingPriceText, "Giá khởi điểm phải lớn hơn 0.");
+        BigDecimal stepPrice = parsePositiveMoney(stepPriceText, "Bước giá phải lớn hơn 0.");
+
         if (endTime.isEmpty()) {
             endTime = defaultEndTime();
 
@@ -149,8 +152,8 @@ public final class SellerAuctionFormBuilder {
                 productType.trim(),
                 description,
                 imagePath,
-                new BigDecimal(startingPriceText.trim()),
-                new BigDecimal(stepPriceText.trim()),
+                startingPrice,
+                stepPrice,
                 startTime,
                 endTime,
                 sellerId
@@ -184,6 +187,9 @@ public final class SellerAuctionFormBuilder {
             return null;
         }
 
+        BigDecimal startingPrice = parsePositiveMoney(startingPriceText, "Giá khởi điểm phải lớn hơn 0.");
+        BigDecimal stepPrice = parsePositiveMoney(stepPriceText, "Bước giá phải lớn hơn 0.");
+
         if (startTime.isEmpty()) {
             startTime = defaultStartTime();
         }
@@ -197,8 +203,8 @@ public final class SellerAuctionFormBuilder {
                 productType.trim(),
                 description,
                 imagePath,
-                new BigDecimal(startingPriceText.trim()),
-                new BigDecimal(stepPriceText.trim()),
+                startingPrice,
+                stepPrice,
                 startTime,
                 endTime,
                 sellerId
@@ -216,6 +222,21 @@ public final class SellerAuctionFormBuilder {
                 || productType.trim().isEmpty()
                 || startingPriceText.isEmpty()
                 || stepPriceText.isEmpty();
+    }
+
+
+    private static BigDecimal parsePositiveMoney(String value, String message) {
+        try {
+            BigDecimal money = new BigDecimal(value.trim());
+
+            if (money.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException(message);
+            }
+
+            return money;
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Giá khởi điểm và bước giá phải là số hợp lệ.");
+        }
     }
 
     private static String defaultStartTime() {

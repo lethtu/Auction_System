@@ -80,6 +80,7 @@
             </HBox>
 
             <TabPane fx:id="sellerTabPane"
+                     styleClass="navigationless-tab-pane"
                      tabClosingPolicy="UNAVAILABLE"
                      VBox.vgrow="ALWAYS"
                      style="-fx-background-color: #ffffff; -fx-background-radius: 26; -fx-border-color: #f2e8f2; -fx-border-radius: 26; -fx-padding: 12;">
