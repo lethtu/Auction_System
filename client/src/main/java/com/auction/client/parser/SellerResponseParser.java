@@ -47,6 +47,7 @@ public final class SellerResponseParser {
         session.productName = item.optString("productName", "Không rõ");
         session.productType = item.optString("productType", "");
         session.description = item.optString("description", "");
+        session.imagePath = item.optString("imagePath", "");
         session.startingPrice = parseBigDecimal(item, "startingPrice");
         session.currentPrice = parseBigDecimal(item, "currentPrice");
         session.stepPrice = parseBigDecimal(item, "stepPrice");

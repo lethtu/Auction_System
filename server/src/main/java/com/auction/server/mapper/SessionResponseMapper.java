@@ -18,6 +18,7 @@ public final class SessionResponseMapper {
             dto.setProductName(session.getItem().getName());
             dto.setProductType(session.getItem().getType());
             dto.setDescription(session.getItem().getDescription());
+            dto.setImagePath(session.getItem().getImagePath());
         }
 
         if (session.getSeller() != null) {

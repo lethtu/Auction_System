@@ -7,6 +7,7 @@ public class CreateAuctionRequest {
     private String name;
     private String type;
     private String description;
+    private String imagePath;
 
     private Integer sellerId;
     private BigDecimal startingPrice;
@@ -36,6 +37,14 @@ public class CreateAuctionRequest {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
     }
 
     public Integer getSellerId() {

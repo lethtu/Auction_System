@@ -4,10 +4,12 @@ import com.auction.client.Config;
 import com.auction.client.util.HttpRequestUtil;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.net.http.HttpResponse;
 
 public class SellerApiClient {
     private static final String SELLER_API = Config.API_URL + "/api/seller";
+    private static final String FILE_API = Config.API_URL + "/api/files";
 
     public HttpResponse<String> createAuction(JSONObject body) throws Exception {
         return HttpRequestUtil.sendJson("POST", SELLER_API, "/create-auction", body);
@@ -22,9 +24,14 @@ public class SellerApiClient {
         );
     }
 
+    public HttpResponse<String> uploadImage(File imageFile) throws Exception {
+        return HttpRequestUtil.uploadImage(FILE_API, "/images", imageFile);
+    }
+
     public HttpResponse<String> getMySessions(int sellerId) throws Exception {
         return getMySessions(sellerId, null);
     }
+
     public HttpResponse<String> getMySessions(int sellerId, String status) throws Exception {
         String path = "/my-sessions/" + sellerId;
 

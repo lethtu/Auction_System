@@ -12,9 +12,11 @@ import com.auction.client.util.SellerStatsCalculator;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.stage.FileChooser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +30,7 @@ public class SellerDashboardController {
     @FXML private ComboBox<String> productTypeCombo;
     @FXML private TextField productNameField;
     @FXML private TextArea descriptionArea;
+    @FXML private TextField imagePathField;
     @FXML private TextField startingPriceField;
     @FXML private TextField stepPriceField;
     @FXML private TextField endTimeField;
@@ -40,6 +43,7 @@ public class SellerDashboardController {
     private final List<SessionItem> displayedSessions = new ArrayList<>();
 
     private SessionItem editingSession;
+    private File selectedImageFile;
 
     @FXML
     public void initialize() {
@@ -50,6 +54,23 @@ public class SellerDashboardController {
 
         loadMySessions();
         resetSubmitButton();
+    }
+
+    @FXML
+    private void handleChooseImage() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Chọn ảnh sản phẩm");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp")
+        );
+
+        File file = fileChooser.showOpenDialog(btnCreateOrUpdate.getScene().getWindow());
+        if (file == null) {
+            return;
+        }
+
+        selectedImageFile = file;
+        imagePathField.setText(file.getName());
     }
 
     @FXML
@@ -75,6 +96,7 @@ public class SellerDashboardController {
                     productTypeCombo,
                     productNameField,
                     descriptionArea,
+                    imagePathField,
                     startingPriceField,
                     stepPriceField,
                     endTimeField
@@ -84,11 +106,13 @@ public class SellerDashboardController {
                 return;
             }
 
-            ApiResult<Void> api = sellerDashboardService.createAuction(request);
+            ApiResult<Void> api = sellerDashboardService.createAuction(request, selectedImageFile);
             handleMutationResult(api);
 
         } catch (NumberFormatException e) {
             AlertUtil.show(Alert.AlertType.ERROR, "Lỗi dữ liệu", "Giá khởi điểm và bước giá phải là số.");
+        } catch (IllegalStateException e) {
+            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi upload ảnh", e.getMessage());
         } catch (Exception e) {
             logger.error("Lỗi không thể kết nối đến máy chủ: {}", e.getMessage(), e);
             AlertUtil.show(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
@@ -109,6 +133,7 @@ public class SellerDashboardController {
                     productTypeCombo,
                     productNameField,
                     descriptionArea,
+                    imagePathField,
                     startingPriceField,
                     stepPriceField,
                     endTimeField
@@ -118,11 +143,13 @@ public class SellerDashboardController {
                 return;
             }
 
-            ApiResult<Void> api = sellerDashboardService.updateSession(editingSession.id, sellerId, request);
+            ApiResult<Void> api = sellerDashboardService.updateSession(editingSession.id, sellerId, request, selectedImageFile);
             handleMutationResult(api);
 
         } catch (NumberFormatException e) {
             AlertUtil.show(Alert.AlertType.ERROR, "Lỗi dữ liệu", "Giá khởi điểm và bước giá phải là số.");
+        } catch (IllegalStateException e) {
+            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi upload ảnh", e.getMessage());
         } catch (Exception e) {
             logger.error("Lỗi không thể kết nối đến máy chủ: {}", e.getMessage(), e);
             AlertUtil.show(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
@@ -209,9 +236,13 @@ public class SellerDashboardController {
         productNameField.setText(safeText(session.productName));
         productTypeCombo.setValue(safeText(session.productType));
         descriptionArea.setText(safeText(session.description));
+        imagePathField.setText(safeText(session.imagePath));
         startingPriceField.setText(session.startingPrice == null ? "" : session.startingPrice.toPlainString());
         stepPriceField.setText(session.stepPrice == null ? "" : session.stepPrice.toPlainString());
-        endTimeField.setText(safeText(session.endTime));
+        if (endTimeField != null) {
+            endTimeField.setText(safeText(session.endTime));
+        }
+        selectedImageFile = null;
     }
 
     private void handleMutationResult(ApiResult<Void> api) {
@@ -325,14 +356,19 @@ public class SellerDashboardController {
 
     private void clearForm() {
         editingSession = null;
+        selectedImageFile = null;
 
         productNameField.clear();
         descriptionArea.clear();
+        imagePathField.clear();
         startingPriceField.clear();
         stepPriceField.clear();
-        endTimeField.clear();
 
-        SellerAuctionFormBuilder.fillDefaultEndTime(endTimeField);
+        if (endTimeField != null) {
+            endTimeField.clear();
+            SellerAuctionFormBuilder.fillDefaultEndTime(endTimeField);
+        }
+
         productTypeCombo.setValue("Electronics");
         resetSubmitButton();
     }

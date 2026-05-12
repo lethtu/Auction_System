@@ -6,6 +6,7 @@ public class CreateAuctionRequest {
     public final String productName;
     public final String productType;
     public final String description;
+    public final String imagePath;
     public final BigDecimal startingPrice;
     public final BigDecimal stepPrice;
     public final String startTime;
@@ -22,9 +23,24 @@ public class CreateAuctionRequest {
             String endTime,
             int sellerId
     ) {
+        this(productName, productType, description, null, startingPrice, stepPrice, startTime, endTime, sellerId);
+    }
+
+    public CreateAuctionRequest(
+            String productName,
+            String productType,
+            String description,
+            String imagePath,
+            BigDecimal startingPrice,
+            BigDecimal stepPrice,
+            String startTime,
+            String endTime,
+            int sellerId
+    ) {
         this.productName = productName;
         this.productType = productType;
         this.description = description;
+        this.imagePath = imagePath;
         this.startingPrice = startingPrice;
         this.stepPrice = stepPrice;
         this.startTime = startTime;

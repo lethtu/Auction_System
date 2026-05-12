@@ -14,6 +14,11 @@ public final class SellerRequestBuilder {
         body.put("name", request.productName);
         body.put("type", request.productType);
         body.put("description", request.description);
+
+        if (request.imagePath != null && !request.imagePath.trim().isEmpty()) {
+            body.put("imagePath", request.imagePath.trim());
+        }
+
         body.put("startingPrice", request.startingPrice);
         body.put("stepPrice", request.stepPrice);
         body.put("startTime", request.startTime);

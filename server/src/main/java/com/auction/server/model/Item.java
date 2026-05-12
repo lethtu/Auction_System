@@ -18,6 +18,8 @@ public abstract class Item {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    private String imagePath;
+
     public abstract String getCategoryInfo();
 
     public Integer getId() {
@@ -50,5 +52,13 @@ public abstract class Item {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
     }
 }

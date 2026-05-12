@@ -13,6 +13,7 @@ public final class SellerSessionUpdater {
         item.setName(request.getName());
         item.setType(request.getType());
         item.setDescription(request.getDescription());
+        item.setImagePath(request.getImagePath());
     }
 
     public static void updateSessionFromRequest(AuctionSession session, CreateAuctionRequest request) {

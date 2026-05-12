@@ -7,6 +7,7 @@
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
@@ -67,7 +68,9 @@
             </Tab>
 
             <Tab fx:id="tabCreateSession" text="Tạo phiên">
-                <VBox spacing="10" style="-fx-background-color: white;">
+                <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" style="-fx-background-color: white;">
+                    <content>
+                        <VBox spacing="10" style="-fx-background-color: white;">
                     <padding>
                         <Insets top="15" right="15" bottom="15" left="15"/>
                     </padding>
@@ -77,6 +80,12 @@
 
                     <Label text="Loại sản phẩm"/>
                     <ComboBox fx:id="productTypeCombo"/>
+
+                    <Label text="Ảnh sản phẩm"/>
+                    <HBox spacing="10">
+                        <TextField fx:id="imagePathField" editable="false" promptText="Chưa chọn ảnh" HBox.hgrow="ALWAYS"/>
+                        <Button text="Chọn ảnh" onAction="#handleChooseImage"/>
+                    </HBox>
 
 
                     <Label text="Mô tả"/>
@@ -105,7 +114,9 @@
                             onAction="#handleCreateSession"
                             prefHeight="40"
                             style="-fx-background-color: #22c55e; -fx-text-fill: white; -fx-font-size: 14;"/>
-                </VBox>
+                        </VBox>
+                    </content>
+                </ScrollPane>
             </Tab>
 
             <Tab text="Thống kê">

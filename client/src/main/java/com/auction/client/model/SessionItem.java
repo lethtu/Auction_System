@@ -7,6 +7,7 @@ public class SessionItem {
     public String productName = "";
     public String productType = "";
     public String description = "";
+    public String imagePath = "";
     public BigDecimal startingPrice = BigDecimal.ZERO;
     public BigDecimal currentPrice = BigDecimal.ZERO;
     public BigDecimal stepPrice = BigDecimal.ZERO;

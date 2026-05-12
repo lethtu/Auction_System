@@ -35,6 +35,7 @@ public final class ItemFactory {
             item.setName(params.getName());
             item.setType(params.getType());
             item.setDescription(params.getDescription());
+            item.setImagePath(params.getImagePath());
         }
 
         return item;

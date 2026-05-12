@@ -27,17 +27,6 @@ public class AuctionSchedulerService {
     public void scanAndUpdateAuctionStatus() {
         LocalDateTime now = LocalDateTime.now();
 
-        List<AuctionSession> pendingSessions = auctionSessionRepository
-                .findByStatusAndStartTimeLessThanEqual(AuctionStatus.PENDING, now);
-
-        for (AuctionSession session : pendingSessions) {
-            session.setStatus(AuctionStatus.ACTIVE);
-        }
-
-        if (!pendingSessions.isEmpty()) {
-            auctionSessionRepository.saveAll(pendingSessions);
-        }
-
         List<AuctionSession> activeSessions = auctionSessionRepository
                 .findByStatusAndEndTimeLessThanEqual(AuctionStatus.ACTIVE, now);
 
@@ -47,13 +36,9 @@ public class AuctionSchedulerService {
 
         if (!activeSessions.isEmpty()) {
             auctionSessionRepository.saveAll(activeSessions);
-        }
-
-        if (!pendingSessions.isEmpty() || !activeSessions.isEmpty()) {
             logger.info(
-                    "[SCHEDULER] Lúc {} | Đã mở {} phiên | Đã đóng {} phiên.",
+                    "[SCHEDULER] Lúc {} | Đã đóng {} phiên ACTIVE quá hạn.",
                     now,
-                    pendingSessions.size(),
                     activeSessions.size()
             );
         }

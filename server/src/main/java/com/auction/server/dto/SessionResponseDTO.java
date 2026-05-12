@@ -11,6 +11,7 @@ public class SessionResponseDTO {
     private String productName;
     private String productType;
     private String description;
+    private String imagePath;
 
     private Integer sellerId;
     private String sellerUsername;
@@ -73,6 +74,14 @@ public class SessionResponseDTO {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
     }
 
     public Integer getSellerId() {

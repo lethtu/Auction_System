@@ -19,6 +19,7 @@ public final class SellerAuctionFormBuilder {
             ComboBox<String> productTypeCombo,
             TextInputControl productNameField,
             TextInputControl descriptionArea,
+            TextInputControl imagePathField,
             TextInputControl startingPriceField,
             TextInputControl stepPriceField,
             TextInputControl endTimeField
@@ -26,6 +27,7 @@ public final class SellerAuctionFormBuilder {
         String productName = textOrEmpty(productNameField);
         String productType = productTypeCombo == null ? null : productTypeCombo.getValue();
         String description = textOrEmpty(descriptionArea);
+        String imagePath = textOrEmpty(imagePathField);
         String startingPriceText = textOrEmpty(startingPriceField);
         String stepPriceText = textOrEmpty(stepPriceField);
         String startTime = defaultStartTime();
@@ -49,6 +51,7 @@ public final class SellerAuctionFormBuilder {
                 productName,
                 productType,
                 description,
+                imagePath,
                 new BigDecimal(startingPriceText.trim()),
                 new BigDecimal(stepPriceText.trim()),
                 startTime,
@@ -63,6 +66,7 @@ public final class SellerAuctionFormBuilder {
             ComboBox<String> productTypeCombo,
             TextInputControl productNameField,
             TextInputControl descriptionArea,
+            TextInputControl imagePathField,
             TextInputControl startingPriceField,
             TextInputControl stepPriceField,
             TextInputControl endTimeField
@@ -70,6 +74,7 @@ public final class SellerAuctionFormBuilder {
         String productName = valueOrDefault(textOrEmpty(productNameField), selected.productName);
         String productType = valueOrDefault(productTypeCombo == null ? null : productTypeCombo.getValue(), selected.productType);
         String description = valueOrDefault(textOrEmpty(descriptionArea), selected.description);
+        String imagePath = valueOrDefault(textOrEmpty(imagePathField), selected.imagePath);
         String startingPriceText = valueOrDefault(textOrEmpty(startingPriceField), bigDecimalText(selected.startingPrice));
         String stepPriceText = valueOrDefault(textOrEmpty(stepPriceField), bigDecimalText(selected.stepPrice));
         String startTime = defaultStartTime();
@@ -85,6 +90,7 @@ public final class SellerAuctionFormBuilder {
                 productName,
                 productType,
                 description,
+                imagePath,
                 new BigDecimal(startingPriceText.trim()),
                 new BigDecimal(stepPriceText.trim()),
                 startTime,
