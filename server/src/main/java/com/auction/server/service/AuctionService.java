@@ -129,7 +129,15 @@ public class AuctionService {
                 return new BidResponse(false, "Lỗi: Tài khoản người dùng không tồn tại!", currentPrice, null);
             }
         }
-        else{
+        else {
+            // TASK 7: Ném Exception nếu phiên đã kết thúc hoặc bị hủy
+            if (item.getStatus() == AuctionStatus.ENDED || item.getStatus() == AuctionStatus.CANCELED) {
+                logger.warn("Chặn đặt giá: Phiên {} đã đóng.", ItemAuctionId);
+                // Đảm bảo package import khớp với project của cậu
+                throw new com.auction.server.exception.AuctionClosedException("Lỗi: Phiên đấu giá này đã kết thúc hoặc bị hủy!", ItemAuctionId);
+            }
+
+            // Nếu chỉ là PENDING (chưa mở) thì trả về false bình thường
             logger.error("Lỗi: Phiên đấu giá: {} hiện đang có trạng thái: {}", ItemAuctionId, item.getStatus());
             return new BidResponse(false, "Lỗi: Phiên này chưa được phép đấu giá", currentPrice, null);
         }
