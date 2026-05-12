@@ -3,6 +3,7 @@ package com.auction.client.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
+import com.auction.client.HttpClientSingleton;
 import com.auction.client.model.User;
 import javafx.scene.control.Alert;
 import javafx.event.ActionEvent;
@@ -18,7 +19,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 public class LoginController {
-    private HttpClient client = HttpClient.newHttpClient();
+    private HttpClient client = HttpClientSingleton.getInstance().getHttpClient();
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
     @FXML private TextField txtUsername;
     @FXML private PasswordField txtPassword;

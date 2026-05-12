@@ -4,6 +4,7 @@ import javafx.event.ActionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
+import com.auction.client.HttpClientSingleton;
 import com.auction.client.model.User;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -40,7 +41,7 @@ public class AdminDashboardController {
     @FXML
     private TableColumn<PendingSessionRow, Double> colPrice;
 
-    private final HttpClient client = HttpClient.newHttpClient();
+    private final HttpClient client = HttpClientSingleton.getInstance().getHttpClient();
 
     @FXML
     public void initialize() {

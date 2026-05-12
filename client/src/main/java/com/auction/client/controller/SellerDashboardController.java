@@ -3,6 +3,7 @@ package com.auction.client.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
+import com.auction.client.HttpClientSingleton;
 import com.auction.client.model.User;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -38,7 +39,7 @@ public class SellerDashboardController {
     @FXML private DatePicker datePickerEnd;
     @FXML private TextField txtEndTime;
 
-    private final HttpClient httpClient = HttpClient.newHttpClient();
+    private final HttpClient httpClient = HttpClientSingleton.getInstance().getHttpClient();
     private final List<SessionItem> allSessions = new ArrayList<>();
     private final List<SessionItem> displayedSessions = new ArrayList<>();
 

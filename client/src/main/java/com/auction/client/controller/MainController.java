@@ -7,6 +7,7 @@ import javafx.fxml.FXMLLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
+import com.auction.client.HttpClientSingleton;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -35,11 +36,13 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MainController implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(MainController.class);
-    private HttpClient client = HttpClient.newHttpClient();
+    private HttpClient client = HttpClientSingleton.getInstance().getHttpClient();
 
     @FXML private MenuButton userMenuButton;
     @FXML private FlowPane productContainer;
@@ -50,6 +53,9 @@ public class MainController implements Initializable {
 
     // Kho lưu trữ Caching cục bộ, giúp Real-time filter không bị trễ
     private final List<JSONObject> allProducts = new ArrayList<>();
+
+    // Cache ảnh để tránh tải lại mỗi lần render
+    private final Map<String, Image> imageCache = new ConcurrentHashMap<>();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -205,14 +211,18 @@ public class MainController implements Initializable {
         VBox vbox = new VBox();
         vbox.setSpacing(10.0);
         vbox.setPrefWidth(220.0);
-        vbox.setStyle("-fx-border-color: #dee2e6; -fx-border-radius: 5px; -fx-padding: 10px; -fx-background-color: white;");
+        vbox.setStyle("-fx-border-color: #dee2e6; -fx-border-color: #dee2e6; -fx-padding: 10px; -fx-background-color: white;");
 
         ImageView imageView = new ImageView();
         try {
             if (!imagePath.isEmpty()) {
-                String imageUrl = Config.API_URL + "/api/files/images/" + imagePath;
-                Image image = new Image(imageUrl, true);
-                imageView.setImage(image);
+                Image cached = imageCache.get(imagePath);
+                if (cached == null || cached.isError()) {
+                    String imageUrl = Config.API_URL + "/api/files/images/" + imagePath;
+                    cached = new Image(imageUrl, true);
+                    imageCache.put(imagePath, cached);
+                }
+                imageView.setImage(cached);
             } else {
                 logger.info("Không có ảnh");
                 throw new Exception("Không có ảnh");
