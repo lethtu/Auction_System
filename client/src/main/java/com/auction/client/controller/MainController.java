@@ -50,7 +50,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MainController implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(MainController.class);
     
-    // Nạp font chữ tĩnh trước khi FXML parse các component con
     static {
         try {
             java.io.InputStream fontStream = MainController.class.getResourceAsStream("/com/auction/client/view/fonts/MaterialIcons-Regular.ttf");
