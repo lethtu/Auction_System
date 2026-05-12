@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 public class CreateAuctionRequest {
     public final String productName;
     public final String productType;
-    public final String imageUrl;
     public final String description;
     public final BigDecimal startingPrice;
     public final BigDecimal stepPrice;
@@ -16,7 +15,6 @@ public class CreateAuctionRequest {
     public CreateAuctionRequest(
             String productName,
             String productType,
-            String imageUrl,
             String description,
             BigDecimal startingPrice,
             BigDecimal stepPrice,
@@ -26,7 +24,6 @@ public class CreateAuctionRequest {
     ) {
         this.productName = productName;
         this.productType = productType;
-        this.imageUrl = imageUrl;
         this.description = description;
         this.startingPrice = startingPrice;
         this.stepPrice = stepPrice;

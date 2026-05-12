@@ -78,8 +78,6 @@
                     <Label text="Loại sản phẩm"/>
                     <ComboBox fx:id="productTypeCombo"/>
 
-                    <Label text="Link ảnh"/>
-                    <TextField fx:id="imageUrlField" promptText="https://..."/>
 
                     <Label text="Mô tả"/>
                     <TextArea fx:id="descriptionArea" prefRowCount="4"/>

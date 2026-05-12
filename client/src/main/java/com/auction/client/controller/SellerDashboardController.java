@@ -27,7 +27,6 @@ public class SellerDashboardController {
     @FXML private ListView<String> mySessionsList;
     @FXML private ComboBox<String> productTypeCombo;
     @FXML private TextField productNameField;
-    @FXML private TextField imageUrlField;
     @FXML private TextArea descriptionArea;
     @FXML private TextField startingPriceField;
     @FXML private TextField stepPriceField;
@@ -75,7 +74,6 @@ public class SellerDashboardController {
                     sellerId,
                     productTypeCombo,
                     productNameField,
-                    imageUrlField,
                     descriptionArea,
                     startingPriceField,
                     stepPriceField,
@@ -110,7 +108,6 @@ public class SellerDashboardController {
                     editingSession,
                     productTypeCombo,
                     productNameField,
-                    imageUrlField,
                     descriptionArea,
                     startingPriceField,
                     stepPriceField,
@@ -211,7 +208,6 @@ public class SellerDashboardController {
     private void fillFormFromSession(SessionItem session) {
         productNameField.setText(safeText(session.productName));
         productTypeCombo.setValue(safeText(session.productType));
-        imageUrlField.setText(safeText(session.imageUrl));
         descriptionArea.setText(safeText(session.description));
         startingPriceField.setText(session.startingPrice == null ? "" : session.startingPrice.toPlainString());
         stepPriceField.setText(session.stepPrice == null ? "" : session.stepPrice.toPlainString());
@@ -331,7 +327,6 @@ public class SellerDashboardController {
         editingSession = null;
 
         productNameField.clear();
-        imageUrlField.clear();
         descriptionArea.clear();
         startingPriceField.clear();
         stepPriceField.clear();

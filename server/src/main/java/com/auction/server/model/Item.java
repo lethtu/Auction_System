@@ -15,9 +15,6 @@ public abstract class Item {
     private String name;
     private String type;
 
-    @Column(name = "image_path")
-    private String imagePath;
-
     @Column(columnDefinition = "TEXT")
     private String description;
 
@@ -45,14 +42,6 @@ public abstract class Item {
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    public String getImagePath() {
-        return imagePath;
-    }
-
-    public void setImagePath(String imagePath) {
-        this.imagePath = imagePath;
     }
 
     public String getDescription() {

@@ -18,7 +18,6 @@ public final class SellerAuctionFormBuilder {
             int sellerId,
             ComboBox<String> productTypeCombo,
             TextInputControl productNameField,
-            TextInputControl imageUrlField,
             TextInputControl descriptionArea,
             TextInputControl startingPriceField,
             TextInputControl stepPriceField,
@@ -26,7 +25,6 @@ public final class SellerAuctionFormBuilder {
     ) {
         String productName = textOrEmpty(productNameField);
         String productType = productTypeCombo == null ? null : productTypeCombo.getValue();
-        String imageUrl = textOrEmpty(imageUrlField);
         String description = textOrEmpty(descriptionArea);
         String startingPriceText = textOrEmpty(startingPriceField);
         String stepPriceText = textOrEmpty(stepPriceField);
@@ -50,7 +48,6 @@ public final class SellerAuctionFormBuilder {
         return new CreateAuctionRequest(
                 productName,
                 productType,
-                imageUrl,
                 description,
                 new BigDecimal(startingPriceText.trim()),
                 new BigDecimal(stepPriceText.trim()),
@@ -65,7 +62,6 @@ public final class SellerAuctionFormBuilder {
             SessionItem selected,
             ComboBox<String> productTypeCombo,
             TextInputControl productNameField,
-            TextInputControl imageUrlField,
             TextInputControl descriptionArea,
             TextInputControl startingPriceField,
             TextInputControl stepPriceField,
@@ -73,7 +69,6 @@ public final class SellerAuctionFormBuilder {
     ) {
         String productName = valueOrDefault(textOrEmpty(productNameField), selected.productName);
         String productType = valueOrDefault(productTypeCombo == null ? null : productTypeCombo.getValue(), selected.productType);
-        String imageUrl = valueOrDefault(textOrEmpty(imageUrlField), selected.imageUrl);
         String description = valueOrDefault(textOrEmpty(descriptionArea), selected.description);
         String startingPriceText = valueOrDefault(textOrEmpty(startingPriceField), bigDecimalText(selected.startingPrice));
         String stepPriceText = valueOrDefault(textOrEmpty(stepPriceField), bigDecimalText(selected.stepPrice));
@@ -89,7 +84,6 @@ public final class SellerAuctionFormBuilder {
         return new CreateAuctionRequest(
                 productName,
                 productType,
-                imageUrl,
                 description,
                 new BigDecimal(startingPriceText.trim()),
                 new BigDecimal(stepPriceText.trim()),

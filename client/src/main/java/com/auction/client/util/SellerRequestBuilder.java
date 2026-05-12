@@ -13,7 +13,6 @@ public final class SellerRequestBuilder {
 
         body.put("name", request.productName);
         body.put("type", request.productType);
-        body.put("imagePath", request.imageUrl);
         body.put("description", request.description);
         body.put("startingPrice", request.startingPrice);
         body.put("stepPrice", request.stepPrice);

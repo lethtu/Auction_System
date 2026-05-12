@@ -10,7 +10,6 @@ public class SessionResponseDTO {
     private Integer productId;
     private String productName;
     private String productType;
-    private String imageUrl;
     private String description;
 
     private Integer sellerId;
@@ -66,14 +65,6 @@ public class SessionResponseDTO {
 
     public void setProductType(String productType) {
         this.productType = productType;
-    }
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
     }
 
     public String getDescription() {

@@ -11,13 +11,10 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
@@ -179,8 +176,6 @@ public class MainController implements Initializable {
 
                     String startTime = sessionObj.isNull("startTime") ? "Chưa bắt đầu" : sessionObj.getString("startTime").replace("T", " ");
                     String endTime = sessionObj.isNull("endTime") ? "Chưa rõ" : sessionObj.getString("endTime").replace("T", " ");
-                    String imagePath = itemObj.optString("imagePath", "default.png");
-
                     // Truyền cả type (thể loại) và status (trạng thái) vào
                     VBox card = createProductCard(sessionObj, itemObj);
                     productContainer.getChildren().add(card);
@@ -200,37 +195,10 @@ public class MainController implements Initializable {
 
         String startTime = sessionObj.isNull("startTime") ? "Chưa bắt đầu" : sessionObj.getString("startTime").replace("T", " ");
         String endTime = sessionObj.isNull("endTime") ? "Chưa rõ" : sessionObj.getString("endTime").replace("T", " ");
-        String imagePath = itemObj.optString("imagePath", "default.png");
-
         VBox vbox = new VBox();
         vbox.setSpacing(10.0);
         vbox.setPrefWidth(220.0);
         vbox.setStyle("-fx-border-color: #dee2e6; -fx-border-radius: 5px; -fx-padding: 10px; -fx-background-color: white;");
-
-        ImageView imageView = new ImageView();
-        try {
-            if (!imagePath.isEmpty()) {
-                String imageUrl = Config.API_URL + "/api/files/images/" + imagePath;
-                Image image = new Image(imageUrl, true);
-                imageView.setImage(image);
-            } else {
-                logger.info("Không có ảnh");
-                throw new Exception("Không có ảnh");
-            }
-        } catch (Exception e) {
-            Label errorLabel = new Label("No Image");
-            errorLabel.setAlignment(Pos.CENTER);
-            errorLabel.setPrefSize(200.0, 130.0);
-            errorLabel.setStyle("-fx-background-color: #f8f9fa; -fx-text-fill: #adb5bd;");
-            vbox.getChildren().add(errorLabel);
-        }
-
-        if (imageView.getImage() != null) {
-            imageView.setFitHeight(130.0);
-            imageView.setFitWidth(200.0);
-            imageView.setPreserveRatio(true);
-            vbox.getChildren().add(imageView);
-        }
 
         Label nameLabel = new Label(name);
         nameLabel.setFont(Font.font("System", FontWeight.BOLD, 14.0));

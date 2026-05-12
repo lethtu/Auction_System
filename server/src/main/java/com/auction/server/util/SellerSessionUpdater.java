@@ -12,7 +12,6 @@ public final class SellerSessionUpdater {
     public static void updateItemFromRequest(Item item, CreateAuctionRequest request) {
         item.setName(request.getName());
         item.setType(request.getType());
-        item.setImagePath(request.getImagePath());
         item.setDescription(request.getDescription());
     }
 
