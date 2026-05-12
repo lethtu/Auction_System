@@ -49,9 +49,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class MainController implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(MainController.class);
-<<<<<<< HEAD
-    private HttpClient client = HttpClientSingleton.getInstance().getHttpClient();
-=======
     
     // Nạp font chữ tĩnh trước khi FXML parse các component con
     static {
@@ -76,7 +73,6 @@ public class MainController implements Initializable {
     }
 
     private HttpClient client = HttpClient.newHttpClient();
->>>>>>> e4070f6d1e5dd0d0bef922b21b6e6c575eccc7f8
 
     @FXML private MenuButton userMenuButton;
     @FXML private ScrollPane scrollPane;
@@ -274,11 +270,6 @@ public class MainController implements Initializable {
         String imagePath = itemObj.optString("imagePath", "default.png");
 
         VBox vbox = new VBox();
-<<<<<<< HEAD
-        vbox.setSpacing(10.0);
-        vbox.setPrefWidth(220.0);
-        vbox.setStyle("-fx-border-color: #dee2e6; -fx-border-color: #dee2e6; -fx-padding: 10px; -fx-background-color: white;");
-=======
         vbox.setSpacing(4.0);
         vbox.setPrefWidth(240.0);
         vbox.setMinWidth(240.0);
@@ -290,7 +281,6 @@ public class MainController implements Initializable {
         StackPane imageWrapper = new StackPane();
         imageWrapper.setPrefHeight(192.0);
         imageWrapper.setStyle("-fx-background-radius: 12px; -fx-border-radius: 12px; -fx-border-color: #f2e8f2; -fx-border-width: 1px;");
->>>>>>> e4070f6d1e5dd0d0bef922b21b6e6c575eccc7f8
 
         ImageView imageView = new ImageView();
         try {
