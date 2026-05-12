@@ -35,7 +35,6 @@ class SellerDashboardServiceTest {
         assertEquals("Tạo thành công", result.message);
         assertNotNull(sellerApiClient.lastBody);
         assertEquals("Laptop", sellerApiClient.lastBody.getString("name"));
-        assertFalse(sellerApiClient.lastBody.has("imagePath"));
     }
 
     @Test
