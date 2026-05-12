@@ -19,6 +19,7 @@
         <junit.version>5.9.2</junit.version>
         <testfx.version>4.0.18</testfx.version>
         <mockito.version>5.3.1</mockito.version>
+        <bytebuddy.version>1.17.7</bytebuddy.version>
     </properties>
 
     <dependencies>
@@ -95,6 +96,13 @@
             <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
+        <!-- ByteBuddy Agent: bắt buộc để Mockito inline mock trên JDK 21+ -->
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy-agent</artifactId>
+            <version>${bytebuddy.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
@@ -112,6 +120,7 @@
                     <include>**/*.css</include>
                     <include>**/*.png</include>
                     <include>**/*.jpg</include>
+                    <include>**/*.ttf</include>
                 </includes>
             </resource>
             <resource>
@@ -135,6 +144,18 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
+                <configuration>
+                    <argLine>
+                        -Dnet.bytebuddy.experimental=true
+                        -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${bytebuddy.version}/byte-buddy-agent-${bytebuddy.version}.jar
+                        --add-opens javafx.graphics/com.sun.javafx.application=ALL-UNNAMED
+                        --add-opens javafx.graphics/com.sun.javafx.stage=ALL-UNNAMED
+                        --add-opens javafx.base/com.sun.javafx.reflect=ALL-UNNAMED
+                        --add-opens javafx.base/com.sun.javafx.beans=ALL-UNNAMED
+                        --add-opens javafx.controls/com.sun.javafx.scene.control=ALL-UNNAMED
+                        --add-exports javafx.graphics/com.sun.javafx.application=ALL-UNNAMED
+                    </argLine>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.openjfx</groupId>

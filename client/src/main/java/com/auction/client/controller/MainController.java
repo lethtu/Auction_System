@@ -7,16 +7,27 @@ import javafx.fxml.FXMLLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
+import com.auction.client.HttpClientSingleton;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.Priority;
+import javafx.scene.control.Separator;
+import javafx.geometry.Insets;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.paint.Color;
@@ -32,13 +43,38 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MainController implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(MainController.class);
+    
+    static {
+        try {
+            java.io.InputStream fontStream = MainController.class.getResourceAsStream("/com/auction/client/view/fonts/MaterialIcons-Regular.ttf");
+            if (fontStream != null) {
+                javafx.scene.text.Font.loadFont(fontStream, 20);
+            }
+            
+            java.io.InputStream fontStream2 = MainController.class.getResourceAsStream("/com/auction/client/view/fonts/MaterialSymbolsOutlined.ttf");
+            if (fontStream2 != null) {
+                javafx.scene.text.Font.loadFont(fontStream2, 20);
+            }
+
+            java.io.InputStream fontStream3 = MainController.class.getResourceAsStream("/com/auction/client/view/fonts/DMSans-Variable.ttf");
+            if (fontStream3 != null) {
+                javafx.scene.text.Font.loadFont(fontStream3, 14);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private HttpClient client = HttpClient.newHttpClient();
 
     @FXML private MenuButton userMenuButton;
+    @FXML private ScrollPane scrollPane;
     @FXML private FlowPane productContainer;
     @FXML private TextField txtSearch;
     @FXML private ComboBox<String> cbCategory;
@@ -47,6 +83,9 @@ public class MainController implements Initializable {
 
     // Kho lưu trữ Caching cục bộ, giúp Real-time filter không bị trễ
     private final List<JSONObject> allProducts = new ArrayList<>();
+
+    // Cache ảnh để tránh tải lại mỗi lần render
+    private final Map<String, Image> imageCache = new ConcurrentHashMap<>();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -72,12 +111,40 @@ public class MainController implements Initializable {
         cbCategory.setOnAction(event -> filterAndRenderProducts());
         cbStatus.setOnAction(event -> filterAndRenderProducts());
 
+        // Thuật toán Space-Evenly động cho danh sách sản phẩm
+        scrollPane.viewportBoundsProperty().addListener((obs, oldBounds, newBounds) -> {
+            updateGridLayout();
+        });
+
         loadProductsFromServer();
     }
 
+    private void updateGridLayout() {
+        if (scrollPane == null || productContainer == null) return;
+        
+        // Tăng buffer lên 8px để triệt tiêu hoàn toàn sai số từ Border hoặc Scrollbar
+        double width = scrollPane.getViewportBounds().getWidth() - 8.0;
+        if (width <= 0) return;
+
+        double w = 240.0; // Chiều rộng thẻ sản phẩm
+        double minGap = 12.0; // Ngưỡng tối thiểu
+        
+        // Tính số lượng thẻ tối đa có thể vừa 1 hàng (n)
+        int n = (int) ((width - minGap) / (w + minGap));
+        if (n < 1) n = 1;
+        
+        // Tính khoảng cách chuẩn g
+        double g = Math.floor((width - n * w) / (n + 1));
+        if (g < 0) g = 0;
+        
+        productContainer.setHgap(g);
+
+        // Luôn căn trái: padding = g cho cả trường hợp đủ hàng hay ít sản phẩm
+        productContainer.setPadding(new javafx.geometry.Insets(10.0, g, 10.0, g));
+    }
+
     private void createUserOption(String text) {
-        Label titleLabel = new Label(text);
-        userMenuButton.setText(text);
+        // userMenuButton.setText(text); // Đã ẩn tên để chỉ hiện Avatar
 
         MenuItem accountItem = new MenuItem("Tài Khoản Của Tôi");
         MenuItem depositMoney = new MenuItem("Nạp tiền");
@@ -176,11 +243,15 @@ public class MainController implements Initializable {
 
                     String startTime = sessionObj.isNull("startTime") ? "Chưa bắt đầu" : sessionObj.getString("startTime").replace("T", " ");
                     String endTime = sessionObj.isNull("endTime") ? "Chưa rõ" : sessionObj.getString("endTime").replace("T", " ");
+                    String imagePath = itemObj.optString("imagePath", "default.png");
+
                     // Truyền cả type (thể loại) và status (trạng thái) vào
                     VBox card = createProductCard(sessionObj, itemObj);
                     productContainer.getChildren().add(card);
                 }
             }
+            // Sau khi đổ xong dữ liệu, tính toán lại Layout
+            updateGridLayout();
         });
     }
 
@@ -195,73 +266,120 @@ public class MainController implements Initializable {
 
         String startTime = sessionObj.isNull("startTime") ? "Chưa bắt đầu" : sessionObj.getString("startTime").replace("T", " ");
         String endTime = sessionObj.isNull("endTime") ? "Chưa rõ" : sessionObj.getString("endTime").replace("T", " ");
+        String imagePath = itemObj.optString("imagePath", "default.png");
+
         VBox vbox = new VBox();
-        vbox.setSpacing(10.0);
-        vbox.setPrefWidth(220.0);
-        vbox.setStyle("-fx-border-color: #dee2e6; -fx-border-radius: 5px; -fx-padding: 10px; -fx-background-color: white;");
+        vbox.setSpacing(4.0);
+        vbox.setPrefWidth(240.0);
+        vbox.setMinWidth(240.0);
+        vbox.setMaxWidth(240.0);
+        vbox.setPrefHeight(360.0);
+        vbox.setMinHeight(360.0);
+        vbox.setStyle("-fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-padding: 16px; -fx-background-color: #ffffff; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.05), 10, 0, 0, 2);");
+
+        StackPane imageWrapper = new StackPane();
+        imageWrapper.setPrefHeight(192.0);
+        imageWrapper.setStyle("-fx-background-radius: 12px; -fx-border-radius: 12px; -fx-border-color: #f2e8f2; -fx-border-width: 1px;");
+
+        ImageView imageView = new ImageView();
+        try {
+            if (!imagePath.isEmpty()) {
+                Image cached = imageCache.get(imagePath);
+                if (cached == null || cached.isError()) {
+                    String imageUrl = Config.API_URL + "/api/files/images/" + imagePath;
+                    cached = new Image(imageUrl, true);
+                    imageCache.put(imagePath, cached);
+                }
+                imageView.setImage(cached);
+            } else {
+                throw new Exception("Không có ảnh");
+            }
+        } catch (Exception e) {
+            Label errorLabel = new Label("No Image");
+            errorLabel.setAlignment(Pos.CENTER);
+            errorLabel.setStyle("-fx-text-fill: #adb5bd;");
+            imageWrapper.getChildren().add(errorLabel);
+        }
+
+        if (imageView.getImage() != null) {
+            imageView.setFitHeight(192.0);
+            imageView.setFitWidth(208.0);
+            imageView.setPreserveRatio(true);
+            imageWrapper.getChildren().add(imageView);
+        }
+
+        String shortEnd = endTime.length() >= 16 ? endTime.substring(0, 16) : endTime;
+        if ("ACTIVE".equalsIgnoreCase(status)) {
+            HBox timerBadge = new HBox(4.0);
+            timerBadge.setStyle("-fx-background-color: rgba(255, 255, 255, 0.9); -fx-background-radius: 15px; -fx-padding: 4px 8px;");
+            timerBadge.setAlignment(Pos.CENTER);
+            timerBadge.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+
+            Label timerIcon = new Label("\uE8B5");
+            timerIcon.getStyleClass().add("material-icon");
+            timerIcon.setStyle("-fx-text-fill: #e040a0; -fx-font-size: 14px;");
+
+            Label timerText = new Label(shortEnd.length() > 11 ? shortEnd.substring(11) : shortEnd);
+            timerText.setStyle("-fx-font-weight: 900; -fx-font-size: 11px; -fx-text-fill: #e040a0;");
+
+            timerBadge.getChildren().addAll(timerIcon, timerText);
+            StackPane.setAlignment(timerBadge, Pos.TOP_RIGHT);
+            StackPane.setMargin(timerBadge, new Insets(8, 8, 0, 0));
+            imageWrapper.getChildren().add(timerBadge);
+        }
 
         Label nameLabel = new Label(name);
-        nameLabel.setFont(Font.font("System", FontWeight.BOLD, 14.0));
+        nameLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 16px; -fx-text-fill: #2e1a28;");
         nameLabel.setWrapText(true);
+        nameLabel.setMaxHeight(24.0);
+        VBox.setMargin(nameLabel, new Insets(8, 0, 0, 0));
 
-        // In Thể loại
-        Label categoryLabel = new Label("Thể loại: " + type);
-        categoryLabel.setFont(Font.font("System", 11.0));
-        categoryLabel.setTextFill(Color.web("#28a745")); // Màu xanh lá cho thể loại
+        Label categoryLabel = new Label(type);
+        categoryLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #604868;");
 
-        // In Trạng thái
-        Label statusLabel = new Label("Trạng thái: " + status);
-        statusLabel.setFont(Font.font("System", 11.0));
-        statusLabel.setStyle("-fx-font-style: italic;");
-        statusLabel.setTextFill(Color.web("#6c757d"));
+        Region spacer = new Region();
+        VBox.setVgrow(spacer, Priority.ALWAYS);
 
-        // Giá hiện tại
-        Label priceLabel = new Label("Giá: " + String.format("%,.0f", currentPrice) + " VNĐ");
-        priceLabel.setTextFill(Color.web("#d32f2f"));
-        priceLabel.setFont(Font.font("System", FontWeight.BOLD, 13.0));
+        HBox bottomRow = new HBox();
+        bottomRow.setAlignment(Pos.CENTER_LEFT);
 
-        String shortStart = startTime.length() >= 16 ? startTime.substring(0, 16) : startTime;
-        String shortEnd = endTime.length() >= 16 ? endTime.substring(0, 16) : endTime;
+        VBox priceBox = new VBox(0);
+        Label lblCurrentBid = new Label("CURRENT BID");
+        lblCurrentBid.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #907898;");
+        Label priceLabel = new Label(String.format("%,.0f", currentPrice) + " ₫");
+        priceLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 18px; -fx-text-fill: #e040a0;");
+        priceBox.getChildren().addAll(lblCurrentBid, priceLabel);
 
-        Label startTimeLabel = new Label("Bắt đầu: " + shortStart);
-        startTimeLabel.setFont(Font.font("System", 11.0));
-        startTimeLabel.setTextFill(Color.web("#6c757d"));
+        Region hSpacer = new Region();
+        HBox.setHgrow(hSpacer, Priority.ALWAYS);
 
-        Label endTimeLabel = new Label("Kết thúc: " + shortEnd);
-        endTimeLabel.setFont(Font.font("System", 11.0));
-        endTimeLabel.setTextFill(Color.web("#d32f2f"));
+        Button bidBtn = new Button();
+        Label addIcon = new Label("\uE145");
+        addIcon.getStyleClass().add("material-icon");
 
-        Button bidBtn = new Button("Đấu giá ngay");
-        bidBtn.setMaxWidth(Double.MAX_VALUE);
-        bidBtn.setStyle("-fx-background-color: #007bff; -fx-text-fill: white; -fx-cursor: hand;");
-
-        // ĐÃ SỬA: So sánh đúng biến "status", đổi màu nút theo trạng thái
         if ("ACTIVE".equalsIgnoreCase(status)) {
-            bidBtn.setText("Đấu giá ngay");
-            bidBtn.setStyle("-fx-background-color: #28a745; -fx-text-fill: white; -fx-cursor: hand; -fx-font-weight: bold;");
-            bidBtn.setDisable(false);
+            addIcon.setStyle("-fx-text-fill: #e040a0;");
+            bidBtn.setStyle("-fx-background-color: #ffd6ee; -fx-background-radius: 20px; -fx-min-width: 40px; -fx-min-height: 40px; -fx-cursor: hand;");
+            bidBtn.setGraphic(addIcon);
             bidBtn.setOnAction(event -> {
-                logger.info(">>> Mở trang chi tiết cho sản phẩm ID: " + id);
                 try {
                     FXMLLoader loader = SceneSwitcher.switchScene(event, "AuctionPage.fxml", 500, 400);
                     AuctionPageController controller = loader.getController();
                     controller.setItem(sessionObj, itemObj);
-
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             });
-        } else if ("ENDED".equalsIgnoreCase(status)) {
-            bidBtn.setText("Đã kết thúc");
-            bidBtn.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white;");
-            bidBtn.setDisable(true);
         } else {
-            bidBtn.setText("Chờ xử lý");
-            bidBtn.setStyle("-fx-background-color: #ced4da; -fx-text-fill: #495057;");
+            addIcon.setStyle("-fx-text-fill: #907898;");
+            bidBtn.setStyle("-fx-background-color: #f2e8f2; -fx-background-radius: 20px; -fx-min-width: 40px; -fx-min-height: 40px;");
+            bidBtn.setGraphic(addIcon);
             bidBtn.setDisable(true);
         }
 
-        vbox.getChildren().addAll(nameLabel, categoryLabel, statusLabel, priceLabel, startTimeLabel, endTimeLabel, bidBtn);
+        bottomRow.getChildren().addAll(priceBox, hSpacer, bidBtn);
+
+        vbox.getChildren().addAll(imageWrapper, nameLabel, categoryLabel, spacer, bottomRow);
 
         return vbox;
     }

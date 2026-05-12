@@ -1,45 +1,41 @@
 package com.auction.client.controller;
 
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
+import java.io.*;
+import java.math.BigDecimal;
+import java.net.Socket;
+import java.time.LocalDateTime;
+import java.time.Duration;
+
+import org.json.JSONObject;
+import com.auction.client.model.User;
+import com.auction.client.Config;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.text.NumberFormat;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.Locale;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 
 public class AuctionPageController {
 
-    private final NumberFormat currencyFormat = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
+    @FXML private Label productNameLabel;
+    @FXML private Label currentPriceLabel;
+    @FXML private Label endTimeLabel;
+    @FXML private TextField bidAmountField;
+    @FXML private Button placeBidBtn;
+    @FXML private Label messageLabel;
+    @FXML private Label remainingTimeLabel;
 
-    @FXML
-    private Label productNameLabel;
+    private Socket socket;
+    private PrintWriter out;
+    private BufferedReader in;
+    private Thread listenerThread;
 
-    @FXML
-    private Label currentPriceLabel;
-
-    @FXML
-    private Label endTimeLabel;
-
-    @FXML
-    private TextField bidAmountField;
-
-    @FXML
-    private Button placeBidBtn;
-
-    @FXML
-    private Label messageLabel;
-
-    @FXML
-    private Label remainingTimeLabel;
+    private int currentSessionId;
+    private BigDecimal currentPrice;
+    private int currentUserId;
 
     private Timeline timeline;
 
@@ -48,32 +44,191 @@ public class AuctionPageController {
         productNameLabel.setText("Sản phẩm: Loading...");
         currentPriceLabel.setText("Giá cao nhất hiện tại: Loading...");
         endTimeLabel.setText("Thời gian kết thúc: Loading...");
+    }
 
-        if (remainingTimeLabel != null) {
-            remainingTimeLabel.setText("Thời gian còn lại: Loading...");
+    public void setItem(JSONObject sessionsObj, JSONObject itemObj) {
+        this.currentSessionId = sessionsObj.getInt("id");
+        this.currentPrice = sessionsObj.getBigDecimal("currentPrice"); // Lưu giá vào biến toàn cục
+
+        productNameLabel.setText("Sản phẩm: " + itemObj.getString("name"));
+        currentPriceLabel.setText("Giá hiện tại: " + String.format("%,.0f", currentPrice) + " VNĐ");
+
+        // Hiển thị ngày giờ cho đẹp
+        String endTimeStr = sessionsObj.getString("endTime");
+        endTimeLabel.setText("Thời gian kết thúc: " + endTimeStr.replace("T", " ").substring(0, 16));
+
+        setRemainingTime(endTimeStr);
+        connectToServer();
+    }
+
+    private void connectToServer() {
+        listenerThread = new Thread(() -> {
+            try {
+                socket = new Socket(Config.SOCKET_HOST, Config.PORT_SOCKET);
+                out = new PrintWriter(socket.getOutputStream(), true);
+                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+                out.println("JOIN:" + currentSessionId);
+                String serverResponse;
+
+                while (!socket.isClosed() && (serverResponse = in.readLine()) != null) {
+
+                    // 1. NHẬN THÔNG BÁO CHUNG CHO TOÀN PHÒNG (CÓ NGƯỜI ĐẶT GIÁ MỚI)
+                    if (serverResponse.startsWith("NOTICE:")) {
+                        String jsonString = serverResponse.substring(7);
+                        JSONObject noticeObj = new JSONObject(jsonString);
+
+                        Platform.runLater(() -> {
+                            // Cập nhật giá mới cho biến toàn cục để Validate các lần sau
+                            BigDecimal newPrice = noticeObj.getBigDecimal("newPrice");
+                            this.currentPrice = newPrice;
+
+                            currentPriceLabel.setText("Giá cao nhất hiện tại: " + String.format("%,.0f", newPrice) + " VNĐ");
+
+                            // ==========================================
+                            // BẮT SỰ KIỆN ANTI-SNIPING Ở CLIENT
+                            // ==========================================
+                            if (noticeObj.has("newEndTime")) {
+                                String newEndTime = noticeObj.getString("newEndTime");
+
+                                // XỬ LÝ CHUỖI AN TOÀN CHỐNG LỖI THIẾU GIÂY
+                                String displayTime = newEndTime.replace("T", " ");
+                                if (displayTime.length() == 16) {
+                                    displayTime += ":00"; // Bù thêm :00 nếu Java tự động cắt mất
+                                } else if (displayTime.length() > 19) {
+                                    displayTime = displayTime.substring(0, 19);
+                                }
+
+                                // Cập nhật lại nhãn thời gian kết thúc trên giao diện
+                                endTimeLabel.setText("Thời gian kết thúc: " + displayTime);
+
+                                // Đổi màu thông báo sang cam rực rỡ để gây chú ý
+                                messageLabel.setStyle("-fx-text-fill: #ff8c00; -fx-font-weight: bold;");
+                                messageLabel.setText("Phiên đấu giá vừa được gia hạn thêm 60 giây!");
+
+                                // Xóa đồng hồ đếm ngược cũ và khởi động lại với thời gian mới!
+                                if (timeline != null) {
+                                    timeline.stop();
+                                }
+                                setRemainingTime(newEndTime);
+                            } else {
+                                // Nếu chỉ đổi giá bình thường (không gia hạn)
+                                messageLabel.setStyle("-fx-text-fill: blue;");
+                                messageLabel.setText("Có người vừa ra giá mới!");
+                            }
+                        });
+                    }
+
+                    // 2. NHẬN KẾT QUẢ ĐẶT GIÁ CỦA CHÍNH MÌNH
+                    else if (serverResponse.startsWith("RESPONSE:")) {
+                        String jsonString = serverResponse.substring(9);
+                        JSONObject responseObj = new JSONObject(jsonString);
+
+                        Platform.runLater(() -> {
+                            if (responseObj.getBoolean("success")) {
+                                messageLabel.setStyle("-fx-text-fill: green;");
+                                messageLabel.setText(responseObj.getString("message"));
+                                bidAmountField.clear(); // Xóa ô nhập sau khi đặt thành công
+                            } else {
+                                messageLabel.setStyle("-fx-text-fill: red;");
+                                messageLabel.setText(responseObj.getString("message"));
+                            }
+                        });
+                    }
+                }
+            } catch (EOFException | java.net.SocketException e) {
+                System.out.println("Kết nối Socket đã đóng.");
+            } catch (Exception e) {
+                e.printStackTrace();
+                Platform.runLater(() -> {
+                    messageLabel.setStyle("-fx-text-fill: red;");
+                    messageLabel.setText("Mất kết nối với máy chủ Socket!");
+                });
+            }
+        });
+        listenerThread.setDaemon(true);
+        listenerThread.start();
+    }
+
+    private void disconnectSocket() {
+        try {
+            if (out != null) out.close();
+            if (in != null) in.close();
+            if (socket != null && !socket.isClosed()) {
+                socket.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    public void setItem(JSONObject sessionObj, JSONObject itemObj) {
-        String productName = itemObj.optString("name", "Không rõ");
-        BigDecimal currentPrice = sessionObj.optBigDecimal("currentPrice", BigDecimal.ZERO);
-        String endTime = sessionObj.optString("endTime", "");
+    @FXML
+    public void handlePlaceBid(ActionEvent event) {
+        // 1. Kiểm tra đăng nhập
+        if (User.getId() == null) {
+            showError("Vui lòng đăng nhập để đấu giá!");
+            return;
+        }
 
-        productNameLabel.setText("Sản phẩm: " + productName);
-        currentPriceLabel.setText("Giá hiện tại: " + formatMoney(currentPrice));
+        // 2. Lấy và kiểm tra định dạng giá nhập vào
+        String inputStr = bidAmountField.getText().trim();
+        if (inputStr.isEmpty()) {
+            showError("Vui lòng nhập mức giá!");
+            return;
+        }
 
-        if (!endTime.isBlank()) {
-            endTimeLabel.setText("Thời gian kết thúc: " + endTime.split("T")[0]);
-            setRemainingTime(endTime);
+        BigDecimal bidAmount;
+        try {
+            bidAmount = new BigDecimal(inputStr);
+        } catch (NumberFormatException e) {
+            showError("Mức giá phải là con số hợp lệ!");
+            return;
+        }
+
+        if (bidAmount.compareTo(this.currentPrice) <= 0) {
+            showError("Giá đặt phải LỚN HƠN giá hiện tại (" + String.format("%,.0f", this.currentPrice) + ")!");
+            return;
+        }
+
+        // 4. Gửi lên server nếu các bước trên đã pass
+        if (socket == null || socket.isClosed() || out == null) {
+            showError("Lỗi kết nối máy chủ Socket!");
+            return;
+        }
+
+        JSONObject jsonBid = new JSONObject();
+        jsonBid.put("auctionId", currentSessionId);
+        jsonBid.put("bidderId", User.getId());
+        jsonBid.put("amount", bidAmount);
+
+        out.println("BID:" + jsonBid.toString());
+
+        messageLabel.setStyle("-fx-text-fill: orange;");
+        messageLabel.setText("Đang xử lý yêu cầu...");
+    }
+
+    private void showError(String msg) {
+        messageLabel.setStyle("-fx-text-fill: red;");
+        messageLabel.setText(msg);
+    }
+
+    @FXML
+    public void handleGoBack(ActionEvent event) {
+        disconnectSocket();
+
+        try {
+            SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1024, 768);
+        } catch (IOException e) {
+            e.printStackTrace();
+            messageLabel.setText("Lỗi khi quay lại trang trước.");
         }
     }
+
+    // ================== LOGIC THỜI GIAN ================== //
 
     public void setRemainingTime(String endTimeStr) {
+        // Parse chuẩn định dạng ISO từ JSON gửi về (VD: "2026-05-15T20:00:00")
         LocalDateTime timeEnd = LocalDateTime.parse(endTimeStr);
-
-        if (timeline != null) {
-            timeline.stop();
-        }
 
         timeline = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1), event -> {
             LocalDateTime timeNow = LocalDateTime.now();
@@ -83,16 +238,12 @@ public class AuctionPageController {
                 timeline.stop();
                 remainingTimeLabel.setText("Phiên đấu giá đã kết thúc!");
                 handleAuctionEnd();
-                return;
+            } else {
+                long hours = secondsLeft / 3600;
+                long minutes = (secondsLeft % 3600) / 60;
+                long seconds = secondsLeft % 60;
+                remainingTimeLabel.setText(String.format("Thời gian còn lại: %02d:%02d:%02d", hours, minutes, seconds));
             }
-
-            long hours = secondsLeft / 3600;
-            long minutes = (secondsLeft % 3600) / 60;
-            long seconds = secondsLeft % 60;
-
-            remainingTimeLabel.setText(
-                    String.format("Thời gian còn lại: %02d:%02d:%02d", hours, minutes, seconds)
-            );
         }));
 
         timeline.setCycleCount(Timeline.INDEFINITE);
@@ -101,56 +252,7 @@ public class AuctionPageController {
 
     private void handleAuctionEnd() {
         placeBidBtn.setDisable(true);
-        messageLabel.setStyle("-fx-text-fill: red;");
-        messageLabel.setText("Phiên đấu giá đã kết thúc, không thể đặt giá.");
-    }
-
-    @FXML
-    public void handlePlaceBid(ActionEvent event) {
-        String inputPrice = bidAmountField.getText();
-
-        if (inputPrice == null || inputPrice.trim().isEmpty()) {
-            messageLabel.setStyle("-fx-text-fill: red;");
-            messageLabel.setText("Vui lòng nhập mức giá!");
-            return;
-        }
-
-        try {
-            BigDecimal price = parseMoney(inputPrice);
-
-            if (price.compareTo(BigDecimal.ZERO) <= 0) {
-                messageLabel.setStyle("-fx-text-fill: red;");
-                messageLabel.setText("Mức giá phải lớn hơn 0.");
-                return;
-            }
-
-            messageLabel.setStyle("-fx-text-fill: green;");
-            messageLabel.setText("Đặt giá thành công: " + formatMoney(price));
-            currentPriceLabel.setText("Giá cao nhất hiện tại: " + formatMoney(price));
-
-        } catch (NumberFormatException e) {
-            messageLabel.setStyle("-fx-text-fill: red;");
-            messageLabel.setText("Mức giá không hợp lệ! Vui lòng nhập số.");
-        }
-    }
-
-    @FXML
-    public void handleGoBack(ActionEvent event) {
-        try {
-            SceneSwitcher.switchScene(event, "MainTemplate.fxml", 500, 400);
-        } catch (IOException e) {
-            e.printStackTrace();
-            messageLabel.setStyle("-fx-text-fill: red;");
-            messageLabel.setText("Lỗi khi quay lại trang trước.");
-        }
-    }
-
-    private BigDecimal parseMoney(String input) {
-        String normalized = input.trim().replace(",", "");
-        return new BigDecimal(normalized);
-    }
-
-    private String formatMoney(BigDecimal price) {
-        return currencyFormat.format(price) + " VNĐ";
+        bidAmountField.setDisable(true);
+        disconnectSocket();
     }
 }

@@ -4,6 +4,6 @@ import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
 @Entity
-@DiscriminatorValue("bidder")
+@DiscriminatorValue("BIDDER")
 public class Bidder extends User {
 }

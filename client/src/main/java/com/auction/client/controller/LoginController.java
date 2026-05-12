@@ -1,15 +1,16 @@
 package com.auction.client.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
+import com.auction.client.HttpClientSingleton;
 import com.auction.client.model.User;
-import com.auction.client.util.AlertUtil;
+import javafx.scene.control.Alert;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
@@ -18,19 +19,10 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 public class LoginController {
+    private HttpClient client = HttpClientSingleton.getInstance().getHttpClient();
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
-
-    private HttpClient httpClient = HttpClient.newHttpClient();
-
-    @FXML
-    private TextField txtUsername;
-
-    @FXML
-    private PasswordField txtPassword;
-
-    public void setHttpClient(HttpClient httpClient) {
-        this.httpClient = httpClient;
-    }
+    @FXML private TextField txtUsername;
+    @FXML private PasswordField txtPassword;
 
     @FXML
     public void handleLogin(ActionEvent event) {
@@ -38,28 +30,26 @@ public class LoginController {
         String password = txtPassword.getText().trim();
 
         if (loginField.isEmpty() || password.isEmpty()) {
-            AlertUtil.showWarning("Lỗi", "Vui lòng nhập Username/Email và Mật khẩu!");
+            showAlert(Alert.AlertType.WARNING, "Lỗi", "Vui lòng nhập Username/Email và Mật khẩu!");
             return;
         }
 
-        JSONObject body = new JSONObject();
-        body.put("username", loginField);
-        body.put("password", password);
+        String jsonBody = String.format(
+                "{\"username\":\"%s\", \"password\":\"%s\"}",
+                loginField, password
+        );
 
         try {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(Config.API_URL + "/api/login"))
                     .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                     .build();
 
-            HttpResponse<String> response = httpClient.send(
-                    request,
-                    HttpResponse.BodyHandlers.ofString()
-            );
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
-                AlertUtil.showError("Sai tài khoản hoặc mật khẩu!");
+                showAlert(Alert.AlertType.ERROR, "Lỗi đăng nhập", "Sai tài khoản hoặc mật khẩu!");
                 logger.error("Lỗi khi connect đến server");
                 return;
             }
@@ -67,8 +57,8 @@ public class LoginController {
             JSONObject responseJson = new JSONObject(response.body());
 
             if (responseJson.getInt("status") != 200) {
-                AlertUtil.showError(responseJson.optString("message", "Đăng nhập thất bại!"));
-                logger.error("Đăng nhập thất bại - status code: {}", responseJson.getInt("status"));
+                showAlert(Alert.AlertType.ERROR, "Lỗi đăng nhập", "Đăng nhập thất bại!");
+                logger.error("Lỗi đăng nhập thất bại - status code: {}", responseJson.getInt("status"));
                 return;
             }
 
@@ -80,30 +70,28 @@ public class LoginController {
             String email = data.optString("email", "");
             String dob = data.optString("dob", null);
             String placeOfBirth = data.optString("place_of_birth", null);
-            String role = data.optString("role", data.optString("accountType", "USER"));
+
+            String role = data.optString("role",
+                    data.optString("accountType", "USER"));
 
             User.setSession(id, username, fullname, email, dob, placeOfBirth, role);
 
-            AlertUtil.showInfo("Chào mừng bạn đã quay lại!");
+            showAlert(Alert.AlertType.INFORMATION, "Thành công", "Chào mừng bạn đã quay lại!");
             logger.info("Đăng nhập thành công");
+            String normalizedRole = role.trim().toUpperCase();
 
-            switchSceneByRole(event, role);
+            if (normalizedRole.equals("SELLER")) {
+                SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1000, 650);
+            } else if (normalizedRole.equals("ADMIN")
+                    || normalizedRole.equals("SUPER_ADMIN")) {
+                SceneSwitcher.switchScene(event, "AdminDashboard.fxml", 1000, 650);
+            } else {
+                SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1024, 768);
+            }
 
         } catch (Exception e) {
             logger.error("Không thể kết nối máy chủ: {}", e.getMessage(), e);
-            AlertUtil.showError("Không thể kết nối đến máy chủ!");
-        }
-    }
-
-    private void switchSceneByRole(ActionEvent event, String role) throws IOException {
-        String normalizedRole = role.trim().toUpperCase();
-
-        if (normalizedRole.equals("SELLER")) {
-            SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1000, 650);
-        } else if (normalizedRole.equals("ADMIN")) {
-            SceneSwitcher.switchScene(event, "AdminDashboard.fxml", 1000, 650);
-        } else {
-            SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1024, 768);
+            showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
         }
     }
 
@@ -115,5 +103,17 @@ public class LoginController {
     @FXML
     public void handleForgotPassword(ActionEvent event) throws IOException {
         SceneSwitcher.switchScene(event, "ForgotPassword.fxml", 400, 450);
+    }
+
+    public void setHttpClient(HttpClient httpClient) {
+        this.client = httpClient;
+    }
+
+    private void showAlert(Alert.AlertType alertType, String title, String message) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

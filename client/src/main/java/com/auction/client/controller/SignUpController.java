@@ -8,6 +8,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 import com.auction.client.Config;
+import com.auction.client.HttpClientSingleton;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -18,6 +19,7 @@ import java.io.IOException;
 import org.json.JSONObject;
 
 public class SignUpController {
+    private HttpClient client = HttpClientSingleton.getInstance().getHttpClient();
     private static final Logger logger = LoggerFactory.getLogger(SignUpController.class);
 
     @FXML
@@ -55,7 +57,7 @@ public class SignUpController {
         json.put("email", email);
         json.put("fullname", fullname);
         String jsonBody = json.toString();
-
+        logger.info(jsonBody);
         //Chạy luồng riêng để không làm đơ giao diện
         new Thread(() -> {
             try {
@@ -65,7 +67,6 @@ public class SignUpController {
                         .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                         .build();
 
-                HttpClient client = HttpClient.newHttpClient();
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
                 if (response.statusCode() == 200) {
@@ -103,6 +104,10 @@ public class SignUpController {
                 logger.error("Lỗi trong quá trình kết nối đến máy chủ: {}", e.getMessage(), e);
             }
         }).start();
+    }
+
+    public void setHttpClient(HttpClient httpClient) {
+        this.client = httpClient;
     }
 
     @FXML
