@@ -35,7 +35,6 @@ class ItemFactoryTest {
         request.setName("iPhone 15");
         request.setType("electronics");
         request.setDescription("Like new");
-        request.setImagePath("iphone.png");
 
         Item item = ItemFactory.createItem("electronics", request);
 
@@ -43,7 +42,6 @@ class ItemFactoryTest {
         assertEquals("iPhone 15", item.getName());
         assertEquals("electronics", item.getType());
         assertEquals("Like new", item.getDescription());
-        assertEquals("iphone.png", item.getImagePath());
     }
 
     @Test

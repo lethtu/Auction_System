@@ -27,7 +27,6 @@ class SellerResponseParserTest {
                     "id": 1,
                     "productName": "Laptop",
                     "productType": "Electronics",
-                    "imageUrl": "laptop.png",
                     "description": "Gaming laptop",
                     "startingPrice": 1000000,
                     "currentPrice": 1500000,
@@ -46,7 +45,6 @@ class SellerResponseParserTest {
         assertEquals(1, item.id);
         assertEquals("Laptop", item.productName);
         assertEquals("Electronics", item.productType);
-        assertEquals("laptop.png", item.imageUrl);
         assertEquals("Gaming laptop", item.description);
         assertEquals(new BigDecimal("1000000"), item.startingPrice);
         assertEquals(new BigDecimal("1500000"), item.currentPrice);
@@ -73,7 +71,6 @@ class SellerResponseParserTest {
         assertEquals(5, item.id);
         assertEquals("Không rõ", item.productName);
         assertEquals("", item.productType);
-        assertEquals("", item.imageUrl);
         assertEquals("", item.description);
         assertEquals(BigDecimal.ZERO, item.startingPrice);
         assertEquals(BigDecimal.ZERO, item.currentPrice);

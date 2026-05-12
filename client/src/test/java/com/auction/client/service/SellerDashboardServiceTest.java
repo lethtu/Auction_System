@@ -8,7 +8,6 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.SSLSession;
-import java.lang.reflect.Constructor;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -36,6 +35,7 @@ class SellerDashboardServiceTest {
         assertEquals("Tạo thành công", result.message);
         assertNotNull(sellerApiClient.lastBody);
         assertEquals("Laptop", sellerApiClient.lastBody.getString("name"));
+        assertFalse(sellerApiClient.lastBody.has("imagePath"));
     }
 
     @Test
@@ -63,7 +63,6 @@ class SellerDashboardServiceTest {
                       "id": 1,
                       "productName": "Laptop",
                       "productType": "Electronics",
-                      "imageUrl": "laptop.png",
                       "description": "Gaming laptop",
                       "startingPrice": 1000000,
                       "currentPrice": 1500000,
@@ -83,7 +82,6 @@ class SellerDashboardServiceTest {
         assertEquals(1, item.id);
         assertEquals("Laptop", item.productName);
         assertEquals("Electronics", item.productType);
-        assertEquals("laptop.png", item.imageUrl);
         assertEquals("Gaming laptop", item.description);
         assertEquals(new BigDecimal("1000000"), item.startingPrice);
         assertEquals(new BigDecimal("1500000"), item.currentPrice);
@@ -161,40 +159,16 @@ class SellerDashboardServiceTest {
     }
 
     private CreateAuctionRequest newRequest() {
-        try {
-            for (Constructor<?> constructor : CreateAuctionRequest.class.getConstructors()) {
-                if (constructor.getParameterCount() == 9) {
-                    return (CreateAuctionRequest) constructor.newInstance(
-                            "Laptop",
-                            "Electronics",
-                            "laptop.png",
-                            "Gaming laptop",
-                            new BigDecimal("1000000"),
-                            new BigDecimal("100000"),
-                            "2026-05-12T10:00:00",
-                            "2026-05-20T10:00:00",
-                            2
-                    );
-                }
-
-                if (constructor.getParameterCount() == 8) {
-                    return (CreateAuctionRequest) constructor.newInstance(
-                            "Laptop",
-                            "Electronics",
-                            "laptop.png",
-                            "Gaming laptop",
-                            new BigDecimal("1000000"),
-                            new BigDecimal("100000"),
-                            "2026-05-20T10:00:00",
-                            2
-                    );
-                }
-            }
-
-            throw new IllegalStateException("Không tìm thấy constructor phù hợp cho CreateAuctionRequest.");
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        return new CreateAuctionRequest(
+                "Laptop",
+                "Electronics",
+                "Gaming laptop",
+                new BigDecimal("1000000"),
+                new BigDecimal("100000"),
+                "2026-05-12T10:00:00",
+                "2026-05-20T10:00:00",
+                2
+        );
     }
 
     private HttpResponse<String> response(int status, String body) {

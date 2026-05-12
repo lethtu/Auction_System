@@ -1,7 +1,9 @@
 package com.auction.server.service;
 
+import com.auction.server.dto.CreateAuctionRequest;
 import com.auction.server.dto.SellerStatsDTO;
 import com.auction.server.dto.SessionResponseDTO;
+import com.auction.server.exception.InvalidItemException;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.model.Item;
@@ -13,6 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Proxy;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,14 +23,123 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class SellerServiceTest {
 
+    private final FakeItemRepository itemRepository = new FakeItemRepository();
     private final FakeAuctionSessionRepository auctionSessionRepository = new FakeAuctionSessionRepository();
     private final FakeSellerSessionGuard sellerSessionGuard = new FakeSellerSessionGuard();
 
     private final SellerService sellerService = new SellerService(
-            fakeItemRepository(),
+            itemRepository.proxy(),
             auctionSessionRepository.proxy(),
             sellerSessionGuard
     );
+
+    @Test
+    void createAuctionSession_validRequest_savesItemAndPendingSession() {
+        Seller seller = seller(1, "seller01");
+        sellerSessionGuard.seller = seller;
+
+        CreateAuctionRequest request = validRequest();
+        request.setStartTime(null);
+
+        SessionResponseDTO result = sellerService.createAuctionSession(request);
+
+        assertSame(itemRepository.savedItem, auctionSessionRepository.savedSession.getItem());
+        assertSame(seller, auctionSessionRepository.savedSession.getSeller());
+        assertEquals(AuctionStatus.PENDING, auctionSessionRepository.savedSession.getStatus());
+        assertNotNull(auctionSessionRepository.savedSession.getStartTime());
+        assertEquals(new BigDecimal("1000000"), auctionSessionRepository.savedSession.getStartingPrice());
+        assertEquals(new BigDecimal("1000000"), auctionSessionRepository.savedSession.getCurrentPrice());
+        assertEquals(new BigDecimal("100000"), auctionSessionRepository.savedSession.getStepPrice());
+
+        assertEquals("Laptop Gaming", itemRepository.savedItem.getName());
+        assertEquals("electronics", itemRepository.savedItem.getType());
+        assertEquals("Máy còn tốt", itemRepository.savedItem.getDescription());
+
+        assertEquals("Laptop Gaming", result.getProductName());
+        assertEquals("electronics", result.getProductType());
+        assertEquals("PENDING", result.getStatus());
+    }
+
+    @Test
+    void createAuctionSession_invalidRequest_throwsExceptionAndDoesNotSave() {
+        CreateAuctionRequest request = validRequest();
+        request.setName(" ");
+
+        assertThrows(InvalidItemException.class, () -> sellerService.createAuctionSession(request));
+
+        assertNull(itemRepository.savedItem);
+        assertNull(auctionSessionRepository.savedSession);
+    }
+
+    @Test
+    void updatePendingSession_validOwnerAndPending_updatesItemAndSession() {
+        Seller seller = seller(1, "seller01");
+        AuctionSession session = session(10, seller, AuctionStatus.PENDING, "Old Laptop", "500000");
+        CreateAuctionRequest request = validRequest();
+        request.setName("New Laptop");
+        request.setType("art");
+        request.setDescription("Mô tả mới");
+        request.setStartingPrice(new BigDecimal("2000000"));
+        request.setStepPrice(new BigDecimal("200000"));
+
+        sellerSessionGuard.seller = seller;
+        sellerSessionGuard.session = session;
+
+        SessionResponseDTO result = sellerService.updatePendingSession(10, 1, request);
+
+        assertTrue(sellerSessionGuard.validateOwnerCalled);
+        assertTrue(sellerSessionGuard.validatePendingCalled);
+        assertSame(session.getItem(), itemRepository.savedItem);
+        assertSame(session, auctionSessionRepository.savedSession);
+
+        assertEquals("New Laptop", session.getItem().getName());
+        assertEquals("art", session.getItem().getType());
+        assertEquals("Mô tả mới", session.getItem().getDescription());
+        assertEquals(new BigDecimal("2000000"), session.getStartingPrice());
+        assertEquals(new BigDecimal("2000000"), session.getCurrentPrice());
+        assertEquals(new BigDecimal("200000"), session.getStepPrice());
+
+        assertEquals("New Laptop", result.getProductName());
+        assertEquals("art", result.getProductType());
+    }
+
+    @Test
+    void updatePendingSession_wrongOwner_throwsExceptionAndDoesNotSave() {
+        Seller seller = seller(1, "seller01");
+        AuctionSession session = session(10, seller, AuctionStatus.PENDING, "Laptop", "500000");
+
+        sellerSessionGuard.seller = seller;
+        sellerSessionGuard.session = session;
+        sellerSessionGuard.throwOnValidateOwner = true;
+
+        RuntimeException ex = assertThrows(
+                RuntimeException.class,
+                () -> sellerService.updatePendingSession(10, 2, validRequest())
+        );
+
+        assertEquals("Bạn không có quyền sửa phiên này", ex.getMessage());
+        assertNull(itemRepository.savedItem);
+        assertNull(auctionSessionRepository.savedSession);
+    }
+
+    @Test
+    void updatePendingSession_notPending_throwsExceptionAndDoesNotSave() {
+        Seller seller = seller(1, "seller01");
+        AuctionSession session = session(10, seller, AuctionStatus.ACTIVE, "Laptop", "500000");
+
+        sellerSessionGuard.seller = seller;
+        sellerSessionGuard.session = session;
+        sellerSessionGuard.throwOnValidatePending = true;
+
+        RuntimeException ex = assertThrows(
+                RuntimeException.class,
+                () -> sellerService.updatePendingSession(10, 1, validRequest())
+        );
+
+        assertEquals("Chỉ được thao tác với phiên đang chờ duyệt", ex.getMessage());
+        assertNull(itemRepository.savedItem);
+        assertNull(auctionSessionRepository.savedSession);
+    }
 
     @Test
     void getMySessions_withoutStatus_returnsAllSellerSessions() {
@@ -118,6 +230,24 @@ class SellerServiceTest {
     }
 
     @Test
+    void cancelSession_notPending_throwsExceptionAndDoesNotSave() {
+        Seller seller = seller(1, "seller01");
+        AuctionSession session = session(30, seller, AuctionStatus.ACTIVE, "Camera", "4000");
+
+        sellerSessionGuard.seller = seller;
+        sellerSessionGuard.session = session;
+        sellerSessionGuard.throwOnValidatePending = true;
+
+        RuntimeException ex = assertThrows(
+                RuntimeException.class,
+                () -> sellerService.cancelSession(30, 1)
+        );
+
+        assertEquals("Chỉ được thao tác với phiên đang chờ duyệt", ex.getMessage());
+        assertNull(auctionSessionRepository.savedSession);
+    }
+
+    @Test
     void getSellerStats_sumsEndedSessionRevenueIgnoringNullPrice() {
         Seller seller = seller(1, "seller01");
 
@@ -140,17 +270,17 @@ class SellerServiceTest {
         assertEquals(AuctionStatus.ENDED, auctionSessionRepository.lastStatus);
     }
 
-    private ItemRepository fakeItemRepository() {
-        return (ItemRepository) Proxy.newProxyInstance(
-                ItemRepository.class.getClassLoader(),
-                new Class[]{ItemRepository.class},
-                (proxy, method, args) -> {
-                    if ("save".equals(method.getName())) {
-                        return args[0];
-                    }
-                    throw new UnsupportedOperationException(method.getName());
-                }
-        );
+    private CreateAuctionRequest validRequest() {
+        CreateAuctionRequest request = new CreateAuctionRequest();
+        request.setName("Laptop Gaming");
+        request.setType("electronics");
+        request.setDescription("Máy còn tốt");
+        request.setSellerId(1);
+        request.setStartingPrice(new BigDecimal("1000000"));
+        request.setStepPrice(new BigDecimal("100000"));
+        request.setStartTime(LocalDateTime.now().plusHours(1));
+        request.setEndTime(LocalDateTime.now().plusDays(1));
+        return request;
     }
 
     private Seller seller(Integer id, String username) {
@@ -173,7 +303,6 @@ class SellerServiceTest {
         item.setId(id + 100);
         item.setName(productName);
         item.setType("TEST");
-        item.setImagePath("image.png");
         item.setDescription("Description");
 
         AuctionSession session = new AuctionSession();
@@ -184,6 +313,7 @@ class SellerServiceTest {
         session.setStartingPrice(new BigDecimal(price));
         session.setCurrentPrice(new BigDecimal(price));
         session.setStepPrice(new BigDecimal("100"));
+        session.setEndTime(LocalDateTime.now().plusDays(1));
         return session;
     }
 
@@ -191,6 +321,29 @@ class SellerServiceTest {
         @Override
         public String getCategoryInfo() {
             return "TEST";
+        }
+    }
+
+    private static class FakeItemRepository {
+        private Item savedItem;
+
+        ItemRepository proxy() {
+            return (ItemRepository) Proxy.newProxyInstance(
+                    ItemRepository.class.getClassLoader(),
+                    new Class[]{ItemRepository.class},
+                    (proxy, method, args) -> {
+                        if ("save".equals(method.getName())) {
+                            savedItem = (Item) args[0];
+                            return savedItem;
+                        }
+
+                        if ("toString".equals(method.getName())) {
+                            return "FakeItemRepository";
+                        }
+
+                        throw new UnsupportedOperationException(method.getName());
+                    }
+            );
         }
     }
 
@@ -203,6 +356,8 @@ class SellerServiceTest {
 
         private boolean validateOwnerCalled;
         private boolean validatePendingCalled;
+        private boolean throwOnValidateOwner;
+        private boolean throwOnValidatePending;
 
         FakeSellerSessionGuard() {
             super(null, null);
@@ -223,11 +378,17 @@ class SellerServiceTest {
         @Override
         public void validateSessionOwner(AuctionSession session, Integer sellerId, String errorMessage) {
             this.validateOwnerCalled = true;
+            if (throwOnValidateOwner) {
+                throw new RuntimeException(errorMessage);
+            }
         }
 
         @Override
         public void validatePendingSession(AuctionSession session) {
             this.validatePendingCalled = true;
+            if (throwOnValidatePending) {
+                throw new RuntimeException("Chỉ được thao tác với phiên đang chờ duyệt");
+            }
         }
     }
 

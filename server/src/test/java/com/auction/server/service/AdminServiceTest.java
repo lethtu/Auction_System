@@ -293,7 +293,6 @@ class AdminServiceTest {
         item.setId(id + 100);
         item.setName(productName);
         item.setType("TEST");
-        item.setImagePath("image.png");
         item.setDescription("Description");
 
         AuctionSession session = new AuctionSession();
