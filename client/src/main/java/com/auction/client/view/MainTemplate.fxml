@@ -3,62 +3,142 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.paint.Color?>
 
-<BorderPane prefWidth="1024.0" prefHeight="768.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.MainController">
+<BorderPane prefWidth="1280.0" prefHeight="700.0" stylesheets="@styles.css" style="-fx-background-color: #fef7ff; -fx-font-family: 'DM Sans';" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.MainController">
 
     <top>
-        <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-background-color: #343a40; -fx-padding: 15px;">
-            <Label text="Sàn Đấu giá" textFill="WHITE">
+        <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-background-color: rgba(254, 247, 255, 0.9); -fx-padding: 12px 30px; -fx-border-color: #ffe8e8; -fx-border-width: 0 0 2px 0; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.15), 20, 0, 0, 4);">
+            <Button style="-fx-background-color: transparent; -fx-cursor: hand;">
+                <graphic>
+                    <Label text="&#xe5d2;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" />
+                </graphic>
+            </Button>
+            <Label text="HY Auction" textFill="#e040a0" style="-fx-cursor: hand;">
                 <font>
-                    <Font name="System Bold" size="24.0" />
+                    <Font name="System Bold" size="28.0" />
                 </font>
             </Label>
+            
             <Region HBox.hgrow="ALWAYS" />
-            <TextField fx:id="txtSearch" promptText="Tìm kiếm sản phẩm đấu giá..." prefWidth="350.0" prefHeight="30.0" />
-            <!-- Tạm ẩn nút Tìm kiếm do đã có tính năng Real-time search -->
-            <!-- <Button text="Tìm kiếm" style="-fx-background-color: #ffc107; -fx-text-fill: black;" prefHeight="30.0" /> -->
+            
+            <HBox alignment="CENTER_LEFT" prefWidth="500.0" prefHeight="40.0" style="-fx-background-color: #ffffff; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-padding: 0 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.05), 10, 0, 0, 2);">
+                <Label text="&#xe8b6;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #e040a0;" translateY="3.0" />
+                <TextField fx:id="txtSearch" promptText="Search items, categories, or auctions..." HBox.hgrow="ALWAYS" style="-fx-background-color: transparent; -fx-padding: 0 0 0 8px; -fx-prompt-text-fill: #907898; -fx-text-fill: #2e1a28; -fx-font-size: 14px;" />
+            </HBox>
+            
             <Region HBox.hgrow="ALWAYS" />
-            <MenuButton fx:id="userMenuButton" id="profile-menu" text="Chào, User" />
-            <Button fx:id="btnDashboard" onAction="#handleGoToDashboard" text="Kênh Người Bán" style="-fx-background-color: #17a2b8; -fx-text-fill: white; -fx-cursor: hand; -fx-font-weight: bold;" visible="false" managed="false" />
-<!--            <Button onAction="#handleLogout" text="Đăng xuất" style="-fx-background-color: #dc3545; -fx-text-fill: white; -fx-cursor: hand;" />-->
+            
+            <HBox spacing="15.0" alignment="CENTER_RIGHT">
+                <Button style="-fx-background-color: transparent; -fx-cursor: hand;">
+                    <graphic>
+                        <Label text="&#xe7f4;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" />
+                    </graphic>
+                </Button>
+                <Button style="-fx-background-color: transparent; -fx-cursor: hand;">
+                    <graphic>
+                        <Label text="&#xe8b8;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" />
+                    </graphic>
+                </Button>
+                <MenuButton fx:id="userMenuButton" id="profile-menu" style="-fx-background-color: transparent; -fx-cursor: hand;">
+                    <graphic>
+                        <StackPane minWidth="36" maxWidth="36" minHeight="36" maxHeight="36" prefWidth="36" prefHeight="36" style="-fx-background-color: #1a1a3a; -fx-background-radius: 18px;">
+                            <Label text="&#xe7fd;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: white;" />
+                        </StackPane>
+                    </graphic>
+                </MenuButton>
+                <Button fx:id="btnDashboard" onAction="#handleGoToDashboard" text="Kênh Người Bán" visible="false" managed="false" />
+            </HBox>
         </HBox>
     </top>
 
     <left>
-        <VBox spacing="15.0" style="-fx-background-color: #f8f9fa; -fx-padding: 20px;" prefWidth="220.0">
-            <Label text="Bộ Lọc Sản Phẩm">
-                <font>
-                    <Font name="System Bold" size="16.0" />
-                </font>
-            </Label>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: #f2e8f2; -fx-border-width: 0 2px 0 0;" minWidth="200.0" prefWidth="200.0" maxWidth="200.0">
+            <VBox spacing="4.0" style="-fx-background-color: #ffffff; -fx-padding: 24px 8px;">
+                <!-- Main Menu -->
+            <Label text="MAIN MENU" style="-fx-text-fill: #907898; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 0 0 4px 16px;" />
+            <Button text="Dashboard" alignment="CENTER_LEFT" prefWidth="165.0" minWidth="165.0" style="-fx-font-size: 14px; -fx-background-color: #fef7ff; -fx-text-fill: #e040a0; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;">
+                <graphic><Label text="&#xe871;" minWidth="24.0" minHeight="24.0" alignment="CENTER" translateY="3.0" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #e040a0;" /></graphic>
+            </Button>
+            <Button text="Live Auctions" alignment="CENTER_LEFT" prefWidth="165.0" minWidth="165.0" style="-fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;">
+                <graphic><Label text="&#xe51e;" minWidth="24.0" minHeight="24.0" alignment="CENTER" translateY="3.0" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" /></graphic>
+            </Button>
+            <Button text="My Bids" alignment="CENTER_LEFT" prefWidth="165.0" minWidth="165.0" style="-fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;">
+                <graphic><Label text="&#xe90e;" minWidth="24.0" minHeight="24.0" alignment="CENTER" translateY="3.0" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" /></graphic>
+            </Button>
+            <Button text="Selling" alignment="CENTER_LEFT" prefWidth="165.0" minWidth="165.0" style="-fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;">
+                <graphic><Label text="&#xea12;" minWidth="24.0" minHeight="24.0" alignment="CENTER" translateY="3.0" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" /></graphic>
+            </Button>
+            
+            <Region prefHeight="8.0" />
+            
+            <!-- Discover -->
+            <Label text="DISCOVER" style="-fx-text-fill: #907898; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 0 0 4px 16px;" />
+            <Button text="Categories" alignment="CENTER_LEFT" prefWidth="165.0" minWidth="165.0" style="-fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;">
+                <graphic><Label text="&#xe574;" minWidth="24.0" minHeight="24.0" alignment="CENTER" translateY="3.0" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" /></graphic>
+            </Button>
+            <Button text="Active Bids" alignment="CENTER_LEFT" prefWidth="165.0" minWidth="165.0" style="-fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;">
+                <graphic><Label text="&#xef4a;" minWidth="24.0" minHeight="24.0" alignment="CENTER" translateY="3.0" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" /></graphic>
+            </Button>
+            <Button text="Watchlist" alignment="CENTER_LEFT" prefWidth="165.0" minWidth="165.0" style="-fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;">
+                <graphic><Label text="&#xe8f4;" minWidth="24.0" minHeight="24.0" alignment="CENTER" translateY="3.0" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" /></graphic>
+            </Button>
+            <Button text="Ended Soon" alignment="CENTER_LEFT" prefWidth="165.0" minWidth="165.0" style="-fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;">
+                <graphic><Label text="&#xe8b5;" minWidth="24.0" minHeight="24.0" alignment="CENTER" translateY="3.0" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" /></graphic>
+            </Button>
+            
+            <Region prefHeight="8.0" />
+            
+            <!-- Other -->
+            <Label text="OTHER" style="-fx-text-fill: #907898; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 0 0 4px 16px;" />
+            <Button text="Support" alignment="CENTER_LEFT" prefWidth="165.0" minWidth="165.0" style="-fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;">
+                <graphic><Label text="&#xe887;" minWidth="24.0" minHeight="24.0" alignment="CENTER" translateY="3.0" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" /></graphic>
+            </Button>
+            
+            <Region VBox.vgrow="ALWAYS" />
 
-            <Label text="Thể loại:" style="-fx-font-weight: bold;" textFill="#495057"/>
-            <ComboBox fx:id="cbCategory" prefWidth="200.0" />
-
-            <Label text="Trạng thái:" style="-fx-font-weight: bold;" textFill="#495057"/>
-            <ComboBox fx:id="cbStatus" prefWidth="200.0" />
-        </VBox>
+            
+            <!-- Start Selling Button -->
+            <Button text="Start Selling" prefWidth="165.0" minWidth="165.0" style="-fx-font-size: 14px; -fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 12px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.3), 16, 0, 0, 4);" />
+            </VBox>
+        </ScrollPane>
     </left>
 
     <center>
-        <ScrollPane fitToWidth="true" style="-fx-background-color: white;">
-            <VBox spacing="20.0" style="-fx-padding: 20px;">
-                <Label text="Danh sách Sản phẩm">
+        <VBox spacing="20.0" style="-fx-background-color: transparent;">
+            <!-- Header Section inside Center -->
+            <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-padding: 24px 24px 0 24px;">
+                <Label text="Live Auctions" textFill="#2e1a28">
                     <font>
-                        <Font name="System Bold" size="20.0" />
+                        <Font name="System Bold" size="28.0" />
                     </font>
                 </Label>
-
-                <FlowPane fx:id="productContainer" hgap="20.0" vgap="20.0">
+                
+                <Region HBox.hgrow="ALWAYS" />
+                
+                <!-- Filter controls mapping to cbCategory and cbStatus -->
+                <HBox spacing="10.0" alignment="CENTER">
+                    <Label text="Lọc:" textFill="#604868" style="-fx-font-weight: bold;" />
+                    <ComboBox fx:id="cbCategory" promptText="Thể loại" prefWidth="150.0" style="-fx-background-color: #fef7ff; -fx-border-color: #ffe8e8; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-text-fill: #e040a0;" />
+                    <ComboBox fx:id="cbStatus" promptText="Trạng thái" prefWidth="150.0" style="-fx-background-color: #fef7ff; -fx-border-color: #ffe8e8; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-text-fill: #e040a0;" />
+                    
+                    <Button alignment="CENTER" prefWidth="90.0" style="-fx-background-color: #fef7ff; -fx-border-color: #f2e8f2; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-text-fill: #e040a0; -fx-font-size: 13px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 6px 14px;" text="Filter" graphicTextGap="4.0">
+                        <graphic><Label text="&#xe152;" translateY="2.0" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-font-weight: normal; -fx-text-fill: #e040a0;" /></graphic>
+                    </Button>
+                    <Button style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-cursor: hand; -fx-padding: 6px 8px;">
+                        <graphic><Label text="&#xe9b0;" translateY="2.0" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #e040a0;" /></graphic>
+                    </Button>
+                    <Button style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-cursor: hand; -fx-padding: 6px 8px;">
+                        <graphic><Label text="&#xe8ef;" translateY="2.0" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #907898;" /></graphic>
+                    </Button>
+                </HBox>
+            </HBox>
+            
+            <ScrollPane fx:id="scrollPane" fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
+                <FlowPane fx:id="productContainer" alignment="TOP_LEFT" hgap="25.0" vgap="25.0" style="-fx-padding: 10px 2px;">
                 </FlowPane>
-
-            </VBox>
-        </ScrollPane>
+            </ScrollPane>
+        </VBox>
     </center>
-
-    <bottom>
-        <HBox alignment="CENTER" style="-fx-background-color: #343a40; -fx-padding: 10px;">
-            <Label text="© 2026 Hệ thống Đấu giá Trực tuyến bằng JavaFX. All rights reserved." textFill="WHITE" />
-        </HBox>
-    </bottom>
+    
 </BorderPane>
