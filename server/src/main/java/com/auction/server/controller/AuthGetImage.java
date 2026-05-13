@@ -8,12 +8,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -27,7 +22,7 @@ import java.util.UUID;
 @RequestMapping("/api/files")
 public class AuthGetImage {
     private static final Logger logger = LoggerFactory.getLogger(AuthGetImage.class);
-    private Path rootLocation = Paths.get("upload/images");
+    private final Path rootLocation = Paths.get("upload/images").toAbsolutePath().normalize();
 
     @PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Map<String, String>>> uploadImage(@RequestParam("file") MultipartFile file) {
@@ -43,17 +38,29 @@ public class AuthGetImage {
 
             Files.createDirectories(rootLocation);
 
+            String itemFolder = UUID.randomUUID().toString();
+            Path itemFolderPath = rootLocation.resolve(itemFolder).normalize();
+            Files.createDirectories(itemFolderPath);
+
             String originalName = file.getOriginalFilename();
             String extension = getExtension(originalName);
             String storedFileName = UUID.randomUUID() + extension;
-            Path destination = rootLocation.resolve(storedFileName).normalize().toAbsolutePath();
+
+            Path destination = itemFolderPath.resolve(storedFileName).normalize();
+
+            if (!destination.startsWith(rootLocation)) {
+                return ResponseEntity.badRequest().body(ApiResponse.error(400, "Đường dẫn file không hợp lệ."));
+            }
 
             file.transferTo(destination);
+
+            String imagePath = itemFolder + "/" + storedFileName;
+
             logger.info("Đã upload file ảnh: {}", destination);
 
             return ResponseEntity.ok(ApiResponse.success(
                     "Upload ảnh thành công.",
-                    Map.of("imagePath", storedFileName)
+                    Map.of("imagePath", imagePath)
             ));
         } catch (IOException e) {
             logger.error("Lỗi khi upload ảnh: {}", e.getMessage(), e);
@@ -61,26 +68,45 @@ public class AuthGetImage {
         }
     }
 
+    @GetMapping("/images/{folder}/{filename:.+}")
+    public ResponseEntity<Resource> serveFileInFolder(
+            @PathVariable String folder,
+            @PathVariable String filename
+    ) {
+        return serve(rootLocation.resolve(folder).resolve(filename).normalize());
+    }
+
     @GetMapping("/images/{filename:.+}")
-    public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
+    public ResponseEntity<Resource> serveOldFile(@PathVariable String filename) {
+        return serve(rootLocation.resolve(filename).normalize());
+    }
+
+    private ResponseEntity<Resource> serve(Path file) {
         try {
-            Path file = rootLocation.resolve(filename);
+            if (!file.startsWith(rootLocation)) {
+                return ResponseEntity.badRequest().build();
+            }
+
             Resource resource = new UrlResource(file.toUri());
+
             logger.info("Đường dẫn file thực tế đang tìm: {}", file.toAbsolutePath());
-            if (resource.exists() || resource.isReadable()) {
-                logger.info("Đã tim thấy file {}", filename);
+
+            if (resource.exists() && resource.isReadable()) {
                 String contentType = Files.probeContentType(file);
+
                 if (contentType == null) {
                     contentType = "application/octet-stream";
                 }
+
                 return ResponseEntity.ok()
                         .contentType(MediaType.parseMediaType(contentType))
                         .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
                         .body(resource);
-            } else {
-                logger.error("Không tìm thấy file: {}", filename);
-                return ResponseEntity.notFound().build();
             }
+
+            logger.error("Không tìm thấy file: {}", file);
+            return ResponseEntity.notFound().build();
+
         } catch (Exception e) {
             logger.error("Lỗi khi tìm file và trả về phản hồi: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
