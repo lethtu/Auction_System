@@ -187,3 +187,6 @@ buildNumber.properties
 *.pdf
 
 # End of https://www.toptal.com/developers/gitignore/api/maven,java,intellij,visualstudiocode
+# Uploaded product images
+server/upload/images/*
+!server/upload/images/.gitkeep
