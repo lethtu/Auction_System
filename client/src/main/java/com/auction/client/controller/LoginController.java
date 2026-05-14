@@ -86,7 +86,7 @@ public class LoginController {
                     || normalizedRole.equals("SUPER_ADMIN")) {
                 SceneSwitcher.switchScene(event, "AdminDashboard.fxml", 1000, 650);
             } else {
-                SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1024, 768);
+                SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
             }
 
         } catch (Exception e) {
