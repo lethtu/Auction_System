@@ -31,6 +31,8 @@ import javafx.geometry.Insets;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.paint.Color;
+import javafx.scene.control.Tooltip;
+import javafx.util.Duration;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import com.auction.client.model.User;
@@ -80,6 +82,13 @@ public class MainController implements Initializable {
     @FXML private ComboBox<String> cbCategory;
     @FXML private ComboBox<String> cbStatus;
     @FXML private Button btnDashboard;
+
+    @FXML private ScrollPane sidebarContainer;
+    @FXML private VBox sidebarContent;
+    @FXML private Button btnHamburger;
+
+    private boolean isSidebarCollapsed = false;
+    private final Map<Button, String> sidebarButtonTextMap = new java.util.HashMap<>();
 
     // Kho lưu trữ Caching cục bộ, giúp Real-time filter không bị trễ
     private final List<JSONObject> allProducts = new ArrayList<>();
@@ -401,5 +410,75 @@ public class MainController implements Initializable {
         } catch (Exception e) {
             logger.error("Lỗi khi chuyển về trang Quản lý Seller: ", e);
         }
+    }
+
+    @FXML
+    public void handleToggleSidebar(ActionEvent event) {
+        isSidebarCollapsed = !isSidebarCollapsed;
+
+        if (isSidebarCollapsed) {
+            // Collapse
+            sidebarContainer.setMinWidth(70);
+            sidebarContainer.setPrefWidth(70);
+            sidebarContainer.setMaxWidth(70);
+            sidebarContent.setPadding(new Insets(24, 0, 24, 0));
+            sidebarContent.setAlignment(Pos.TOP_CENTER);
+
+            for (javafx.scene.Node node : sidebarContent.getChildren()) {
+                if (node instanceof Button) {
+                    Button btn = (Button) node;
+                    String currentText = btn.getText();
+                    if (currentText != null && !currentText.isEmpty()) {
+                        sidebarButtonTextMap.put(btn, currentText);
+                    }
+                    
+                    String tooltipText = sidebarButtonTextMap.get(btn);
+                    if (tooltipText != null) {
+                        Tooltip tooltip = new Tooltip(tooltipText);
+                        tooltip.setShowDelay(Duration.millis(200));
+                        // Deep pink background, white text, bold, rounded corners
+                        tooltip.setStyle("-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 6px 12px; -fx-font-size: 13px;");
+                        btn.setTooltip(tooltip);
+                    }
+
+                    btn.setText("");
+                    btn.setPrefWidth(50);
+                    btn.setMinWidth(50);
+                    btn.setAlignment(Pos.CENTER);
+                    // Adjust graphic alignment
+                    if (btn.getGraphic() != null) {
+                        btn.getGraphic().setTranslateX(0);
+                    }
+                } else if (node instanceof Label) {
+                    node.setVisible(false);
+                    node.setManaged(false);
+                }
+            }
+        } else {
+            // Expand
+            sidebarContainer.setMinWidth(200);
+            sidebarContainer.setPrefWidth(200);
+            sidebarContainer.setMaxWidth(200);
+            sidebarContent.setPadding(new Insets(24, 8, 24, 8));
+            sidebarContent.setAlignment(Pos.TOP_LEFT);
+
+            for (javafx.scene.Node node : sidebarContent.getChildren()) {
+                if (node instanceof Button) {
+                    Button btn = (Button) node;
+                    btn.setTooltip(null); // Xóa Tooltip khi mở rộng
+                    String originalText = sidebarButtonTextMap.getOrDefault(btn, "");
+                    btn.setText(originalText);
+                    btn.setPrefWidth(165);
+                    btn.setMinWidth(165);
+                    btn.setAlignment(Pos.CENTER_LEFT);
+                } else if (node instanceof Label) {
+                    node.setVisible(true);
+                    node.setManaged(true);
+                }
+            }
+        }
+        
+        // Cập nhật lại Grid Layout cho Center vì diện tích khả dụng đã thay đổi
+        Platform.runLater(this::updateGridLayout);
     }
 }

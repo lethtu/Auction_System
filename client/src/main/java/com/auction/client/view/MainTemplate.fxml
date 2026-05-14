@@ -9,7 +9,7 @@
 
     <top>
         <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-background-color: rgba(254, 247, 255, 0.9); -fx-padding: 12px 30px; -fx-border-color: #ffe8e8; -fx-border-width: 0 0 2px 0; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.15), 20, 0, 0, 4);">
-            <Button style="-fx-background-color: transparent; -fx-cursor: hand;">
+            <Button fx:id="btnHamburger" onAction="#handleToggleSidebar" style="-fx-background-color: transparent; -fx-cursor: hand;">
                 <graphic>
                     <Label text="&#xe5d2;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" />
                 </graphic>
@@ -53,8 +53,8 @@
     </top>
 
     <left>
-        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: #f2e8f2; -fx-border-width: 0 2px 0 0;" minWidth="200.0" prefWidth="200.0" maxWidth="200.0">
-            <VBox spacing="4.0" style="-fx-background-color: #ffffff; -fx-padding: 24px 8px;">
+        <ScrollPane fx:id="sidebarContainer" fitToWidth="true" hbarPolicy="NEVER" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: #f2e8f2; -fx-border-width: 0 2px 0 0;" minWidth="200.0" prefWidth="200.0" maxWidth="200.0">
+            <VBox fx:id="sidebarContent" spacing="4.0" style="-fx-background-color: #ffffff; -fx-padding: 24px 8px;">
                 <!-- Main Menu -->
             <Label text="MAIN MENU" style="-fx-text-fill: #907898; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 0 0 4px 16px;" />
             <Button text="Dashboard" alignment="CENTER_LEFT" prefWidth="165.0" minWidth="165.0" style="-fx-font-size: 14px; -fx-background-color: #fef7ff; -fx-text-fill: #e040a0; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;">
@@ -99,7 +99,9 @@
 
             
             <!-- Start Selling Button -->
-            <Button text="Start Selling" prefWidth="165.0" minWidth="165.0" style="-fx-font-size: 14px; -fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 12px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.3), 16, 0, 0, 4);" />
+            <Button text="Start Selling" prefWidth="165.0" minWidth="165.0" style="-fx-font-size: 14px; -fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 12px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.3), 16, 0, 0, 4);">
+                <graphic><Label text="&#xe145;" minWidth="24.0" minHeight="24.0" alignment="CENTER" translateY="3.0" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: white;" /></graphic>
+            </Button>
             </VBox>
         </ScrollPane>
     </left>
