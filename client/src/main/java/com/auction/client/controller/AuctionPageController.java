@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 import java.time.Duration;
 
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.auction.client.model.User;
 import com.auction.client.Config;
 import javafx.application.Platform;
@@ -15,18 +17,43 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.VBox;
+import javafx.scene.control.Separator;
 import javafx.animation.KeyFrame;
+import javafx.scene.text.Font;
 import javafx.animation.Timeline;
+import javafx.beans.value.ChangeListener;
 
 public class AuctionPageController {
+    private static final Logger logger = LoggerFactory.getLogger(AuctionPageController.class);
 
     @FXML private Label productNameLabel;
     @FXML private Label currentPriceLabel;
-    @FXML private Label endTimeLabel;
     @FXML private TextField bidAmountField;
     @FXML private Button placeBidBtn;
     @FXML private Label messageLabel;
     @FXML private Label remainingTimeLabel;
+    @FXML private Label startPriceLabel;
+    @FXML private ImageView productImageView;
+    @FXML private VBox sideBar;
+    @FXML private Label mainMenuLabel;
+    @FXML private Label dashboardText;
+    @FXML private Label liveAuctionsText;
+    @FXML private Label myBidsText;
+    @FXML private Label sellingText;
+    @FXML private Label discoverLabel;
+    @FXML private Label categoriesText;
+    @FXML private Label activeBidsText;
+    @FXML private Label watchlistText;
+    @FXML private Label endedSoonText;
+    @FXML private Label otherLabel;
+    @FXML private Label supportText;
+    @FXML private Label startSellingText;
+    @FXML private Label endingInTitleLabel;
+    @FXML private Label startPriceTitleLabel;
+    @FXML private Label highestBidTitleLabel;
 
     private Socket socket;
     private PrintWriter out;
@@ -41,24 +68,124 @@ public class AuctionPageController {
 
     @FXML
     public void initialize() {
-        productNameLabel.setText("Sản phẩm: Loading...");
-        currentPriceLabel.setText("Giá cao nhất hiện tại: Loading...");
-        endTimeLabel.setText("Thời gian kết thúc: Loading...");
+        productNameLabel.setText("Loading...");
+        currentPriceLabel.setText("...");
+        remainingTimeLabel.setText("00:00:00");
+
+        // Gắn listeners sau khi scene sẵn sàng
+        Platform.runLater(() -> {
+            if (currentPriceLabel.getScene() != null) {
+                double initialWidth = currentPriceLabel.getScene().getWidth();
+                
+                // Listener: resize cửa sổ
+                currentPriceLabel.getScene().widthProperty().addListener((obs, oldVal, newVal) ->
+                    updateResponsiveFonts(newVal.doubleValue())
+                );
+                
+                // Listener: text thay đổi cho giá
+                currentPriceLabel.textProperty().addListener((obs, oldVal, newVal) ->
+                    updateResponsiveFonts(currentPriceLabel.getScene().getWidth())
+                );
+                
+                // Listener: text thay đổi cho thời gian
+                remainingTimeLabel.textProperty().addListener((obs, oldVal, newVal) ->
+                    updateResponsiveFonts(currentPriceLabel.getScene().getWidth())
+                );
+                
+                // Trigger lần đầu
+                updateResponsiveFonts(initialWidth);
+            }
+        });
     }
 
+    /**
+     * Cập nhật kích thước font cho các thành phần quan trọng dựa theo kích thước cửa sổ và nội dung.
+     */
+    private void updateResponsiveFonts(double windowWidth) {
+        // 1. Xử lý font cho GIÁ (Price)
+        String priceText = currentPriceLabel.getText();
+        double priceBaseFont = Math.max(22, Math.min(48, windowWidth * 0.034));
+        int priceExtraChars = Math.max(0, priceText.length() - 8);
+        double priceFont = Math.max(16, priceBaseFont - priceExtraChars * 1.5);
+
+        currentPriceLabel.setStyle(
+            "-fx-font-family: 'DM Sans'; -fx-font-size: " + (int) priceFont + "px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;"
+        );
+        highestBidTitleLabel.setStyle(
+            "-fx-font-family: 'DM Sans'; -fx-font-size: " + (int) Math.max(10, Math.min(14, windowWidth * 0.01)) + "px; -fx-font-weight: 900; -fx-text-fill: #604868;"
+        );
+
+        // 2. Xử lý font cho THỜI GIAN (Remaining Time)
+        String timeText = remainingTimeLabel.getText();
+        // Base font cho time: 14px (600px) -> 22px (1400px)
+        double timeBaseFont = Math.max(14, Math.min(22, windowWidth * 0.016));
+        // Nếu thông báo kết thúc (dài hơn bình thường) thì giảm size
+        int timeExtraChars = Math.max(0, timeText.length() - 8);
+        double timeFont = Math.max(12, timeBaseFont - timeExtraChars * 0.8);
+
+        remainingTimeLabel.setStyle(
+            "-fx-font-family: 'DM Sans'; -fx-font-size: " + (int) timeFont + "px; -fx-font-weight: 900; -fx-text-fill: #e040a0;"
+        );
+        // Nhãn "ENDING IN" nhỏ hơn số thời gian một chút để tạo sự phân cấp
+        double titleFont = Math.max(10, timeFont * 0.7);
+        endingInTitleLabel.setStyle(
+            "-fx-font-family: 'DM Sans'; -fx-font-size: " + (int) titleFont + "px; -fx-font-weight: 900; -fx-text-fill: #7c52aa;"
+        );
+
+        // 3. Xử lý font cho START PRICE
+        double startPriceFont = Math.max(14, Math.min(20, windowWidth * 0.014));
+        startPriceLabel.setStyle(
+            "-fx-font-family: 'DM Sans'; -fx-font-size: " + (int) startPriceFont + "px; -fx-font-weight: 900; -fx-text-fill: #3d0028;"
+        );
+        startPriceTitleLabel.setStyle(
+            "-fx-font-family: 'DM Sans'; -fx-font-size: " + (int) Math.max(8, Math.min(12, windowWidth * 0.008)) + "px; -fx-font-weight: 900; -fx-text-fill: #a02070; -fx-padding: 8 0 0 0;"
+        );
+
+        // 4. Xử lý font cho Ô NHẬP GIÁ (Bid Field)
+        double fieldFont = Math.max(12, Math.min(24, windowWidth * 0.017));
+        bidAmountField.setStyle(
+            "-fx-background-color: white; -fx-border-color: #ece2ec; -fx-border-width: 2; " +
+            "-fx-border-radius: 999; -fx-padding: 16 16 16 48; " +
+            "-fx-font-family: 'DM Sans'; -fx-font-size: " + (int) fieldFont + "px; -fx-font-weight: 900;"
+        );
+    }
+
+
     public void setItem(JSONObject sessionsObj, JSONObject itemObj) {
-        this.currentSessionId = sessionsObj.getInt("id");
-        this.currentPrice = sessionsObj.getBigDecimal("currentPrice"); // Lưu giá vào biến toàn cục
+        try {
+            this.currentSessionId = sessionsObj.getInt("id");
+            this.currentPrice = sessionsObj.optBigDecimal("currentPrice", BigDecimal.ZERO);
 
-        productNameLabel.setText("Sản phẩm: " + itemObj.getString("name"));
-        currentPriceLabel.setText("Giá hiện tại: " + String.format("%,.0f", currentPrice) + " VNĐ");
+            productNameLabel.setText(itemObj.optString("name", "Unknown Product"));
+            currentPriceLabel.setText("₫ " + String.format("%,.0f", currentPrice));
+            
+            if (sessionsObj.has("startPrice")) {
+                startPriceLabel.setText("₫ " + String.format("%,.0f", sessionsObj.getBigDecimal("startPrice")));
+            } else {
+                startPriceLabel.setText("---");
+            }
 
-        // Hiển thị ngày giờ cho đẹp
-        String endTimeStr = sessionsObj.getString("endTime");
-        endTimeLabel.setText("Thời gian kết thúc: " + endTimeStr.replace("T", " ").substring(0, 16));
+            String imagePath = itemObj.optString("imagePath", "");
+            if (!imagePath.isEmpty()) {
+                String imageUrl = Config.API_URL + "/api/files/images/" + imagePath;
+                try {
+                    productImageView.setImage(new Image(imageUrl, true));
+                } catch (Exception e) {
+                    logger.error("Error loading product image from {}: {}", imageUrl, e.getMessage());
+                }
+            }
 
-        setRemainingTime(endTimeStr);
-        connectToServer();
+            String endTimeStr = sessionsObj.optString("endTime", "");
+            if (!endTimeStr.isEmpty()) {
+                setRemainingTime(endTimeStr);
+            }
+
+            connectToServer();
+            logger.info("Successfully set item for session ID: {}", currentSessionId);
+        } catch (Exception e) {
+            logger.error("Error in setItem: {}", e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void connectToServer() {
@@ -83,7 +210,7 @@ public class AuctionPageController {
                             BigDecimal newPrice = noticeObj.getBigDecimal("newPrice");
                             this.currentPrice = newPrice;
 
-                            currentPriceLabel.setText("Giá cao nhất hiện tại: " + String.format("%,.0f", newPrice) + " VNĐ");
+                            currentPriceLabel.setText("₫ " + String.format("%,.0f", newPrice));
 
                             // ==========================================
                             // BẮT SỰ KIỆN ANTI-SNIPING Ở CLIENT
@@ -93,14 +220,6 @@ public class AuctionPageController {
 
                                 // XỬ LÝ CHUỖI AN TOÀN CHỐNG LỖI THIẾU GIÂY
                                 String displayTime = newEndTime.replace("T", " ");
-                                if (displayTime.length() == 16) {
-                                    displayTime += ":00"; // Bù thêm :00 nếu Java tự động cắt mất
-                                } else if (displayTime.length() > 19) {
-                                    displayTime = displayTime.substring(0, 19);
-                                }
-
-                                // Cập nhật lại nhãn thời gian kết thúc trên giao diện
-                                endTimeLabel.setText("Thời gian kết thúc: " + displayTime);
 
                                 // Đổi màu thông báo sang cam rực rỡ để gây chú ý
                                 messageLabel.setStyle("-fx-text-fill: #ff8c00; -fx-font-weight: bold;");
@@ -213,11 +332,65 @@ public class AuctionPageController {
     }
 
     @FXML
+    private void handleToggleSidebar(ActionEvent event) {
+        boolean isCollapsed = sideBar.getPrefWidth() <= 70;
+        
+        if (isCollapsed) {
+            // Expand
+            sideBar.setPrefWidth(200);
+            sideBar.setMaxWidth(200);
+            
+            mainMenuLabel.setVisible(true); mainMenuLabel.setManaged(true);
+            dashboardText.setVisible(true); dashboardText.setManaged(true);
+            liveAuctionsText.setVisible(true); liveAuctionsText.setManaged(true);
+            myBidsText.setVisible(true); myBidsText.setManaged(true);
+            sellingText.setVisible(true); sellingText.setManaged(true);
+            
+            discoverLabel.setVisible(true); discoverLabel.setManaged(true);
+            categoriesText.setVisible(true); categoriesText.setManaged(true);
+            activeBidsText.setVisible(true); activeBidsText.setManaged(true);
+            watchlistText.setVisible(true); watchlistText.setManaged(true);
+            endedSoonText.setVisible(true); endedSoonText.setManaged(true);
+            
+            otherLabel.setVisible(true); otherLabel.setManaged(true);
+            supportText.setVisible(true); supportText.setManaged(true);
+            
+            startSellingText.setVisible(true); startSellingText.setManaged(true);
+        } else {
+            // Collapse
+            sideBar.setPrefWidth(70);
+            sideBar.setMaxWidth(70);
+            
+            mainMenuLabel.setVisible(false); mainMenuLabel.setManaged(false);
+            dashboardText.setVisible(false); dashboardText.setManaged(false);
+            liveAuctionsText.setVisible(false); liveAuctionsText.setManaged(false);
+            myBidsText.setVisible(false); myBidsText.setManaged(false);
+            sellingText.setVisible(false); sellingText.setManaged(false);
+            
+            discoverLabel.setVisible(false); discoverLabel.setManaged(false);
+            categoriesText.setVisible(false); categoriesText.setManaged(false);
+            activeBidsText.setVisible(false); activeBidsText.setManaged(false);
+            watchlistText.setVisible(false); watchlistText.setManaged(false);
+            endedSoonText.setVisible(false); endedSoonText.setManaged(false);
+            
+            otherLabel.setVisible(false); otherLabel.setManaged(false);
+            supportText.setVisible(false); supportText.setManaged(false);
+            
+            startSellingText.setVisible(false); startSellingText.setManaged(false);
+        }
+    }
+
+    @FXML
+    private void handleStartSelling(ActionEvent event) {
+        logger.info("Start selling clicked in auction room");
+    }
+
+    @FXML
     public void handleGoBack(ActionEvent event) {
         disconnectSocket();
 
         try {
-            SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1024, 768);
+            SceneSwitcher.switchScene(event, "MainTemplate.fxml");
         } catch (IOException e) {
             e.printStackTrace();
             messageLabel.setText("Lỗi khi quay lại trang trước.");
@@ -242,7 +415,7 @@ public class AuctionPageController {
                 long hours = secondsLeft / 3600;
                 long minutes = (secondsLeft % 3600) / 60;
                 long seconds = secondsLeft % 60;
-                remainingTimeLabel.setText(String.format("Thời gian còn lại: %02d:%02d:%02d", hours, minutes, seconds));
+                remainingTimeLabel.setText(String.format("%02d:%02d:%02d", hours, minutes, seconds));
             }
         }));
 

@@ -9,10 +9,12 @@ import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
 import com.auction.client.HttpClientSingleton;
 import javafx.application.Platform;
+import javafx.animation.PauseTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
+import javafx.geometry.Bounds;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ComboBox;
@@ -86,6 +88,7 @@ public class MainController implements Initializable {
     @FXML private ScrollPane sidebarContainer;
     @FXML private VBox sidebarContent;
     @FXML private Button btnHamburger;
+    @FXML private Button btnStartSelling;
 
     private boolean isSidebarCollapsed = false;
     private final Map<Button, String> sidebarButtonTextMap = new java.util.HashMap<>();
@@ -372,7 +375,7 @@ public class MainController implements Initializable {
             bidBtn.setGraphic(addIcon);
             bidBtn.setOnAction(event -> {
                 try {
-                    FXMLLoader loader = SceneSwitcher.switchScene(event, "AuctionPage.fxml", 500, 400);
+                    FXMLLoader loader = SceneSwitcher.switchScene(event, "AuctionPage.fxml");
                     AuctionPageController controller = loader.getController();
                     controller.setItem(sessionObj, itemObj);
                 } catch (IOException e) {
@@ -396,6 +399,13 @@ public class MainController implements Initializable {
     public void handleLogout(ActionEvent event) throws IOException {
         User.clearSession();
         SceneSwitcher.switchScene(event, "Login.fxml", 400, 500);
+    }
+
+    @FXML
+    public void handleStartSelling(ActionEvent event) {
+        // Đây có thể là trang tạo phiên đấu giá mới
+        logger.info("Người dùng nhấn nút Start Selling (+)");
+        // Tạm thời có thể cho quay về Main hoặc một trang thông báo
     }
 
     public void setHttpClient(HttpClient httpClient) {
@@ -435,11 +445,27 @@ public class MainController implements Initializable {
                     String tooltipText = sidebarButtonTextMap.get(btn);
                     if (tooltipText != null) {
                         Tooltip tooltip = new Tooltip(tooltipText);
-                        tooltip.setShowDelay(Duration.millis(200));
                         // Deep pink background, white text, bold, rounded corners
                         tooltip.setStyle("-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 6px 12px; -fx-font-size: 13px;");
-                        btn.setTooltip(tooltip);
+                        
+                        // Tạo hiệu ứng delay thủ công để có thể cố định vị trí
+                        PauseTransition pause = new PauseTransition(Duration.millis(300));
+                        pause.setOnFinished(e -> {
+                            if (btn.isHover()) {
+                                Bounds bounds = btn.localToScreen(btn.getBoundsInLocal());
+                                // Hiện Tooltip ở bên phải nút, căn giữa theo chiều dọc
+                                tooltip.show(btn, bounds.getMaxX() + 15, bounds.getMinY() + btn.getHeight() / 2 - 18);
+                            }
+                        });
+
+                        btn.setOnMouseEntered(e -> pause.playFromStart());
+                        btn.setOnMouseExited(e -> {
+                            pause.stop();
+                            tooltip.hide();
+                        });
                     }
+
+                    btn.setTooltip(null); // Tắt Tooltip mặc định của JavaFX
 
                     btn.setText("");
                     btn.setPrefWidth(50);
@@ -465,7 +491,9 @@ public class MainController implements Initializable {
             for (javafx.scene.Node node : sidebarContent.getChildren()) {
                 if (node instanceof Button) {
                     Button btn = (Button) node;
-                    btn.setTooltip(null); // Xóa Tooltip khi mở rộng
+                    btn.setTooltip(null);
+                    btn.setOnMouseEntered(null); // Gỡ bỏ listener thủ công
+                    btn.setOnMouseExited(null);
                     String originalText = sidebarButtonTextMap.getOrDefault(btn, "");
                     btn.setText(originalText);
                     btn.setPrefWidth(165);

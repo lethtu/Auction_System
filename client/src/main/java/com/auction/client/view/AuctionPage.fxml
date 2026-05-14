@@ -1,64 +1,359 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
+<?import java.net.URL?>
 
-<AnchorPane prefHeight="400.0" prefWidth="500.0"
-            xmlns="http://javafx.com/javafx/21"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.auction.client.controller.AuctionPageController">
-    <children>
-        <Label layoutX="135.0" layoutY="30.0" text="CHI TIẾT PHIÊN ĐẤU GIÁ" textFill="#007bff">
-            <font>
-                <Font name="System Bold" size="20.0" />
-            </font>
-        </Label>
-
-        <VBox layoutX="50.0" layoutY="80.0" spacing="15.0">
+<BorderPane style="-fx-background-color: #fef7ff;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.AuctionPageController">
+    <stylesheets>
+        <URL value="@styles.css" />
+    </stylesheets>
+    <top>
+        <!-- Top Navigation Bar -->
+        <HBox fx:id="topNav" alignment="CENTER_LEFT" spacing="0.0" style="-fx-background-color: rgba(254, 247, 255, 0.9); -fx-padding: 12 30; -fx-border-color: #f2e8f2; -fx-border-width: 0 0 2px 0; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.15), 20, 0, 0, 4);">
             <children>
-                <Label fx:id="productNameLabel" text="Sản phẩm: [Tên sản phẩm]">
-                    <font>
-                        <Font size="14.0" />
-                    </font>
-                </Label>
-                <Label fx:id="currentPriceLabel" text="Giá cao nhất hiện tại: 0 VNĐ" textFill="#d9534f">
-                    <font>
-                        <Font name="System Bold" size="14.0" />
-                    </font>
-                </Label>
-                <Label fx:id="endTimeLabel" text="Thời gian kết thúc: Đang cập nhật...">
-                    <font>
-                        <Font size="14.0" />
-                    </font>
-                </Label>
-                <Label fx:id="remainingTimeLabel" text="Thời gian còn lại: Đang cập nhật...">
-                    <font>
-                        <Font size="14.0" />
-                    </font>
-                </Label>
+                <HBox alignment="CENTER_LEFT" spacing="20.0">
+                    <Button onAction="#handleToggleSidebar" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 8;">
+                        <graphic>
+                            <Label text="&#xe5d2;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #604868;" />
+                        </graphic>
+                    </Button>
+                    <Button onAction="#handleGoBack" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0; -fx-border-color: transparent; -fx-font-family: 'DM Sans'; -fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: #e040a0;" text="BidPop" />
+                </HBox>
+                
+                <Region HBox.hgrow="ALWAYS" />
+                
+                <HBox alignment="CENTER" spacing="15.0">
+                    <Button style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 8;">
+                        <graphic>
+                            <Label text="&#xe7f4;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #604868;" />
+                        </graphic>
+                    </Button>
+                    <Button style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 8;">
+                        <graphic>
+                            <Label text="&#xe8b8;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #604868;" />
+                        </graphic>
+                    </Button>
+                    <StackPane minWidth="36" maxWidth="36" minHeight="36" maxHeight="36" prefWidth="36" prefHeight="36" style="-fx-background-color: #1a1a3a; -fx-background-radius: 18px;">
+                        <Label text="&#xe7fd;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: white;" />
+                    </StackPane>
+                </HBox>
             </children>
-        </VBox>
+        </HBox>
+    </top>
+    
+    <center>
+        <StackPane fx:id="rootStackPane" alignment="TOP_LEFT">
+            <children>
+                <!-- Main Content Scroll Area -->
+                <HBox fillHeight="true" StackPane.alignment="TOP_LEFT" maxHeight="Infinity" maxWidth="Infinity">
+                    <children>
+                        <!-- Spacer for Collapsed Sidebar (so content isn't hidden) -->
+                        <Region fx:id="sidebarSpacer" minWidth="70.0" prefWidth="70.0" />
+                        
+                        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" HBox.hgrow="ALWAYS">
+                            <content>
+                                <VBox spacing="24.0" style="-fx-padding: 24;" maxWidth="Infinity" alignment="TOP_CENTER">
+                                    <children>
+                                        <GridPane hgap="24.0" alignment="TOP_CENTER" maxWidth="1400.0">
+                                            <columnConstraints>
+                                                <ColumnConstraints percentWidth="60.0" />
+                                                <ColumnConstraints percentWidth="40.0" />
+                                            </columnConstraints>
+                                            <children>
+                                                <!-- Left Side: Product Showcase (60%) -->
+                                                <VBox spacing="24.0" GridPane.columnIndex="0">
+                                                    <children>
+                                                        <!-- Product Card -->
+                                                        <VBox spacing="24.0" style="-fx-background-color: white; -fx-padding: 24; -fx-background-radius: 32; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.1), 20, 0, 0, 10); -fx-border-color: #fef7ff; -fx-border-width: 1; -fx-border-radius: 32;">
+                                                            <children>
+                                                                <StackPane alignment="TOP_LEFT">
+                                                                    <children>
+                                                                        <VBox alignment="CENTER" spacing="0.0" style="-fx-background-color: #f8eef8; -fx-background-radius: 32; -fx-overflow: hidden;">
+                                                                            <children>
+                                                                                <ImageView fx:id="productImageView" fitHeight="400.0" fitWidth="550.0" preserveRatio="true">
+                                                                                    <image>
+                                                                                        <Image url="https://lh3.googleusercontent.com/aida-public/AB6AXuCH0r9XSlSBYcXJbMzOHmK7DbWyrkTNxBFIFpUeuIwyZBQGupTlsIBFiF5WTFeqFnffxivr2RwgBdJEF9Pbq0taSL4L5resyM4Oc2esZYhK2f3Zk5nAoA8M1AvI-2XxswVn8OvyGXVSQnG3d5Tr4Qi2OzPq3BaMj7unP9Sj5qtAl4pax8W4icsfTTazysg-D4ojdnCdkkBVggwuiRQrZYJI-ec1J5tT2iPKPxpQsTrpCoWvyh1En_OgD6zrrVg7h_jEpADdq8FlT13C" />
+                                                                                    </image>
+                                                                                </ImageView>
+                                                                            </children>
+                                                                        </VBox>
+                                                                        
+                                                                        <HBox pickOnBounds="false" maxWidth="-Infinity" maxHeight="-Infinity" spacing="8.0" style="-fx-padding: 12;" StackPane.alignment="TOP_LEFT">
+                                                                            <children>
+                                                                                <HBox alignment="CENTER" spacing="6.0" style="-fx-background-color: #e040a0; -fx-padding: 4 12; -fx-background-radius: 999; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.3), 10, 0, 0, 4);">
+                                                                                    <children>
+                                                                                        <Label text="&#xe061;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 10px; -fx-text-fill: white;" />
+                                                                                        <Label text="LIVE NOW" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: white;" />
+                                                                                    </children>
+                                                                                </HBox>
+                                                                            </children>
+                                                                        </HBox>
+                                                                    </children>
+                                                                </StackPane>
+                                                                
+                                                                <HBox alignment="TOP_LEFT" spacing="20.0">
+                                                                    <children>
+                                                                        <VBox spacing="8.0" HBox.hgrow="ALWAYS">
+                                                                            <children>
+                                                                                <Label fx:id="productNameLabel" text="Loading..." style="-fx-font-family: 'DM Sans'; -fx-font-size: 30px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;" wrapText="true" />
+                                                                                <HBox alignment="CENTER_LEFT" spacing="8.0">
+                                                                                    <children>
+                                                                                        <Label text="&#xe1b1;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 14px; -fx-text-fill: #604868;" />
+                                                                                        <Label text="Condition: Mint (A+) • Certificate Included" style="-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868;" />
+                                                                                    </children>
+                                                                                </HBox>
+                                                                            </children>
+                                                                        </VBox>
+                                                                        <VBox alignment="TOP_RIGHT" spacing="0.0">
+                                                                            <children>
+                                                                                <Label fx:id="endingInTitleLabel" text="ENDING IN" style="-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: #7c52aa;" />
+                                                                                <Label fx:id="remainingTimeLabel" text="00:00:00" style="-fx-font-family: 'DM Sans'; -fx-font-size: 24px; -fx-font-weight: 900; -fx-text-fill: #e040a0;" />
+                                                                            </children>
+                                                                        </VBox>
+                                                                    </children>
+                                                                </HBox>
+                                                                
+                                                                <GridPane hgap="16.0" vgap="0.0">
+                                                                    <columnConstraints>
+                                                                        <ColumnConstraints percentWidth="33.3" />
+                                                                        <ColumnConstraints percentWidth="33.3" />
+                                                                        <ColumnConstraints percentWidth="33.3" />
+                                                                    </columnConstraints>
+                                                                    <children>
+                                                                        <VBox spacing="4.0" style="-fx-background-color: rgba(238, 220, 255, 0.3); -fx-padding: 16; -fx-background-radius: 32; -fx-border-color: rgba(238, 220, 255, 0.5); -fx-border-width: 1; -fx-border-radius: 32;" GridPane.columnIndex="0">
+                                                                            <children>
+                                                                                <Label text="&#xe889;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #7c52aa;" />
+                                                                                <Label text="TOTAL BIDS" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: #c8a8e8; -fx-padding: 8 0 0 0;" />
+                                                                                <Label text="142" style="-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: 900; -fx-text-fill: #2e2040;" />
+                                                                            </children>
+                                                                        </VBox>
+                                                                        <VBox spacing="4.0" style="-fx-background-color: rgba(200, 234, 255, 0.2); -fx-padding: 16; -fx-background-radius: 32; -fx-border-color: rgba(200, 234, 255, 0.3); -fx-border-width: 1; -fx-border-radius: 32;" GridPane.columnIndex="1">
+                                                                            <children>
+                                                                                <Label text="&#xe7ff;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #0096cc;" />
+                                                                                <Label text="WATCHING" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: #005580; -fx-padding: 8 0 0 0;" />
+                                                                                <Label text="1,024" style="-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: 900; -fx-text-fill: #00334d;" />
+                                                                            </children>
+                                                                        </VBox>
+                                                                        <VBox spacing="4.0" style="-fx-background-color: rgba(255, 214, 238, 0.3); -fx-padding: 16; -fx-background-radius: 32; -fx-border-color: rgba(255, 214, 238, 0.5); -fx-border-width: 1; -fx-border-radius: 32;" GridPane.columnIndex="2">
+                                                                            <children>
+                                                                                <Label text="&#xe8e5;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #e040a0;" />
+                                                                                <Label fx:id="startPriceTitleLabel" text="START PRICE" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: #a02070; -fx-padding: 8 0 0 0;" />
+                                                                                <Label fx:id="startPriceLabel" text="₫ 0" style="-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: 900; -fx-text-fill: #3d0028;" />
+                                                                            </children>
+                                                                        </VBox>
+                                                                    </children>
+                                                                </GridPane>
+                                                                
+                                                                <VBox spacing="12.0">
+                                                                    <children>
+                                                                        <Label text="Item Description" style="-fx-font-family: 'DM Sans'; -fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;" />
+                                                                        <Label text="Loading item description..." wrapText="true" style="-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-text-fill: #604868; -fx-line-spacing: 6;" />
+                                                                    </children>
+                                                                </VBox>
+                                                                
 
-        <Label layoutX="50.0" layoutY="210.0" text="Nhập mức giá:">
-            <font>
-                <Font size="14.0" />
-            </font>
-        </Label>
+                                                            </children>
+                                                        </VBox>
+                                                    </children>
+                                                </VBox>
+                                                
+                                                <!-- Right Side: Bidding Panel (40%) -->
+                                                <VBox spacing="24.0" GridPane.columnIndex="1">
+                                                    <children>
+                                                        <VBox spacing="24.0" style="-fx-background-color: white; -fx-padding: 24; -fx-background-radius: 32; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.2), 24, 0, 0, 8); -fx-border-color: #e040a0; -fx-border-width: 2; -fx-border-radius: 32;">
+                                                            <children>
+                                                                <Label fx:id="highestBidTitleLabel" text="CURRENT HIGHEST BID" style="-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: #604868;" />
+                                                                <HBox alignment="BASELINE_LEFT" spacing="8.0">
+                                                                    <children>
+                                                                        <Label fx:id="currentPriceLabel" text="₫ 0" style="-fx-font-family: 'DM Sans'; -fx-font-size: 48px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;" />
 
-        <TextField fx:id="bidAmountField" layoutX="150.0" layoutY="205.0" prefHeight="30.0" prefWidth="200.0" promptText="Ví dụ: 150000" />
-
-        <Button fx:id="placeBidBtn" layoutX="370.0" layoutY="205.0" mnemonicParsing="false" onAction="#handlePlaceBid" prefHeight="30.0" prefWidth="80.0" style="-fx-background-color: #28a745; -fx-text-fill: white; -fx-cursor: hand;" text="Đặt giá">
-            <font>
-                <Font name="System Bold" size="12.0" />
-            </font>
-        </Button>
-
-        <Label fx:id="messageLabel" layoutX="50.0" layoutY="250.0" textFill="#e81313" />
-
-        <Button layoutX="50.0" layoutY="330.0" mnemonicParsing="false" onAction="#handleGoBack" style="-fx-background-color: #6c757d; -fx-text-fill: white; -fx-cursor: hand;" text="&lt; Quay lại" />
-    </children>
-</AnchorPane>
+                                                                    </children>
+                                                                </HBox>
+                                                            </children>
+                                                        </VBox>
+                                                        
+                                                        <VBox spacing="24.0" style="-fx-background-color: white; -fx-padding: 24; -fx-background-radius: 32; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 4); -fx-border-color: #f2e8f2; -fx-border-width: 1; -fx-border-radius: 32;">
+                                                            <children>
+                                                                <VBox spacing="8.0">
+                                                                    <children>
+                                                                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                                                            <children>
+                                                                                <Label text="Your Bid Amount" style="-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: #604868;" />
+                                                                                <Region HBox.hgrow="ALWAYS" />
+                                                                                <Label text="Tăng tối thiểu ₫ 0" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: #e040a0;" />
+                                                                            </children>
+                                                                        </HBox>
+                                                                        <StackPane alignment="CENTER_LEFT">
+                                                                            <children>
+                                                                                <TextField fx:id="bidAmountField" style="-fx-background-color: white; -fx-border-color: #ece2ec; -fx-border-width: 2; -fx-border-radius: 999; -fx-padding: 16 16 16 48; -fx-font-family: 'DM Sans'; -fx-font-size: 24px; -fx-font-weight: 900;" />
+                                                                                <Label text="₫" style="-fx-font-family: 'DM Sans'; -fx-font-size: 24px; -fx-font-weight: 900; -fx-text-fill: #604868; -fx-padding: 0 0 0 20;" />
+                                                                            </children>
+                                                                        </StackPane>
+                                                                    </children>
+                                                                </VBox>
+                                                                <Button fx:id="placeBidBtn" maxWidth="Infinity" onAction="#handlePlaceBid" text="PLACE BID NOW" style="-fx-background-color: #e040a0; -fx-text-fill: white; -fx-padding: 16; -fx-background-radius: 999; -fx-font-family: 'DM Sans'; -fx-font-size: 18px; -fx-font-weight: 900; -fx-cursor: hand;" />
+                                                                
+                                                                <Label fx:id="messageLabel" alignment="CENTER" maxWidth="Infinity" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-text-fill: #e53e3e;" />
+                                                            </children>
+                                                        </VBox>
+                                                    </children>
+                                                </VBox>
+                                            </children>
+                                        </GridPane>
+                                    </children>
+                                </VBox>
+                            </content>
+                        </ScrollPane>
+                    </children>
+                </HBox>
+                
+                <!-- Sidebar Overlay -->
+                <VBox fx:id="sideBar" alignment="TOP_LEFT" maxWidth="70.0" prefWidth="70.0" spacing="4.0" style="-fx-background-color: white; -fx-padding: 24 10; -fx-border-color: #ece2ec; -fx-border-width: 0 2px 0 0; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 20, 0, 0, 0);">
+                    <children>
+                        <!-- Main Menu -->
+                        <Label fx:id="mainMenuLabel" text="MAIN MENU" visible="false" managed="false" style="-fx-font-family: 'DM Sans'; -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #907898; -fx-padding: 0 0 4 16;" />
+                        
+                        <Button onAction="#handleGoBack" maxWidth="Infinity" alignment="CENTER_LEFT" style="-fx-background-color: transparent; -fx-padding: 8 16; -fx-background-radius: 20; -fx-cursor: hand;">
+                            <graphic>
+                                <HBox alignment="CENTER_LEFT" spacing="12.0">
+                                    <children>
+                                        <Label text="&#xe871;" minWidth="24" alignment="CENTER" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #604868;" />
+                                        <Label fx:id="dashboardText" text="Dashboard" visible="false" managed="false" style="-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #604868;" />
+                                    </children>
+                                </HBox>
+                            </graphic>
+                        </Button>
+                        
+                        <Button maxWidth="Infinity" alignment="CENTER_LEFT" style="-fx-background-color: rgba(224, 64, 160, 0.1); -fx-padding: 8 16; -fx-background-radius: 20; -fx-cursor: hand;">
+                            <graphic>
+                                <HBox alignment="CENTER_LEFT" spacing="12.0">
+                                    <children>
+                                        <Label text="&#xe51e;" minWidth="24" alignment="CENTER" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #e040a0;" />
+                                        <Label fx:id="liveAuctionsText" text="Live Auctions" visible="false" managed="false" style="-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #e040a0;" />
+                                    </children>
+                                </HBox>
+                            </graphic>
+                        </Button>
+                        
+                        <Button maxWidth="Infinity" alignment="CENTER_LEFT" style="-fx-background-color: transparent; -fx-padding: 8 16; -fx-background-radius: 20; -fx-cursor: hand;">
+                            <graphic>
+                                <HBox alignment="CENTER_LEFT" spacing="12.0">
+                                    <children>
+                                        <Label text="&#xe90e;" minWidth="24" alignment="CENTER" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #604868;" />
+                                        <Label fx:id="myBidsText" text="My Bids" visible="false" managed="false" style="-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #604868;" />
+                                    </children>
+                                </HBox>
+                            </graphic>
+                        </Button>
+                        
+                        <Button maxWidth="Infinity" alignment="CENTER_LEFT" style="-fx-background-color: transparent; -fx-padding: 8 16; -fx-background-radius: 20; -fx-cursor: hand;">
+                            <graphic>
+                                <HBox alignment="CENTER_LEFT" spacing="12.0">
+                                    <children>
+                                        <Label text="&#xea12;" minWidth="24" alignment="CENTER" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #604868;" />
+                                        <Label fx:id="sellingText" text="Selling" visible="false" managed="false" style="-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #604868;" />
+                                    </children>
+                                </HBox>
+                            </graphic>
+                        </Button>
+                        
+                        <Region prefHeight="8.0" />
+                        
+                        <!-- Discover -->
+                        <Label fx:id="discoverLabel" text="DISCOVER" visible="false" managed="false" style="-fx-font-family: 'DM Sans'; -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #907898; -fx-padding: 0 0 4 16;" />
+                        
+                        <Button maxWidth="Infinity" alignment="CENTER_LEFT" style="-fx-background-color: transparent; -fx-padding: 8 16; -fx-background-radius: 20; -fx-cursor: hand;">
+                            <graphic>
+                                <HBox alignment="CENTER_LEFT" spacing="12.0">
+                                    <children>
+                                        <Label text="&#xe574;" minWidth="24" alignment="CENTER" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #604868;" />
+                                        <Label fx:id="categoriesText" text="Categories" visible="false" managed="false" style="-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #604868;" />
+                                    </children>
+                                </HBox>
+                            </graphic>
+                        </Button>
+                        
+                        <Button maxWidth="Infinity" alignment="CENTER_LEFT" style="-fx-background-color: transparent; -fx-padding: 8 16; -fx-background-radius: 20; -fx-cursor: hand;">
+                            <graphic>
+                                <HBox alignment="CENTER_LEFT" spacing="12.0">
+                                    <children>
+                                        <Label text="&#xef4a;" minWidth="24" alignment="CENTER" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #604868;" />
+                                        <Label fx:id="activeBidsText" text="Active Bids" visible="false" managed="false" style="-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #604868;" />
+                                    </children>
+                                </HBox>
+                            </graphic>
+                        </Button>
+                        
+                        <Button maxWidth="Infinity" alignment="CENTER_LEFT" style="-fx-background-color: transparent; -fx-padding: 8 16; -fx-background-radius: 20; -fx-cursor: hand;">
+                            <graphic>
+                                <HBox alignment="CENTER_LEFT" spacing="12.0">
+                                    <children>
+                                        <Label text="&#xe8f4;" minWidth="24" alignment="CENTER" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #604868;" />
+                                        <Label fx:id="watchlistText" text="Watchlist" visible="false" managed="false" style="-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #604868;" />
+                                    </children>
+                                </HBox>
+                            </graphic>
+                        </Button>
+                        
+                        <Button maxWidth="Infinity" alignment="CENTER_LEFT" style="-fx-background-color: transparent; -fx-padding: 8 16; -fx-background-radius: 20; -fx-cursor: hand;">
+                            <graphic>
+                                <HBox alignment="CENTER_LEFT" spacing="12.0">
+                                    <children>
+                                        <Label text="&#xe8b5;" minWidth="24" alignment="CENTER" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #604868;" />
+                                        <Label fx:id="endedSoonText" text="Ended Soon" visible="false" managed="false" style="-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #604868;" />
+                                    </children>
+                                </HBox>
+                            </graphic>
+                        </Button>
+                        
+                        <Region prefHeight="8.0" />
+                        
+                        <!-- Other -->
+                        <Label fx:id="otherLabel" text="OTHER" visible="false" managed="false" style="-fx-font-family: 'DM Sans'; -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #907898; -fx-padding: 0 0 4 16;" />
+                        
+                        <Button maxWidth="Infinity" alignment="CENTER_LEFT" style="-fx-background-color: transparent; -fx-padding: 8 16; -fx-background-radius: 20; -fx-cursor: hand;">
+                            <graphic>
+                                <HBox alignment="CENTER_LEFT" spacing="12.0">
+                                    <children>
+                                        <Label text="&#xe887;" minWidth="24" alignment="CENTER" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #604868;" />
+                                        <Label fx:id="supportText" text="Support" visible="false" managed="false" style="-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #604868;" />
+                                    </children>
+                                </HBox>
+                            </graphic>
+                        </Button>
+                        
+                        <Region VBox.vgrow="ALWAYS" />
+                        
+                        <!-- Start Selling -->
+                        <Button maxWidth="Infinity" alignment="CENTER_LEFT" onAction="#handleStartSelling" style="-fx-background-color: #e040a0; -fx-padding: 12; -fx-background-radius: 20; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.3), 16, 0, 0, 4);">
+                            <graphic>
+                                <HBox alignment="CENTER_LEFT" spacing="12.0">
+                                    <children>
+                                        <Label text="&#xe145;" minWidth="24" alignment="CENTER" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: white;" />
+                                        <Label fx:id="startSellingText" text="Start Selling" visible="false" managed="false" style="-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: white;" />
+                                    </children>
+                                </HBox>
+                            </graphic>
+                        </Button>
+                    </children>
+                </VBox>
+            </children>
+        </StackPane>
+    </center>
+</BorderPane>
