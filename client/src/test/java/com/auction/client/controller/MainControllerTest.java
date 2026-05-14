@@ -60,4 +60,26 @@ public class MainControllerTest {
         // 5. Kiểm tra xem đã bay sang màn hình Login chưa
         verifyThat("Đăng nhập Hệ thống Đấu giá", NodeMatchers.isVisible());
     }
+
+    @Test
+    @DisplayName("Test: Sidebar Toggle & Hover Tooltip")
+    public void testSidebarInteraction(FxRobot robot) {
+        // 1. Kiểm tra trạng thái ban đầu (Mở rộng)
+        verifyThat("#btnSidebarDashboard", LabeledMatchers.hasText("Dashboard"));
+
+        // 2. Click Hamburger để thu gọn
+        robot.clickOn("#btnHamburger");
+        robot.sleep(500); // Chờ hiệu ứng và logic xử lý
+
+        // 3. Kiểm tra xem chữ đã bị ẩn đi chưa (trong logic của bạn là setText(""))
+        verifyThat("#btnSidebarDashboard", LabeledMatchers.hasText(""));
+
+        // 4. Test Hover để hiện mô tả (Tooltip)
+        robot.moveTo("#btnSidebarDashboard");
+        robot.sleep(500); // Chờ PauseTransition (300ms) trong code của bạn
+
+        // 5. Kiểm tra xem Tooltip có xuất hiện không
+        // Kiểm tra xem chữ "Dashboard" có xuất hiện và hiển thị trên màn hình không
+        verifyThat("Dashboard", isVisible());
+    }
 }
