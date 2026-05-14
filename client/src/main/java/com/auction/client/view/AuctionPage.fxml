@@ -28,12 +28,12 @@
         <HBox fx:id="topNav" alignment="CENTER_LEFT" spacing="0.0" style="-fx-background-color: rgba(254, 247, 255, 0.9); -fx-padding: 12 30; -fx-border-color: #f2e8f2; -fx-border-width: 0 0 2px 0; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.15), 20, 0, 0, 4);">
             <children>
                 <HBox alignment="CENTER_LEFT" spacing="20.0">
-                    <Button onAction="#handleToggleSidebar" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 8;">
+                    <Button fx:id="hamburgerBtn" onAction="#handleToggleSidebar" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 8;">
                         <graphic>
                             <Label text="&#xe5d2;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #604868;" />
                         </graphic>
                     </Button>
-                    <Button onAction="#handleGoBack" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0; -fx-border-color: transparent; -fx-font-family: 'DM Sans'; -fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: #e040a0;" text="BidPop" />
+                    <Button fx:id="logoBtn" onAction="#handleGoBack" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0; -fx-border-color: transparent; -fx-font-family: 'DM Sans'; -fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: #e040a0;" text="BidPop" />
                 </HBox>
                 
                 <Region HBox.hgrow="ALWAYS" />
@@ -70,7 +70,7 @@
                             <content>
                                 <VBox spacing="24.0" style="-fx-padding: 24;" maxWidth="Infinity" alignment="TOP_CENTER">
                                     <children>
-                                        <GridPane hgap="24.0" alignment="TOP_CENTER" maxWidth="1400.0">
+                                        <GridPane fx:id="mainContentGrid" hgap="24.0" alignment="TOP_CENTER" maxWidth="1400.0">
                                             <columnConstraints>
                                                 <ColumnConstraints percentWidth="60.0" />
                                                 <ColumnConstraints percentWidth="40.0" />
@@ -229,7 +229,7 @@
                         <!-- Main Menu -->
                         <Label fx:id="mainMenuLabel" text="MAIN MENU" visible="false" managed="false" style="-fx-font-family: 'DM Sans'; -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #907898; -fx-padding: 0 0 4 16;" />
                         
-                        <Button onAction="#handleGoBack" maxWidth="Infinity" alignment="CENTER_LEFT" style="-fx-background-color: transparent; -fx-padding: 8 16; -fx-background-radius: 20; -fx-cursor: hand;">
+                        <Button fx:id="dashboardBtn" onAction="#handleGoBack" maxWidth="Infinity" alignment="CENTER_LEFT" style="-fx-background-color: transparent; -fx-padding: 8 16; -fx-background-radius: 20; -fx-cursor: hand;">
                             <graphic>
                                 <HBox alignment="CENTER_LEFT" spacing="12.0">
                                     <children>

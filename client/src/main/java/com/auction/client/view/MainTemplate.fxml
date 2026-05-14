@@ -57,7 +57,7 @@
             <VBox fx:id="sidebarContent" spacing="4.0" style="-fx-background-color: #ffffff; -fx-padding: 24px 8px;">
                 <!-- Main Menu -->
             <Label text="MAIN MENU" style="-fx-text-fill: #907898; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 0 0 4px 16px;" />
-            <Button text="Dashboard" alignment="CENTER_LEFT" prefWidth="165.0" minWidth="165.0" style="-fx-font-size: 14px; -fx-background-color: rgba(224, 64, 160, 0.15); -fx-text-fill: #e040a0; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;">
+            <Button fx:id="btnSidebarDashboard" text="Dashboard" alignment="CENTER_LEFT" prefWidth="165.0" minWidth="165.0" style="-fx-font-size: 14px; -fx-background-color: rgba(224, 64, 160, 0.15); -fx-text-fill: #e040a0; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;">
                 <graphic><Label text="&#xe871;" minWidth="24.0" minHeight="24.0" alignment="CENTER" translateY="3.0" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #e040a0;" /></graphic>
             </Button>
             <Button text="Live Auctions" alignment="CENTER_LEFT" prefWidth="165.0" minWidth="165.0" style="-fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;">
