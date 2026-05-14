@@ -27,6 +27,10 @@ public class AuthGetImage {
     @PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Map<String, String>>> uploadImage(@RequestParam("file") MultipartFile file) {
         try {
+            if (rootLocation == null) {
+                return ResponseEntity.internalServerError().body(ApiResponse.error("Upload ảnh thất bại."));
+            }
+
             if (file.isEmpty()) {
                 return ResponseEntity.badRequest().body(ApiResponse.error(400, "File ảnh đang trống."));
             }
@@ -73,16 +77,40 @@ public class AuthGetImage {
             @PathVariable String folder,
             @PathVariable String filename
     ) {
-        return serve(rootLocation.resolve(folder).resolve(filename).normalize());
+        try {
+            if (rootLocation == null) {
+                return ResponseEntity.internalServerError().build();
+            }
+
+            Path file = rootLocation.resolve(folder).resolve(filename).normalize();
+            return serve(file);
+        } catch (Exception e) {
+            logger.error("Lỗi khi xử lý đường dẫn file: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     @GetMapping("/images/{filename:.+}")
     public ResponseEntity<Resource> serveOldFile(@PathVariable String filename) {
-        return serve(rootLocation.resolve(filename).normalize());
+        try {
+            if (rootLocation == null) {
+                return ResponseEntity.internalServerError().build();
+            }
+
+            Path file = rootLocation.resolve(filename).normalize();
+            return serve(file);
+        } catch (Exception e) {
+            logger.error("Lỗi khi xử lý đường dẫn file cũ: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     private ResponseEntity<Resource> serve(Path file) {
         try {
+            if (rootLocation == null || file == null) {
+                return ResponseEntity.internalServerError().build();
+            }
+
             if (!file.startsWith(rootLocation)) {
                 return ResponseEntity.badRequest().build();
             }
