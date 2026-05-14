@@ -2,6 +2,8 @@ package com.auction.client.controller;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.net.Socket;
 import java.time.LocalDateTime;
 import java.time.Duration;
@@ -157,10 +159,10 @@ public class AuctionPageController {
             this.currentPrice = sessionsObj.optBigDecimal("currentPrice", BigDecimal.ZERO);
 
             productNameLabel.setText(itemObj.optString("name", "Unknown Product"));
-            currentPriceLabel.setText("₫ " + String.format("%,.0f", currentPrice));
+            currentPriceLabel.setText("₫ " + formatPrice(currentPrice));
             
             if (sessionsObj.has("startPrice")) {
-                startPriceLabel.setText("₫ " + String.format("%,.0f", sessionsObj.getBigDecimal("startPrice")));
+                startPriceLabel.setText("₫ " + formatPrice(sessionsObj.getBigDecimal("startPrice")));
             } else {
                 startPriceLabel.setText("---");
             }
@@ -210,7 +212,7 @@ public class AuctionPageController {
                             BigDecimal newPrice = noticeObj.getBigDecimal("newPrice");
                             this.currentPrice = newPrice;
 
-                            currentPriceLabel.setText("₫ " + String.format("%,.0f", newPrice));
+                            currentPriceLabel.setText("₫ " + formatPrice(newPrice));
 
                             // ==========================================
                             // BẮT SỰ KIỆN ANTI-SNIPING Ở CLIENT
@@ -305,7 +307,7 @@ public class AuctionPageController {
         }
 
         if (bidAmount.compareTo(this.currentPrice) <= 0) {
-            showError("Giá đặt phải LỚN HƠN giá hiện tại (" + String.format("%,.0f", this.currentPrice) + ")!");
+            showError("Giá đặt phải LỚN HƠN giá hiện tại (₫ " + formatPrice(this.currentPrice) + ")!");
             return;
         }
 
@@ -427,5 +429,12 @@ public class AuctionPageController {
         placeBidBtn.setDisable(true);
         bidAmountField.setDisable(true);
         disconnectSocket();
+    }
+    private String formatPrice(BigDecimal price) {
+        if (price == null) return "0";
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+        symbols.setGroupingSeparator('.');
+        DecimalFormat df = new DecimalFormat("###,###", symbols);
+        return df.format(price);
     }
 }

@@ -38,7 +38,9 @@ import javafx.util.Duration;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import com.auction.client.model.User;
-
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.math.BigDecimal;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
@@ -251,7 +253,7 @@ public class MainController implements Initializable {
 
                 if (matchKeyword && matchCategory && matchStatus) {
                     int id = sessionObj.optInt("id");
-                    double currentPrice = sessionObj.optDouble("currentPrice", 0.0);
+                    BigDecimal currentPrice = sessionObj.optBigDecimal("currentPrice", BigDecimal.ZERO);
 
                     String startTime = sessionObj.isNull("startTime") ? "Chưa bắt đầu" : sessionObj.getString("startTime").replace("T", " ");
                     String endTime = sessionObj.isNull("endTime") ? "Chưa rõ" : sessionObj.getString("endTime").replace("T", " ");
@@ -272,7 +274,7 @@ public class MainController implements Initializable {
 
         String type = itemObj.optString("type", "");
         String name = itemObj.optString("name", "");
-        double currentPrice = sessionObj.getDouble("currentPrice");
+        BigDecimal currentPrice = sessionObj.optBigDecimal("currentPrice", BigDecimal.ZERO);
 
         String status = sessionObj.optString("status", "ACTIVE");
 
@@ -358,7 +360,7 @@ public class MainController implements Initializable {
         VBox priceBox = new VBox(0);
         Label lblCurrentBid = new Label("CURRENT BID");
         lblCurrentBid.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #907898;");
-        Label priceLabel = new Label(String.format("%,.0f", currentPrice) + " ₫");
+        Label priceLabel = new Label("₫ " + formatPrice(currentPrice));
         priceLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 18px; -fx-text-fill: #e040a0;");
         priceBox.getChildren().addAll(lblCurrentBid, priceLabel);
 
@@ -508,5 +510,12 @@ public class MainController implements Initializable {
         
         // Cập nhật lại Grid Layout cho Center vì diện tích khả dụng đã thay đổi
         Platform.runLater(this::updateGridLayout);
+    }
+    private String formatPrice(BigDecimal price) {
+        if (price == null) return "0";
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+        symbols.setGroupingSeparator('.');
+        DecimalFormat df = new DecimalFormat("###,###", symbols);
+        return df.format(price);
     }
 }
