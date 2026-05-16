@@ -11,14 +11,10 @@ import com.auction.server.repository.AuctionSessionRepository;
 import com.auction.server.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
@@ -28,25 +24,25 @@ public class AdminService {
     private static final Logger logger = LoggerFactory.getLogger(AdminService.class);
 
     private static final String DEFAULT_ROLE = "user";
-    private static final String ADMIN_ROLE = "admin";
+
+    private static final String ERROR_ADMIN_NOT_FOUND = "Không tìm thấy admin";
+    private static final String ERROR_NOT_ADMIN = "Người này không phải là Quản trị viên";
+    private static final String ERROR_SESSION_NOT_FOUND = "Không tìm thấy phiên đấu giá";
+    private static final String ERROR_TARGET_USER_NOT_FOUND = "Không tìm thấy user cần khóa";
+    private static final String ERROR_SELF_BAN = "Không thể khóa chính tài khoản admin hiện tại";
+    private static final String ERROR_BAN_ADMIN = "Không được khóa tài khoản Admin khác";
+    private static final String ERROR_REJECT_REASON_REQUIRED = "Vui lòng nhập lý do từ chối";
+    private static final String ERROR_CANCEL_FINISHED_SESSION = "Phiên này đã kết thúc hoặc đã bị hủy";
 
     private final AuctionSessionRepository sessionRepository;
     private final UserRepository userRepository;
-    private final JdbcTemplate jdbcTemplate;
 
-    @Autowired
     public AdminService(
             AuctionSessionRepository sessionRepository,
-            UserRepository userRepository,
-            JdbcTemplate jdbcTemplate
+            UserRepository userRepository
     ) {
         this.sessionRepository = sessionRepository;
         this.userRepository = userRepository;
-        this.jdbcTemplate = jdbcTemplate;
-    }
-
-    public AdminService(AuctionSessionRepository sessionRepository, UserRepository userRepository) {
-        this(sessionRepository, userRepository, null);
     }
 
     public List<SessionResponseDTO> getPendingSessions() {
@@ -68,44 +64,27 @@ public class AdminService {
     }
 
     public List<UserResponseDTO> getAllUsers(String role) {
-        if (jdbcTemplate == null) {
-            return findUsersByRole(role)
-                    .stream()
-                    .map(this::mapToUserResponseDTO)
-                    .toList();
-        }
-
-        String sql = """
-                SELECT id, username, COALESCE(fullname, '') AS display_name,
-                       email, role, balance, banned
-                FROM users
-                """;
-
-        if (role == null || role.trim().isEmpty()) {
-            return jdbcTemplate.query(sql + " ORDER BY id", this::mapUserRow);
-        }
-
-        return jdbcTemplate.query(
-                sql + " WHERE LOWER(role) = ? ORDER BY id",
-                this::mapUserRow,
-                normalizeRole(role)
-        );
+        return findUsersByRole(role)
+                .stream()
+                .map(this::mapToUserResponseDTO)
+                .toList();
     }
 
     @Transactional
     public void approveSession(Integer sessionId, Integer adminId) {
         Admin admin = checkAdminPermission(adminId);
         AuctionSession session = getSessionById(sessionId);
+
         validatePendingSession(session, "Phiên này đã được xử lý hoặc không ở trạng thái chờ duyệt");
 
         LocalDateTime now = LocalDateTime.now();
+
         session.setStatus(AuctionStatus.ACTIVE);
         session.setStartTime(now);
         session.setApprovedAt(now);
         session.setApprovedByAdminId(admin.getId());
-        session.setRejectedAt(null);
-        session.setRejectedByAdminId(null);
-        session.setRejectReason(null);
+
+        clearRejectionInfo(session);
 
         sessionRepository.save(session);
     }
@@ -113,59 +92,50 @@ public class AdminService {
     @Transactional
     public void rejectSession(Integer sessionId, Integer adminId, String reason) {
         Admin admin = checkAdminPermission(adminId);
-
-        if (reason == null || reason.trim().isEmpty()) {
-            throw new IllegalArgumentException("Vui lòng nhập lý do từ chối");
-        }
+        String cleanReason = normalizeRequiredReason(reason);
 
         AuctionSession session = getSessionById(sessionId);
+
         validatePendingSession(session, "Chỉ được từ chối các phiên đang ở trạng thái chờ duyệt");
 
         LocalDateTime now = LocalDateTime.now();
+
         session.setStatus(AuctionStatus.REJECTED);
         session.setRejectedAt(now);
         session.setRejectedByAdminId(admin.getId());
-        session.setRejectReason(reason.trim());
-        session.setApprovedAt(null);
-        session.setApprovedByAdminId(null);
-        session.setStartTime(null);
+        session.setRejectReason(cleanReason);
+
+        clearApprovalInfo(session);
 
         sessionRepository.save(session);
     }
 
     @Transactional
     public void banUser(Integer targetUserId, Integer adminId) {
-        checkAdminPermission(adminId);
+        Admin admin = checkAdminPermission(adminId);
 
-        if (targetUserId == null || targetUserId.equals(adminId)) {
-            throw new RuntimeException("Không thể khóa chính tài khoản admin hiện tại");
+        if (targetUserId == null || targetUserId.equals(admin.getId())) {
+            throw new IllegalArgumentException(ERROR_SELF_BAN);
         }
 
-        if (jdbcTemplate == null) {
-            banUserWithRepository(targetUserId);
-            return;
+        User target = getUserById(targetUserId, ERROR_TARGET_USER_NOT_FOUND);
+
+        if (target instanceof Admin) {
+            throw new IllegalArgumentException(ERROR_BAN_ADMIN);
         }
 
-        UserSummary target = findUserSummaryById(targetUserId);
-
-        if (isAdminRole(target.role())) {
-            throw new RuntimeException("Không được khóa tài khoản Admin khác");
-        }
-
-        int updated = jdbcTemplate.update("UPDATE users SET banned = TRUE WHERE id = ?", targetUserId);
-
-        if (updated == 0) {
-            throw new RuntimeException("Không tìm thấy user cần khóa");
-        }
+        target.setBanned(true);
+        userRepository.save(target);
     }
 
     @Transactional
     public void cancelAuction(Integer sessionId, Integer adminId) {
         checkAdminPermission(adminId);
+
         AuctionSession session = getSessionById(sessionId);
 
         if (session.getStatus() == AuctionStatus.ENDED || session.getStatus() == AuctionStatus.CANCELED) {
-            throw new RuntimeException("Phiên này đã kết thúc hoặc đã bị hủy");
+            throw new IllegalArgumentException(ERROR_CANCEL_FINISHED_SESSION);
         }
 
         session.setStatus(AuctionStatus.CANCELED);
@@ -173,7 +143,7 @@ public class AdminService {
     }
 
     private List<AuctionSession> findSessionsByStatus(String status) {
-        if (status == null || status.trim().isEmpty()) {
+        if (!hasText(status)) {
             return sessionRepository.findAll();
         }
 
@@ -188,7 +158,7 @@ public class AdminService {
     private List<User> findUsersByRole(String role) {
         List<User> users = userRepository.findAll();
 
-        if (role == null || role.trim().isEmpty()) {
+        if (!hasText(role)) {
             return users;
         }
 
@@ -200,77 +170,67 @@ public class AdminService {
     }
 
     private AuctionSession getSessionById(Integer sessionId) {
+        if (sessionId == null) {
+            throw new IllegalArgumentException(ERROR_SESSION_NOT_FOUND);
+        }
+
         return sessionRepository.findById(sessionId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy phiên đấu giá"));
+                .orElseThrow(() -> new IllegalArgumentException(ERROR_SESSION_NOT_FOUND));
     }
 
-    private void validatePendingSession(AuctionSession session, String errorMessage) {
-        if (session.getStatus() != AuctionStatus.PENDING) {
-            logger.error("Phiên {} không ở trạng thái chờ duyệt", session.getId());
-            throw new RuntimeException(errorMessage);
+    private User getUserById(Integer userId, String errorMessage) {
+        if (userId == null) {
+            throw new IllegalArgumentException(errorMessage);
         }
+
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException(errorMessage));
     }
 
     private Admin checkAdminPermission(Integer adminId) {
-        if (adminId == null) {
-            throw new RuntimeException("Không tìm thấy admin");
-        }
-
-        User user = userRepository.findById(adminId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy admin"));
+        User user = getUserById(adminId, ERROR_ADMIN_NOT_FOUND);
 
         if (!(user instanceof Admin admin)) {
-            logger.error("{} không phải là quản trị viên", adminId);
-            throw new RuntimeException("Người này không phải là Quản trị viên");
+            logger.warn("{} không phải là quản trị viên", adminId);
+            throw new IllegalArgumentException(ERROR_NOT_ADMIN);
         }
 
         return admin;
     }
 
-    private void banUserWithRepository(Integer targetUserId) {
-        User target = userRepository.findById(targetUserId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy user cần khóa"));
-
-        if (target instanceof Admin) {
-            throw new RuntimeException("Không được khóa tài khoản Admin khác");
+    private void validatePendingSession(AuctionSession session, String errorMessage) {
+        if (session.getStatus() != AuctionStatus.PENDING) {
+            logger.warn("Phiên {} không ở trạng thái chờ duyệt", session.getId());
+            throw new IllegalArgumentException(errorMessage);
         }
-
-        target.setBanned(true);
-        userRepository.save(target);
     }
 
-    private UserSummary findUserSummaryById(Integer userId) {
-        List<UserSummary> users = jdbcTemplate.query(
-                "SELECT role FROM users WHERE id = ?",
-                (rs, rowNum) -> new UserSummary(rs.getString("role")),
-                userId
-        );
-
-        if (users.isEmpty()) {
-            throw new RuntimeException("Không tìm thấy user cần khóa");
+    private String normalizeRequiredReason(String reason) {
+        if (!hasText(reason)) {
+            throw new IllegalArgumentException(ERROR_REJECT_REASON_REQUIRED);
         }
 
-        return users.get(0);
+        return reason.trim();
     }
 
-    private UserResponseDTO mapUserRow(ResultSet rs, int rowNum) throws SQLException {
-        UserResponseDTO dto = new UserResponseDTO();
-        dto.setId(rs.getInt("id"));
-        dto.setUsername(nullToEmpty(rs.getString("username")));
-        dto.setFullname(nullToEmpty(rs.getString("display_name")));
-        dto.setEmail(nullToEmpty(rs.getString("email")));
-        dto.setAccountType(normalizeRole(rs.getString("role")));
-        dto.setBalance(defaultMoney(rs.getBigDecimal("balance")));
-        dto.setBanned(rs.getBoolean("banned"));
-        return dto;
+    private void clearApprovalInfo(AuctionSession session) {
+        session.setApprovedAt(null);
+        session.setApprovedByAdminId(null);
+        session.setStartTime(null);
+    }
+
+    private void clearRejectionInfo(AuctionSession session) {
+        session.setRejectedAt(null);
+        session.setRejectedByAdminId(null);
+        session.setRejectReason(null);
     }
 
     private UserResponseDTO mapToUserResponseDTO(User user) {
         return new UserResponseDTO(
                 user.getId(),
-                user.getUsername(),
-                user.getFullname(),
-                user.getEmail(),
+                nullToEmpty(user.getUsername()),
+                nullToEmpty(user.getFullname()),
+                nullToEmpty(user.getEmail()),
                 normalizeRole(user.getAccountType()),
                 defaultMoney(user.getBalance()),
                 user.isBanned()
@@ -278,15 +238,11 @@ public class AdminService {
     }
 
     private String normalizeRole(String role) {
-        if (role == null || role.isBlank()) {
+        if (!hasText(role)) {
             return DEFAULT_ROLE;
         }
 
         return role.trim().toLowerCase(Locale.ROOT);
-    }
-
-    private boolean isAdminRole(String role) {
-        return ADMIN_ROLE.equals(normalizeRole(role));
     }
 
     private String nullToEmpty(String value) {
@@ -297,6 +253,7 @@ public class AdminService {
         return value == null ? BigDecimal.ZERO : value;
     }
 
-    private record UserSummary(String role) {
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 }

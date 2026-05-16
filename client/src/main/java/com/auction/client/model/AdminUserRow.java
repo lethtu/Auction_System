@@ -7,7 +7,9 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
-public class AdminUserRow {
+public final class AdminUserRow {
+    private static final String EMPTY_TEXT = "";
+
     private final IntegerProperty id;
     private final StringProperty username;
     private final StringProperty fullname;
@@ -17,10 +19,10 @@ public class AdminUserRow {
 
     public AdminUserRow(int id, String username, String fullname, String email, String role, boolean banned) {
         this.id = new SimpleIntegerProperty(id);
-        this.username = new SimpleStringProperty(username);
-        this.fullname = new SimpleStringProperty(fullname);
-        this.email = new SimpleStringProperty(email);
-        this.role = new SimpleStringProperty(role);
+        this.username = new SimpleStringProperty(safeText(username));
+        this.fullname = new SimpleStringProperty(safeText(fullname));
+        this.email = new SimpleStringProperty(safeText(email));
+        this.role = new SimpleStringProperty(safeText(role));
         this.banned = new SimpleBooleanProperty(banned);
     }
 
@@ -70,5 +72,9 @@ public class AdminUserRow {
 
     public BooleanProperty bannedProperty() {
         return banned;
+    }
+
+    private static String safeText(String value) {
+        return value == null ? EMPTY_TEXT : value;
     }
 }
