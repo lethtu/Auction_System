@@ -67,8 +67,6 @@ public class SellerDashboardController {
     @FXML private TextField startingPriceField;
     @FXML private TextField stepPriceField;
     @FXML private TextField reservePriceField;
-    @FXML private TextField endTimeField;
-
     @FXML private DatePicker datePickerStart;
     @FXML private TextField txtStartTime;
     @FXML private DatePicker datePickerEnd;
@@ -88,7 +86,6 @@ public class SellerDashboardController {
     public void initialize() {
         setupProductTypeCombo();
         initializeDateInputs();
-        fillLegacyEndTimeField();
         loadMySessions();
         resetSubmitButton();
     }
@@ -281,15 +278,22 @@ public class SellerDashboardController {
         startingPriceField.setText(toEditableMoneyText(session.startingPrice));
         stepPriceField.setText(toEditableMoneyText(session.stepPrice));
         setTextIfPresent(reservePriceField, toEditableMoneyText(session.reservePrice));
-        setTextIfPresent(endTimeField, safeText(session.endTime));
-
+        fillStartDateTimeInputs(session.startTime);
         fillEndDateTimeInputs(session.endTime);
     }
 
     private String getProductTypeOrDefault(String productType) {
-        return productType == null || productType.isBlank()
-                ? DEFAULT_PRODUCT_TYPE
-                : productType;
+        if (productType == null || productType.isBlank()) {
+            return DEFAULT_PRODUCT_TYPE;
+        }
+
+        for (String allowedType : PRODUCT_TYPES) {
+            if (allowedType.equalsIgnoreCase(productType.trim())) {
+                return allowedType;
+            }
+        }
+
+        return productType.trim();
     }
 
     private void runSellerMutation(SellerMutation mutation) {
@@ -471,12 +475,6 @@ public class SellerDashboardController {
         }
     }
 
-    private void fillLegacyEndTimeField() {
-        if (endTimeField != null) {
-            SellerAuctionFormBuilder.fillDefaultEndTime(endTimeField);
-        }
-    }
-
     private String buildStartDateTimeText() {
         if (datePickerStart == null || datePickerStart.getValue() == null) {
             return "";
@@ -506,17 +504,30 @@ public class SellerDashboardController {
         }
     }
 
+    private void fillStartDateTimeInputs(String startTime) {
+        fillDateTimeInputs(startTime, datePickerStart, txtStartTime, "startTime");
+    }
+
     private void fillEndDateTimeInputs(String endTime) {
-        if (datePickerEnd == null || txtEndTime == null || endTime == null || endTime.isBlank()) {
+        fillDateTimeInputs(endTime, datePickerEnd, txtEndTime, "endTime");
+    }
+
+    private void fillDateTimeInputs(
+            String dateTimeText,
+            DatePicker datePicker,
+            TextField timeField,
+            String fieldName
+    ) {
+        if (datePicker == null || timeField == null || dateTimeText == null || dateTimeText.isBlank()) {
             return;
         }
 
         try {
-            LocalDateTime dateTime = LocalDateTime.parse(endTime);
-            datePickerEnd.setValue(dateTime.toLocalDate());
-            txtEndTime.setText(dateTime.toLocalTime().format(TIME_FORMAT));
+            LocalDateTime dateTime = LocalDateTime.parse(dateTimeText);
+            datePicker.setValue(dateTime.toLocalDate());
+            timeField.setText(dateTime.toLocalTime().format(TIME_FORMAT));
         } catch (DateTimeParseException e) {
-            logger.warn("Không parse được endTime: {}", endTime);
+            logger.warn("Không parse được {}: {}", fieldName, dateTimeText);
         }
     }
 
@@ -538,9 +549,6 @@ public class SellerDashboardController {
         stepPriceField.clear();
 
         clearIfPresent(reservePriceField);
-        clearIfPresent(endTimeField);
-
-        fillLegacyEndTimeField();
     }
 
     private void resetDateInputs() {

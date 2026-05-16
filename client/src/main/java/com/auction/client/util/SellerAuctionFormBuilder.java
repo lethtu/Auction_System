@@ -11,10 +11,8 @@ public final class SellerAuctionFormBuilder {
     private static final int DEFAULT_START_DELAY_MINUTES = 5;
     private static final int DEFAULT_DURATION_DAYS = 7;
 
-    private static final String MISSING_REQUIRED_FIELDS_TITLE = "Thiếu dữ liệu";
     private static final String MISSING_REQUIRED_FIELDS_MESSAGE =
             "Vui lòng nhập tên sản phẩm, loại, giá khởi điểm và bước giá.";
-
     private static final String INVALID_MONEY_MESSAGE =
             "Giá khởi điểm, bước giá và giá sàn phải là số hợp lệ.";
     private static final String INVALID_STARTING_PRICE_MESSAGE = "Giá khởi điểm phải lớn hơn 0.";
@@ -33,108 +31,11 @@ public final class SellerAuctionFormBuilder {
             TextInputControl imagePathField,
             TextInputControl startingPriceField,
             TextInputControl stepPriceField,
-            TextInputControl endTimeField
-    ) {
-        return buildRequestFromControls(
-                sellerId,
-                productTypeCombo,
-                productNameField,
-                descriptionArea,
-                imagePathField,
-                startingPriceField,
-                stepPriceField,
-                null,
-                endTimeField
-        );
-    }
-
-    public static CreateAuctionRequest buildUpdateRequest(
-            int sellerId,
-            ComboBox<String> productTypeCombo,
-            TextInputControl productNameField,
-            TextInputControl descriptionArea,
-            TextInputControl imagePathField,
-            TextInputControl startingPriceField,
-            TextInputControl stepPriceField,
-            TextInputControl endTimeField
-    ) {
-        return buildRequestFromControls(
-                sellerId,
-                productTypeCombo,
-                productNameField,
-                descriptionArea,
-                imagePathField,
-                startingPriceField,
-                stepPriceField,
-                null,
-                endTimeField
-        );
-    }
-
-    public static CreateAuctionRequest buildCreateRequest(
-            int sellerId,
-            ComboBox<String> productTypeCombo,
-            TextInputControl productNameField,
-            TextInputControl descriptionArea,
-            TextInputControl imagePathField,
-            TextInputControl startingPriceField,
-            TextInputControl stepPriceField,
             TextInputControl reservePriceField,
             String startTime,
             String endTime
     ) {
-        return buildRequestFromValues(
-                sellerId,
-                productTypeCombo,
-                productNameField,
-                descriptionArea,
-                imagePathField,
-                startingPriceField,
-                stepPriceField,
-                reservePriceField,
-                startTime,
-                endTime
-        );
-    }
-
-    public static CreateAuctionRequest buildCreateRequest(
-            int sellerId,
-            ComboBox<String> productTypeCombo,
-            TextInputControl productNameField,
-            TextInputControl descriptionArea,
-            TextInputControl imagePathField,
-            TextInputControl startingPriceField,
-            TextInputControl stepPriceField,
-            String startTime,
-            String endTime
-    ) {
-        return buildRequestFromValues(
-                sellerId,
-                productTypeCombo,
-                productNameField,
-                descriptionArea,
-                imagePathField,
-                startingPriceField,
-                stepPriceField,
-                null,
-                startTime,
-                endTime
-        );
-    }
-
-    public static CreateAuctionRequest buildUpdateRequest(
-            int sellerId,
-            ComboBox<String> productTypeCombo,
-            TextInputControl productNameField,
-            TextInputControl descriptionArea,
-            TextInputControl imagePathField,
-            TextInputControl startingPriceField,
-            TextInputControl stepPriceField,
-            TextInputControl reservePriceField,
-            String startTime,
-            String endTime
-    ) {
-        return buildRequestFromValues(
+        return buildRequest(
                 sellerId,
                 productTypeCombo,
                 productNameField,
@@ -156,48 +57,11 @@ public final class SellerAuctionFormBuilder {
             TextInputControl imagePathField,
             TextInputControl startingPriceField,
             TextInputControl stepPriceField,
+            TextInputControl reservePriceField,
             String startTime,
             String endTime
     ) {
-        return buildRequestFromValues(
-                sellerId,
-                productTypeCombo,
-                productNameField,
-                descriptionArea,
-                imagePathField,
-                startingPriceField,
-                stepPriceField,
-                null,
-                startTime,
-                endTime
-        );
-    }
-
-    public static void fillDefaultEndTime(TextInputControl endTimeField) {
-        if (endTimeField != null && textOrEmpty(endTimeField).isEmpty()) {
-            endTimeField.setText(defaultEndTime());
-        }
-    }
-
-    private static CreateAuctionRequest buildRequestFromControls(
-            int sellerId,
-            ComboBox<String> productTypeCombo,
-            TextInputControl productNameField,
-            TextInputControl descriptionArea,
-            TextInputControl imagePathField,
-            TextInputControl startingPriceField,
-            TextInputControl stepPriceField,
-            TextInputControl reservePriceField,
-            TextInputControl endTimeField
-    ) {
-        String endTime = textOrEmpty(endTimeField);
-
-        if (endTime.isEmpty()) {
-            endTime = defaultEndTime();
-            setTextIfPresent(endTimeField, endTime);
-        }
-
-        return buildRequestFromValues(
+        return buildRequest(
                 sellerId,
                 productTypeCombo,
                 productNameField,
@@ -206,12 +70,12 @@ public final class SellerAuctionFormBuilder {
                 startingPriceField,
                 stepPriceField,
                 reservePriceField,
-                defaultStartTime(),
+                startTime,
                 endTime
         );
     }
 
-    private static CreateAuctionRequest buildRequestFromValues(
+    private static CreateAuctionRequest buildRequest(
             int sellerId,
             ComboBox<String> productTypeCombo,
             TextInputControl productNameField,
@@ -235,10 +99,7 @@ public final class SellerAuctionFormBuilder {
                 endTimeInput
         );
 
-        if (hasMissingRequiredFields(formValues)) {
-            AlertUtil.showWarning(MISSING_REQUIRED_FIELDS_TITLE, MISSING_REQUIRED_FIELDS_MESSAGE);
-            return null;
-        }
+        validateRequiredFields(formValues);
 
         BigDecimal startingPrice = parsePositiveMoney(
                 formValues.startingPriceText(),
@@ -255,7 +116,7 @@ public final class SellerAuctionFormBuilder {
 
         return new CreateAuctionRequest(
                 formValues.productName(),
-                formValues.productType().trim(),
+                formValues.productType(),
                 formValues.description(),
                 formValues.imagePath(),
                 startingPrice,
@@ -291,11 +152,13 @@ public final class SellerAuctionFormBuilder {
         );
     }
 
-    private static boolean hasMissingRequiredFields(AuctionFormValues formValues) {
-        return formValues.productName().isEmpty()
+    private static void validateRequiredFields(AuctionFormValues formValues) {
+        if (formValues.productName().isEmpty()
                 || formValues.productType().isEmpty()
                 || formValues.startingPriceText().isEmpty()
-                || formValues.stepPriceText().isEmpty();
+                || formValues.stepPriceText().isEmpty()) {
+            throw new IllegalArgumentException(MISSING_REQUIRED_FIELDS_MESSAGE);
+        }
     }
 
     private static BigDecimal parsePositiveMoney(String value, String message) {
@@ -365,12 +228,6 @@ public final class SellerAuctionFormBuilder {
 
     private static boolean isBlank(String value) {
         return trimOrEmpty(value).isEmpty();
-    }
-
-    private static void setTextIfPresent(TextInputControl input, String value) {
-        if (input != null) {
-            input.setText(value);
-        }
     }
 
     private static String defaultIfBlank(String value, DefaultValueSupplier defaultValueSupplier) {

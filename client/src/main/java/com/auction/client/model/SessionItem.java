@@ -20,6 +20,7 @@ public class SessionItem {
     public BigDecimal stepPrice = BigDecimal.ZERO;
     public BigDecimal reservePrice = BigDecimal.ZERO;
     public Integer highestBidderId;
+    public String startTime = "";
     public String endTime = "";
     public String status = DEFAULT_STATUS;
 

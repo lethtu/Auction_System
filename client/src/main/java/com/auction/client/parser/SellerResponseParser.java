@@ -21,6 +21,7 @@ public final class SellerResponseParser {
     private static final String KEY_STEP_PRICE = "stepPrice";
     private static final String KEY_RESERVE_PRICE = "reservePrice";
     private static final String KEY_HIGHEST_BIDDER_ID = "highestBidderId";
+    private static final String KEY_START_TIME = "startTime";
     private static final String KEY_END_TIME = "endTime";
     private static final String KEY_STATUS = "status";
 
@@ -71,6 +72,7 @@ public final class SellerResponseParser {
         session.stepPrice = parseBigDecimal(item, KEY_STEP_PRICE);
         session.reservePrice = parseBigDecimal(item, KEY_RESERVE_PRICE);
         session.highestBidderId = parseNullableInteger(item, KEY_HIGHEST_BIDDER_ID);
+        session.startTime = item.optString(KEY_START_TIME, DEFAULT_TEXT);
         session.endTime = item.optString(KEY_END_TIME, DEFAULT_TEXT);
         session.status = item.optString(KEY_STATUS, DEFAULT_STATUS);
 
