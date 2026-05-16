@@ -21,6 +21,7 @@ public class DatabaseCompatibilityInitializer implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         normalizeRoleValues();
         allowRejectedAuctionStatus();
+        allowNullableEmployeeCode();
         repairBidSessionForeignKey();
     }
 
@@ -43,6 +44,12 @@ public class DatabaseCompatibilityInitializer implements ApplicationRunner {
         );
     }
 
+    private void allowNullableEmployeeCode() {
+        runStatement(
+                "Cho phép employee_code rỗng khi đăng ký bidder",
+                "ALTER TABLE users MODIFY COLUMN employee_code VARCHAR(255) NULL"
+        );
+    }
 
     private void repairBidSessionForeignKey() {
         try {
@@ -62,7 +69,7 @@ public class DatabaseCompatibilityInitializer implements ApplicationRunner {
             }
 
             removeOrphanBids();
-            addCorrectBidSessionForeignKey();
+            addCorrectBidSessionForeignKeyIfMissing();
         } catch (Exception e) {
             logger.warn("Sửa khóa ngoại bids.session_id bị bỏ qua: {}", e.getMessage());
         }
@@ -85,7 +92,22 @@ public class DatabaseCompatibilityInitializer implements ApplicationRunner {
         );
     }
 
-    private void addCorrectBidSessionForeignKey() {
+    private void addCorrectBidSessionForeignKeyIfMissing() {
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) "
+                        + "FROM information_schema.KEY_COLUMN_USAGE "
+                        + "WHERE TABLE_SCHEMA = DATABASE() "
+                        + "AND TABLE_NAME = 'bids' "
+                        + "AND COLUMN_NAME = 'session_id' "
+                        + "AND REFERENCED_TABLE_NAME = 'auction_sessions'",
+                Integer.class
+        );
+
+        if (count != null && count > 0) {
+            logger.info("Khóa ngoại bids.session_id sang auction_sessions.id đã tồn tại");
+            return;
+        }
+
         runStatement(
                 "Bổ sung khóa ngoại bids.session_id sang auction_sessions.id",
                 "ALTER TABLE bids ADD CONSTRAINT FK_bids_session_auction_sessions "
