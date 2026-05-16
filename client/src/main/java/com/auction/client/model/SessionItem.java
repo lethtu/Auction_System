@@ -15,6 +15,8 @@ public class SessionItem {
     public BigDecimal startingPrice = BigDecimal.ZERO;
     public BigDecimal currentPrice = BigDecimal.ZERO;
     public BigDecimal stepPrice = BigDecimal.ZERO;
+    public BigDecimal reservePrice = BigDecimal.ZERO;
+    public Integer highestBidderId;
     public String endTime = "";
     public String status = "UNKNOWN";
 
@@ -30,7 +32,9 @@ public class SessionItem {
         return prefix
                 + " | " + safe(productName)
                 + " | " + safe(status)
-                + " | Giá hiện tại: " + safePrice(currentPrice);
+                + " | Giá hiện tại: " + safePrice(currentPrice)
+                + " | Bước giá: " + safePrice(stepPrice)
+                + " | Giá sàn: " + safePrice(reservePrice);
     }
 
     private String safe(String value) {

@@ -44,6 +44,9 @@ public class ClientHandler implements Runnable {
                     jsonResponse.put("success", response.isSuccess());
                     jsonResponse.put("message", response.getMessage());
                     jsonResponse.put("currentPrice", response.getCurrentPrice());
+                    if (response.getHighestBidderId() != null) {
+                        jsonResponse.put("highestBidderId", response.getHighestBidderId());
+                    }
 
                     // QUAN TRỌNG: Nhét thời gian mới vào JSON gửi cho người đặt giá
                     if (response.getNewEndTime() != null) {
@@ -56,6 +59,9 @@ public class ClientHandler implements Runnable {
                     if (response.isSuccess()) {
                         JSONObject notice = new JSONObject();
                         notice.put("newPrice", response.getCurrentPrice());
+                        if (response.getHighestBidderId() != null) {
+                            notice.put("highestBidderId", response.getHighestBidderId());
+                        }
 
                         // QUAN TRỌNG: Nhét thời gian mới vào JSON để mọi người cùng thấy đồng hồ nảy lên
                         if (response.getNewEndTime() != null) {

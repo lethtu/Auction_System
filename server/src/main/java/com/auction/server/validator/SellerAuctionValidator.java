@@ -24,6 +24,7 @@ public final class SellerAuctionValidator {
         validateDescription(request.getDescription());
         validatePositivePrice(request.getStartingPrice(), "Giá khởi điểm phải lớn hơn 0");
         validatePositivePrice(request.getStepPrice(), "Bước giá phải lớn hơn 0");
+        validateReservePrice(request.getReservePrice(), request.getStartingPrice());
         validateAuctionTime(request.getStartTime(), request.getEndTime());
     }
 
@@ -50,6 +51,20 @@ public final class SellerAuctionValidator {
     private static void validatePositivePrice(BigDecimal price, String message) {
         if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidItemException(message);
+        }
+    }
+
+    private static void validateReservePrice(BigDecimal reservePrice, BigDecimal startingPrice) {
+        if (reservePrice == null) {
+            return;
+        }
+
+        if (reservePrice.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidItemException("Giá sàn phải lớn hơn 0");
+        }
+
+        if (startingPrice != null && reservePrice.compareTo(startingPrice) < 0) {
+            throw new InvalidItemException("Giá sàn không được nhỏ hơn giá khởi điểm");
         }
     }
 

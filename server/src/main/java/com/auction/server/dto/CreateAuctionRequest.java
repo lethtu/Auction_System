@@ -12,6 +12,7 @@ public class CreateAuctionRequest {
     private Integer sellerId;
     private BigDecimal startingPrice;
     private BigDecimal stepPrice;
+    private BigDecimal reservePrice;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
 
@@ -69,6 +70,14 @@ public class CreateAuctionRequest {
 
     public void setStepPrice(BigDecimal stepPrice) {
         this.stepPrice = stepPrice;
+    }
+
+    public BigDecimal getReservePrice() {
+        return reservePrice;
+    }
+
+    public void setReservePrice(BigDecimal reservePrice) {
+        this.reservePrice = reservePrice;
     }
 
     public LocalDateTime getStartTime() {

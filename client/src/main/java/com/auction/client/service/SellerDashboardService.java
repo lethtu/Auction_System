@@ -88,6 +88,7 @@ public class SellerDashboardService {
                 uploadedImagePath,
                 request.startingPrice,
                 request.stepPrice,
+                request.reservePrice,
                 request.startTime,
                 request.endTime,
                 request.sellerId

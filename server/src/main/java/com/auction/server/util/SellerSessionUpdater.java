@@ -4,6 +4,8 @@ import com.auction.server.dto.CreateAuctionRequest;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.model.Item;
 
+import java.math.BigDecimal;
+
 public final class SellerSessionUpdater {
 
     private SellerSessionUpdater() {
@@ -20,8 +22,14 @@ public final class SellerSessionUpdater {
         session.setStartingPrice(request.getStartingPrice());
         session.setCurrentPrice(request.getStartingPrice());
         session.setStepPrice(request.getStepPrice());
+        session.setReservePrice(resolveReservePrice(request));
+        session.setHighestBidderId(null);
         session.setStartTime(request.getStartTime());
         session.setEndTime(request.getEndTime());
+    }
+
+    private static BigDecimal resolveReservePrice(CreateAuctionRequest request) {
+        return request.getReservePrice() == null ? request.getStartingPrice() : request.getReservePrice();
     }
 
     public static void resetApprovalInfo(AuctionSession session) {

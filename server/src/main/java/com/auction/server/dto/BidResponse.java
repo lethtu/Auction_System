@@ -6,29 +6,51 @@ import java.math.BigDecimal;
 public class BidResponse implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private boolean success;
-    private String message;
-    private BigDecimal currentPrice;
-    private String newEndTime; // Thời gian gia hạn (nếu có)
+    private final boolean success;
+    private final String message;
+    private final BigDecimal currentPrice;
+    private final String newEndTime;
+    private final Integer highestBidderId;
 
-    // CONSTRUCTOR 1: Dùng cho các bài Test cũ của Tùng (3 tham số)
     public BidResponse(boolean success, String message, BigDecimal currentPrice) {
-        this.success = success;
-        this.message = message;
-        this.currentPrice = currentPrice;
-        this.newEndTime = null;
+        this(success, message, currentPrice, null, null);
     }
 
-    // CONSTRUCTOR 2: Dùng cho thuật toán Anti-Sniping (4 tham số)
     public BidResponse(boolean success, String message, BigDecimal currentPrice, String newEndTime) {
+        this(success, message, currentPrice, newEndTime, null);
+    }
+
+    public BidResponse(
+            boolean success,
+            String message,
+            BigDecimal currentPrice,
+            String newEndTime,
+            Integer highestBidderId
+    ) {
         this.success = success;
         this.message = message;
         this.currentPrice = currentPrice;
         this.newEndTime = newEndTime;
+        this.highestBidderId = highestBidderId;
     }
 
-    public boolean isSuccess() { return success; }
-    public String getMessage() { return message; }
-    public BigDecimal getCurrentPrice() { return currentPrice; }
-    public String getNewEndTime() { return newEndTime; }
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public BigDecimal getCurrentPrice() {
+        return currentPrice;
+    }
+
+    public String getNewEndTime() {
+        return newEndTime;
+    }
+
+    public Integer getHighestBidderId() {
+        return highestBidderId;
+    }
 }

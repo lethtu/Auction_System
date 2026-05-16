@@ -30,6 +30,8 @@ public final class SessionResponseMapper {
         dto.setStartingPrice(session.getStartingPrice());
         dto.setCurrentPrice(session.getCurrentPrice());
         dto.setStepPrice(session.getStepPrice());
+        dto.setReservePrice(session.getReservePrice());
+        dto.setHighestBidderId(session.getHighestBidderId());
         dto.setCreatedAt(session.getCreatedAt());
         dto.setStartTime(session.getStartTime());
         dto.setEndTime(session.getEndTime());

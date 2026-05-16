@@ -31,6 +31,7 @@ public final class SellerAuctionFormBuilder {
                 imagePathField,
                 startingPriceField,
                 stepPriceField,
+                null,
                 endTimeField
         );
     }
@@ -53,7 +54,34 @@ public final class SellerAuctionFormBuilder {
                 imagePathField,
                 startingPriceField,
                 stepPriceField,
+                null,
                 endTimeField
+        );
+    }
+
+    public static CreateAuctionRequest buildCreateRequest(
+            int sellerId,
+            ComboBox<String> productTypeCombo,
+            TextInputControl productNameField,
+            TextInputControl descriptionArea,
+            TextInputControl imagePathField,
+            TextInputControl startingPriceField,
+            TextInputControl stepPriceField,
+            TextInputControl reservePriceField,
+            String startTime,
+            String endTime
+    ) {
+        return buildRequest(
+                sellerId,
+                productTypeCombo,
+                productNameField,
+                descriptionArea,
+                imagePathField,
+                startingPriceField,
+                stepPriceField,
+                reservePriceField,
+                startTime,
+                endTime
         );
     }
 
@@ -76,6 +104,33 @@ public final class SellerAuctionFormBuilder {
                 imagePathField,
                 startingPriceField,
                 stepPriceField,
+                null,
+                startTime,
+                endTime
+        );
+    }
+
+    public static CreateAuctionRequest buildUpdateRequest(
+            int sellerId,
+            ComboBox<String> productTypeCombo,
+            TextInputControl productNameField,
+            TextInputControl descriptionArea,
+            TextInputControl imagePathField,
+            TextInputControl startingPriceField,
+            TextInputControl stepPriceField,
+            TextInputControl reservePriceField,
+            String startTime,
+            String endTime
+    ) {
+        return buildRequest(
+                sellerId,
+                productTypeCombo,
+                productNameField,
+                descriptionArea,
+                imagePathField,
+                startingPriceField,
+                stepPriceField,
+                reservePriceField,
                 startTime,
                 endTime
         );
@@ -100,6 +155,7 @@ public final class SellerAuctionFormBuilder {
                 imagePathField,
                 startingPriceField,
                 stepPriceField,
+                null,
                 startTime,
                 endTime
         );
@@ -119,25 +175,10 @@ public final class SellerAuctionFormBuilder {
             TextInputControl imagePathField,
             TextInputControl startingPriceField,
             TextInputControl stepPriceField,
+            TextInputControl reservePriceField,
             TextInputControl endTimeField
     ) {
-        String productName = textOrEmpty(productNameField);
-        String productType = productTypeCombo == null ? null : productTypeCombo.getValue();
-        String description = textOrEmpty(descriptionArea);
-        String imagePath = textOrEmpty(imagePathField);
-        String startingPriceText = textOrEmpty(startingPriceField);
-        String stepPriceText = textOrEmpty(stepPriceField);
-        String startTime = defaultStartTime();
         String endTime = textOrEmpty(endTimeField);
-
-        if (isFormInvalid(productName, productType, startingPriceText, stepPriceText)) {
-            AlertUtil.show(Alert.AlertType.WARNING, "Thiếu dữ liệu",
-                    "Vui lòng nhập tên sản phẩm, loại, giá khởi điểm và bước giá.");
-            return null;
-        }
-
-        BigDecimal startingPrice = parsePositiveMoney(startingPriceText, "Giá khởi điểm phải lớn hơn 0.");
-        BigDecimal stepPrice = parsePositiveMoney(stepPriceText, "Bước giá phải lớn hơn 0.");
 
         if (endTime.isEmpty()) {
             endTime = defaultEndTime();
@@ -147,19 +188,19 @@ public final class SellerAuctionFormBuilder {
             }
         }
 
-        return new CreateAuctionRequest(
-                productName,
-                productType.trim(),
-                description,
-                imagePath,
-                startingPrice,
-                stepPrice,
-                startTime,
-                endTime,
-                sellerId
+        return buildRequest(
+                sellerId,
+                productTypeCombo,
+                productNameField,
+                descriptionArea,
+                imagePathField,
+                startingPriceField,
+                stepPriceField,
+                reservePriceField,
+                defaultStartTime(),
+                endTime
         );
     }
-
 
     private static CreateAuctionRequest buildRequest(
             int sellerId,
@@ -169,6 +210,7 @@ public final class SellerAuctionFormBuilder {
             TextInputControl imagePathField,
             TextInputControl startingPriceField,
             TextInputControl stepPriceField,
+            TextInputControl reservePriceField,
             String startTimeInput,
             String endTimeInput
     ) {
@@ -178,6 +220,7 @@ public final class SellerAuctionFormBuilder {
         String imagePath = textOrEmpty(imagePathField);
         String startingPriceText = textOrEmpty(startingPriceField);
         String stepPriceText = textOrEmpty(stepPriceField);
+        String reservePriceText = textOrEmpty(reservePriceField);
         String startTime = startTimeInput == null ? "" : startTimeInput.trim();
         String endTime = endTimeInput == null ? "" : endTimeInput.trim();
 
@@ -189,6 +232,7 @@ public final class SellerAuctionFormBuilder {
 
         BigDecimal startingPrice = parsePositiveMoney(startingPriceText, "Giá khởi điểm phải lớn hơn 0.");
         BigDecimal stepPrice = parsePositiveMoney(stepPriceText, "Bước giá phải lớn hơn 0.");
+        BigDecimal reservePrice = parseOptionalReservePrice(reservePriceText, startingPrice);
 
         if (startTime.isEmpty()) {
             startTime = defaultStartTime();
@@ -205,6 +249,7 @@ public final class SellerAuctionFormBuilder {
                 imagePath,
                 startingPrice,
                 stepPrice,
+                reservePrice,
                 startTime,
                 endTime,
                 sellerId
@@ -224,10 +269,9 @@ public final class SellerAuctionFormBuilder {
                 || stepPriceText.isEmpty();
     }
 
-
     private static BigDecimal parsePositiveMoney(String value, String message) {
         try {
-            BigDecimal money = new BigDecimal(value.trim());
+            BigDecimal money = new BigDecimal(normalizeMoneyText(value));
 
             if (money.compareTo(BigDecimal.ZERO) <= 0) {
                 throw new IllegalArgumentException(message);
@@ -235,8 +279,26 @@ public final class SellerAuctionFormBuilder {
 
             return money;
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Giá khởi điểm và bước giá phải là số hợp lệ.");
+            throw new IllegalArgumentException("Giá khởi điểm, bước giá và giá sàn phải là số hợp lệ.");
         }
+    }
+
+    private static BigDecimal parseOptionalReservePrice(String value, BigDecimal startingPrice) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+
+        BigDecimal reservePrice = parsePositiveMoney(value, "Giá sàn phải lớn hơn 0.");
+
+        if (reservePrice.compareTo(startingPrice) < 0) {
+            throw new IllegalArgumentException("Giá sàn không được nhỏ hơn giá khởi điểm.");
+        }
+
+        return reservePrice;
+    }
+
+    private static String normalizeMoneyText(String value) {
+        return value == null ? "" : value.trim().replace("₫", "").replace("đ", "").replace(" ", "").replace(".", "").replace(",", "");
     }
 
     private static String defaultStartTime() {

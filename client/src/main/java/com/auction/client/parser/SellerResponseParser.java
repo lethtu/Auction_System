@@ -51,6 +51,10 @@ public final class SellerResponseParser {
         session.startingPrice = parseBigDecimal(item, "startingPrice");
         session.currentPrice = parseBigDecimal(item, "currentPrice");
         session.stepPrice = parseBigDecimal(item, "stepPrice");
+        session.reservePrice = parseBigDecimal(item, "reservePrice");
+        session.highestBidderId = item.has("highestBidderId") && !item.isNull("highestBidderId")
+                ? item.optInt("highestBidderId")
+                : null;
         session.endTime = item.optString("endTime", "");
         session.status = item.optString("status", "UNKNOWN");
 

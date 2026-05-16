@@ -185,6 +185,8 @@
 
                                                                     </children>
                                                                 </HBox>
+                                                                <Label fx:id="highestBidderLabel" text="Chưa có người đặt giá" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 800; -fx-text-fill: #604868;" />
+                                                                <Label fx:id="reserveStatusLabel" text="" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: #e040a0;" />
                                                             </children>
                                                         </VBox>
                                                         
@@ -196,7 +198,7 @@
                                                                             <children>
                                                                                 <Label text="Your Bid Amount" style="-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: #604868;" />
                                                                                 <Region HBox.hgrow="ALWAYS" />
-                                                                                <Label text="Tăng tối thiểu ₫ 0" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: #e040a0;" />
+                                                                                <Label fx:id="minBidIncrementLabel" text="Tăng tối thiểu ₫ 0" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: #e040a0;" />
                                                                             </children>
                                                                         </HBox>
                                                                         <StackPane alignment="CENTER_LEFT">

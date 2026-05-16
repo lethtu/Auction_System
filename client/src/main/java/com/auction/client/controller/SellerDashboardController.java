@@ -42,6 +42,7 @@ public class SellerDashboardController {
     @FXML private TextField imagePathField;
     @FXML private TextField startingPriceField;
     @FXML private TextField stepPriceField;
+    @FXML private TextField reservePriceField;
     @FXML private TextField endTimeField;
     @FXML private DatePicker datePickerStart;
     @FXML private TextField txtStartTime;
@@ -107,6 +108,7 @@ public class SellerDashboardController {
                     imagePathField,
                     startingPriceField,
                     stepPriceField,
+                    reservePriceField,
                     buildStartDateTimeText(),
                     buildEndDateTimeText()
             );
@@ -125,6 +127,7 @@ public class SellerDashboardController {
                     imagePathField,
                     startingPriceField,
                     stepPriceField,
+                    reservePriceField,
                     buildStartDateTimeText(),
                     buildEndDateTimeText()
             );
@@ -218,6 +221,9 @@ public class SellerDashboardController {
         imagePathField.setText(safeText(session.imagePath));
         startingPriceField.setText(toEditableMoneyText(session.startingPrice));
         stepPriceField.setText(toEditableMoneyText(session.stepPrice));
+        if (reservePriceField != null) {
+            reservePriceField.setText(toEditableMoneyText(session.reservePrice));
+        }
         if (endTimeField != null) {
             endTimeField.setText(safeText(session.endTime));
         }
@@ -239,7 +245,7 @@ public class SellerDashboardController {
                 handleMutationResult(api);
             }
         } catch (NumberFormatException e) {
-            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi dữ liệu", "Giá khởi điểm và bước giá phải là số.");
+            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi dữ liệu", "Giá khởi điểm, bước giá và giá sàn phải là số.");
         } catch (IllegalArgumentException e) {
             AlertUtil.show(Alert.AlertType.ERROR, "Lỗi dữ liệu", e.getMessage());
         } catch (IllegalStateException e) {
@@ -439,6 +445,9 @@ public class SellerDashboardController {
         imagePathField.clear();
         startingPriceField.clear();
         stepPriceField.clear();
+        if (reservePriceField != null) {
+            reservePriceField.clear();
+        }
 
         if (endTimeField != null) {
             endTimeField.clear();

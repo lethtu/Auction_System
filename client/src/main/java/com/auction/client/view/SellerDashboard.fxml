@@ -148,6 +148,10 @@
                                     <TextField fx:id="stepPriceField" promptText="500000"
                                                style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 16; -fx-background-radius: 16; -fx-padding: 10 14;"/>
 
+                                    <Label text="Giá sàn / Reserve price" style="-fx-text-fill: #604868; -fx-font-weight: bold;"/>
+                                    <TextField fx:id="reservePriceField" promptText="Ví dụ: 20000000, để trống = bằng giá khởi điểm"
+                                               style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 16; -fx-background-radius: 16; -fx-padding: 10 14;"/>
+
                                     <Label text="Thời gian bắt đầu (Để trống nếu muốn bắt đầu ngay):" style="-fx-text-fill: #604868; -fx-font-weight: bold;"/>
                                     <HBox spacing="10">
                                         <DatePicker fx:id="datePickerStart" prefWidth="170" promptText="Chọn ngày"

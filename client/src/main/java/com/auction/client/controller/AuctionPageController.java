@@ -5,6 +5,10 @@ import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.net.Socket;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.LocalDateTime;
 import java.time.Duration;
 
@@ -22,11 +26,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
-import javafx.scene.control.Separator;
 import javafx.animation.KeyFrame;
-import javafx.scene.text.Font;
 import javafx.animation.Timeline;
-import javafx.beans.value.ChangeListener;
 
 public class AuctionPageController {
     private static final Logger logger = LoggerFactory.getLogger(AuctionPageController.class);
@@ -56,6 +57,9 @@ public class AuctionPageController {
     @FXML private Label endingInTitleLabel;
     @FXML private Label startPriceTitleLabel;
     @FXML private Label highestBidTitleLabel;
+    @FXML private Label minBidIncrementLabel;
+    @FXML private Label highestBidderLabel;
+    @FXML private Label reserveStatusLabel;
 
     private Socket socket;
     private PrintWriter out;
@@ -63,8 +67,11 @@ public class AuctionPageController {
     private Thread listenerThread;
 
     private int currentSessionId;
-    private BigDecimal currentPrice;
-    private int currentUserId;
+    private BigDecimal currentPrice = BigDecimal.ZERO;
+    private BigDecimal stepPrice = BigDecimal.ZERO;
+    private BigDecimal startingPrice = BigDecimal.ZERO;
+    private BigDecimal reservePrice = BigDecimal.ZERO;
+    private Integer highestBidderId;
 
     private Timeline timeline;
 
@@ -73,6 +80,15 @@ public class AuctionPageController {
         productNameLabel.setText("Loading...");
         currentPriceLabel.setText("...");
         remainingTimeLabel.setText("00:00:00");
+        if (minBidIncrementLabel != null) {
+            minBidIncrementLabel.setText("Tăng tối thiểu ₫ 0");
+        }
+        if (highestBidderLabel != null) {
+            highestBidderLabel.setText("Chưa có người đặt giá");
+        }
+        if (reserveStatusLabel != null) {
+            reserveStatusLabel.setText("");
+        }
 
         // Gắn listeners sau khi scene sẵn sàng
         Platform.runLater(() -> {
@@ -156,37 +172,103 @@ public class AuctionPageController {
     public void setItem(JSONObject sessionsObj, JSONObject itemObj) {
         try {
             this.currentSessionId = sessionsObj.getInt("id");
-            this.currentPrice = sessionsObj.optBigDecimal("currentPrice", BigDecimal.ZERO);
-
-            productNameLabel.setText(itemObj.optString("name", "Unknown Product"));
-            currentPriceLabel.setText("₫ " + formatPrice(currentPrice));
-            
-            if (sessionsObj.has("startPrice")) {
-                startPriceLabel.setText("₫ " + formatPrice(sessionsObj.getBigDecimal("startPrice")));
-            } else {
-                startPriceLabel.setText("---");
-            }
-
-            String imagePath = itemObj.optString("imagePath", "");
-            if (!imagePath.isEmpty()) {
-                String imageUrl = Config.API_URL + "/api/files/images/" + imagePath;
-                try {
-                    productImageView.setImage(new Image(imageUrl, true));
-                } catch (Exception e) {
-                    logger.error("Error loading product image from {}: {}", imageUrl, e.getMessage());
-                }
-            }
-
-            String endTimeStr = sessionsObj.optString("endTime", "");
-            if (!endTimeStr.isEmpty()) {
-                setRemainingTime(endTimeStr);
-            }
-
+            applySessionData(sessionsObj, itemObj);
+            refreshSessionFromServer();
             connectToServer();
             logger.info("Successfully set item for session ID: {}", currentSessionId);
         } catch (Exception e) {
             logger.error("Error in setItem: {}", e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    private void refreshSessionFromServer() {
+        new Thread(() -> {
+            try {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(Config.API_URL + "/api/auctions/" + currentSessionId))
+                        .GET()
+                        .build();
+
+                HttpResponse<String> response = HttpClient.newHttpClient().send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+                if (response.statusCode() == 200 && response.body() != null && !response.body().isBlank()) {
+                    JSONObject session = new JSONObject(response.body());
+                    JSONObject item = session.optJSONObject("item");
+                    Platform.runLater(() -> applySessionData(session, item));
+                }
+            } catch (Exception e) {
+                logger.warn("Không tải lại được chi tiết phiên {}: {}", currentSessionId, e.getMessage());
+            }
+        }).start();
+    }
+
+    private void applySessionData(JSONObject sessionObj, JSONObject itemObj) {
+        this.startingPrice = getMoney(sessionObj, "startingPrice", BigDecimal.ZERO);
+        this.currentPrice = getMoney(sessionObj, "currentPrice", startingPrice);
+        this.stepPrice = getMoney(sessionObj, "stepPrice", BigDecimal.ZERO);
+        this.reservePrice = getMoney(sessionObj, "reservePrice", BigDecimal.ZERO);
+        this.highestBidderId = getOptionalInt(sessionObj, "highestBidderId");
+
+        if (currentPrice.compareTo(BigDecimal.ZERO) <= 0 && startingPrice.compareTo(BigDecimal.ZERO) > 0) {
+            currentPrice = startingPrice;
+        }
+
+        if (itemObj != null) {
+            productNameLabel.setText(itemObj.optString("name", "Unknown Product"));
+            loadProductImage(itemObj.optString("imagePath", ""));
+        } else {
+            productNameLabel.setText(sessionObj.optString("productName", "Unknown Product"));
+            loadProductImage(sessionObj.optString("imagePath", ""));
+        }
+
+        currentPriceLabel.setText("₫ " + formatPrice(currentPrice));
+        startPriceLabel.setText(startingPrice.compareTo(BigDecimal.ZERO) > 0 ? "₫ " + formatPrice(startingPrice) : "---");
+        updateBidInfoLabels();
+
+        String endTimeStr = sessionObj.optString("endTime", "");
+        if (!endTimeStr.isEmpty()) {
+            setRemainingTime(endTimeStr);
+        }
+    }
+
+    private void loadProductImage(String imagePath) {
+        if (imagePath == null || imagePath.isBlank()) {
+            return;
+        }
+
+        String imageUrl = Config.API_URL + "/api/files/images/" + imagePath;
+        try {
+            productImageView.setImage(new Image(imageUrl, true));
+        } catch (Exception e) {
+            logger.error("Error loading product image from {}: {}", imageUrl, e.getMessage());
+        }
+    }
+
+    private void updateBidInfoLabels() {
+        if (minBidIncrementLabel != null) {
+            minBidIncrementLabel.setText("Tăng tối thiểu ₫ " + formatPrice(stepPrice));
+        }
+
+        if (highestBidderLabel != null) {
+            highestBidderLabel.setText(
+                    highestBidderId == null
+                            ? "Chưa có người đặt giá"
+                            : "Người đang giữ giá: User #" + highestBidderId
+            );
+        }
+
+        if (reserveStatusLabel != null) {
+            if (reservePrice == null || reservePrice.compareTo(BigDecimal.ZERO) <= 0) {
+                reserveStatusLabel.setText("");
+            } else if (currentPrice.compareTo(reservePrice) >= 0) {
+                reserveStatusLabel.setText("Giá sàn đã đạt");
+            } else {
+                reserveStatusLabel.setText("Giá sàn chưa đạt");
+            }
         }
     }
 
@@ -213,6 +295,8 @@ public class AuctionPageController {
                             this.currentPrice = newPrice;
 
                             currentPriceLabel.setText("₫ " + formatPrice(newPrice));
+                            this.highestBidderId = getOptionalInt(noticeObj, "highestBidderId");
+                            updateBidInfoLabels();
 
                             // ==========================================
                             // BẮT SỰ KIỆN ANTI-SNIPING Ở CLIENT
@@ -247,9 +331,13 @@ public class AuctionPageController {
 
                         Platform.runLater(() -> {
                             if (responseObj.getBoolean("success")) {
+                                currentPrice = getMoney(responseObj, "currentPrice", currentPrice);
+                                highestBidderId = getOptionalInt(responseObj, "highestBidderId");
+                                currentPriceLabel.setText("₫ " + formatPrice(currentPrice));
+                                updateBidInfoLabels();
                                 messageLabel.setStyle("-fx-text-fill: green;");
                                 messageLabel.setText(responseObj.getString("message"));
-                                bidAmountField.clear(); // Xóa ô nhập sau khi đặt thành công
+                                bidAmountField.clear();
                             } else {
                                 messageLabel.setStyle("-fx-text-fill: red;");
                                 messageLabel.setText(responseObj.getString("message"));
@@ -300,14 +388,15 @@ public class AuctionPageController {
 
         BigDecimal bidAmount;
         try {
-            bidAmount = new BigDecimal(inputStr);
+            bidAmount = parseMoneyInput(inputStr);
         } catch (NumberFormatException e) {
             showError("Mức giá phải là con số hợp lệ!");
             return;
         }
 
-        if (bidAmount.compareTo(this.currentPrice) <= 0) {
-            showError("Giá đặt phải LỚN HƠN giá hiện tại (₫ " + formatPrice(this.currentPrice) + ")!");
+        BigDecimal minimumBid = this.currentPrice.add(this.stepPrice);
+        if (bidAmount.compareTo(minimumBid) < 0) {
+            showError("Giá đặt tối thiểu là ₫ " + formatPrice(minimumBid) + "!");
             return;
         }
 
@@ -402,7 +491,10 @@ public class AuctionPageController {
     // ================== LOGIC THỜI GIAN ================== //
 
     public void setRemainingTime(String endTimeStr) {
-        // Parse chuẩn định dạng ISO từ JSON gửi về (VD: "2026-05-15T20:00:00")
+        if (timeline != null) {
+            timeline.stop();
+        }
+
         LocalDateTime timeEnd = LocalDateTime.parse(endTimeStr);
 
         timeline = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1), event -> {
@@ -430,6 +522,39 @@ public class AuctionPageController {
         bidAmountField.setDisable(true);
         disconnectSocket();
     }
+    private BigDecimal parseMoneyInput(String raw) {
+        String normalized = raw == null
+                ? ""
+                : raw.trim()
+                        .replace("₫", "")
+                        .replace("đ", "")
+                        .replace(" ", "")
+                        .replace(".", "")
+                        .replace(",", "");
+
+        return new BigDecimal(normalized);
+    }
+
+    private BigDecimal getMoney(JSONObject object, String key, BigDecimal defaultValue) {
+        if (object == null || !object.has(key) || object.isNull(key)) {
+            return defaultValue == null ? BigDecimal.ZERO : defaultValue;
+        }
+
+        try {
+            return new BigDecimal(object.get(key).toString());
+        } catch (Exception e) {
+            return defaultValue == null ? BigDecimal.ZERO : defaultValue;
+        }
+    }
+
+    private Integer getOptionalInt(JSONObject object, String key) {
+        if (object == null || !object.has(key) || object.isNull(key)) {
+            return null;
+        }
+
+        return object.optInt(key);
+    }
+
     private String formatPrice(BigDecimal price) {
         if (price == null) return "0";
         DecimalFormatSymbols symbols = new DecimalFormatSymbols();

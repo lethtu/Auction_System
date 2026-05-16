@@ -269,6 +269,20 @@ public class MainController implements Initializable {
         });
     }
 
+
+    @FXML
+    private void handleApplyFilter(ActionEvent event) {
+        filterAndRenderProducts();
+    }
+
+    @FXML
+    private void handleResetFilter(ActionEvent event) {
+        txtSearch.clear();
+        cbCategory.setValue("Tất cả");
+        cbStatus.setValue("Tất cả");
+        filterAndRenderProducts();
+    }
+
     private VBox createProductCard(JSONObject sessionObj, JSONObject itemObj) {
         int id = sessionObj.getInt("id");
 

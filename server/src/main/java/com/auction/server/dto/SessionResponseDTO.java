@@ -20,6 +20,8 @@ public class SessionResponseDTO {
     private BigDecimal startingPrice;
     private BigDecimal currentPrice;
     private BigDecimal stepPrice;
+    private BigDecimal reservePrice;
+    private Integer highestBidderId;
 
     private LocalDateTime createdAt;
     private LocalDateTime startTime;
@@ -130,6 +132,22 @@ public class SessionResponseDTO {
 
     public void setStepPrice(BigDecimal stepPrice) {
         this.stepPrice = stepPrice;
+    }
+
+    public BigDecimal getReservePrice() {
+        return reservePrice;
+    }
+
+    public void setReservePrice(BigDecimal reservePrice) {
+        this.reservePrice = reservePrice;
+    }
+
+    public Integer getHighestBidderId() {
+        return highestBidderId;
+    }
+
+    public void setHighestBidderId(Integer highestBidderId) {
+        this.highestBidderId = highestBidderId;
     }
 
     public LocalDateTime getCreatedAt() {

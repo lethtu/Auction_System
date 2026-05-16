@@ -21,6 +21,9 @@ public final class SellerRequestBuilder {
 
         body.put("startingPrice", request.startingPrice);
         body.put("stepPrice", request.stepPrice);
+        if (request.reservePrice != null) {
+            body.put("reservePrice", request.reservePrice);
+        }
         body.put("startTime", request.startTime);
         body.put("endTime", request.endTime);
         body.put("sellerId", request.sellerId);
