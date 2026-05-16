@@ -72,6 +72,11 @@ jobs:
           distribution: "temurin"
           cache: maven
 
+      - name: Install JavaFX test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libgtk-3-0 libxrender1 libxtst6 libxi6
+
       - name: Build and Test Client
         working-directory: client
-        run: mvn -B clean test
+        run: xvfb-run -a mvn -B clean test
