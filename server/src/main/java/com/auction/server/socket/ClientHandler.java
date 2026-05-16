@@ -4,7 +4,12 @@ import com.auction.server.controller.BiddingController;
 import com.auction.server.dto.BidRequest;
 import com.auction.server.dto.BidResponse;
 import org.json.JSONObject;
-import java.io.*;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.math.BigDecimal;
 import java.net.Socket;
 
 public class ClientHandler implements Runnable {
@@ -27,49 +32,79 @@ public class ClientHandler implements Runnable {
                 if (inputLine.startsWith("JOIN:")) {
                     int sessionId = Integer.parseInt(inputLine.substring(5));
                     SocketServer.joinRoom(sessionId, out);
-                }
-                else if (inputLine.startsWith("BID:")) {
-                    String jsonString = inputLine.substring(4);
-                    JSONObject jsonObj = new JSONObject(jsonString);
-
-                    BidRequest request = new BidRequest(
-                            jsonObj.getInt("auctionId"),
-                            jsonObj.getInt("bidderId"),
-                            new java.math.BigDecimal(jsonObj.get("amount").toString())
-                    );
-
-                    BidResponse response = biddingController.handleBid(request);
-
-                    JSONObject jsonResponse = new JSONObject();
-                    jsonResponse.put("success", response.isSuccess());
-                    jsonResponse.put("message", response.getMessage());
-                    jsonResponse.put("currentPrice", response.getCurrentPrice());
-
-                    // QUAN TRỌNG: Nhét thời gian mới vào JSON gửi cho người đặt giá
-                    if (response.getNewEndTime() != null) {
-                        jsonResponse.put("newEndTime", response.getNewEndTime());
-                    }
-
-                    out.println("RESPONSE:" + jsonResponse.toString());
-
-                    // Broadcast nếu thành công cho toàn bộ người trong phòng
-                    if (response.isSuccess()) {
-                        JSONObject notice = new JSONObject();
-                        notice.put("newPrice", response.getCurrentPrice());
-
-                        // QUAN TRỌNG: Nhét thời gian mới vào JSON để mọi người cùng thấy đồng hồ nảy lên
-                        if (response.getNewEndTime() != null) {
-                            notice.put("newEndTime", response.getNewEndTime());
-                        }
-                        SocketServer.broadcastToRoom(request.getAuctionId(), "NOTICE:" + notice.toString());
-                    }
+                } else if (inputLine.startsWith("BID:")) {
+                    handleBidMessage(inputLine.substring(4));
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
             SocketServer.removeFromAllRooms(out);
-            try { clientSocket.close(); } catch (IOException e) { e.printStackTrace(); }
+            try {
+                clientSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+    }
+
+    private void handleBidMessage(String jsonString) {
+        try {
+            JSONObject jsonObj = new JSONObject(jsonString);
+            BidRequest request = new BidRequest(
+                    jsonObj.getInt("auctionId"),
+                    jsonObj.getInt("bidderId"),
+                    new BigDecimal(jsonObj.get("amount").toString())
+            );
+
+            BidResponse response = biddingController.handleBid(request);
+            sendBidResponse(response);
+
+            if (response.isSuccess()) {
+                broadcastBidNotice(request.getAuctionId(), response);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "LỖI HỆ THỐNG: Không xử lý được yêu cầu đặt giá.");
+            out.println("RESPONSE:" + errorResponse);
+        }
+    }
+
+    private void sendBidResponse(BidResponse response) {
+        JSONObject jsonResponse = new JSONObject();
+        jsonResponse.put("success", response.isSuccess());
+        jsonResponse.put("message", response.getMessage());
+        jsonResponse.put("currentPrice", response.getCurrentPrice());
+
+        if (response.getHighestBidderId() != null) {
+            jsonResponse.put("highestBidderId", response.getHighestBidderId());
+        }
+        if (response.getBidCount() != null) {
+            jsonResponse.put("bidCount", response.getBidCount());
+        }
+        if (response.getNewEndTime() != null) {
+            jsonResponse.put("newEndTime", response.getNewEndTime());
+        }
+
+        out.println("RESPONSE:" + jsonResponse);
+    }
+
+    private void broadcastBidNotice(Integer auctionId, BidResponse response) {
+        JSONObject notice = new JSONObject();
+        notice.put("newPrice", response.getCurrentPrice());
+
+        if (response.getHighestBidderId() != null) {
+            notice.put("highestBidderId", response.getHighestBidderId());
+        }
+        if (response.getBidCount() != null) {
+            notice.put("bidCount", response.getBidCount());
+        }
+        if (response.getNewEndTime() != null) {
+            notice.put("newEndTime", response.getNewEndTime());
+        }
+
+        SocketServer.broadcastToRoom(auctionId, "NOTICE:" + notice);
     }
 }

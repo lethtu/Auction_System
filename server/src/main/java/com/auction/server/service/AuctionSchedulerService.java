@@ -1,11 +1,10 @@
 package com.auction.server.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.repository.AuctionSessionRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,44 +16,31 @@ import java.util.List;
 public class AuctionSchedulerService {
     private static final Logger logger = LoggerFactory.getLogger(AuctionSchedulerService.class);
 
-    @Autowired
-    private AuctionSessionRepository auctionSessionRepository;
+    private final AuctionSessionRepository auctionSessionRepository;
 
-    /**
-     * Hàm này sẽ tự động chạy lặp lại mỗi 5 giây.
-     * @Transactional đảm bảo tính toàn vẹn của Transaction khi kéo dữ liệu và lưu lại.
-     */
+    public AuctionSchedulerService(AuctionSessionRepository auctionSessionRepository) {
+        this.auctionSessionRepository = auctionSessionRepository;
+    }
+
     @Transactional
-    @Scheduled(fixedRate = 5000) // Quét 5 giây 1 lần
+    @Scheduled(fixedRate = 5000)
     public void scanAndUpdateAuctionStatus() {
         LocalDateTime now = LocalDateTime.now();
 
-        // Bước 1: Mở phiên (PENDING -> ACTIVE)
-        List<AuctionSession> pendingSessions = auctionSessionRepository
-                .findByStatusAndStartTimeLessThanEqual(AuctionStatus.PENDING, now);
-
-        if (!pendingSessions.isEmpty()) {
-            for (AuctionSession session : pendingSessions) {
-                session.setStatus(AuctionStatus.ACTIVE);
-            }
-            auctionSessionRepository.saveAll(pendingSessions);
-        }
-
-        // Bước 2: Đóng phiên (ACTIVE -> ENDED)
         List<AuctionSession> activeSessions = auctionSessionRepository
                 .findByStatusAndEndTimeLessThanEqual(AuctionStatus.ACTIVE, now);
 
-        if (!activeSessions.isEmpty()) {
-            for (AuctionSession session : activeSessions) {
-                session.setStatus(AuctionStatus.ENDED);
-            }
-            auctionSessionRepository.saveAll(activeSessions);
+        for (AuctionSession session : activeSessions) {
+            session.setStatus(AuctionStatus.ENDED);
         }
 
-        // Logging (Chỉ in ra khi có sự thay đổi để tránh rác console)
-        if (!pendingSessions.isEmpty() || !activeSessions.isEmpty()) {
-            logger.info("[SCHEDULER] Lúc " + now +
-                    " | Đã mở " + pendingSessions.size() + " phiên | Đã đóng " + activeSessions.size() + " phiên.");
+        if (!activeSessions.isEmpty()) {
+            auctionSessionRepository.saveAll(activeSessions);
+            logger.info(
+                    "[SCHEDULER] Lúc {} | Đã đóng {} phiên ACTIVE quá hạn.",
+                    now,
+                    activeSessions.size()
+            );
         }
     }
 }

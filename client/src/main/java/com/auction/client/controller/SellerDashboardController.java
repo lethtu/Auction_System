@@ -1,524 +1,628 @@
 package com.auction.client.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.auction.client.Config;
-import com.auction.client.HttpClientSingleton;
+import com.auction.client.common.AuctionStatus;
+import com.auction.client.dto.ApiResult;
+import com.auction.client.dto.CreateAuctionRequest;
+import com.auction.client.model.SessionItem;
 import com.auction.client.model.User;
+import com.auction.client.service.SellerDashboardService;
+import com.auction.client.util.AlertUtil;
+import com.auction.client.util.SellerAuctionFormBuilder;
+import com.auction.client.util.SellerStatsCalculator;
 import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import javafx.stage.FileChooser;
+import javafx.stage.Window;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.text.DecimalFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class SellerDashboardController {
     private static final Logger logger = LoggerFactory.getLogger(SellerDashboardController.class);
 
+    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
+
+    private static final String MAIN_TEMPLATE_FXML = "MainTemplate.fxml";
+    private static final int MAIN_TEMPLATE_WIDTH = 1024;
+    private static final int MAIN_TEMPLATE_HEIGHT = 768;
+
+    private static final String DEFAULT_PRODUCT_TYPE = "Electronics";
+    private static final String DEFAULT_START_TIME = "00:00";
+    private static final String DEFAULT_END_TIME = "23:59";
+    private static final int DEFAULT_END_DATE_PLUS_DAYS = 7;
+
+    private static final String CREATE_BUTTON_TEXT = "Tạo phiên";
+    private static final String UPDATE_BUTTON_TEXT = "Lưu thay đổi";
+
+    private static final String ERROR_TITLE = "Lỗi";
+    private static final String NETWORK_ERROR_TITLE = "Lỗi mạng";
+    private static final String DATA_ERROR_TITLE = "Lỗi dữ liệu";
+    private static final String SUCCESS_TITLE = "Thành công";
+
+    private static final List<String> PRODUCT_TYPES = List.of(DEFAULT_PRODUCT_TYPE, "Art", "Vehicle");
+
+    @FXML private TabPane sellerTabPane;
+    @FXML private Tab tabMySessions;
+    @FXML private Tab tabCreateSession;
+    @FXML private Tab tabStats;
+
     @FXML private ListView<String> mySessionsList;
+
     @FXML private ComboBox<String> productTypeCombo;
     @FXML private TextField productNameField;
-    @FXML private TextField imageUrlField;
     @FXML private TextArea descriptionArea;
+    @FXML private TextField imagePathField;
     @FXML private TextField startingPriceField;
     @FXML private TextField stepPriceField;
-    @FXML private TextField endTimeField;
-    @FXML private TextArea statsArea;
+    @FXML private TextField reservePriceField;
     @FXML private DatePicker datePickerStart;
     @FXML private TextField txtStartTime;
     @FXML private DatePicker datePickerEnd;
     @FXML private TextField txtEndTime;
 
-    private final HttpClient httpClient = HttpClientSingleton.getInstance().getHttpClient();
+    @FXML private TextArea statsArea;
+    @FXML private Button btnCreateOrUpdate;
+
+    private final SellerDashboardService sellerDashboardService = new SellerDashboardService();
     private final List<SessionItem> allSessions = new ArrayList<>();
     private final List<SessionItem> displayedSessions = new ArrayList<>();
 
+    private SessionItem editingSession;
+    private File selectedImageFile;
+
     @FXML
     public void initialize() {
-        productTypeCombo.setItems(FXCollections.observableArrayList(
-                "Electronics", "Art", "Vehicle"
-        ));
-        productTypeCombo.setValue("Electronics");
-        fillDefaultEndTime();
+        setupProductTypeCombo();
+        initializeDateInputs();
         loadMySessions();
+        resetSubmitButton();
+    }
+
+    @FXML
+    private void handleChooseImage() {
+        FileChooser fileChooser = createImageFileChooser();
+        File file = fileChooser.showOpenDialog(getCurrentWindow());
+
+        if (file == null) {
+            return;
+        }
+
+        selectedImageFile = file;
+        imagePathField.setText(file.getName());
     }
 
     @FXML
     private void handleCreateSession() {
-        Integer sellerId = User.getId();
-        if (sellerId == null) {
-            logger.error("Không lấy được sellerId từ session");
-            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không lấy được sellerId từ session.");
+        if (isEditingSession()) {
+            updateEditingSession();
             return;
         }
 
-        String productName = productNameField.getText().trim();
-        String productType = productTypeCombo.getValue();
-        String imageUrl = productNameOrEmpty(imageUrlField);
-        String description = productNameOrEmpty(descriptionArea);
-        String startingPriceText = productNameOrEmpty(startingPriceField);
-        String stepPriceText = productNameOrEmpty(stepPriceField);
+        createNewSession();
+    }
 
-        if (productName.isEmpty() || productType == null || startingPriceText.isEmpty() || stepPriceText.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Thiếu dữ liệu",
-                    "Vui lòng nhập tên sản phẩm, loại, giá khởi điểm và bước giá.");
-            return;
-        }
+    @FXML
+    private void showMySessionsTab() {
+        selectTab(tabMySessions);
+    }
 
-        try {
-            BigDecimal startingPrice = new BigDecimal(startingPriceText.trim());
-            BigDecimal stepPrice = new BigDecimal(stepPriceText.trim());
+    @FXML
+    private void showCreateAuctionTab() {
+        selectTab(tabCreateSession);
+    }
 
-            JSONObject body = new JSONObject();
-
-            body.put("name", productName);
-            body.put("type", productType);
-            body.put("imagePath", imageUrl);
-            body.put("description", description);
-            body.put("startingPrice", startingPrice);
-            body.put("stepPrice", stepPrice);
-            body.put("sellerId", sellerId);
-
-            // --- XỬ LÝ THỜI GIAN BẮT ĐẦU ---
-            if (datePickerStart.getValue() == null) {
-                // Để trống -> Gửi Null để Server tự gán giờ hiện tại
-                body.put("startTime", JSONObject.NULL);
-            } else {
-                String timePart = txtStartTime.getText().trim().isEmpty() ? "00:00" : txtStartTime.getText().trim();
-                LocalDateTime startDT = LocalDateTime.of(datePickerStart.getValue(), java.time.LocalTime.parse(timePart));
-
-                // Validation: Không cho phép nhập quá khứ
-                if (startDT.isBefore(LocalDateTime.now())) {
-                    showAlert(Alert.AlertType.WARNING, "Lỗi thời gian", "Thời gian bắt đầu không được ở quá khứ!");
-                    return;
-                }
-                body.put("startTime", startDT.toString());
-            }
-
-            // --- XỬ LÝ THỜI GIAN KẾT THÚC ---
-            if (datePickerEnd.getValue() == null) {
-                showAlert(Alert.AlertType.WARNING, "Thiếu dữ liệu", "Vui lòng chọn ngày kết thúc!");
-                return;
-            }
-
-            String endTimePart = txtEndTime.getText().trim().isEmpty() ? "23:59" : txtEndTime.getText().trim();
-            LocalDateTime endDT = LocalDateTime.of(datePickerEnd.getValue(), java.time.LocalTime.parse(endTimePart));
-
-            if (!endDT.isAfter(LocalDateTime.now())) {
-                showAlert(Alert.AlertType.WARNING, "Lỗi thời gian", "Thời gian kết thúc phải ở tương lai!");
-                return;
-            }
-            body.put("endTime", endDT.toString());
-
-            // --- GỬI REQUEST LÊN SERVER ---
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(Config.API_URL + "/api/seller/create-auction"))
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
-                    .build();
-
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "Tạo phiên đấu giá thành công.");
-
-            if (api.success) {
-                clearForm();
-                loadMySessions();
-                showAlert(Alert.AlertType.INFORMATION, "Thành công", api.message);
-            } else {
-                logger.error("Lỗi api: {}", api.message);
-                showAlert(Alert.AlertType.ERROR, "Lỗi", api.message);
-            }
-
-        } catch (NumberFormatException e) {
-            showAlert(Alert.AlertType.ERROR, "Lỗi dữ liệu", "Giá khởi điểm và bước giá phải là số.");
-        } catch (java.time.format.DateTimeParseException e) {
-            // Bắt lỗi nếu gõ sai định dạng giờ (VD: gõ "abc" thay vì "14:00")
-            showAlert(Alert.AlertType.ERROR, "Sai định dạng giờ", "Vui lòng nhập giờ theo định dạng HH:mm (ví dụ 08:30 hoặc 14:00)");
-        } catch (Exception e) {
-            logger.error("Lỗi không thể kết nối đến máy chủ: {}", e.getMessage(), e);
-            showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
-        }
+    @FXML
+    private void showStatsTab() {
+        selectTab(tabStats);
     }
 
     @FXML
     private void handleShowAllSessions() {
-        renderSessions(allSessions);
+        loadMySessions();
     }
 
     @FXML
     private void handleShowPendingSessions() {
-        renderSessions(filterByStatus("PENDING"));
+        loadSessionsByStatus(AuctionStatus.PENDING);
     }
 
     @FXML
     private void handleShowActiveSessions() {
-        renderSessions(filterByStatus("ACTIVE"));
+        loadSessionsByStatus(AuctionStatus.ACTIVE);
     }
 
     @FXML
     private void handleShowRejectedSessions() {
-        renderSessions(filterByStatus("REJECTED"));
+        loadSessionsByStatus(AuctionStatus.REJECTED);
     }
 
     @FXML
     private void handleEditSelectedSession() {
-        showAlert(Alert.AlertType.INFORMATION,
-                "Tạm khóa chức năng",
-                "Chức năng sửa phiên đang tạm khóa để bản demo ổn định hơn.\nBạn có thể demo tạo, xem, lọc, hủy phiên và phân quyền.");
+        SessionItem selected = getPendingSelectedSession("sửa");
+
+        if (selected == null) {
+            return;
+        }
+
+        enterEditMode(selected);
     }
 
     @FXML
     private void handleCancelSelectedSession() {
-        SessionItem selected = getSelectedSession();
-        if (selected == null) {
-            showAlert(Alert.AlertType.WARNING, "Chưa chọn phiên", "Bạn hãy chọn một phiên để hủy.");
+        SessionItem selected = getPendingSelectedSession("hủy");
+
+        if (selected == null || !confirmCancelSession(selected.id)) {
             return;
         }
 
-        if (!"PENDING".equalsIgnoreCase(selected.status)) {
-            showAlert(Alert.AlertType.WARNING, "Không thể hủy",
-                    "Chỉ được hủy phiên đang ở trạng thái PENDING.");
-            return;
-        }
-
-        Integer sellerId = User.getId();
-        if (sellerId == null) {
-            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không lấy được sellerId từ session.");
-            return;
-        }
-
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("Xác nhận");
-        confirm.setHeaderText(null);
-        confirm.setContentText("Bạn có chắc muốn hủy phiên #" + selected.id + " không?");
-        if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) {
-            return;
-        }
-
-        try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(Config.API_URL + "/api/seller/cancel-session/" + selected.id + "?sellerId=" + sellerId))
-                    .DELETE()
-                    .build();
-
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "Đã hủy phiên thành công.");
-
-            if (api.success) {
-                loadMySessions();
-                showAlert(Alert.AlertType.INFORMATION, "Thành công", api.message);
-            } else {
-                showAlert(Alert.AlertType.ERROR, "Lỗi", api.message);
-            }
-        } catch (Exception e) {
-            logger.error("Lỗi không thể kết nối đến máy chủ: {}", e.getMessage(), e);
-            showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
-        }
+        runSellerMutation(sellerId -> sellerDashboardService.cancelSession(selected.id, sellerId));
     }
 
     @FXML
-    private void goBack(javafx.event.ActionEvent event) throws IOException {
-        SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1024, 768);
+    private void goBack(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, MAIN_TEMPLATE_FXML, MAIN_TEMPLATE_WIDTH, MAIN_TEMPLATE_HEIGHT);
+        } catch (IOException e) {
+            logger.error("Không thể quay lại màn chính", e);
+            AlertUtil.show(Alert.AlertType.ERROR, ERROR_TITLE, "Không thể quay lại màn chính.");
+        }
     }
 
-    private void loadMySessions() {
-        Integer sellerId = User.getId();
+    private void setupProductTypeCombo() {
+        productTypeCombo.setItems(FXCollections.observableArrayList(PRODUCT_TYPES));
+        productTypeCombo.setValue(DEFAULT_PRODUCT_TYPE);
+    }
+
+    private FileChooser createImageFileChooser() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Chọn ảnh sản phẩm");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp")
+        );
+        return fileChooser;
+    }
+
+    private Window getCurrentWindow() {
+        if (btnCreateOrUpdate == null || btnCreateOrUpdate.getScene() == null) {
+            return null;
+        }
+
+        return btnCreateOrUpdate.getScene().getWindow();
+    }
+
+    private boolean isEditingSession() {
+        return editingSession != null;
+    }
+
+    private void createNewSession() {
+        runSellerMutation(sellerId -> {
+            CreateAuctionRequest request = buildCreateRequest(sellerId);
+            return request == null
+                    ? null
+                    : sellerDashboardService.createAuction(request, selectedImageFile);
+        });
+    }
+
+    private void updateEditingSession() {
+        runSellerMutation(sellerId -> {
+            CreateAuctionRequest request = buildUpdateRequest(sellerId);
+            return request == null
+                    ? null
+                    : sellerDashboardService.updateSession(editingSession.id, sellerId, request, selectedImageFile);
+        });
+    }
+
+    private CreateAuctionRequest buildCreateRequest(int sellerId) {
+        return SellerAuctionFormBuilder.buildCreateRequest(
+                sellerId,
+                productTypeCombo,
+                productNameField,
+                descriptionArea,
+                imagePathField,
+                startingPriceField,
+                stepPriceField,
+                reservePriceField,
+                buildStartDateTimeText(),
+                buildEndDateTimeText()
+        );
+    }
+
+    private CreateAuctionRequest buildUpdateRequest(int sellerId) {
+        return SellerAuctionFormBuilder.buildUpdateRequest(
+                sellerId,
+                productTypeCombo,
+                productNameField,
+                descriptionArea,
+                imagePathField,
+                startingPriceField,
+                stepPriceField,
+                reservePriceField,
+                buildStartDateTimeText(),
+                buildEndDateTimeText()
+        );
+    }
+
+    private void enterEditMode(SessionItem selected) {
+        editingSession = selected;
+        selectedImageFile = null;
+
+        fillFormFromSession(selected);
+        btnCreateOrUpdate.setText(UPDATE_BUTTON_TEXT);
+        selectTab(tabCreateSession);
+
+        AlertUtil.show(
+                Alert.AlertType.INFORMATION,
+                "Chế độ sửa",
+                "Dữ liệu phiên đã được đưa vào form. Hãy chỉnh sửa rồi bấm Lưu thay đổi."
+        );
+    }
+
+    private void fillFormFromSession(SessionItem session) {
+        productNameField.setText(safeText(session.productName));
+        productTypeCombo.setValue(getProductTypeOrDefault(session.productType));
+        descriptionArea.setText(safeText(session.description));
+        imagePathField.setText(safeText(session.imagePath));
+
+        startingPriceField.setText(toEditableMoneyText(session.startingPrice));
+        stepPriceField.setText(toEditableMoneyText(session.stepPrice));
+        setTextIfPresent(reservePriceField, toEditableMoneyText(session.reservePrice));
+        fillStartDateTimeInputs(session.startTime);
+        fillEndDateTimeInputs(session.endTime);
+    }
+
+    private String getProductTypeOrDefault(String productType) {
+        if (productType == null || productType.isBlank()) {
+            return DEFAULT_PRODUCT_TYPE;
+        }
+
+        for (String allowedType : PRODUCT_TYPES) {
+            if (allowedType.equalsIgnoreCase(productType.trim())) {
+                return allowedType;
+            }
+        }
+
+        return productType.trim();
+    }
+
+    private void runSellerMutation(SellerMutation mutation) {
+        Integer sellerId = getValidSellerId();
+
         if (sellerId == null) {
-            logger.error("Lỗi không lấy được sellerId từ session");
-            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không lấy được sellerId từ session.");
             return;
         }
 
         try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(Config.API_URL + "/api/seller/my-sessions/" + sellerId))
-                    .GET()
-                    .build();
+            ApiResult<Void> api = mutation.run(sellerId);
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-            ApiArrayResult api = extractDataArray(response.body(), response.statusCode());
-            if (!api.success) {
-                showAlert(Alert.AlertType.ERROR, "Lỗi", api.message);
+            if (api == null) {
                 return;
             }
 
-            allSessions.clear();
-            for (int i = 0; i < api.data.length(); i++) {
-                allSessions.add(parseSession(api.data.getJSONObject(i)));
-            }
-
-            renderSessions(allSessions);
-            updateStats();
-
+            handleMutationResult(api);
+        } catch (NumberFormatException e) {
+            AlertUtil.show(Alert.AlertType.ERROR, DATA_ERROR_TITLE, "Giá khởi điểm, bước giá và giá sàn phải là số.");
+        } catch (IllegalArgumentException e) {
+            AlertUtil.show(Alert.AlertType.ERROR, DATA_ERROR_TITLE, safeErrorMessage(e));
+        } catch (IllegalStateException e) {
+            logger.error("Lỗi xử lý seller", e);
+            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi thao tác", safeErrorMessage(e));
+        } catch (IOException e) {
+            logger.error("Lỗi kết nối hoặc đọc file", e);
+            AlertUtil.show(Alert.AlertType.ERROR, NETWORK_ERROR_TITLE, "Không thể kết nối đến máy chủ hoặc đọc file ảnh.");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.error("Thao tác seller bị gián đoạn", e);
+            AlertUtil.show(Alert.AlertType.ERROR, ERROR_TITLE, "Thao tác bị gián đoạn. Vui lòng thử lại.");
         } catch (Exception e) {
-            logger.error("Lỗi không thể kết nối đến server: {}", e.getMessage(), e);
-            showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể tải dữ liệu seller từ server.");
+            logger.error("Lỗi không xác định khi xử lý seller", e);
+            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi hệ thống", safeErrorMessage(e));
         }
     }
 
-    private SessionItem parseSession(JSONObject item) {
-        SessionItem s = new SessionItem();
-        s.id = item.optInt("id", 0);
-
-        if (item.has("productName")) {
-            s.productName = item.optString("productName", "Không rõ");
-        } else if (item.has("product")) {
-            JSONObject product = item.optJSONObject("product");
-            s.productName = product != null ? product.optString("name", "Không rõ") : "Không rõ";
-        } else {
-            s.productName = "Không rõ";
+    private void handleMutationResult(ApiResult<Void> api) {
+        if (api.success) {
+            clearForm();
+            loadMySessions();
+            AlertUtil.show(Alert.AlertType.INFORMATION, SUCCESS_TITLE, safeApiMessage(api.message, "Thao tác thành công."));
+            return;
         }
 
-        if (item.has("productType")) {
-            s.productType = item.optString("productType", "");
-        } else if (item.has("product")) {
-            JSONObject product = item.optJSONObject("product");
-            s.productType = product != null ? product.optString("type", "") : "";
-        }
-
-        if (item.has("imageUrl")) {
-            s.imageUrl = item.optString("imageUrl", "");
-        } else if (item.has("product")) {
-            JSONObject product = item.optJSONObject("product");
-            s.imageUrl = product != null ? product.optString("imageUrl", "") : "";
-        }
-
-        if (item.has("description")) {
-            s.description = item.optString("description", "");
-        } else if (item.has("product")) {
-            JSONObject product = item.optJSONObject("product");
-            s.description = product != null ? product.optString("description", "") : "";
-        }
-
-        s.startingPrice = parseBigDecimal(item, "startingPrice");
-        s.currentPrice = parseBigDecimal(item, "currentPrice");
-        s.stepPrice = parseBigDecimal(item, "stepPrice");
-        s.endTime = item.optString("endTime", "");
-        s.status = item.optString("status", "UNKNOWN");
-        return s;
+        logger.error("Lỗi API: {}", api.message);
+        AlertUtil.show(Alert.AlertType.ERROR, ERROR_TITLE, safeApiMessage(api.message, "Thao tác thất bại."));
     }
 
-    private BigDecimal parseBigDecimal(JSONObject item, String key) {
-        if (!item.has(key) || item.isNull(key)) {
-            return BigDecimal.ZERO;
-        }
+    private void loadMySessions() {
+        loadSessions(null, true, "Không thể tải dữ liệu seller từ server.");
+    }
 
-        Object value = item.get(key);
+    private void loadSessionsByStatus(String status) {
+        loadSessions(status, false, "Không thể lọc phiên từ server.");
+    }
 
-        if (value instanceof BigDecimal) {
-            return (BigDecimal) value;
-        }
+    private void loadSessions(String status, boolean refreshAllSessions, String errorMessage) {
+        Integer sellerId = getValidSellerId();
 
-        if (value instanceof Number) {
-            return new BigDecimal(value.toString());
-        }
-
-        String text = value.toString().trim();
-        if (text.isEmpty()) {
-            return BigDecimal.ZERO;
+        if (sellerId == null) {
+            return;
         }
 
         try {
-            return new BigDecimal(text);
+            List<SessionItem> sessions = status == null
+                    ? sellerDashboardService.getMySessions(sellerId)
+                    : sellerDashboardService.getMySessions(sellerId, status);
+
+            if (refreshAllSessions) {
+                allSessions.clear();
+                allSessions.addAll(sessions);
+                updateStats();
+            }
+
+            renderSessions(sessions);
         } catch (Exception e) {
-            return BigDecimal.ZERO;
+            logger.error(errorMessage, e);
+            AlertUtil.show(Alert.AlertType.ERROR, NETWORK_ERROR_TITLE, errorMessage);
         }
     }
 
     private void renderSessions(List<SessionItem> sessions) {
         displayedSessions.clear();
+
+        if (sessions == null || sessions.isEmpty()) {
+            mySessionsList.setItems(FXCollections.observableArrayList());
+            return;
+        }
+
         displayedSessions.addAll(sessions);
 
-        List<String> rendered = new ArrayList<>();
-        for (SessionItem s : sessions) {
-            rendered.add("Session #" + s.id + " | " + s.productName + " | " + s.status);
+        List<String> renderedSessions = new ArrayList<>();
+        for (int i = 0; i < sessions.size(); i++) {
+            renderedSessions.add(sessions.get(i).toDisplayText(i + 1));
         }
-        mySessionsList.setItems(FXCollections.observableArrayList(rendered));
-    }
 
-    private List<SessionItem> filterByStatus(String status) {
-        List<SessionItem> filtered = new ArrayList<>();
-        for (SessionItem s : allSessions) {
-            if (s.status != null && s.status.equalsIgnoreCase(status)) {
-                filtered.add(s);
-            }
-        }
-        return filtered;
+        mySessionsList.setItems(FXCollections.observableArrayList(renderedSessions));
     }
 
     private SessionItem getSelectedSession() {
         int index = mySessionsList.getSelectionModel().getSelectedIndex();
+
         if (index < 0 || index >= displayedSessions.size()) {
             return null;
         }
+
         return displayedSessions.get(index);
     }
 
-    private void updateStats() {
-        int pending = 0, active = 0, rejected = 0, completed = 0, canceled = 0;
-        BigDecimal revenue = BigDecimal.ZERO;
+    private SessionItem getPendingSelectedSession(String actionName) {
+        SessionItem selected = getSelectedSession();
 
-        for (SessionItem s : allSessions) {
-            if (s.status == null) continue;
-            switch (s.status.toUpperCase()) {
-                case "PENDING" -> pending++;
-                case "ACTIVE" -> active++;
-                case "REJECTED" -> rejected++;
-                case "COMPLETED" -> {
-                    completed++;
-                    if (s.currentPrice != null) {
-                        revenue = revenue.add(s.currentPrice);
-                    }
-                }
-                case "CANCELED" -> canceled++;
-            }
+        if (selected == null) {
+            AlertUtil.show(
+                    Alert.AlertType.WARNING,
+                    "Chưa chọn phiên",
+                    "Bạn hãy chọn một phiên để " + actionName + "."
+            );
+            return null;
         }
 
-        DecimalFormat df = new DecimalFormat("#,##0.##");
-        statsArea.setText(
-                "Tổng số phiên: " + allSessions.size() + "\n" +
-                        "Số phiên chờ duyệt: " + pending + "\n" +
-                        "Số phiên đang hoạt động: " + active + "\n" +
-                        "Số phiên bị từ chối: " + rejected + "\n" +
-                        "Số phiên đã hoàn thành: " + completed + "\n" +
-                        "Số phiên đã hủy: " + canceled + "\n" +
-                        "Tổng doanh thu phiên hoàn thành: " + df.format(revenue)
-        );
+        if (!isPendingSession(selected)) {
+            AlertUtil.show(
+                    Alert.AlertType.WARNING,
+                    "Không thể " + actionName,
+                    "Chỉ được " + actionName + " phiên đang ở trạng thái PENDING."
+            );
+            return null;
+        }
+
+        return selected;
+    }
+
+    private boolean isPendingSession(SessionItem session) {
+        return session != null && AuctionStatus.PENDING.equalsIgnoreCase(session.status);
+    }
+
+    private boolean confirmCancelSession(int sessionId) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Xác nhận");
+        confirm.setHeaderText(null);
+        confirm.setContentText("Bạn có chắc muốn hủy phiên #" + sessionId + " không?");
+
+        return confirm.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK;
+    }
+
+    private void updateStats() {
+        statsArea.setText(SellerStatsCalculator.buildStatsText(allSessions));
+    }
+
+    private void selectTab(Tab tab) {
+        if (sellerTabPane != null && tab != null) {
+            sellerTabPane.getSelectionModel().select(tab);
+        }
+    }
+
+    private void initializeDateInputs() {
+        setDefaultStartTimeIfBlank();
+        setDefaultEndDateIfMissing();
+        setDefaultEndTimeIfBlank();
+    }
+
+    private void setDefaultStartTimeIfBlank() {
+        if (txtStartTime != null && txtStartTime.getText().isBlank()) {
+            txtStartTime.setText(DEFAULT_START_TIME);
+        }
+    }
+
+    private void setDefaultEndDateIfMissing() {
+        if (datePickerEnd != null && datePickerEnd.getValue() == null) {
+            datePickerEnd.setValue(LocalDate.now().plusDays(DEFAULT_END_DATE_PLUS_DAYS));
+        }
+    }
+
+    private void setDefaultEndTimeIfBlank() {
+        if (txtEndTime != null && txtEndTime.getText().isBlank()) {
+            txtEndTime.setText(DEFAULT_END_TIME);
+        }
+    }
+
+    private String buildStartDateTimeText() {
+        if (datePickerStart == null || datePickerStart.getValue() == null) {
+            return "";
+        }
+
+        return buildDateTimeText(datePickerStart.getValue(), txtStartTime, DEFAULT_START_TIME, "thời gian bắt đầu");
+    }
+
+    private String buildEndDateTimeText() {
+        if (datePickerEnd == null || datePickerEnd.getValue() == null) {
+            throw new IllegalArgumentException("Vui lòng chọn thời gian kết thúc.");
+        }
+
+        return buildDateTimeText(datePickerEnd.getValue(), txtEndTime, DEFAULT_END_TIME, "thời gian kết thúc");
+    }
+
+    private String buildDateTimeText(LocalDate date, TextField timeField, String defaultTime, String fieldName) {
+        String timeText = timeField == null || timeField.getText().isBlank()
+                ? defaultTime
+                : timeField.getText().trim();
+
+        try {
+            LocalTime time = LocalTime.parse(timeText, TIME_FORMAT);
+            return LocalDateTime.of(date, time).toString();
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("Định dạng " + fieldName + " phải là HH:mm, ví dụ 23:59.");
+        }
+    }
+
+    private void fillStartDateTimeInputs(String startTime) {
+        fillDateTimeInputs(startTime, datePickerStart, txtStartTime, "startTime");
+    }
+
+    private void fillEndDateTimeInputs(String endTime) {
+        fillDateTimeInputs(endTime, datePickerEnd, txtEndTime, "endTime");
+    }
+
+    private void fillDateTimeInputs(
+            String dateTimeText,
+            DatePicker datePicker,
+            TextField timeField,
+            String fieldName
+    ) {
+        if (datePicker == null || timeField == null || dateTimeText == null || dateTimeText.isBlank()) {
+            return;
+        }
+
+        try {
+            LocalDateTime dateTime = LocalDateTime.parse(dateTimeText);
+            datePicker.setValue(dateTime.toLocalDate());
+            timeField.setText(dateTime.toLocalTime().format(TIME_FORMAT));
+        } catch (DateTimeParseException e) {
+            logger.warn("Không parse được {}: {}", fieldName, dateTimeText);
+        }
     }
 
     private void clearForm() {
+        editingSession = null;
+        selectedImageFile = null;
+
+        clearTextInputs();
+        resetDateInputs();
+        productTypeCombo.setValue(DEFAULT_PRODUCT_TYPE);
+        resetSubmitButton();
+    }
+
+    private void clearTextInputs() {
         productNameField.clear();
-        imageUrlField.clear();
         descriptionArea.clear();
+        imagePathField.clear();
         startingPriceField.clear();
         stepPriceField.clear();
-        fillDefaultEndTime();
-        productTypeCombo.setValue("Electronics");
+
+        clearIfPresent(reservePriceField);
     }
 
-    private void fillDefaultEndTime() {
-        if (endTimeField != null && endTimeField.getText().trim().isEmpty()) {
-            endTimeField.setText(defaultEndTime());
+    private void resetDateInputs() {
+        if (datePickerStart != null) {
+            datePickerStart.setValue(null);
+        }
+
+        setTextIfPresent(txtStartTime, DEFAULT_START_TIME);
+
+        if (datePickerEnd != null) {
+            datePickerEnd.setValue(LocalDate.now().plusDays(DEFAULT_END_DATE_PLUS_DAYS));
+        }
+
+        setTextIfPresent(txtEndTime, DEFAULT_END_TIME);
+    }
+
+    private void resetSubmitButton() {
+        if (btnCreateOrUpdate != null) {
+            btnCreateOrUpdate.setText(CREATE_BUTTON_TEXT);
         }
     }
 
-    private String defaultEndTime() {
-        return LocalDateTime.now().plusDays(7).withSecond(0).withNano(0).toString();
-    }
+    private Integer getValidSellerId() {
+        Integer sellerId = User.getId();
 
-    private String productNameOrEmpty(TextInputControl input) {
-        return input == null ? "" : input.getText().trim();
-    }
-
-    private String safeMessage(String body) {
-        if (body == null || body.isBlank()) return "Có lỗi xảy ra từ server.";
-        return body;
-    }
-
-    private ApiResult parseApiResponse(String body, int httpStatus, String defaultSuccessMessage) {
-        if (body == null || body.isBlank()) {
-            return new ApiResult(httpStatus >= 200 && httpStatus < 300,
-                    httpStatus >= 200 && httpStatus < 300 ? defaultSuccessMessage : "Có lỗi xảy ra từ server.");
+        if (sellerId == null || sellerId <= 0) {
+            logger.error("Không lấy được sellerId từ session");
+            AlertUtil.show(Alert.AlertType.ERROR, ERROR_TITLE, "Không lấy được sellerId từ session.");
+            return null;
         }
 
-        try {
-            String trimmed = body.trim();
-            if (trimmed.startsWith("{")) {
-                JSONObject obj = new JSONObject(trimmed);
-                int status = obj.optInt("status", httpStatus);
-                String message = obj.optString("message",
-                        status >= 200 && status < 300 ? defaultSuccessMessage : "Có lỗi xảy ra từ server.");
-                return new ApiResult(status >= 200 && status < 300, message);
-            }
-        } catch (Exception ignored) {
-        }
-
-        return new ApiResult(httpStatus >= 200 && httpStatus < 300,
-                httpStatus >= 200 && httpStatus < 300 ? defaultSuccessMessage : safeMessage(body));
+        return sellerId;
     }
 
-    private ApiArrayResult extractDataArray(String body, int httpStatus) {
-        if (body == null || body.isBlank()) {
-            return new ApiArrayResult(false, "Không có dữ liệu từ server.", new JSONArray());
+    private String safeErrorMessage(Exception e) {
+        String message = e.getMessage();
+        return message == null || message.isBlank()
+                ? "Có lỗi không xác định. Vui lòng xem log để biết chi tiết."
+                : message;
+    }
+
+    private String safeApiMessage(String message, String defaultMessage) {
+        return message == null || message.isBlank() ? defaultMessage : message;
+    }
+
+    private String safeText(String value) {
+        return value == null ? "" : value;
+    }
+
+    private String toEditableMoneyText(BigDecimal value) {
+        if (value == null) {
+            return "";
         }
 
-        try {
-            String trimmed = body.trim();
+        BigDecimal normalized = value.stripTrailingZeros();
+        return normalized.scale() < 0
+                ? normalized.setScale(0).toPlainString()
+                : normalized.toPlainString();
+    }
 
-            if (trimmed.startsWith("[")) {
-                return new ApiArrayResult(true, "OK", new JSONArray(trimmed));
-            }
-
-            JSONObject obj = new JSONObject(trimmed);
-            int status = obj.optInt("status", httpStatus);
-            String message = obj.optString("message", "Có lỗi xảy ra từ server.");
-
-            if (status < 200 || status >= 300) {
-                return new ApiArrayResult(false, message, new JSONArray());
-            }
-
-            Object data = obj.opt("data");
-            if (data instanceof JSONArray) {
-                return new ApiArrayResult(true, message, (JSONArray) data);
-            }
-
-            return new ApiArrayResult(true, message, new JSONArray());
-        } catch (Exception e) {
-            return new ApiArrayResult(false, "Không đọc được dữ liệu từ server.", new JSONArray());
+    private void setTextIfPresent(TextInputControl control, String text) {
+        if (control != null) {
+            control.setText(text);
         }
     }
 
-    private void showAlert(Alert.AlertType type, String title, String content) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
-    }
-
-    private static class SessionItem {
-        int id;
-        String productName;
-        String productType;
-        String imageUrl;
-        String description;
-        BigDecimal startingPrice = BigDecimal.ZERO;
-        BigDecimal currentPrice = BigDecimal.ZERO;
-        BigDecimal stepPrice = BigDecimal.ZERO;
-        String endTime;
-        String status;
-    }
-
-    private static class ApiResult {
-        boolean success;
-        String message;
-
-        ApiResult(boolean success, String message) {
-            this.success = success;
-            this.message = message;
+    private void clearIfPresent(TextInputControl control) {
+        if (control != null) {
+            control.clear();
         }
     }
 
-    private static class ApiArrayResult {
-        boolean success;
-        String message;
-        JSONArray data;
-
-        ApiArrayResult(boolean success, String message, JSONArray data) {
-            this.success = success;
-            this.message = message;
-            this.data = data;
-        }
+    @FunctionalInterface
+    private interface SellerMutation {
+        ApiResult<Void> run(int sellerId) throws Exception;
     }
 }
