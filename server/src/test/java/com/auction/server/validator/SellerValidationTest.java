@@ -119,6 +119,33 @@ class SellerValidationTest {
         assertEquals("Bước giá phải lớn hơn 0", ex.getMessage());
     }
 
+
+    @Test
+    void zeroReservePriceThrowsException() {
+        CreateAuctionRequest request = validRequest();
+        request.setReservePrice(BigDecimal.ZERO);
+
+        InvalidItemException ex = assertThrows(
+                InvalidItemException.class,
+                () -> SellerAuctionValidator.validate(request)
+        );
+
+        assertEquals("Giá sàn phải lớn hơn 0", ex.getMessage());
+    }
+
+    @Test
+    void reservePriceBelowStartingPriceThrowsException() {
+        CreateAuctionRequest request = validRequest();
+        request.setReservePrice(new BigDecimal("999999"));
+
+        InvalidItemException ex = assertThrows(
+                InvalidItemException.class,
+                () -> SellerAuctionValidator.validate(request)
+        );
+
+        assertEquals("Giá sàn không được nhỏ hơn giá khởi điểm", ex.getMessage());
+    }
+
     @Test
     void startTimeInPastThrowsException() {
         CreateAuctionRequest request = validRequest();

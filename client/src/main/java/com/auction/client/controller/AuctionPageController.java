@@ -222,10 +222,10 @@ public class AuctionPageController {
     }
 
     private void applySessionData(JSONObject sessionObj, JSONObject itemObj) {
-        this.startingPrice = getMoney(sessionObj, "startingPrice", BigDecimal.ZERO);
-        this.currentPrice = getMoney(sessionObj, "currentPrice", startingPrice);
-        this.stepPrice = getMoney(sessionObj, "stepPrice", BigDecimal.ZERO);
-        this.reservePrice = getMoney(sessionObj, "reservePrice", BigDecimal.ZERO);
+        this.startingPrice = getMoneyAny(sessionObj, BigDecimal.ZERO, "startingPrice", "startPrice");
+        this.currentPrice = getMoneyAny(sessionObj, startingPrice, "currentPrice", "highestBid");
+        this.stepPrice = getMoneyAny(sessionObj, BigDecimal.ZERO, "stepPrice", "minBidIncrement");
+        this.reservePrice = getMoneyAny(sessionObj, BigDecimal.ZERO, "reservePrice");
         this.highestBidderId = getOptionalInt(sessionObj, "highestBidderId");
         this.bidCount = getBidCount(sessionObj);
 
@@ -615,14 +615,29 @@ public class AuctionPageController {
 
     private BigDecimal getMoney(JSONObject object, String key, BigDecimal defaultValue) {
         if (object == null || !object.has(key) || object.isNull(key)) {
-            return defaultValue == null ? BigDecimal.ZERO : defaultValue;
+            return defaultValue;
         }
 
         try {
             return new BigDecimal(object.get(key).toString());
         } catch (Exception e) {
+            return defaultValue;
+        }
+    }
+
+    private BigDecimal getMoneyAny(JSONObject object, BigDecimal defaultValue, String... keys) {
+        if (keys == null) {
             return defaultValue == null ? BigDecimal.ZERO : defaultValue;
         }
+
+        for (String key : keys) {
+            BigDecimal value = getMoney(object, key, null);
+            if (value != null) {
+                return value;
+            }
+        }
+
+        return defaultValue == null ? BigDecimal.ZERO : defaultValue;
     }
 
     private Integer getOptionalInt(JSONObject object, String key) {

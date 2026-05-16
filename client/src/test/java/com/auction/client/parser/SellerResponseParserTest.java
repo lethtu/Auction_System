@@ -31,6 +31,8 @@ class SellerResponseParserTest {
                     "startingPrice": 1000000,
                     "currentPrice": 1500000,
                     "stepPrice": 100000,
+                    "reservePrice": 2000000,
+                    "highestBidderId": 14,
                     "endTime": "2026-05-20T10:00:00",
                     "status": "PENDING"
                   }
@@ -49,6 +51,8 @@ class SellerResponseParserTest {
         assertEquals(new BigDecimal("1000000"), item.startingPrice);
         assertEquals(new BigDecimal("1500000"), item.currentPrice);
         assertEquals(new BigDecimal("100000"), item.stepPrice);
+        assertEquals(new BigDecimal("2000000"), item.reservePrice);
+        assertEquals(14, item.highestBidderId);
         assertEquals("2026-05-20T10:00:00", item.endTime);
         assertEquals("PENDING", item.status);
     }
@@ -75,6 +79,8 @@ class SellerResponseParserTest {
         assertEquals(BigDecimal.ZERO, item.startingPrice);
         assertEquals(BigDecimal.ZERO, item.currentPrice);
         assertEquals(BigDecimal.ZERO, item.stepPrice);
+        assertEquals(BigDecimal.ZERO, item.reservePrice);
+        assertNull(item.highestBidderId);
         assertEquals("", item.endTime);
         assertEquals("UNKNOWN", item.status);
     }

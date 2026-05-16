@@ -50,6 +50,8 @@ class SellerServiceTest {
         assertEquals(new BigDecimal("1000000"), auctionSessionRepository.savedSession.getStartingPrice());
         assertEquals(new BigDecimal("1000000"), auctionSessionRepository.savedSession.getCurrentPrice());
         assertEquals(new BigDecimal("100000"), auctionSessionRepository.savedSession.getStepPrice());
+        assertEquals(new BigDecimal("1000000"), auctionSessionRepository.savedSession.getReservePrice());
+        assertNull(auctionSessionRepository.savedSession.getHighestBidderId());
 
         assertEquals("Laptop Gaming", itemRepository.savedItem.getName());
         assertEquals("electronics", itemRepository.savedItem.getType());
@@ -58,6 +60,7 @@ class SellerServiceTest {
         assertEquals("Laptop Gaming", result.getProductName());
         assertEquals("electronics", result.getProductType());
         assertEquals("PENDING", result.getStatus());
+        assertEquals(new BigDecimal("1000000"), result.getReservePrice());
     }
 
     @Test
@@ -81,6 +84,8 @@ class SellerServiceTest {
         request.setDescription("Mô tả mới");
         request.setStartingPrice(new BigDecimal("2000000"));
         request.setStepPrice(new BigDecimal("200000"));
+        request.setReservePrice(new BigDecimal("2500000"));
+        session.setHighestBidderId(99);
 
         sellerSessionGuard.seller = seller;
         sellerSessionGuard.session = session;
@@ -98,9 +103,12 @@ class SellerServiceTest {
         assertEquals(new BigDecimal("2000000"), session.getStartingPrice());
         assertEquals(new BigDecimal("2000000"), session.getCurrentPrice());
         assertEquals(new BigDecimal("200000"), session.getStepPrice());
+        assertEquals(new BigDecimal("2500000"), session.getReservePrice());
+        assertNull(session.getHighestBidderId());
 
         assertEquals("New Laptop", result.getProductName());
         assertEquals("art", result.getProductType());
+        assertEquals(new BigDecimal("2500000"), result.getReservePrice());
     }
 
     @Test

@@ -46,6 +46,9 @@ class AdminServiceTest {
         assertEquals(10, result.get(0).getId());
         assertEquals("Laptop", result.get(0).getProductName());
         assertEquals("PENDING", result.get(0).getStatus());
+        assertEquals(new BigDecimal("1500"), result.get(0).getReservePrice());
+        assertEquals(9, result.get(0).getHighestBidderId());
+        assertEquals(0, result.get(0).getBidCount());
     }
 
     @Test
@@ -303,6 +306,8 @@ class AdminServiceTest {
         session.setStartingPrice(new BigDecimal("1000"));
         session.setCurrentPrice(new BigDecimal("1000"));
         session.setStepPrice(new BigDecimal("100"));
+        session.setReservePrice(new BigDecimal("1500"));
+        session.setHighestBidderId(9);
         return session;
     }
 

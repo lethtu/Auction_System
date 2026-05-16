@@ -28,6 +28,7 @@ class SessionResponseMapperTest {
         item.setName("Laptop Gaming");
         item.setType("electronics");
         item.setDescription("Máy còn tốt");
+        item.setImagePath("upload/images/laptop.png");
 
         Seller seller = new Seller();
         seller.setId(1);
@@ -41,6 +42,8 @@ class SessionResponseMapperTest {
         session.setStartingPrice(new BigDecimal("1000000"));
         session.setCurrentPrice(new BigDecimal("1500000"));
         session.setStepPrice(new BigDecimal("100000"));
+        session.setReservePrice(new BigDecimal("2000000"));
+        session.setHighestBidderId(14);
         session.setCreatedAt(createdAt);
         session.setStartTime(startTime);
         session.setEndTime(endTime);
@@ -51,19 +54,23 @@ class SessionResponseMapperTest {
         session.setApprovedByAdminId(2);
         session.setRejectedByAdminId(3);
 
-        SessionResponseDTO dto = SessionResponseMapper.toDTO(session);
+        SessionResponseDTO dto = SessionResponseMapper.toDTO(session, 7);
 
         assertEquals(10, dto.getId());
         assertEquals(100, dto.getProductId());
         assertEquals("Laptop Gaming", dto.getProductName());
         assertEquals("electronics", dto.getProductType());
         assertEquals("Máy còn tốt", dto.getDescription());
+        assertEquals("upload/images/laptop.png", dto.getImagePath());
         assertEquals(1, dto.getSellerId());
         assertEquals("seller01", dto.getSellerUsername());
         assertEquals("Nguyễn Văn Seller", dto.getSellerFullname());
         assertEquals(new BigDecimal("1000000"), dto.getStartingPrice());
         assertEquals(new BigDecimal("1500000"), dto.getCurrentPrice());
         assertEquals(new BigDecimal("100000"), dto.getStepPrice());
+        assertEquals(new BigDecimal("2000000"), dto.getReservePrice());
+        assertEquals(14, dto.getHighestBidderId());
+        assertEquals(7, dto.getBidCount());
         assertEquals(createdAt, dto.getCreatedAt());
         assertEquals(startTime, dto.getStartTime());
         assertEquals(endTime, dto.getEndTime());
@@ -83,7 +90,7 @@ class SessionResponseMapperTest {
         session.setCurrentPrice(new BigDecimal("1000000"));
         session.setStepPrice(new BigDecimal("100000"));
 
-        SessionResponseDTO dto = SessionResponseMapper.toDTO(session);
+        SessionResponseDTO dto = SessionResponseMapper.toDTO(session, 7);
 
         assertEquals(10, dto.getId());
         assertNull(dto.getProductId());
@@ -92,6 +99,7 @@ class SessionResponseMapperTest {
         assertNull(dto.getSellerUsername());
         assertNull(dto.getStatus());
         assertEquals(new BigDecimal("1000000"), dto.getStartingPrice());
+        assertEquals(7, dto.getBidCount());
     }
 
     private static class TestItem extends Item {
