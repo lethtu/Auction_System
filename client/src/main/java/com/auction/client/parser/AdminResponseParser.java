@@ -12,6 +12,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class AdminResponseParser {
+    private static final String KEY_ID = "id";
+    private static final String KEY_PRODUCT_NAME = "productName";
+    private static final String KEY_SELLER_USERNAME = "sellerUsername";
+    private static final String KEY_STARTING_PRICE = "startingPrice";
+    private static final String KEY_STATUS = "status";
+
+    private static final String KEY_USERNAME = "username";
+    private static final String KEY_FULLNAME = "fullname";
+    private static final String KEY_EMAIL = "email";
+    private static final String KEY_ACCOUNT_TYPE = "accountType";
+    private static final String KEY_BANNED = "banned";
+
+    private static final String DEFAULT_UNKNOWN_TEXT = "Không rõ";
+    private static final String DEFAULT_EMPTY_TEXT = "";
+    private static final String DEFAULT_UNKNOWN_STATUS = "UNKNOWN";
 
     private AdminResponseParser() {
     }
@@ -25,29 +40,48 @@ public final class AdminResponseParser {
     }
 
     public static List<PendingSessionRow> parsePendingSessions(JSONArray array) {
-        List<PendingSessionRow> rows = new ArrayList<>();
-
-        if (array == null) {
-            return rows;
-        }
-
-        for (int i = 0; i < array.length(); i++) {
-            JSONObject item = array.optJSONObject(i);
-
-            if (item != null) {
-                rows.add(new PendingSessionRow(
-                        item.optInt("id", 0),
-                        item.optString("productName", "Không rõ"),
-                        parseBigDecimal(item, "startingPrice")
-                ));
-            }
-        }
-
-        return rows;
+        return parseRows(array, AdminResponseParser::toPendingSessionRow);
     }
 
     public static List<AdminSessionRow> parseAllSessions(JSONArray array) {
-        List<AdminSessionRow> rows = new ArrayList<>();
+        return parseRows(array, AdminResponseParser::toAdminSessionRow);
+    }
+
+    public static List<AdminUserRow> parseUsers(JSONArray array) {
+        return parseRows(array, AdminResponseParser::toAdminUserRow);
+    }
+
+    private static PendingSessionRow toPendingSessionRow(JSONObject item) {
+        return new PendingSessionRow(
+                item.optInt(KEY_ID, 0),
+                item.optString(KEY_PRODUCT_NAME, DEFAULT_UNKNOWN_TEXT),
+                parseBigDecimal(item, KEY_STARTING_PRICE)
+        );
+    }
+
+    private static AdminSessionRow toAdminSessionRow(JSONObject item) {
+        return new AdminSessionRow(
+                item.optInt(KEY_ID, 0),
+                item.optString(KEY_PRODUCT_NAME, DEFAULT_UNKNOWN_TEXT),
+                item.optString(KEY_SELLER_USERNAME, DEFAULT_UNKNOWN_TEXT),
+                parseBigDecimal(item, KEY_STARTING_PRICE),
+                item.optString(KEY_STATUS, DEFAULT_UNKNOWN_STATUS)
+        );
+    }
+
+    private static AdminUserRow toAdminUserRow(JSONObject user) {
+        return new AdminUserRow(
+                user.optInt(KEY_ID, 0),
+                user.optString(KEY_USERNAME, DEFAULT_EMPTY_TEXT),
+                user.optString(KEY_FULLNAME, DEFAULT_EMPTY_TEXT),
+                user.optString(KEY_EMAIL, DEFAULT_EMPTY_TEXT),
+                user.optString(KEY_ACCOUNT_TYPE, DEFAULT_EMPTY_TEXT),
+                user.optBoolean(KEY_BANNED, false)
+        );
+    }
+
+    private static <T> List<T> parseRows(JSONArray array, JsonRowMapper<T> mapper) {
+        List<T> rows = new ArrayList<>();
 
         if (array == null) {
             return rows;
@@ -56,47 +90,18 @@ public final class AdminResponseParser {
         for (int i = 0; i < array.length(); i++) {
             JSONObject item = array.optJSONObject(i);
 
-            if (item != null) {
-                rows.add(new AdminSessionRow(
-                        item.optInt("id", 0),
-                        item.optString("productName", "Không rõ"),
-                        item.optString("sellerUsername", "Không rõ"),
-                        parseBigDecimal(item, "startingPrice"),
-                        item.optString("status", "UNKNOWN")
-                ));
+            if (item == null) {
+                continue;
             }
-        }
 
-        return rows;
-    }
-
-    public static List<AdminUserRow> parseUsers(JSONArray array) {
-        List<AdminUserRow> rows = new ArrayList<>();
-
-        if (array == null) {
-            return rows;
-        }
-
-        for (int i = 0; i < array.length(); i++) {
-            JSONObject user = array.optJSONObject(i);
-
-            if (user != null) {
-                rows.add(new AdminUserRow(
-                        user.optInt("id", 0),
-                        user.optString("username", ""),
-                        user.optString("fullname", ""),
-                        user.optString("email", ""),
-                        user.optString("accountType", ""),
-                        user.optBoolean("banned", false)
-                ));
-            }
+            rows.add(mapper.map(item));
         }
 
         return rows;
     }
 
     private static BigDecimal parseBigDecimal(JSONObject item, String key) {
-        if (!item.has(key) || item.isNull(key)) {
+        if (item == null || !item.has(key) || item.isNull(key)) {
             return BigDecimal.ZERO;
         }
 
@@ -105,5 +110,10 @@ public final class AdminResponseParser {
         } catch (Exception e) {
             return BigDecimal.ZERO;
         }
+    }
+
+    @FunctionalInterface
+    private interface JsonRowMapper<T> {
+        T map(JSONObject item);
     }
 }

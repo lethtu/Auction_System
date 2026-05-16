@@ -4,17 +4,47 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class CreateAuctionRequest {
+
     private String name;
     private String type;
     private String description;
     private String imagePath;
 
     private Integer sellerId;
+
     private BigDecimal startingPrice;
     private BigDecimal stepPrice;
     private BigDecimal reservePrice;
+
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+
+    public CreateAuctionRequest() {
+    }
+
+    public CreateAuctionRequest(
+            String name,
+            String type,
+            String description,
+            String imagePath,
+            Integer sellerId,
+            BigDecimal startingPrice,
+            BigDecimal stepPrice,
+            BigDecimal reservePrice,
+            LocalDateTime startTime,
+            LocalDateTime endTime
+    ) {
+        this.name = name;
+        this.type = type;
+        this.description = description;
+        this.imagePath = imagePath;
+        this.sellerId = sellerId;
+        this.startingPrice = startingPrice;
+        this.stepPrice = stepPrice;
+        this.reservePrice = reservePrice;
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
 
     public String getName() {
         return name;

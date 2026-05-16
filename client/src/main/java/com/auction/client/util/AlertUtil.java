@@ -3,19 +3,24 @@ package com.auction.client.util;
 import javafx.scene.control.Alert;
 
 public final class AlertUtil {
+    private static final String DEFAULT_INFO_TITLE = "Thành công";
+    private static final String DEFAULT_ERROR_TITLE = "Lỗi";
+    private static final String DEFAULT_WARNING_TITLE = "Cảnh báo";
+    private static final String DEFAULT_ERROR_MESSAGE = "Đã xảy ra lỗi. Vui lòng thử lại.";
+
     private AlertUtil() {
     }
 
     public static void show(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
-        alert.setTitle(title);
+        alert.setTitle(normalizeTitle(title, type));
         alert.setHeaderText(null);
-        alert.setContentText(message);
+        alert.setContentText(normalizeMessage(message));
         alert.showAndWait();
     }
 
     public static void showInfo(String message) {
-        show(Alert.AlertType.INFORMATION, "Thành công", message);
+        show(Alert.AlertType.INFORMATION, DEFAULT_INFO_TITLE, message);
     }
 
     public static void showWarning(String title, String message) {
@@ -23,14 +28,44 @@ public final class AlertUtil {
     }
 
     public static void showError(String message) {
-        show(Alert.AlertType.ERROR, "Lỗi", message);
+        show(Alert.AlertType.ERROR, DEFAULT_ERROR_TITLE, message);
     }
 
     public static void showError(Exception e, String defaultMessage) {
-        e.printStackTrace();
+        String errorMessage = extractErrorMessage(e, defaultMessage);
+        showError(errorMessage);
+    }
 
-        String message = e.getMessage();
+    private static String extractErrorMessage(Exception e, String defaultMessage) {
+        if (e != null && !isBlank(e.getMessage())) {
+            return e.getMessage();
+        }
 
-        showError(message == null || message.isBlank() ? defaultMessage : message);
+        if (!isBlank(defaultMessage)) {
+            return defaultMessage;
+        }
+
+        return DEFAULT_ERROR_MESSAGE;
+    }
+
+    private static String normalizeTitle(String title, Alert.AlertType type) {
+        if (!isBlank(title)) {
+            return title;
+        }
+
+        return switch (type) {
+            case INFORMATION -> DEFAULT_INFO_TITLE;
+            case WARNING -> DEFAULT_WARNING_TITLE;
+            case ERROR -> DEFAULT_ERROR_TITLE;
+            default -> "";
+        };
+    }
+
+    private static String normalizeMessage(String message) {
+        return isBlank(message) ? DEFAULT_ERROR_MESSAGE : message;
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 }

@@ -15,7 +15,24 @@ import java.util.function.Supplier;
 @RestController
 @RequestMapping("/api/seller")
 public class SellerController {
+
     private static final Logger logger = LoggerFactory.getLogger(SellerController.class);
+
+    private static final int BAD_REQUEST_STATUS = 400;
+
+    private static final String LOG_CREATE_AUCTION = "Đang tạo phiên đấu giá";
+    private static final String LOG_VIEW_MY_SESSIONS = "Đang lấy danh sách phiên của seller";
+    private static final String LOG_GET_SESSION_DETAIL = "Đang lấy chi tiết phiên";
+    private static final String LOG_UPDATE_PENDING_SESSION = "Đang sửa phiên đấu giá chờ duyệt";
+    private static final String LOG_CANCEL_AUCTION = "Đang hủy phiên đấu giá";
+    private static final String LOG_GET_STATS = "Đang thống kê seller";
+
+    private static final String SUCCESS_CREATE_AUCTION = "Tạo phiên đấu giá thành công.";
+    private static final String SUCCESS_VIEW_MY_SESSIONS = "Lấy danh sách thành công";
+    private static final String SUCCESS_GET_SESSION_DETAIL = "Lấy chi tiết thành công";
+    private static final String SUCCESS_UPDATE_PENDING_SESSION = "Đã cập nhật phiên chờ duyệt thành công.";
+    private static final String SUCCESS_CANCEL_AUCTION = "Đã hủy phiên thành công";
+    private static final String SUCCESS_GET_STATS = "Lấy thống kê thành công";
 
     private final SellerService sellerService;
 
@@ -26,8 +43,8 @@ public class SellerController {
     @PostMapping("/create-auction")
     public ApiResponse<SessionResponseDTO> createAuction(@RequestBody CreateAuctionRequest request) {
         return handleRequest(
-                "Đang tạo phiên đấu giá",
-                "Tạo phiên đấu giá thành công.",
+                LOG_CREATE_AUCTION,
+                SUCCESS_CREATE_AUCTION,
                 () -> sellerService.createAuctionSession(request)
         );
     }
@@ -38,8 +55,8 @@ public class SellerController {
             @RequestParam(required = false) String status
     ) {
         return handleRequest(
-                "Đang lấy danh sách phiên của seller",
-                "Lấy danh sách thành công",
+                LOG_VIEW_MY_SESSIONS,
+                SUCCESS_VIEW_MY_SESSIONS,
                 () -> sellerService.getMySessions(sellerId, status)
         );
     }
@@ -50,8 +67,8 @@ public class SellerController {
             @RequestParam Integer sellerId
     ) {
         return handleRequest(
-                "Đang lấy chi tiết phiên",
-                "Lấy chi tiết thành công",
+                LOG_GET_SESSION_DETAIL,
+                SUCCESS_GET_SESSION_DETAIL,
                 () -> sellerService.getSessionDetail(sessionId, sellerId)
         );
     }
@@ -62,12 +79,13 @@ public class SellerController {
             @RequestParam Integer sellerId,
             @RequestBody CreateAuctionRequest request
     ) {
-        request.setSellerId(sellerId);
-
         return handleRequest(
-                "Đang sửa phiên đấu giá chờ duyệt",
-                "Đã cập nhật phiên chờ duyệt thành công.",
-                () -> sellerService.updatePendingSession(sessionId, sellerId, request)
+                LOG_UPDATE_PENDING_SESSION,
+                SUCCESS_UPDATE_PENDING_SESSION,
+                () -> {
+                    request.setSellerId(sellerId);
+                    return sellerService.updatePendingSession(sessionId, sellerId, request);
+                }
         );
     }
 
@@ -76,22 +94,34 @@ public class SellerController {
             @PathVariable Integer sessionId,
             @RequestParam Integer sellerId
     ) {
-        return handleRequest(
-                "Đang huỷ phiên đấu giá",
-                "Đã hủy phiên thành công",
-                () -> {
-                    sellerService.cancelSession(sessionId, sellerId);
-                    return null;
-                }
+        return handleCommand(
+                LOG_CANCEL_AUCTION,
+                SUCCESS_CANCEL_AUCTION,
+                () -> sellerService.cancelSession(sessionId, sellerId)
         );
     }
 
     @GetMapping("/stats/{sellerId}")
     public ApiResponse<SellerStatsDTO> getStats(@PathVariable Integer sellerId) {
         return handleRequest(
-                "Đang thống kê seller",
-                "Lấy thống kê thành công",
+                LOG_GET_STATS,
+                SUCCESS_GET_STATS,
                 () -> sellerService.getSellerStats(sellerId)
+        );
+    }
+
+    private ApiResponse<Void> handleCommand(
+            String logMessage,
+            String successMessage,
+            Runnable action
+    ) {
+        return handleRequest(
+                logMessage,
+                successMessage,
+                () -> {
+                    action.run();
+                    return null;
+                }
         );
     }
 
@@ -102,12 +132,11 @@ public class SellerController {
     ) {
         try {
             logger.info(logMessage);
-            T data = action.get();
-            return ApiResponse.success(successMessage, data);
+            return ApiResponse.success(successMessage, action.get());
 
         } catch (IllegalArgumentException e) {
             logger.warn("{} thất bại: {}", logMessage, e.getMessage());
-            return ApiResponse.error(400, e.getMessage());
+            return ApiResponse.error(BAD_REQUEST_STATUS, e.getMessage());
 
         } catch (Exception e) {
             logger.error("{} thất bại: {}", logMessage, e.getMessage(), e);

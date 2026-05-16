@@ -11,6 +11,24 @@ import java.util.List;
 
 public final class SellerResponseParser {
 
+    private static final String KEY_ID = "id";
+    private static final String KEY_PRODUCT_NAME = "productName";
+    private static final String KEY_PRODUCT_TYPE = "productType";
+    private static final String KEY_DESCRIPTION = "description";
+    private static final String KEY_IMAGE_PATH = "imagePath";
+    private static final String KEY_STARTING_PRICE = "startingPrice";
+    private static final String KEY_CURRENT_PRICE = "currentPrice";
+    private static final String KEY_STEP_PRICE = "stepPrice";
+    private static final String KEY_RESERVE_PRICE = "reservePrice";
+    private static final String KEY_HIGHEST_BIDDER_ID = "highestBidderId";
+    private static final String KEY_END_TIME = "endTime";
+    private static final String KEY_STATUS = "status";
+
+    private static final String DEFAULT_PRODUCT_NAME = "Không rõ";
+    private static final String DEFAULT_STATUS = "UNKNOWN";
+    private static final String DEFAULT_TEXT = "";
+    private static final BigDecimal DEFAULT_PRICE = BigDecimal.ZERO;
+
     private SellerResponseParser() {
     }
 
@@ -43,33 +61,43 @@ public final class SellerResponseParser {
     private static SessionItem parseSession(JSONObject item) {
         SessionItem session = new SessionItem();
 
-        session.id = item.optInt("id", 0);
-        session.productName = item.optString("productName", "Không rõ");
-        session.productType = item.optString("productType", "");
-        session.description = item.optString("description", "");
-        session.imagePath = item.optString("imagePath", "");
-        session.startingPrice = parseBigDecimal(item, "startingPrice");
-        session.currentPrice = parseBigDecimal(item, "currentPrice");
-        session.stepPrice = parseBigDecimal(item, "stepPrice");
-        session.reservePrice = parseBigDecimal(item, "reservePrice");
-        session.highestBidderId = item.has("highestBidderId") && !item.isNull("highestBidderId")
-                ? item.optInt("highestBidderId")
-                : null;
-        session.endTime = item.optString("endTime", "");
-        session.status = item.optString("status", "UNKNOWN");
+        session.id = item.optInt(KEY_ID, 0);
+        session.productName = item.optString(KEY_PRODUCT_NAME, DEFAULT_PRODUCT_NAME);
+        session.productType = item.optString(KEY_PRODUCT_TYPE, DEFAULT_TEXT);
+        session.description = item.optString(KEY_DESCRIPTION, DEFAULT_TEXT);
+        session.imagePath = item.optString(KEY_IMAGE_PATH, DEFAULT_TEXT);
+        session.startingPrice = parseBigDecimal(item, KEY_STARTING_PRICE);
+        session.currentPrice = parseBigDecimal(item, KEY_CURRENT_PRICE);
+        session.stepPrice = parseBigDecimal(item, KEY_STEP_PRICE);
+        session.reservePrice = parseBigDecimal(item, KEY_RESERVE_PRICE);
+        session.highestBidderId = parseNullableInteger(item, KEY_HIGHEST_BIDDER_ID);
+        session.endTime = item.optString(KEY_END_TIME, DEFAULT_TEXT);
+        session.status = item.optString(KEY_STATUS, DEFAULT_STATUS);
 
         return session;
     }
 
+    private static Integer parseNullableInteger(JSONObject item, String key) {
+        if (!hasValue(item, key)) {
+            return null;
+        }
+
+        return item.optInt(key, 0);
+    }
+
     private static BigDecimal parseBigDecimal(JSONObject item, String key) {
-        if (!item.has(key) || item.isNull(key)) {
-            return BigDecimal.ZERO;
+        if (!hasValue(item, key)) {
+            return DEFAULT_PRICE;
         }
 
         try {
-            return new BigDecimal(item.get(key).toString());
-        } catch (Exception e) {
-            return BigDecimal.ZERO;
+            return new BigDecimal(String.valueOf(item.opt(key)).trim());
+        } catch (NumberFormatException e) {
+            return DEFAULT_PRICE;
         }
+    }
+
+    private static boolean hasValue(JSONObject item, String key) {
+        return item.has(key) && !item.isNull(key);
     }
 }

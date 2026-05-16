@@ -14,13 +14,19 @@ import jakarta.persistence.InheritanceType;
 import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
+import java.util.Locale;
 
 @Entity
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "role", discriminatorType = DiscriminatorType.STRING)
-@DiscriminatorValue("USER")
+@DiscriminatorValue("user")
 public class User {
+
+    private static final String BIDDER_ROLE = "bidder";
+    private static final String SELLER_ROLE = "seller";
+    private static final String ADMIN_ROLE = "admin";
+    private static final String DEFAULT_ROLE = "user";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -123,26 +129,26 @@ public class User {
 
     public String getAccountType() {
         if (accountType != null && !accountType.isBlank()) {
-            return accountType;
+            return normalizeRole(accountType);
         }
 
         if (this instanceof Bidder) {
-            return "BIDDER";
+            return BIDDER_ROLE;
         }
 
         if (this instanceof Seller) {
-            return "SELLER";
+            return SELLER_ROLE;
         }
 
         if (this instanceof Admin) {
-            return "admin";
+            return ADMIN_ROLE;
         }
 
-        return "USER";
+        return DEFAULT_ROLE;
     }
 
     public void setAccountType(String accountType) {
-        this.accountType = trimToNull(accountType);
+        this.accountType = normalizeRole(accountType);
     }
 
     public boolean isBanned() {
@@ -161,6 +167,11 @@ public class User {
                 + ", role='" + getAccountType() + '\''
                 + ", banned=" + banned
                 + '}';
+    }
+
+    private String normalizeRole(String role) {
+        String normalizedRole = trimToNull(role);
+        return normalizedRole == null ? DEFAULT_ROLE : normalizedRole.toLowerCase(Locale.ROOT);
     }
 
     private String trimToNull(String value) {

@@ -122,7 +122,7 @@ class AdminServiceExtraTest {
         admin.setUsername(username);
         admin.setFullname("Admin Fullname");
         admin.setEmail(username + "@gmail.com");
-        setAccountType(admin, "ADMIN");
+        setAccountType(admin, "admin");
         return admin;
     }
 
@@ -132,8 +132,7 @@ class AdminServiceExtraTest {
         seller.setUsername(username);
         seller.setFullname("Seller Fullname");
         seller.setEmail(username + "@gmail.com");
-        seller.setShopName("Shop " + username);
-        setAccountType(seller, "SELLER");
+        setAccountType(seller, "seller");
         return seller;
     }
 

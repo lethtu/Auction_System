@@ -2,7 +2,7 @@ package com.auction.client.dto;
 
 import java.math.BigDecimal;
 
-public class CreateAuctionRequest {
+public final class CreateAuctionRequest {
     public final String productName;
     public final String productType;
     public final String description;
@@ -24,7 +24,18 @@ public class CreateAuctionRequest {
             String endTime,
             int sellerId
     ) {
-        this(productName, productType, description, null, startingPrice, stepPrice, null, startTime, endTime, sellerId);
+        this(
+                productName,
+                productType,
+                description,
+                null,
+                startingPrice,
+                stepPrice,
+                null,
+                startTime,
+                endTime,
+                sellerId
+        );
     }
 
     public CreateAuctionRequest(
@@ -38,7 +49,18 @@ public class CreateAuctionRequest {
             String endTime,
             int sellerId
     ) {
-        this(productName, productType, description, imagePath, startingPrice, stepPrice, null, startTime, endTime, sellerId);
+        this(
+                productName,
+                productType,
+                description,
+                imagePath,
+                startingPrice,
+                stepPrice,
+                null,
+                startTime,
+                endTime,
+                sellerId
+        );
     }
 
     public CreateAuctionRequest(
@@ -63,5 +85,13 @@ public class CreateAuctionRequest {
         this.startTime = startTime;
         this.endTime = endTime;
         this.sellerId = sellerId;
+    }
+
+    public boolean hasImagePath() {
+        return imagePath != null && !imagePath.isBlank();
+    }
+
+    public boolean hasReservePrice() {
+        return reservePrice != null;
     }
 }

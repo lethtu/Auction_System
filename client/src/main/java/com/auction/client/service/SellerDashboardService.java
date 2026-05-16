@@ -15,7 +15,22 @@ import java.net.http.HttpResponse;
 import java.util.List;
 
 public class SellerDashboardService {
+
     private static final int HTTP_PAYLOAD_TOO_LARGE = 413;
+
+    private static final String IMAGE_PATH_KEY = "imagePath";
+
+    private static final String CREATE_SUCCESS_MESSAGE = "Tạo phiên đấu giá thành công.";
+    private static final String UPDATE_SUCCESS_MESSAGE = "Đã cập nhật phiên thành công.";
+    private static final String CANCEL_SUCCESS_MESSAGE = "Đã hủy phiên thành công.";
+
+    private static final String NO_IMAGE_SELECTED_MESSAGE = "Chưa chọn file ảnh.";
+    private static final String INVALID_IMAGE_FILE_MESSAGE = "File ảnh không tồn tại hoặc không hợp lệ.";
+    private static final String IMAGE_FILE_NOT_READABLE_MESSAGE = "Không có quyền đọc file ảnh đã chọn.";
+    private static final String IMAGE_TOO_LARGE_MESSAGE = "Ảnh quá lớn. Hãy chọn ảnh nhỏ hơn hoặc tăng giới hạn upload của server.";
+    private static final String MISSING_IMAGE_PATH_MESSAGE = "Server đã nhận ảnh nhưng không trả về đường dẫn ảnh.";
+    private static final String UPLOAD_FAILED_MESSAGE = "Upload ảnh thất bại. HTTP status: ";
+    private static final String LOAD_SESSIONS_FAILED_MESSAGE = "Không thể tải danh sách phiên đấu giá.";
 
     private final SellerApiClient sellerApiClient;
 
@@ -33,11 +48,12 @@ public class SellerDashboardService {
 
     public ApiResult<Void> createAuction(CreateAuctionRequest request, File imageFile) throws Exception {
         CreateAuctionRequest finalRequest = withUploadedImage(request, imageFile);
+
         HttpResponse<String> response = sellerApiClient.createAuction(
                 SellerRequestBuilder.buildAuctionBody(finalRequest)
         );
 
-        return parseApiResult(response, "Tạo phiên đấu giá thành công.");
+        return parseApiResult(response, CREATE_SUCCESS_MESSAGE);
     }
 
     public ApiResult<Void> updateSession(int sessionId, int sellerId, CreateAuctionRequest request) throws Exception {
@@ -51,13 +67,14 @@ public class SellerDashboardService {
             File imageFile
     ) throws Exception {
         CreateAuctionRequest finalRequest = withUploadedImage(request, imageFile);
+
         HttpResponse<String> response = sellerApiClient.updateSession(
                 sessionId,
                 sellerId,
                 SellerRequestBuilder.buildAuctionBody(finalRequest)
         );
 
-        return parseApiResult(response, "Đã cập nhật phiên thành công.");
+        return parseApiResult(response, UPDATE_SUCCESS_MESSAGE);
     }
 
     public List<SessionItem> getMySessions(int sellerId) throws Exception {
@@ -72,7 +89,7 @@ public class SellerDashboardService {
 
     public ApiResult<Void> cancelSession(int sessionId, int sellerId) throws Exception {
         HttpResponse<String> response = sellerApiClient.cancelSession(sessionId, sellerId);
-        return parseApiResult(response, "Đã hủy phiên thành công.");
+        return parseApiResult(response, CANCEL_SUCCESS_MESSAGE);
     }
 
     private CreateAuctionRequest withUploadedImage(CreateAuctionRequest request, File imageFile) throws Exception {
@@ -81,11 +98,15 @@ public class SellerDashboardService {
         }
 
         String uploadedImagePath = uploadImage(imageFile);
+        return copyRequestWithImagePath(request, uploadedImagePath);
+    }
+
+    private CreateAuctionRequest copyRequestWithImagePath(CreateAuctionRequest request, String imagePath) {
         return new CreateAuctionRequest(
                 request.productName,
                 request.productType,
                 request.description,
-                uploadedImagePath,
+                imagePath,
                 request.startingPrice,
                 request.stepPrice,
                 request.reservePrice,
@@ -105,9 +126,17 @@ public class SellerDashboardService {
             throw new IllegalStateException(buildUploadErrorMessage(response, api));
         }
 
-        String imagePath = api.data.optString("imagePath", "").trim();
+        return extractUploadedImagePath(api.data);
+    }
+
+    private String extractUploadedImagePath(JSONObject data) {
+        if (data == null) {
+            throw new IllegalStateException(MISSING_IMAGE_PATH_MESSAGE);
+        }
+
+        String imagePath = data.optString(IMAGE_PATH_KEY, "").trim();
         if (imagePath.isEmpty()) {
-            throw new IllegalStateException("Server đã nhận ảnh nhưng không trả về đường dẫn ảnh.");
+            throw new IllegalStateException(MISSING_IMAGE_PATH_MESSAGE);
         }
 
         return imagePath;
@@ -115,28 +144,28 @@ public class SellerDashboardService {
 
     private void validateImageFile(File imageFile) {
         if (imageFile == null) {
-            throw new IllegalArgumentException("Chưa chọn file ảnh.");
+            throw new IllegalArgumentException(NO_IMAGE_SELECTED_MESSAGE);
         }
 
         if (!imageFile.exists() || !imageFile.isFile()) {
-            throw new IllegalArgumentException("File ảnh không tồn tại hoặc không hợp lệ.");
+            throw new IllegalArgumentException(INVALID_IMAGE_FILE_MESSAGE);
         }
 
         if (!imageFile.canRead()) {
-            throw new IllegalArgumentException("Không có quyền đọc file ảnh đã chọn.");
+            throw new IllegalArgumentException(IMAGE_FILE_NOT_READABLE_MESSAGE);
         }
     }
 
     private String buildUploadErrorMessage(HttpResponse<String> response, ApiResult<JSONObject> api) {
         if (response.statusCode() == HTTP_PAYLOAD_TOO_LARGE) {
-            return "Ảnh quá lớn. Hãy chọn ảnh nhỏ hơn hoặc tăng giới hạn upload của server.";
+            return IMAGE_TOO_LARGE_MESSAGE;
         }
 
-        if (api.message != null && !api.message.isBlank()) {
+        if (hasText(api.message)) {
             return api.message;
         }
 
-        return "Upload ảnh thất bại. HTTP status: " + response.statusCode();
+        return UPLOAD_FAILED_MESSAGE + response.statusCode();
     }
 
     private ApiResult<Void> parseApiResult(HttpResponse<String> response, String successMessage) {
@@ -154,9 +183,17 @@ public class SellerDashboardService {
         );
 
         if (!api.success) {
-            throw new IllegalStateException(api.message);
+            throw new IllegalStateException(getMessageOrDefault(api.message, LOAD_SESSIONS_FAILED_MESSAGE));
         }
 
         return SellerResponseParser.parseSessions(api.data);
+    }
+
+    private String getMessageOrDefault(String message, String defaultMessage) {
+        return hasText(message) ? message : defaultMessage;
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 }

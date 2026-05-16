@@ -255,8 +255,8 @@ class AdminServiceTest {
         Admin admin = admin(1, "admin01");
         Seller seller = seller(2, "seller01");
 
-        setAccountType(admin, "ADMIN");
-        setAccountType(seller, "SELLER");
+        setAccountType(admin, "admin");
+        setAccountType(seller, "seller");
 
         userRepository.allUsers = List.of(admin, seller);
 
@@ -264,7 +264,7 @@ class AdminServiceTest {
 
         assertEquals(1, result.size());
         assertEquals("seller01", result.get(0).getUsername());
-        assertEquals("SELLER", result.get(0).getAccountType());
+        assertEquals("seller", result.get(0).getAccountType());
     }
 
     private Admin admin(Integer id, String username) {
@@ -282,7 +282,6 @@ class AdminServiceTest {
         seller.setUsername(username);
         seller.setFullname("Seller Fullname");
         seller.setEmail(username + "@gmail.com");
-        seller.setShopName("Shop " + username);
         return seller;
     }
 

@@ -23,8 +23,22 @@ import java.util.List;
 import java.util.Locale;
 
 public class AdminDashboardController {
+    private static final String LOGIN_FXML = "Login.fxml";
+    private static final int LOGIN_WIDTH = 400;
+    private static final int LOGIN_HEIGHT = 500;
+
+    private static final String CURRENCY_SUFFIX = " VND";
+    private static final String USER_BANNED_TEXT = "Đã khóa";
+    private static final String USER_ACTIVE_TEXT = "Hoạt động";
+
+    private static final String NO_SESSION_SELECTED_TITLE = "Chưa chọn phiên";
+    private static final String NO_USER_SELECTED_TITLE = "Chưa chọn user";
+
+    private static final String INVALID_ADMIN_ID_MESSAGE = "Không lấy được ID admin hiện tại.";
+    private static final String INVALID_API_RESULT_MESSAGE = "Server không trả về kết quả hợp lệ.";
+
     private final AdminDashboardService adminDashboardService = new AdminDashboardService();
-    private final NumberFormat currencyFormat = NumberFormat.getNumberInstance(new Locale("vi", "VN"));
+    private final NumberFormat currencyFormat = NumberFormat.getNumberInstance(Locale.forLanguageTag("vi-VN"));
 
     @FXML private TabPane adminTabPane;
     @FXML private Tab tabPending;
@@ -75,13 +89,7 @@ public class AdminDashboardController {
         colRole.setCellValueFactory(cellData -> cellData.getValue().roleProperty());
         colBanned.setCellValueFactory(cellData -> cellData.getValue().bannedProperty());
 
-        colBanned.setCellFactory(column -> new TableCell<>() {
-            @Override
-            protected void updateItem(Boolean banned, boolean empty) {
-                super.updateItem(banned, empty);
-                setText(empty || banned == null ? null : (banned ? "Đã khóa" : "Hoạt động"));
-            }
-        });
+        setupBannedColumn();
     }
 
     private void setupSessionColumns() {
@@ -94,42 +102,49 @@ public class AdminDashboardController {
         setupPriceColumn(colSessionPrice);
     }
 
+    private void setupBannedColumn() {
+        colBanned.setCellFactory(column -> new TableCell<>() {
+            @Override
+            protected void updateItem(Boolean banned, boolean empty) {
+                super.updateItem(banned, empty);
+                setText(empty || banned == null ? null : formatBannedStatus(banned));
+            }
+        });
+    }
+
+    private String formatBannedStatus(boolean banned) {
+        return banned ? USER_BANNED_TEXT : USER_ACTIVE_TEXT;
+    }
+
     private <T> void setupPriceColumn(TableColumn<T, BigDecimal> column) {
         column.setCellFactory(col -> new TableCell<>() {
             @Override
             protected void updateItem(BigDecimal price, boolean empty) {
                 super.updateItem(price, empty);
-                setText(empty || price == null ? null : currencyFormat.format(price) + " VND");
+                setText(empty || price == null ? null : formatCurrency(price));
             }
         });
     }
 
+    private String formatCurrency(BigDecimal price) {
+        return currencyFormat.format(price) + CURRENCY_SUFFIX;
+    }
+
     @FXML
     public void handleApprove() {
-        PendingSessionRow selected = getSelectedItem(
+        runSelectedAdminAction(
                 tablePending,
-                "Chưa chọn phiên",
-                "Hãy chọn một phiên để phê duyệt."
+                NO_SESSION_SELECTED_TITLE,
+                "Hãy chọn một phiên để phê duyệt.",
+                (selected, adminId) -> adminDashboardService.approveSession(selected.getId(), adminId)
         );
-
-        if (selected == null) {
-            return;
-        }
-
-        Integer adminId = getValidAdminId();
-
-        if (adminId == null) {
-            return;
-        }
-
-        runAction(() -> adminDashboardService.approveSession(selected.getId(), adminId));
     }
 
     @FXML
     public void handleReject() {
         PendingSessionRow selected = getSelectedItem(
                 tablePending,
-                "Chưa chọn phiên",
+                NO_SESSION_SELECTED_TITLE,
                 "Hãy chọn một phiên để từ chối."
         );
 
@@ -154,44 +169,22 @@ public class AdminDashboardController {
 
     @FXML
     public void handleBanUser() {
-        AdminUserRow selected = getSelectedItem(
+        runSelectedAdminAction(
                 tableUsers,
-                "Chưa chọn user",
-                "Hãy chọn user cần khóa."
+                NO_USER_SELECTED_TITLE,
+                "Hãy chọn user cần khóa.",
+                (selected, adminId) -> adminDashboardService.banUser(selected.getId(), adminId)
         );
-
-        if (selected == null) {
-            return;
-        }
-
-        Integer adminId = getValidAdminId();
-
-        if (adminId == null) {
-            return;
-        }
-
-        runAction(() -> adminDashboardService.banUser(selected.getId(), adminId));
     }
 
     @FXML
     public void handleCancelAuction() {
-        AdminSessionRow selected = getSelectedItem(
+        runSelectedAdminAction(
                 tableSessions,
-                "Chưa chọn phiên",
-                "Hãy chọn phiên cần hủy."
+                NO_SESSION_SELECTED_TITLE,
+                "Hãy chọn phiên cần hủy.",
+                (selected, adminId) -> adminDashboardService.cancelAuction(selected.getId(), adminId)
         );
-
-        if (selected == null) {
-            return;
-        }
-
-        Integer adminId = getValidAdminId();
-
-        if (adminId == null) {
-            return;
-        }
-
-        runAction(() -> adminDashboardService.cancelAuction(selected.getId(), adminId));
     }
 
     @FXML
@@ -218,10 +211,31 @@ public class AdminDashboardController {
     public void handleLogout(ActionEvent event) {
         try {
             User.clearSession();
-            SceneSwitcher.switchScene(event, "Login.fxml", 400, 500);
+            SceneSwitcher.switchScene(event, LOGIN_FXML, LOGIN_WIDTH, LOGIN_HEIGHT);
         } catch (Exception e) {
             AlertUtil.showError(e, "Không thể đăng xuất.");
         }
+    }
+
+    private <T> void runSelectedAdminAction(
+            TableView<T> table,
+            String noSelectionTitle,
+            String noSelectionMessage,
+            SelectedAdminAction<T> action
+    ) {
+        T selected = getSelectedItem(table, noSelectionTitle, noSelectionMessage);
+
+        if (selected == null) {
+            return;
+        }
+
+        Integer adminId = getValidAdminId();
+
+        if (adminId == null) {
+            return;
+        }
+
+        runAction(() -> action.run(selected, adminId));
     }
 
     private void selectTab(Tab tab) {
@@ -244,7 +258,7 @@ public class AdminDashboardController {
         Integer adminId = User.getId();
 
         if (adminId == null || adminId <= 0) {
-            AlertUtil.showError("Không lấy được ID admin hiện tại.");
+            AlertUtil.showError(INVALID_ADMIN_ID_MESSAGE);
             return null;
         }
 
@@ -279,6 +293,11 @@ public class AdminDashboardController {
     }
 
     private void handleActionResult(ApiResult<Void> api) {
+        if (api == null) {
+            AlertUtil.showError(INVALID_API_RESULT_MESSAGE);
+            return;
+        }
+
         if (api.success) {
             AlertUtil.showInfo(api.message);
             loadAllData();
@@ -295,34 +314,54 @@ public class AdminDashboardController {
     }
 
     private void loadPendingSessions() {
-        try {
-            List<PendingSessionRow> rows = adminDashboardService.getPendingSessions();
-            tablePending.setItems(FXCollections.observableArrayList(rows));
-        } catch (Exception e) {
-            AlertUtil.showError(e, "Không thể tải dữ liệu pending từ server.");
-        }
+        loadTableData(
+                tablePending,
+                adminDashboardService::getPendingSessions,
+                "Không thể tải dữ liệu pending từ server."
+        );
     }
 
     private void loadUsers() {
-        try {
-            List<AdminUserRow> rows = adminDashboardService.getAllUsers();
-            tableUsers.setItems(FXCollections.observableArrayList(rows));
-        } catch (Exception e) {
-            AlertUtil.showError(e, "Không thể tải danh sách user từ server.");
-        }
+        loadTableData(
+                tableUsers,
+                adminDashboardService::getAllUsers,
+                "Không thể tải danh sách user từ server."
+        );
     }
 
     private void loadSessions() {
+        loadTableData(
+                tableSessions,
+                adminDashboardService::getAllSessions,
+                "Không thể tải danh sách phiên từ server."
+        );
+    }
+
+    private <T> void loadTableData(
+            TableView<T> table,
+            TableDataLoader<T> dataLoader,
+            String errorMessage
+    ) {
         try {
-            List<AdminSessionRow> rows = adminDashboardService.getAllSessions();
-            tableSessions.setItems(FXCollections.observableArrayList(rows));
+            List<T> rows = dataLoader.load();
+            table.setItems(FXCollections.observableArrayList(rows));
         } catch (Exception e) {
-            AlertUtil.showError(e, "Không thể tải danh sách phiên từ server.");
+            AlertUtil.showError(e, errorMessage);
         }
     }
 
     @FunctionalInterface
     private interface AdminAction {
         ApiResult<Void> run() throws Exception;
+    }
+
+    @FunctionalInterface
+    private interface SelectedAdminAction<T> {
+        ApiResult<Void> run(T selected, int adminId) throws Exception;
+    }
+
+    @FunctionalInterface
+    private interface TableDataLoader<T> {
+        List<T> load() throws Exception;
     }
 }

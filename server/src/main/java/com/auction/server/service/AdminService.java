@@ -6,7 +6,6 @@ import com.auction.server.mapper.SessionResponseMapper;
 import com.auction.server.model.Admin;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.model.AuctionStatus;
-import com.auction.server.model.Seller;
 import com.auction.server.model.User;
 import com.auction.server.repository.AuctionSessionRepository;
 import com.auction.server.repository.UserRepository;
@@ -22,10 +21,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class AdminService {
     private static final Logger logger = LoggerFactory.getLogger(AdminService.class);
+
+    private static final String DEFAULT_ROLE = "user";
+    private static final String ADMIN_ROLE = "admin";
 
     private final AuctionSessionRepository sessionRepository;
     private final UserRepository userRepository;
@@ -73,8 +76,8 @@ public class AdminService {
         }
 
         String sql = """
-                SELECT id, username, COALESCE(fullname, full_name, '') AS display_name,
-                       email, role, balance, banned, shop_name
+                SELECT id, username, COALESCE(fullname, '') AS display_name,
+                       email, role, balance, banned
                 FROM users
                 """;
 
@@ -83,9 +86,9 @@ public class AdminService {
         }
 
         return jdbcTemplate.query(
-                sql + " WHERE LOWER(role) = LOWER(?) ORDER BY id",
+                sql + " WHERE LOWER(role) = ? ORDER BY id",
                 this::mapUserRow,
-                role.trim()
+                normalizeRole(role)
         );
     }
 
@@ -175,7 +178,7 @@ public class AdminService {
         }
 
         try {
-            AuctionStatus enumStatus = AuctionStatus.valueOf(status.trim().toUpperCase());
+            AuctionStatus enumStatus = AuctionStatus.valueOf(status.trim().toUpperCase(Locale.ROOT));
             return sessionRepository.findByStatus(enumStatus);
         } catch (IllegalArgumentException e) {
             return List.of();
@@ -189,9 +192,10 @@ public class AdminService {
             return users;
         }
 
+        String normalizedRole = normalizeRole(role);
+
         return users.stream()
-                .filter(user -> user.getAccountType() != null
-                        && user.getAccountType().equalsIgnoreCase(role.trim()))
+                .filter(user -> normalizedRole.equals(normalizeRole(user.getAccountType())))
                 .toList();
     }
 
@@ -208,6 +212,10 @@ public class AdminService {
     }
 
     private Admin checkAdminPermission(Integer adminId) {
+        if (adminId == null) {
+            throw new RuntimeException("Không tìm thấy admin");
+        }
+
         User user = userRepository.findById(adminId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy admin"));
 
@@ -233,8 +241,8 @@ public class AdminService {
 
     private UserSummary findUserSummaryById(Integer userId) {
         List<UserSummary> users = jdbcTemplate.query(
-                "SELECT id, role FROM users WHERE id = ?",
-                (rs, rowNum) -> new UserSummary(rs.getInt("id"), rs.getString("role")),
+                "SELECT role FROM users WHERE id = ?",
+                (rs, rowNum) -> new UserSummary(rs.getString("role")),
                 userId
         );
 
@@ -254,37 +262,31 @@ public class AdminService {
         dto.setAccountType(normalizeRole(rs.getString("role")));
         dto.setBalance(defaultMoney(rs.getBigDecimal("balance")));
         dto.setBanned(rs.getBoolean("banned"));
-        dto.setShopName(nullToEmpty(rs.getString("shop_name")));
         return dto;
     }
 
     private UserResponseDTO mapToUserResponseDTO(User user) {
-        UserResponseDTO dto = new UserResponseDTO();
-        dto.setId(user.getId());
-        dto.setUsername(user.getUsername());
-        dto.setFullname(user.getFullname());
-        dto.setEmail(user.getEmail());
-        dto.setAccountType(normalizeRole(user.getAccountType()));
-        dto.setBalance(user.getBalance());
-        dto.setBanned(user.isBanned());
-
-        if (user instanceof Seller seller) {
-            dto.setShopName(seller.getShopName());
-        }
-
-        return dto;
+        return new UserResponseDTO(
+                user.getId(),
+                user.getUsername(),
+                user.getFullname(),
+                user.getEmail(),
+                normalizeRole(user.getAccountType()),
+                defaultMoney(user.getBalance()),
+                user.isBanned()
+        );
     }
 
     private String normalizeRole(String role) {
         if (role == null || role.isBlank()) {
-            return "USER";
+            return DEFAULT_ROLE;
         }
 
-        return role.trim().toUpperCase();
+        return role.trim().toLowerCase(Locale.ROOT);
     }
 
     private boolean isAdminRole(String role) {
-        return role != null && role.trim().equalsIgnoreCase("admin");
+        return ADMIN_ROLE.equals(normalizeRole(role));
     }
 
     private String nullToEmpty(String value) {
@@ -295,6 +297,6 @@ public class AdminService {
         return value == null ? BigDecimal.ZERO : value;
     }
 
-    private record UserSummary(Integer id, String role) {
+    private record UserSummary(String role) {
     }
 }

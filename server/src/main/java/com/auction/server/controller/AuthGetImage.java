@@ -8,7 +8,12 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -21,54 +26,61 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/files")
 public class AuthGetImage {
+
     private static final Logger logger = LoggerFactory.getLogger(AuthGetImage.class);
-    private final Path rootLocation = Paths.get("upload/images").toAbsolutePath().normalize();
+
+    private static final String UPLOAD_ROOT_DIRECTORY = "upload/images";
+    private static final String FILE_REQUEST_PARAM = "file";
+    private static final String IMAGE_PATH_KEY = "imagePath";
+
+    private static final String DEFAULT_EXTENSION = ".png";
+    private static final String DEFAULT_CONTENT_TYPE = "application/octet-stream";
+
+    private static final String UPLOAD_SUCCESS_MESSAGE = "Upload ảnh thành công.";
+    private static final String UPLOAD_FAILED_MESSAGE = "Upload ảnh thất bại.";
+    private static final String EMPTY_FILE_MESSAGE = "File ảnh đang trống.";
+    private static final String INVALID_IMAGE_TYPE_MESSAGE = "Chỉ chấp nhận file ảnh.";
+    private static final String INVALID_FILE_PATH_MESSAGE = "Đường dẫn file không hợp lệ.";
+
+    private static final int BAD_REQUEST_STATUS = 400;
+    private static final int MAX_EXTENSION_LENGTH = 10;
+
+    private Path rootLocation = Paths.get(UPLOAD_ROOT_DIRECTORY).toAbsolutePath().normalize();
 
     @PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<Map<String, String>>> uploadImage(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<ApiResponse<Map<String, String>>> uploadImage(
+            @RequestParam(FILE_REQUEST_PARAM) MultipartFile file
+    ) {
         try {
-            if (rootLocation == null) {
-                return ResponseEntity.internalServerError().body(ApiResponse.error("Upload ảnh thất bại."));
-            }
+            validateImageFile(file);
 
-            if (file.isEmpty()) {
-                return ResponseEntity.badRequest().body(ApiResponse.error(400, "File ảnh đang trống."));
-            }
+            Path root = getRootLocation();
+            Files.createDirectories(root);
 
-            String contentType = file.getContentType();
-            if (contentType == null || !contentType.startsWith("image/")) {
-                return ResponseEntity.badRequest().body(ApiResponse.error(400, "Chỉ chấp nhận file ảnh."));
-            }
-
-            Files.createDirectories(rootLocation);
-
-            String itemFolder = UUID.randomUUID().toString();
-            Path itemFolderPath = rootLocation.resolve(itemFolder).normalize();
-            Files.createDirectories(itemFolderPath);
-
-            String originalName = file.getOriginalFilename();
-            String extension = getExtension(originalName);
-            String storedFileName = UUID.randomUUID() + extension;
-
+            Path itemFolderPath = createItemFolder(root);
+            String storedFileName = buildStoredFileName(file.getOriginalFilename());
             Path destination = itemFolderPath.resolve(storedFileName).normalize();
 
-            if (!destination.startsWith(rootLocation)) {
-                return ResponseEntity.badRequest().body(ApiResponse.error(400, "Đường dẫn file không hợp lệ."));
+            if (!isInsideRootLocation(destination)) {
+                return badRequest(INVALID_FILE_PATH_MESSAGE);
             }
 
             file.transferTo(destination);
 
-            String imagePath = itemFolder + "/" + storedFileName;
-
+            String imagePath = toClientImagePath(destination);
             logger.info("Đã upload file ảnh: {}", destination);
 
             return ResponseEntity.ok(ApiResponse.success(
-                    "Upload ảnh thành công.",
-                    Map.of("imagePath", imagePath)
+                    UPLOAD_SUCCESS_MESSAGE,
+                    Map.of(IMAGE_PATH_KEY, imagePath)
             ));
-        } catch (IOException e) {
+
+        } catch (IllegalArgumentException e) {
+            return badRequest(e.getMessage());
+
+        } catch (Exception e) {
             logger.error("Lỗi khi upload ảnh: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError().body(ApiResponse.error("Upload ảnh thất bại."));
+            return ResponseEntity.internalServerError().body(ApiResponse.error(UPLOAD_FAILED_MESSAGE));
         }
     }
 
@@ -78,14 +90,10 @@ public class AuthGetImage {
             @PathVariable String filename
     ) {
         try {
-            if (rootLocation == null) {
-                return ResponseEntity.internalServerError().build();
-            }
-
-            Path file = rootLocation.resolve(folder).resolve(filename).normalize();
+            Path file = getRootLocation().resolve(folder).resolve(filename).normalize();
             return serve(file);
         } catch (Exception e) {
-            logger.error("Lỗi khi xử lý đường dẫn file: {}", e.getMessage(), e);
+            logger.error("Lỗi khi xử lý đường dẫn ảnh: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -93,47 +101,84 @@ public class AuthGetImage {
     @GetMapping("/images/{filename:.+}")
     public ResponseEntity<Resource> serveOldFile(@PathVariable String filename) {
         try {
-            if (rootLocation == null) {
-                return ResponseEntity.internalServerError().build();
-            }
-
-            Path file = rootLocation.resolve(filename).normalize();
+            Path file = getRootLocation().resolve(filename).normalize();
             return serve(file);
         } catch (Exception e) {
-            logger.error("Lỗi khi xử lý đường dẫn file cũ: {}", e.getMessage(), e);
+            logger.error("Lỗi khi xử lý đường dẫn ảnh cũ: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }
 
+    private void validateImageFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException(EMPTY_FILE_MESSAGE);
+        }
+
+        String contentType = file.getContentType();
+        if (!isImageContentType(contentType)) {
+            throw new IllegalArgumentException(INVALID_IMAGE_TYPE_MESSAGE);
+        }
+    }
+
+    private boolean isImageContentType(String contentType) {
+        return contentType != null && contentType.startsWith("image/");
+    }
+
+    private Path createItemFolder(Path root) throws IOException {
+        Path itemFolderPath = root.resolve(UUID.randomUUID().toString()).normalize();
+        Files.createDirectories(itemFolderPath);
+        return itemFolderPath;
+    }
+
+    private String buildStoredFileName(String originalFileName) {
+        return UUID.randomUUID() + getSafeExtension(originalFileName);
+    }
+
+    private String getSafeExtension(String fileName) {
+        if (fileName == null || !fileName.contains(".")) {
+            return DEFAULT_EXTENSION;
+        }
+
+        String extension = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+
+        if (!isSafeExtension(extension)) {
+            return DEFAULT_EXTENSION;
+        }
+
+        return extension;
+    }
+
+    private boolean isSafeExtension(String extension) {
+        return extension.length() > 1
+                && extension.length() <= MAX_EXTENSION_LENGTH
+                && extension.matches("\\.[a-z0-9]+");
+    }
+
+    private String toClientImagePath(Path destination) {
+        return getRootLocation()
+                .relativize(destination)
+                .toString()
+                .replace('\\', '/');
+    }
+
     private ResponseEntity<Resource> serve(Path file) {
         try {
-            if (rootLocation == null || file == null) {
-                return ResponseEntity.internalServerError().build();
-            }
-
-            if (!file.startsWith(rootLocation)) {
+            if (!isInsideRootLocation(file)) {
                 return ResponseEntity.badRequest().build();
             }
 
             Resource resource = new UrlResource(file.toUri());
-
             logger.info("Đường dẫn file thực tế đang tìm: {}", file.toAbsolutePath());
 
-            if (resource.exists() && resource.isReadable()) {
-                String contentType = Files.probeContentType(file);
-
-                if (contentType == null) {
-                    contentType = "application/octet-stream";
-                }
-
-                return ResponseEntity.ok()
-                        .contentType(MediaType.parseMediaType(contentType))
-                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
-                        .body(resource);
+            if (!resource.exists() || !resource.isReadable()) {
+                logger.warn("Không tìm thấy file hoặc file không đọc được: {}", file);
+                return ResponseEntity.notFound().build();
             }
 
-            logger.error("Không tìm thấy file: {}", file);
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(detectContentType(file)))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, buildInlineContentDisposition(resource))
+                    .body(resource);
 
         } catch (Exception e) {
             logger.error("Lỗi khi tìm file và trả về phản hồi: {}", e.getMessage(), e);
@@ -141,11 +186,46 @@ public class AuthGetImage {
         }
     }
 
-    private String getExtension(String fileName) {
-        if (fileName == null || !fileName.contains(".")) {
-            return ".png";
+    private String detectContentType(Path file) throws IOException {
+        String contentType = Files.probeContentType(file);
+        return hasText(contentType) ? contentType : DEFAULT_CONTENT_TYPE;
+    }
+
+    private String buildInlineContentDisposition(Resource resource) {
+        return "inline; filename=\"" + safeFileName(resource.getFilename()) + "\"";
+    }
+
+    private String safeFileName(String fileName) {
+        if (!hasText(fileName)) {
+            return "image";
         }
 
-        return fileName.substring(fileName.lastIndexOf('.'));
+        return fileName
+                .replace("\\", "_")
+                .replace("/", "_")
+                .replace("\"", "_")
+                .replace("\r", "_")
+                .replace("\n", "_");
+    }
+
+    private boolean isInsideRootLocation(Path file) {
+        Path root = getRootLocation();
+        return file != null && file.normalize().startsWith(root);
+    }
+
+    private Path getRootLocation() {
+        if (rootLocation == null) {
+            throw new IllegalStateException("Thư mục upload ảnh chưa được khởi tạo");
+        }
+
+        return rootLocation;
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
+    }
+
+    private ResponseEntity<ApiResponse<Map<String, String>>> badRequest(String message) {
+        return ResponseEntity.badRequest().body(ApiResponse.error(BAD_REQUEST_STATUS, message));
     }
 }

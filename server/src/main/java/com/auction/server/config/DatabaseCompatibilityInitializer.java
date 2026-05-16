@@ -21,18 +21,29 @@ public class DatabaseCompatibilityInitializer implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         normalizeRoleValues();
         allowRejectedAuctionStatus();
-        allowNullableEmployeeCode();
         repairBidSessionForeignKey();
     }
 
     private void normalizeRoleValues() {
         runUpdate(
                 "Chuẩn hóa role bidder",
-                "UPDATE users SET role = 'BIDDER' WHERE LOWER(role) = 'bidder'"
+                "UPDATE users SET role = 'bidder' "
+                        + "WHERE id >= 0 AND role IS NOT NULL AND LOWER(role) = 'bidder'"
         );
         runUpdate(
                 "Chuẩn hóa role seller",
-                "UPDATE users SET role = 'SELLER' WHERE LOWER(role) = 'seller'"
+                "UPDATE users SET role = 'seller' "
+                        + "WHERE id >= 0 AND role IS NOT NULL AND LOWER(role) = 'seller'"
+        );
+        runUpdate(
+                "Chuẩn hóa role admin",
+                "UPDATE users SET role = 'admin' "
+                        + "WHERE id >= 0 AND role IS NOT NULL AND LOWER(role) = 'admin'"
+        );
+        runUpdate(
+                "Chuẩn hóa role user",
+                "UPDATE users SET role = 'user' "
+                        + "WHERE id >= 0 AND (role IS NULL OR TRIM(role) = '' OR LOWER(role) = 'user')"
         );
     }
 
@@ -41,13 +52,6 @@ public class DatabaseCompatibilityInitializer implements ApplicationRunner {
                 "Bổ sung trạng thái REJECTED cho auction_sessions.status",
                 "ALTER TABLE auction_sessions MODIFY COLUMN status "
                         + "ENUM('PENDING','ACTIVE','ENDED','CANCELED','REJECTED') DEFAULT NULL"
-        );
-    }
-
-    private void allowNullableEmployeeCode() {
-        runStatement(
-                "Cho phép employee_code rỗng khi đăng ký bidder",
-                "ALTER TABLE users MODIFY COLUMN employee_code VARCHAR(255) NULL"
         );
     }
 

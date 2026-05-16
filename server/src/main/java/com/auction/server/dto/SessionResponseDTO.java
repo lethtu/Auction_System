@@ -21,20 +21,22 @@ public class SessionResponseDTO {
     private BigDecimal currentPrice;
     private BigDecimal stepPrice;
     private BigDecimal reservePrice;
+
     private Integer highestBidderId;
     private Integer bidCount;
 
     private LocalDateTime createdAt;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    private LocalDateTime approvedAt;
-    private LocalDateTime rejectedAt;
 
     private String status;
-    private String rejectReason;
 
+    private LocalDateTime approvedAt;
     private Integer approvedByAdminId;
+
+    private LocalDateTime rejectedAt;
     private Integer rejectedByAdminId;
+    private String rejectReason;
 
     public SessionResponseDTO() {
     }
@@ -183,22 +185,6 @@ public class SessionResponseDTO {
         this.endTime = endTime;
     }
 
-    public LocalDateTime getApprovedAt() {
-        return approvedAt;
-    }
-
-    public void setApprovedAt(LocalDateTime approvedAt) {
-        this.approvedAt = approvedAt;
-    }
-
-    public LocalDateTime getRejectedAt() {
-        return rejectedAt;
-    }
-
-    public void setRejectedAt(LocalDateTime rejectedAt) {
-        this.rejectedAt = rejectedAt;
-    }
-
     public String getStatus() {
         return status;
     }
@@ -207,12 +193,12 @@ public class SessionResponseDTO {
         this.status = status;
     }
 
-    public String getRejectReason() {
-        return rejectReason;
+    public LocalDateTime getApprovedAt() {
+        return approvedAt;
     }
 
-    public void setRejectReason(String rejectReason) {
-        this.rejectReason = rejectReason;
+    public void setApprovedAt(LocalDateTime approvedAt) {
+        this.approvedAt = approvedAt;
     }
 
     public Integer getApprovedByAdminId() {
@@ -223,11 +209,27 @@ public class SessionResponseDTO {
         this.approvedByAdminId = approvedByAdminId;
     }
 
+    public LocalDateTime getRejectedAt() {
+        return rejectedAt;
+    }
+
+    public void setRejectedAt(LocalDateTime rejectedAt) {
+        this.rejectedAt = rejectedAt;
+    }
+
     public Integer getRejectedByAdminId() {
         return rejectedByAdminId;
     }
 
     public void setRejectedByAdminId(Integer rejectedByAdminId) {
         this.rejectedByAdminId = rejectedByAdminId;
+    }
+
+    public String getRejectReason() {
+        return rejectReason;
+    }
+
+    public void setRejectReason(String rejectReason) {
+        this.rejectReason = rejectReason;
     }
 }

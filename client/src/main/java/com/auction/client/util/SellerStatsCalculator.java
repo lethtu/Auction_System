@@ -8,45 +8,67 @@ import java.text.DecimalFormat;
 import java.util.List;
 
 public final class SellerStatsCalculator {
-    private static final DecimalFormat MONEY_FORMAT = new DecimalFormat("#,##0.##");
+    private static final String TOTAL_SESSIONS_LABEL = "Tổng số phiên: ";
+    private static final String PENDING_SESSIONS_LABEL = "Số phiên chờ duyệt: ";
+    private static final String ACTIVE_SESSIONS_LABEL = "Số phiên đang hoạt động: ";
+    private static final String REJECTED_SESSIONS_LABEL = "Số phiên bị từ chối: ";
+    private static final String ENDED_SESSIONS_LABEL = "Số phiên đã kết thúc: ";
+    private static final String CANCELED_SESSIONS_LABEL = "Số phiên đã hủy: ";
+    private static final String TOTAL_REVENUE_LABEL = "Tổng doanh thu phiên đã kết thúc: ";
+
+    private static final String MONEY_PATTERN = "#,##0.##";
 
     private SellerStatsCalculator() {
     }
 
     public static String buildStatsText(List<SessionItem> sessions) {
         if (sessions == null || sessions.isEmpty()) {
-            return "Tổng số phiên: 0";
+            return TOTAL_SESSIONS_LABEL + 0;
         }
 
-        int pending = 0;
-        int active = 0;
-        int rejected = 0;
-        int ended = 0;
-        int canceled = 0;
-        BigDecimal revenue = BigDecimal.ZERO;
+        SellerStats stats = calculateStats(sessions);
+        return formatStats(stats);
+    }
+
+    private static SellerStats calculateStats(List<SessionItem> sessions) {
+        SellerStats stats = new SellerStats(sessions.size());
 
         for (SessionItem session : sessions) {
-            String status = normalizeStatus(session.status);
-
-            switch (status) {
-                case AuctionStatus.PENDING -> pending++;
-                case AuctionStatus.ACTIVE -> active++;
-                case AuctionStatus.REJECTED -> rejected++;
-                case AuctionStatus.ENDED -> {
-                    ended++;
-                    revenue = revenue.add(safePrice(session.currentPrice));
-                }
-                case AuctionStatus.CANCELED -> canceled++;
-            }
+            addSessionToStats(stats, session);
         }
 
-        return "Tổng số phiên: " + sessions.size() + "\n"
-                + "Số phiên chờ duyệt: " + pending + "\n"
-                + "Số phiên đang hoạt động: " + active + "\n"
-                + "Số phiên bị từ chối: " + rejected + "\n"
-                + "Số phiên đã kết thúc: " + ended + "\n"
-                + "Số phiên đã hủy: " + canceled + "\n"
-                + "Tổng doanh thu phiên đã kết thúc: " + MONEY_FORMAT.format(revenue);
+        return stats;
+    }
+
+    private static void addSessionToStats(SellerStats stats, SessionItem session) {
+        String status = normalizeStatus(session.status);
+
+        switch (status) {
+            case AuctionStatus.PENDING -> stats.pending++;
+            case AuctionStatus.ACTIVE -> stats.active++;
+            case AuctionStatus.REJECTED -> stats.rejected++;
+            case AuctionStatus.ENDED -> {
+                stats.ended++;
+                stats.revenue = stats.revenue.add(safePrice(session.currentPrice));
+            }
+            case AuctionStatus.CANCELED -> stats.canceled++;
+            default -> {
+            }
+        }
+    }
+
+    private static String formatStats(SellerStats stats) {
+        return TOTAL_SESSIONS_LABEL + stats.total + "\n"
+                + PENDING_SESSIONS_LABEL + stats.pending + "\n"
+                + ACTIVE_SESSIONS_LABEL + stats.active + "\n"
+                + REJECTED_SESSIONS_LABEL + stats.rejected + "\n"
+                + ENDED_SESSIONS_LABEL + stats.ended + "\n"
+                + CANCELED_SESSIONS_LABEL + stats.canceled + "\n"
+                + TOTAL_REVENUE_LABEL + moneyFormatter().format(stats.revenue);
+    }
+
+    private static DecimalFormat moneyFormatter() {
+        return new DecimalFormat(MONEY_PATTERN);
     }
 
     private static String normalizeStatus(String status) {
@@ -55,5 +77,19 @@ public final class SellerStatsCalculator {
 
     private static BigDecimal safePrice(BigDecimal price) {
         return price == null ? BigDecimal.ZERO : price;
+    }
+
+    private static final class SellerStats {
+        private final int total;
+        private int pending;
+        private int active;
+        private int rejected;
+        private int ended;
+        private int canceled;
+        private BigDecimal revenue = BigDecimal.ZERO;
+
+        private SellerStats(int total) {
+            this.total = total;
+        }
     }
 }

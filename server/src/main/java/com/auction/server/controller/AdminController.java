@@ -14,7 +14,28 @@ import java.util.function.Supplier;
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController {
+
     private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
+
+    private static final String LOG_GET_PENDING_SESSIONS = "Đang lấy danh sách chờ duyệt";
+    private static final String LOG_GET_ALL_SESSIONS = "Đang lấy danh sách phiên";
+    private static final String LOG_GET_SESSION_DETAIL = "Đang lấy chi tiết phiên ";
+    private static final String LOG_APPROVE_SESSION = "Đang phê duyệt phiên ";
+    private static final String LOG_REJECT_SESSION = "Đang từ chối phiên đấu giá ";
+    private static final String LOG_BAN_USER = "Đang khóa tài khoản user ";
+    private static final String LOG_CANCEL_AUCTION = "Đang hủy phiên đấu giá ";
+    private static final String LOG_GET_ALL_USERS = "Đang lấy danh sách người dùng";
+
+    private static final String SUCCESS_GET_PENDING_SESSIONS = "Lấy danh sách phiên chờ duyệt thành công";
+    private static final String SUCCESS_GET_ALL_SESSIONS = "Lấy danh sách phiên thành công";
+    private static final String SUCCESS_GET_SESSION_DETAIL = "Lấy chi tiết phiên thành công";
+    private static final String SUCCESS_APPROVE_SESSION = "Phê duyệt thành công! Phiên đấu giá đã bắt đầu.";
+    private static final String SUCCESS_REJECT_SESSION = "Đã từ chối phiên đấu giá.";
+    private static final String SUCCESS_BAN_USER = "Đã khóa tài khoản user.";
+    private static final String SUCCESS_CANCEL_AUCTION = "Đã hủy phiên đấu giá.";
+    private static final String SUCCESS_GET_ALL_USERS = "Lấy danh sách người dùng thành công";
+
+    private static final int BAD_REQUEST_STATUS = 400;
 
     private final AdminService adminService;
 
@@ -25,8 +46,8 @@ public class AdminController {
     @GetMapping("/pending")
     public ApiResponse<List<SessionResponseDTO>> getPendingSessions() {
         return handleRequest(
-                "Đang lấy danh sách chờ duyệt",
-                "Lấy danh sách phiên chờ duyệt thành công",
+                LOG_GET_PENDING_SESSIONS,
+                SUCCESS_GET_PENDING_SESSIONS,
                 adminService::getPendingSessions
         );
     }
@@ -36,8 +57,8 @@ public class AdminController {
             @RequestParam(required = false) String status
     ) {
         return handleRequest(
-                "Đang lấy danh sách phiên",
-                "Lấy danh sách phiên thành công",
+                LOG_GET_ALL_SESSIONS,
+                SUCCESS_GET_ALL_SESSIONS,
                 () -> adminService.getAllSessions(status)
         );
     }
@@ -45,8 +66,8 @@ public class AdminController {
     @GetMapping("/session-detail/{sessionId}")
     public ApiResponse<SessionResponseDTO> getSessionDetail(@PathVariable Integer sessionId) {
         return handleRequest(
-                "Đang lấy chi tiết phiên " + sessionId,
-                "Lấy chi tiết phiên thành công",
+                LOG_GET_SESSION_DETAIL + sessionId,
+                SUCCESS_GET_SESSION_DETAIL,
                 () -> adminService.getSessionDetail(sessionId)
         );
     }
@@ -56,13 +77,10 @@ public class AdminController {
             @PathVariable Integer sessionId,
             @RequestParam Integer adminId
     ) {
-        return handleRequest(
-                "Đang phê duyệt phiên " + sessionId,
-                "Phê duyệt thành công! Phiên đấu giá đã bắt đầu.",
-                () -> {
-                    adminService.approveSession(sessionId, adminId);
-                    return null;
-                }
+        return handleCommand(
+                LOG_APPROVE_SESSION + sessionId,
+                SUCCESS_APPROVE_SESSION,
+                () -> adminService.approveSession(sessionId, adminId)
         );
     }
 
@@ -72,29 +90,22 @@ public class AdminController {
             @RequestParam Integer adminId,
             @RequestParam String reason
     ) {
-        return handleRequest(
-                "Đang từ chối phiên đấu giá " + sessionId,
-                "Đã từ chối phiên đấu giá.",
-                () -> {
-                    adminService.rejectSession(sessionId, adminId, reason);
-                    return null;
-                }
+        return handleCommand(
+                LOG_REJECT_SESSION + sessionId,
+                SUCCESS_REJECT_SESSION,
+                () -> adminService.rejectSession(sessionId, adminId, reason)
         );
     }
-
 
     @PostMapping("/ban-user/{userId}")
     public ApiResponse<Void> banUser(
             @PathVariable Integer userId,
             @RequestParam Integer adminId
     ) {
-        return handleRequest(
-                "Đang khóa tài khoản user " + userId,
-                "Đã khóa tài khoản user.",
-                () -> {
-                    adminService.banUser(userId, adminId);
-                    return null;
-                }
+        return handleCommand(
+                LOG_BAN_USER + userId,
+                SUCCESS_BAN_USER,
+                () -> adminService.banUser(userId, adminId)
         );
     }
 
@@ -103,13 +114,10 @@ public class AdminController {
             @PathVariable Integer sessionId,
             @RequestParam Integer adminId
     ) {
-        return handleRequest(
-                "Đang hủy phiên đấu giá " + sessionId,
-                "Đã hủy phiên đấu giá.",
-                () -> {
-                    adminService.cancelAuction(sessionId, adminId);
-                    return null;
-                }
+        return handleCommand(
+                LOG_CANCEL_AUCTION + sessionId,
+                SUCCESS_CANCEL_AUCTION,
+                () -> adminService.cancelAuction(sessionId, adminId)
         );
     }
 
@@ -118,9 +126,24 @@ public class AdminController {
             @RequestParam(required = false) String role
     ) {
         return handleRequest(
-                "Đang lấy danh sách người dùng",
-                "Lấy danh sách người dùng thành công",
+                LOG_GET_ALL_USERS,
+                SUCCESS_GET_ALL_USERS,
                 () -> adminService.getAllUsers(role)
+        );
+    }
+
+    private ApiResponse<Void> handleCommand(
+            String logMessage,
+            String successMessage,
+            Runnable action
+    ) {
+        return handleRequest(
+                logMessage,
+                successMessage,
+                () -> {
+                    action.run();
+                    return null;
+                }
         );
     }
 
@@ -135,7 +158,7 @@ public class AdminController {
 
         } catch (IllegalArgumentException e) {
             logger.warn("{} thất bại: {}", logMessage, e.getMessage());
-            return ApiResponse.error(400, e.getMessage());
+            return ApiResponse.error(BAD_REQUEST_STATUS, e.getMessage());
 
         } catch (Exception e) {
             logger.error("{} thất bại: {}", logMessage, e.getMessage(), e);

@@ -2,7 +2,7 @@ package com.auction.server.dto;
 
 import java.math.BigDecimal;
 
-public class UserResponseDTO {
+public final class UserResponseDTO {
 
     private Integer id;
     private String username;
@@ -12,11 +12,25 @@ public class UserResponseDTO {
     private BigDecimal balance;
     private boolean banned;
 
-    private String shopName;
-    private String employeeCode;
-    private String adminRole;
-
     public UserResponseDTO() {
+    }
+
+    public UserResponseDTO(
+            Integer id,
+            String username,
+            String fullname,
+            String email,
+            String accountType,
+            BigDecimal balance,
+            boolean banned
+    ) {
+        this.id = id;
+        this.username = username;
+        this.fullname = fullname;
+        this.email = email;
+        this.accountType = accountType;
+        this.balance = balance;
+        this.banned = banned;
     }
 
     public Integer getId() {
@@ -73,29 +87,5 @@ public class UserResponseDTO {
 
     public void setBanned(boolean banned) {
         this.banned = banned;
-    }
-
-    public String getShopName() {
-        return shopName;
-    }
-
-    public void setShopName(String shopName) {
-        this.shopName = shopName;
-    }
-
-    public String getEmployeeCode() {
-        return employeeCode;
-    }
-
-    public void setEmployeeCode(String employeeCode) {
-        this.employeeCode = employeeCode;
-    }
-
-    public String getAdminRole() {
-        return adminRole;
-    }
-
-    public void setAdminRole(String adminRole) {
-        this.adminRole = adminRole;
     }
 }

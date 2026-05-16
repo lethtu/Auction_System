@@ -1,49 +1,56 @@
 package com.auction.server.controller;
 
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Controller;
+import com.auction.server.dto.ApiResponse;
 import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.mapper.SessionResponseMapper;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.repository.BidRepository;
 import com.auction.server.service.AuctionService;
-import com.auction.server.dto.ApiResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/auctions")
 public class AuctionController {
+    private static final String AUCTION_READY_MESSAGE = "Sảnh đấu giá đã sẵn sàng!";
+    private static final String SUCCESS_STATUS = "SUCCESS";
 
-    @Autowired
-    private AuctionService auctionService;
+    private final AuctionService auctionService;
+    private final BidRepository bidRepository;
 
-    @Autowired
-    private BidRepository bidRepository;
+    public AuctionController(AuctionService auctionService, BidRepository bidRepository) {
+        this.auctionService = Objects.requireNonNull(auctionService, "auctionService must not be null");
+        this.bidRepository = Objects.requireNonNull(bidRepository, "bidRepository must not be null");
+    }
 
     @GetMapping("/hello")
     public ResponseEntity<ApiResponse> check() {
-        ApiResponse item = new ApiResponse(200, "Sảnh đấu giá đã sẵn sàng!", "SUCCESS");
-        return ResponseEntity.ok(item);
+        ApiResponse response = new ApiResponse(200, AUCTION_READY_MESSAGE, SUCCESS_STATUS);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/active")
     public ResponseEntity<List<AuctionSession>> getActiveSessions() {
-        return ResponseEntity.ok(auctionService.getActiveSessions());
+        List<AuctionSession> activeSessions = auctionService.getActiveSessions();
+        return ResponseEntity.ok(activeSessions);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<SessionResponseDTO> getSessionDetail(@PathVariable Integer id) {
         AuctionSession session = auctionService.getSessionById(id);
+
         if (session == null) {
             return ResponseEntity.notFound().build();
         }
-        int bidCount = Math.toIntExact(bidRepository.countBySessionId(id));
-        return ResponseEntity.ok(SessionResponseMapper.toDTO(session, bidCount));
+
+        return ResponseEntity.ok(toSessionResponseDTO(session, id));
+    }
+
+    private SessionResponseDTO toSessionResponseDTO(AuctionSession session, Integer sessionId) {
+        int bidCount = Math.toIntExact(bidRepository.countBySessionId(sessionId));
+        return SessionResponseMapper.toDTO(session, bidCount);
     }
 }

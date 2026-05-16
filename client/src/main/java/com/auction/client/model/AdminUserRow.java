@@ -1,16 +1,19 @@
 package com.auction.client.model;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 
 public class AdminUserRow {
-    private final SimpleIntegerProperty id;
-    private final SimpleStringProperty username;
-    private final SimpleStringProperty fullname;
-    private final SimpleStringProperty email;
-    private final SimpleStringProperty role;
-    private final SimpleBooleanProperty banned;
+    private final IntegerProperty id;
+    private final StringProperty username;
+    private final StringProperty fullname;
+    private final StringProperty email;
+    private final StringProperty role;
+    private final BooleanProperty banned;
 
     public AdminUserRow(int id, String username, String fullname, String email, String role, boolean banned) {
         this.id = new SimpleIntegerProperty(id);
@@ -25,31 +28,47 @@ public class AdminUserRow {
         return id.get();
     }
 
+    public String getUsername() {
+        return username.get();
+    }
+
+    public String getFullname() {
+        return fullname.get();
+    }
+
+    public String getEmail() {
+        return email.get();
+    }
+
+    public String getRole() {
+        return role.get();
+    }
+
     public boolean isBanned() {
         return banned.get();
     }
 
-    public SimpleIntegerProperty idProperty() {
+    public IntegerProperty idProperty() {
         return id;
     }
 
-    public SimpleStringProperty usernameProperty() {
+    public StringProperty usernameProperty() {
         return username;
     }
 
-    public SimpleStringProperty fullnameProperty() {
+    public StringProperty fullnameProperty() {
         return fullname;
     }
 
-    public SimpleStringProperty emailProperty() {
+    public StringProperty emailProperty() {
         return email;
     }
 
-    public SimpleStringProperty roleProperty() {
+    public StringProperty roleProperty() {
         return role;
     }
 
-    public SimpleBooleanProperty bannedProperty() {
+    public BooleanProperty bannedProperty() {
         return banned;
     }
 }

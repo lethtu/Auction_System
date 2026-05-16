@@ -10,9 +10,11 @@ import com.auction.client.util.AlertUtil;
 import com.auction.client.util.SellerAuctionFormBuilder;
 import com.auction.client.util.SellerStatsCalculator;
 import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.FileChooser;
+import javafx.stage.Window;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,13 +31,35 @@ import java.util.List;
 
 public class SellerDashboardController {
     private static final Logger logger = LoggerFactory.getLogger(SellerDashboardController.class);
+
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
+
+    private static final String MAIN_TEMPLATE_FXML = "MainTemplate.fxml";
+    private static final int MAIN_TEMPLATE_WIDTH = 1024;
+    private static final int MAIN_TEMPLATE_HEIGHT = 768;
+
+    private static final String DEFAULT_PRODUCT_TYPE = "Electronics";
+    private static final String DEFAULT_START_TIME = "00:00";
+    private static final String DEFAULT_END_TIME = "23:59";
+    private static final int DEFAULT_END_DATE_PLUS_DAYS = 7;
+
+    private static final String CREATE_BUTTON_TEXT = "Tạo phiên";
+    private static final String UPDATE_BUTTON_TEXT = "Lưu thay đổi";
+
+    private static final String ERROR_TITLE = "Lỗi";
+    private static final String NETWORK_ERROR_TITLE = "Lỗi mạng";
+    private static final String DATA_ERROR_TITLE = "Lỗi dữ liệu";
+    private static final String SUCCESS_TITLE = "Thành công";
+
+    private static final List<String> PRODUCT_TYPES = List.of(DEFAULT_PRODUCT_TYPE, "Art", "Vehicle");
 
     @FXML private TabPane sellerTabPane;
     @FXML private Tab tabMySessions;
     @FXML private Tab tabCreateSession;
     @FXML private Tab tabStats;
+
     @FXML private ListView<String> mySessionsList;
+
     @FXML private ComboBox<String> productTypeCombo;
     @FXML private TextField productNameField;
     @FXML private TextArea descriptionArea;
@@ -44,15 +68,16 @@ public class SellerDashboardController {
     @FXML private TextField stepPriceField;
     @FXML private TextField reservePriceField;
     @FXML private TextField endTimeField;
+
     @FXML private DatePicker datePickerStart;
     @FXML private TextField txtStartTime;
     @FXML private DatePicker datePickerEnd;
     @FXML private TextField txtEndTime;
+
     @FXML private TextArea statsArea;
     @FXML private Button btnCreateOrUpdate;
 
     private final SellerDashboardService sellerDashboardService = new SellerDashboardService();
-
     private final List<SessionItem> allSessions = new ArrayList<>();
     private final List<SessionItem> displayedSessions = new ArrayList<>();
 
@@ -61,25 +86,18 @@ public class SellerDashboardController {
 
     @FXML
     public void initialize() {
-        productTypeCombo.setItems(FXCollections.observableArrayList("Electronics", "Art", "Vehicle"));
-        productTypeCombo.setValue("Electronics");
-
-        SellerAuctionFormBuilder.fillDefaultEndTime(endTimeField);
+        setupProductTypeCombo();
         initializeDateInputs();
-
+        fillLegacyEndTimeField();
         loadMySessions();
         resetSubmitButton();
     }
 
     @FXML
     private void handleChooseImage() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Chọn ảnh sản phẩm");
-        fileChooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp")
-        );
+        FileChooser fileChooser = createImageFileChooser();
+        File file = fileChooser.showOpenDialog(getCurrentWindow());
 
-        File file = fileChooser.showOpenDialog(btnCreateOrUpdate.getScene().getWindow());
         if (file == null) {
             return;
         }
@@ -90,52 +108,12 @@ public class SellerDashboardController {
 
     @FXML
     private void handleCreateSession() {
-        if (editingSession != null) {
+        if (isEditingSession()) {
             updateEditingSession();
             return;
         }
 
         createNewSession();
-    }
-
-    private void createNewSession() {
-        runSellerMutation(sellerId -> {
-            CreateAuctionRequest request = SellerAuctionFormBuilder.buildCreateRequest(
-                    sellerId,
-                    productTypeCombo,
-                    productNameField,
-                    descriptionArea,
-                    imagePathField,
-                    startingPriceField,
-                    stepPriceField,
-                    reservePriceField,
-                    buildStartDateTimeText(),
-                    buildEndDateTimeText()
-            );
-
-            return request == null ? null : sellerDashboardService.createAuction(request, selectedImageFile);
-        });
-    }
-
-    private void updateEditingSession() {
-        runSellerMutation(sellerId -> {
-            CreateAuctionRequest request = SellerAuctionFormBuilder.buildUpdateRequest(
-                    sellerId,
-                    productTypeCombo,
-                    productNameField,
-                    descriptionArea,
-                    imagePathField,
-                    startingPriceField,
-                    stepPriceField,
-                    reservePriceField,
-                    buildStartDateTimeText(),
-                    buildEndDateTimeText()
-            );
-
-            return request == null
-                    ? null
-                    : sellerDashboardService.updateSession(editingSession.id, sellerId, request, selectedImageFile);
-        });
     }
 
     @FXML
@@ -181,10 +159,110 @@ public class SellerDashboardController {
             return;
         }
 
-        editingSession = selected;
-        fillFormFromSession(selected);
-        btnCreateOrUpdate.setText("Lưu thay đổi");
+        enterEditMode(selected);
+    }
 
+    @FXML
+    private void handleCancelSelectedSession() {
+        SessionItem selected = getPendingSelectedSession("hủy");
+
+        if (selected == null || !confirmCancelSession(selected.id)) {
+            return;
+        }
+
+        runSellerMutation(sellerId -> sellerDashboardService.cancelSession(selected.id, sellerId));
+    }
+
+    @FXML
+    private void goBack(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, MAIN_TEMPLATE_FXML, MAIN_TEMPLATE_WIDTH, MAIN_TEMPLATE_HEIGHT);
+        } catch (IOException e) {
+            logger.error("Không thể quay lại màn chính", e);
+            AlertUtil.show(Alert.AlertType.ERROR, ERROR_TITLE, "Không thể quay lại màn chính.");
+        }
+    }
+
+    private void setupProductTypeCombo() {
+        productTypeCombo.setItems(FXCollections.observableArrayList(PRODUCT_TYPES));
+        productTypeCombo.setValue(DEFAULT_PRODUCT_TYPE);
+    }
+
+    private FileChooser createImageFileChooser() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Chọn ảnh sản phẩm");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp")
+        );
+        return fileChooser;
+    }
+
+    private Window getCurrentWindow() {
+        if (btnCreateOrUpdate == null || btnCreateOrUpdate.getScene() == null) {
+            return null;
+        }
+
+        return btnCreateOrUpdate.getScene().getWindow();
+    }
+
+    private boolean isEditingSession() {
+        return editingSession != null;
+    }
+
+    private void createNewSession() {
+        runSellerMutation(sellerId -> {
+            CreateAuctionRequest request = buildCreateRequest(sellerId);
+            return request == null
+                    ? null
+                    : sellerDashboardService.createAuction(request, selectedImageFile);
+        });
+    }
+
+    private void updateEditingSession() {
+        runSellerMutation(sellerId -> {
+            CreateAuctionRequest request = buildUpdateRequest(sellerId);
+            return request == null
+                    ? null
+                    : sellerDashboardService.updateSession(editingSession.id, sellerId, request, selectedImageFile);
+        });
+    }
+
+    private CreateAuctionRequest buildCreateRequest(int sellerId) {
+        return SellerAuctionFormBuilder.buildCreateRequest(
+                sellerId,
+                productTypeCombo,
+                productNameField,
+                descriptionArea,
+                imagePathField,
+                startingPriceField,
+                stepPriceField,
+                reservePriceField,
+                buildStartDateTimeText(),
+                buildEndDateTimeText()
+        );
+    }
+
+    private CreateAuctionRequest buildUpdateRequest(int sellerId) {
+        return SellerAuctionFormBuilder.buildUpdateRequest(
+                sellerId,
+                productTypeCombo,
+                productNameField,
+                descriptionArea,
+                imagePathField,
+                startingPriceField,
+                stepPriceField,
+                reservePriceField,
+                buildStartDateTimeText(),
+                buildEndDateTimeText()
+        );
+    }
+
+    private void enterEditMode(SessionItem selected) {
+        editingSession = selected;
+        selectedImageFile = null;
+
+        fillFormFromSession(selected);
+        btnCreateOrUpdate.setText(UPDATE_BUTTON_TEXT);
         selectTab(tabCreateSession);
 
         AlertUtil.show(
@@ -194,41 +272,24 @@ public class SellerDashboardController {
         );
     }
 
-    @FXML
-    private void handleCancelSelectedSession() {
-        SessionItem selected = getPendingSelectedSession("hủy");
-
-        if (selected == null) {
-            return;
-        }
-
-        if (!confirmCancelSession(selected.id)) {
-            return;
-        }
-
-        runSellerMutation(sellerId -> sellerDashboardService.cancelSession(selected.id, sellerId));
-    }
-
-    @FXML
-    private void goBack(javafx.event.ActionEvent event) throws IOException {
-        SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1024, 768);
-    }
-
     private void fillFormFromSession(SessionItem session) {
         productNameField.setText(safeText(session.productName));
-        productTypeCombo.setValue(safeText(session.productType));
+        productTypeCombo.setValue(getProductTypeOrDefault(session.productType));
         descriptionArea.setText(safeText(session.description));
         imagePathField.setText(safeText(session.imagePath));
+
         startingPriceField.setText(toEditableMoneyText(session.startingPrice));
         stepPriceField.setText(toEditableMoneyText(session.stepPrice));
-        if (reservePriceField != null) {
-            reservePriceField.setText(toEditableMoneyText(session.reservePrice));
-        }
-        if (endTimeField != null) {
-            endTimeField.setText(safeText(session.endTime));
-        }
+        setTextIfPresent(reservePriceField, toEditableMoneyText(session.reservePrice));
+        setTextIfPresent(endTimeField, safeText(session.endTime));
+
         fillEndDateTimeInputs(session.endTime);
-        selectedImageFile = null;
+    }
+
+    private String getProductTypeOrDefault(String productType) {
+        return productType == null || productType.isBlank()
+                ? DEFAULT_PRODUCT_TYPE
+                : productType;
     }
 
     private void runSellerMutation(SellerMutation mutation) {
@@ -241,25 +302,27 @@ public class SellerDashboardController {
         try {
             ApiResult<Void> api = mutation.run(sellerId);
 
-            if (api != null) {
-                handleMutationResult(api);
+            if (api == null) {
+                return;
             }
+
+            handleMutationResult(api);
         } catch (NumberFormatException e) {
-            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi dữ liệu", "Giá khởi điểm, bước giá và giá sàn phải là số.");
+            AlertUtil.show(Alert.AlertType.ERROR, DATA_ERROR_TITLE, "Giá khởi điểm, bước giá và giá sàn phải là số.");
         } catch (IllegalArgumentException e) {
-            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi dữ liệu", e.getMessage());
+            AlertUtil.show(Alert.AlertType.ERROR, DATA_ERROR_TITLE, safeErrorMessage(e));
         } catch (IllegalStateException e) {
-            logger.error("Lỗi xử lý seller: {}", e.getMessage(), e);
-            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi thao tác", e.getMessage());
+            logger.error("Lỗi xử lý seller", e);
+            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi thao tác", safeErrorMessage(e));
         } catch (IOException e) {
-            logger.error("Lỗi kết nối hoặc đọc file: {}", e.getMessage(), e);
-            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ hoặc đọc file ảnh.");
+            logger.error("Lỗi kết nối hoặc đọc file", e);
+            AlertUtil.show(Alert.AlertType.ERROR, NETWORK_ERROR_TITLE, "Không thể kết nối đến máy chủ hoặc đọc file ảnh.");
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            logger.error("Thao tác seller bị gián đoạn: {}", e.getMessage(), e);
-            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi", "Thao tác bị gián đoạn. Vui lòng thử lại.");
+            logger.error("Thao tác seller bị gián đoạn", e);
+            AlertUtil.show(Alert.AlertType.ERROR, ERROR_TITLE, "Thao tác bị gián đoạn. Vui lòng thử lại.");
         } catch (Exception e) {
-            logger.error("Lỗi không xác định khi xử lý seller: {}", e.getMessage(), e);
+            logger.error("Lỗi không xác định khi xử lý seller", e);
             AlertUtil.show(Alert.AlertType.ERROR, "Lỗi hệ thống", safeErrorMessage(e));
         }
     }
@@ -268,35 +331,23 @@ public class SellerDashboardController {
         if (api.success) {
             clearForm();
             loadMySessions();
-            AlertUtil.show(Alert.AlertType.INFORMATION, "Thành công", api.message);
+            AlertUtil.show(Alert.AlertType.INFORMATION, SUCCESS_TITLE, safeApiMessage(api.message, "Thao tác thành công."));
             return;
         }
 
         logger.error("Lỗi API: {}", api.message);
-        AlertUtil.show(Alert.AlertType.ERROR, "Lỗi", api.message);
+        AlertUtil.show(Alert.AlertType.ERROR, ERROR_TITLE, safeApiMessage(api.message, "Thao tác thất bại."));
     }
 
     private void loadMySessions() {
-        Integer sellerId = getValidSellerId();
-
-        if (sellerId == null) {
-            return;
-        }
-
-        try {
-            allSessions.clear();
-            allSessions.addAll(sellerDashboardService.getMySessions(sellerId));
-
-            renderSessions(allSessions);
-            updateStats();
-
-        } catch (Exception e) {
-            logger.error("Lỗi không thể kết nối đến server: {}", e.getMessage(), e);
-            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể tải dữ liệu seller từ server.");
-        }
+        loadSessions(null, true, "Không thể tải dữ liệu seller từ server.");
     }
 
     private void loadSessionsByStatus(String status) {
+        loadSessions(status, false, "Không thể lọc phiên từ server.");
+    }
+
+    private void loadSessions(String status, boolean refreshAllSessions, String errorMessage) {
         Integer sellerId = getValidSellerId();
 
         if (sellerId == null) {
@@ -304,26 +355,39 @@ public class SellerDashboardController {
         }
 
         try {
-            List<SessionItem> sessions = sellerDashboardService.getMySessions(sellerId, status);
-            renderSessions(sessions);
+            List<SessionItem> sessions = status == null
+                    ? sellerDashboardService.getMySessions(sellerId)
+                    : sellerDashboardService.getMySessions(sellerId, status);
 
+            if (refreshAllSessions) {
+                allSessions.clear();
+                allSessions.addAll(sessions);
+                updateStats();
+            }
+
+            renderSessions(sessions);
         } catch (Exception e) {
-            logger.error("Lỗi không thể lọc phiên: {}", e.getMessage(), e);
-            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể lọc phiên từ server.");
+            logger.error(errorMessage, e);
+            AlertUtil.show(Alert.AlertType.ERROR, NETWORK_ERROR_TITLE, errorMessage);
         }
     }
 
     private void renderSessions(List<SessionItem> sessions) {
         displayedSessions.clear();
-        displayedSessions.addAll(sessions);
 
-        List<String> rendered = new ArrayList<>();
-
-        for (int i = 0; i < sessions.size(); i++) {
-            rendered.add(sessions.get(i).toDisplayText(i + 1));
+        if (sessions == null || sessions.isEmpty()) {
+            mySessionsList.setItems(FXCollections.observableArrayList());
+            return;
         }
 
-        mySessionsList.setItems(FXCollections.observableArrayList(rendered));
+        displayedSessions.addAll(sessions);
+
+        List<String> renderedSessions = new ArrayList<>();
+        for (int i = 0; i < sessions.size(); i++) {
+            renderedSessions.add(sessions.get(i).toDisplayText(i + 1));
+        }
+
+        mySessionsList.setItems(FXCollections.observableArrayList(renderedSessions));
     }
 
     private SessionItem getSelectedSession() {
@@ -348,7 +412,7 @@ public class SellerDashboardController {
             return null;
         }
 
-        if (!AuctionStatus.PENDING.equalsIgnoreCase(selected.status)) {
+        if (!isPendingSession(selected)) {
             AlertUtil.show(
                     Alert.AlertType.WARNING,
                     "Không thể " + actionName,
@@ -358,6 +422,10 @@ public class SellerDashboardController {
         }
 
         return selected;
+    }
+
+    private boolean isPendingSession(SessionItem session) {
+        return session != null && AuctionStatus.PENDING.equalsIgnoreCase(session.status);
     }
 
     private boolean confirmCancelSession(int sessionId) {
@@ -380,16 +448,32 @@ public class SellerDashboardController {
     }
 
     private void initializeDateInputs() {
+        setDefaultStartTimeIfBlank();
+        setDefaultEndDateIfMissing();
+        setDefaultEndTimeIfBlank();
+    }
+
+    private void setDefaultStartTimeIfBlank() {
         if (txtStartTime != null && txtStartTime.getText().isBlank()) {
-            txtStartTime.setText("00:00");
+            txtStartTime.setText(DEFAULT_START_TIME);
         }
+    }
 
+    private void setDefaultEndDateIfMissing() {
         if (datePickerEnd != null && datePickerEnd.getValue() == null) {
-            datePickerEnd.setValue(LocalDate.now().plusDays(7));
+            datePickerEnd.setValue(LocalDate.now().plusDays(DEFAULT_END_DATE_PLUS_DAYS));
         }
+    }
 
+    private void setDefaultEndTimeIfBlank() {
         if (txtEndTime != null && txtEndTime.getText().isBlank()) {
-            txtEndTime.setText("23:59");
+            txtEndTime.setText(DEFAULT_END_TIME);
+        }
+    }
+
+    private void fillLegacyEndTimeField() {
+        if (endTimeField != null) {
+            SellerAuctionFormBuilder.fillDefaultEndTime(endTimeField);
         }
     }
 
@@ -398,7 +482,7 @@ public class SellerDashboardController {
             return "";
         }
 
-        return buildDateTimeText(datePickerStart.getValue(), txtStartTime, "00:00", "thời gian bắt đầu");
+        return buildDateTimeText(datePickerStart.getValue(), txtStartTime, DEFAULT_START_TIME, "thời gian bắt đầu");
     }
 
     private String buildEndDateTimeText() {
@@ -406,7 +490,7 @@ public class SellerDashboardController {
             throw new IllegalArgumentException("Vui lòng chọn thời gian kết thúc.");
         }
 
-        return buildDateTimeText(datePickerEnd.getValue(), txtEndTime, "23:59", "thời gian kết thúc");
+        return buildDateTimeText(datePickerEnd.getValue(), txtEndTime, DEFAULT_END_TIME, "thời gian kết thúc");
     }
 
     private String buildDateTimeText(LocalDate date, TextField timeField, String defaultTime, String fieldName) {
@@ -440,41 +524,55 @@ public class SellerDashboardController {
         editingSession = null;
         selectedImageFile = null;
 
+        clearTextInputs();
+        resetDateInputs();
+        productTypeCombo.setValue(DEFAULT_PRODUCT_TYPE);
+        resetSubmitButton();
+    }
+
+    private void clearTextInputs() {
         productNameField.clear();
         descriptionArea.clear();
         imagePathField.clear();
         startingPriceField.clear();
         stepPriceField.clear();
-        if (reservePriceField != null) {
-            reservePriceField.clear();
-        }
 
-        if (endTimeField != null) {
-            endTimeField.clear();
-            SellerAuctionFormBuilder.fillDefaultEndTime(endTimeField);
-        }
+        clearIfPresent(reservePriceField);
+        clearIfPresent(endTimeField);
 
+        fillLegacyEndTimeField();
+    }
+
+    private void resetDateInputs() {
         if (datePickerStart != null) {
             datePickerStart.setValue(null);
         }
-        if (txtStartTime != null) {
-            txtStartTime.setText("00:00");
-        }
+
+        setTextIfPresent(txtStartTime, DEFAULT_START_TIME);
+
         if (datePickerEnd != null) {
-            datePickerEnd.setValue(LocalDate.now().plusDays(7));
-        }
-        if (txtEndTime != null) {
-            txtEndTime.setText("23:59");
+            datePickerEnd.setValue(LocalDate.now().plusDays(DEFAULT_END_DATE_PLUS_DAYS));
         }
 
-        productTypeCombo.setValue("Electronics");
-        resetSubmitButton();
+        setTextIfPresent(txtEndTime, DEFAULT_END_TIME);
     }
 
     private void resetSubmitButton() {
         if (btnCreateOrUpdate != null) {
-            btnCreateOrUpdate.setText("Tạo phiên");
+            btnCreateOrUpdate.setText(CREATE_BUTTON_TEXT);
         }
+    }
+
+    private Integer getValidSellerId() {
+        Integer sellerId = User.getId();
+
+        if (sellerId == null || sellerId <= 0) {
+            logger.error("Không lấy được sellerId từ session");
+            AlertUtil.show(Alert.AlertType.ERROR, ERROR_TITLE, "Không lấy được sellerId từ session.");
+            return null;
+        }
+
+        return sellerId;
     }
 
     private String safeErrorMessage(Exception e) {
@@ -482,6 +580,10 @@ public class SellerDashboardController {
         return message == null || message.isBlank()
                 ? "Có lỗi không xác định. Vui lòng xem log để biết chi tiết."
                 : message;
+    }
+
+    private String safeApiMessage(String message, String defaultMessage) {
+        return message == null || message.isBlank() ? defaultMessage : message;
     }
 
     private String safeText(String value) {
@@ -499,20 +601,20 @@ public class SellerDashboardController {
                 : normalized.toPlainString();
     }
 
+    private void setTextIfPresent(TextInputControl control, String text) {
+        if (control != null) {
+            control.setText(text);
+        }
+    }
+
+    private void clearIfPresent(TextInputControl control) {
+        if (control != null) {
+            control.clear();
+        }
+    }
+
     @FunctionalInterface
     private interface SellerMutation {
         ApiResult<Void> run(int sellerId) throws Exception;
-    }
-
-    private Integer getValidSellerId() {
-        Integer sellerId = User.getId();
-
-        if (sellerId == null || sellerId <= 0) {
-            logger.error("Không lấy được sellerId từ session");
-            AlertUtil.show(Alert.AlertType.ERROR, "Lỗi", "Không lấy được sellerId từ session.");
-            return null;
-        }
-
-        return sellerId;
     }
 }

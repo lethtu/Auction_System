@@ -2,6 +2,7 @@ package com.auction.client.util;
 
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -10,20 +11,35 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Objects;
 import java.util.UUID;
 
 public final class HttpRequestUtil {
+
     private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
-    private static final String CONTENT_TYPE = "Content-Type";
-    private static final String APPLICATION_JSON = "application/json";
+    private static final String HEADER_CONTENT_TYPE = "Content-Type";
+
+    private static final String CONTENT_TYPE_APPLICATION_JSON = "application/json";
+    private static final String CONTENT_TYPE_MULTIPART_FORM_DATA = "multipart/form-data; boundary=";
+    private static final String CONTENT_TYPE_OCTET_STREAM = "application/octet-stream";
+
+    private static final String CONTENT_TYPE_IMAGE_PNG = "image/png";
+    private static final String CONTENT_TYPE_IMAGE_JPEG = "image/jpeg";
+    private static final String CONTENT_TYPE_IMAGE_GIF = "image/gif";
+    private static final String CONTENT_TYPE_IMAGE_WEBP = "image/webp";
+    private static final String CONTENT_TYPE_IMAGE_BMP = "image/bmp";
+
+    private static final String DEFAULT_IMAGE_FILE_NAME = "image.png";
+    private static final String MULTIPART_FILE_FIELD_NAME = "file";
+    private static final String MULTIPART_BOUNDARY_PREFIX = "----AuctionBoundary";
+    private static final String LINE_BREAK = "\r\n";
 
     private HttpRequestUtil() {
     }
 
     public static HttpResponse<String> get(String baseUrl, String path) throws Exception {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(uri(baseUrl, path))
+        HttpRequest request = requestBuilder(baseUrl, path)
                 .GET()
                 .build();
 
@@ -31,8 +47,7 @@ public final class HttpRequestUtil {
     }
 
     public static HttpResponse<String> delete(String baseUrl, String path) throws Exception {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(uri(baseUrl, path))
+        HttpRequest request = requestBuilder(baseUrl, path)
                 .DELETE()
                 .build();
 
@@ -40,9 +55,8 @@ public final class HttpRequestUtil {
     }
 
     public static HttpResponse<String> postNoBody(String baseUrl, String path) throws Exception {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(uri(baseUrl, path))
-                .header(CONTENT_TYPE, APPLICATION_JSON)
+        HttpRequest request = requestBuilder(baseUrl, path)
+                .header(HEADER_CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
                 .POST(HttpRequest.BodyPublishers.noBody())
                 .build();
 
@@ -55,9 +69,11 @@ public final class HttpRequestUtil {
             String path,
             JSONObject body
     ) throws Exception {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(uri(baseUrl, path))
-                .header(CONTENT_TYPE, APPLICATION_JSON)
+        Objects.requireNonNull(method, "HTTP method must not be null.");
+        Objects.requireNonNull(body, "JSON body must not be null.");
+
+        HttpRequest request = requestBuilder(baseUrl, path)
+                .header(HEADER_CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
                 .method(method, HttpRequest.BodyPublishers.ofString(body.toString()))
                 .build();
 
@@ -65,15 +81,13 @@ public final class HttpRequestUtil {
     }
 
     public static HttpResponse<String> uploadImage(String baseUrl, String path, File imageFile) throws Exception {
-        String boundary = "----AuctionBoundary" + UUID.randomUUID();
-        String fileName = safeFileName(imageFile.getName());
-        String contentType = detectContentType(imageFile);
-        byte[] fileBytes = Files.readAllBytes(imageFile.toPath());
-        byte[] body = buildMultipartBody(boundary, fileName, contentType, fileBytes);
+        Objects.requireNonNull(imageFile, "Image file must not be null.");
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(uri(baseUrl, path))
-                .header(CONTENT_TYPE, "multipart/form-data; boundary=" + boundary)
+        String boundary = createBoundary();
+        byte[] body = buildImageMultipartBody(boundary, imageFile);
+
+        HttpRequest request = requestBuilder(baseUrl, path)
+                .header(HEADER_CONTENT_TYPE, CONTENT_TYPE_MULTIPART_FORM_DATA + boundary)
                 .POST(HttpRequest.BodyPublishers.ofByteArray(body))
                 .build();
 
@@ -88,61 +102,117 @@ public final class HttpRequestUtil {
         return HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
+    private static HttpRequest.Builder requestBuilder(String baseUrl, String path) {
+        return HttpRequest.newBuilder()
+                .uri(uri(baseUrl, path));
+    }
+
     private static URI uri(String baseUrl, String path) {
+        Objects.requireNonNull(baseUrl, "Base URL must not be null.");
+        Objects.requireNonNull(path, "Path must not be null.");
+
         return URI.create(baseUrl + path);
+    }
+
+    private static String createBoundary() {
+        return MULTIPART_BOUNDARY_PREFIX + UUID.randomUUID();
+    }
+
+    private static byte[] buildImageMultipartBody(String boundary, File imageFile) throws Exception {
+        String fileName = safeFileName(imageFile.getName());
+        String contentType = detectContentType(imageFile);
+        byte[] fileBytes = Files.readAllBytes(imageFile.toPath());
+
+        return buildMultipartBody(boundary, MULTIPART_FILE_FIELD_NAME, fileName, contentType, fileBytes);
     }
 
     private static String detectContentType(File imageFile) throws Exception {
         String contentType = Files.probeContentType(imageFile.toPath());
 
-        if (contentType != null && !contentType.isBlank()) {
+        if (hasText(contentType)) {
             return contentType;
         }
 
-        String fileName = imageFile.getName().toLowerCase();
-        if (fileName.endsWith(".png")) {
-            return "image/png";
-        }
-        if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
-            return "image/jpeg";
-        }
-        if (fileName.endsWith(".gif")) {
-            return "image/gif";
-        }
-        if (fileName.endsWith(".webp")) {
-            return "image/webp";
-        }
-        if (fileName.endsWith(".bmp")) {
-            return "image/bmp";
+        return detectContentTypeFromFileName(imageFile.getName());
+    }
+
+    private static String detectContentTypeFromFileName(String fileName) {
+        String lowerCaseFileName = fileName == null ? "" : fileName.toLowerCase();
+
+        if (lowerCaseFileName.endsWith(".png")) {
+            return CONTENT_TYPE_IMAGE_PNG;
         }
 
-        return "application/octet-stream";
+        if (lowerCaseFileName.endsWith(".jpg") || lowerCaseFileName.endsWith(".jpeg")) {
+            return CONTENT_TYPE_IMAGE_JPEG;
+        }
+
+        if (lowerCaseFileName.endsWith(".gif")) {
+            return CONTENT_TYPE_IMAGE_GIF;
+        }
+
+        if (lowerCaseFileName.endsWith(".webp")) {
+            return CONTENT_TYPE_IMAGE_WEBP;
+        }
+
+        if (lowerCaseFileName.endsWith(".bmp")) {
+            return CONTENT_TYPE_IMAGE_BMP;
+        }
+
+        return CONTENT_TYPE_OCTET_STREAM;
     }
 
     private static String safeFileName(String fileName) {
-        if (fileName == null || fileName.isBlank()) {
-            return "image.png";
+        if (!hasText(fileName)) {
+            return DEFAULT_IMAGE_FILE_NAME;
         }
 
-        return fileName.replace("\\", "_").replace("/", "_").replace("\"", "_");
+        return fileName
+                .replace("\\", "_")
+                .replace("/", "_")
+                .replace("\"", "_");
     }
 
-    private static byte[] buildMultipartBody(String boundary, String fileName, String contentType, byte[] fileBytes) {
-        String lineBreak = "\r\n";
-        String partHeader = "--" + boundary + lineBreak
-                + "Content-Disposition: form-data; name=\"file\"; filename=\"" + fileName + "\"" + lineBreak
-                + "Content-Type: " + contentType + lineBreak
-                + lineBreak;
-        String ending = lineBreak + "--" + boundary + "--" + lineBreak;
+    private static byte[] buildMultipartBody(
+            String boundary,
+            String fieldName,
+            String fileName,
+            String contentType,
+            byte[] fileBytes
+    ) {
+        byte[] headerBytes = buildMultipartHeader(boundary, fieldName, fileName, contentType)
+                .getBytes(StandardCharsets.UTF_8);
+        byte[] endingBytes = buildMultipartEnding(boundary)
+                .getBytes(StandardCharsets.UTF_8);
 
-        byte[] headerBytes = partHeader.getBytes(StandardCharsets.UTF_8);
-        byte[] endingBytes = ending.getBytes(StandardCharsets.UTF_8);
-        byte[] body = new byte[headerBytes.length + fileBytes.length + endingBytes.length];
+        ByteArrayOutputStream output = new ByteArrayOutputStream(
+                headerBytes.length + fileBytes.length + endingBytes.length
+        );
 
-        System.arraycopy(headerBytes, 0, body, 0, headerBytes.length);
-        System.arraycopy(fileBytes, 0, body, headerBytes.length, fileBytes.length);
-        System.arraycopy(endingBytes, 0, body, headerBytes.length + fileBytes.length, endingBytes.length);
+        output.writeBytes(headerBytes);
+        output.writeBytes(fileBytes);
+        output.writeBytes(endingBytes);
 
-        return body;
+        return output.toByteArray();
+    }
+
+    private static String buildMultipartHeader(
+            String boundary,
+            String fieldName,
+            String fileName,
+            String contentType
+    ) {
+        return "--" + boundary + LINE_BREAK
+                + "Content-Disposition: form-data; name=\"" + fieldName + "\"; filename=\"" + fileName + "\"" + LINE_BREAK
+                + HEADER_CONTENT_TYPE + ": " + contentType + LINE_BREAK
+                + LINE_BREAK;
+    }
+
+    private static String buildMultipartEnding(String boundary) {
+        return LINE_BREAK + "--" + boundary + "--" + LINE_BREAK;
+    }
+
+    private static boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 }

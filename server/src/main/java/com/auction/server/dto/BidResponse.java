@@ -1,9 +1,11 @@
 package com.auction.server.dto;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-public class BidResponse implements Serializable {
+public final class BidResponse implements Serializable {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private final boolean success;
@@ -45,6 +47,24 @@ public class BidResponse implements Serializable {
         this.newEndTime = newEndTime;
         this.highestBidderId = highestBidderId;
         this.bidCount = bidCount;
+    }
+
+    public static BidResponse success(String message, BigDecimal currentPrice) {
+        return new BidResponse(true, message, currentPrice);
+    }
+
+    public static BidResponse success(
+            String message,
+            BigDecimal currentPrice,
+            String newEndTime,
+            Integer highestBidderId,
+            Integer bidCount
+    ) {
+        return new BidResponse(true, message, currentPrice, newEndTime, highestBidderId, bidCount);
+    }
+
+    public static BidResponse failure(String message, BigDecimal currentPrice) {
+        return new BidResponse(false, message, currentPrice);
     }
 
     public boolean isSuccess() {

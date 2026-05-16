@@ -10,8 +10,15 @@ import org.json.JSONArray;
 
 import java.net.http.HttpResponse;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Function;
 
 public class AdminDashboardService {
+    private static final String APPROVE_SUCCESS_MESSAGE = "Phê duyệt phiên thành công.";
+    private static final String REJECT_SUCCESS_MESSAGE = "Đã từ chối phiên đấu giá.";
+    private static final String BAN_USER_SUCCESS_MESSAGE = "Đã khóa tài khoản user.";
+    private static final String CANCEL_AUCTION_SUCCESS_MESSAGE = "Đã hủy phiên đấu giá.";
+
     private final AdminApiClient adminApiClient;
 
     public AdminDashboardService() {
@@ -19,45 +26,70 @@ public class AdminDashboardService {
     }
 
     AdminDashboardService(AdminApiClient adminApiClient) {
-        this.adminApiClient = adminApiClient;
+        this.adminApiClient = Objects.requireNonNull(adminApiClient, "adminApiClient must not be null");
     }
 
     public List<PendingSessionRow> getPendingSessions() throws Exception {
-        HttpResponse<String> response = adminApiClient.getPendingSessions();
-        ApiResult<JSONArray> api = extractArray(response);
-        return AdminResponseParser.parsePendingSessions(api.data);
+        return fetchArrayData(
+                adminApiClient::getPendingSessions,
+                AdminResponseParser::parsePendingSessions
+        );
     }
 
     public List<AdminSessionRow> getAllSessions() throws Exception {
-        HttpResponse<String> response = adminApiClient.getAllSessions(null);
-        ApiResult<JSONArray> api = extractArray(response);
-        return AdminResponseParser.parseAllSessions(api.data);
+        return fetchArrayData(
+                () -> adminApiClient.getAllSessions(null),
+                AdminResponseParser::parseAllSessions
+        );
     }
 
     public List<AdminUserRow> getAllUsers() throws Exception {
-        HttpResponse<String> response = adminApiClient.getAllUsers(null);
-        ApiResult<JSONArray> api = extractArray(response);
-        return AdminResponseParser.parseUsers(api.data);
+        return fetchArrayData(
+                () -> adminApiClient.getAllUsers(null),
+                AdminResponseParser::parseUsers
+        );
     }
 
     public ApiResult<Void> approveSession(int sessionId, int adminId) throws Exception {
-        HttpResponse<String> response = adminApiClient.approveSession(sessionId, adminId);
-        return parseApiResult(response, "Phê duyệt phiên thành công.");
+        return executeAction(
+                () -> adminApiClient.approveSession(sessionId, adminId),
+                APPROVE_SUCCESS_MESSAGE
+        );
     }
 
     public ApiResult<Void> rejectSession(int sessionId, int adminId, String reason) throws Exception {
-        HttpResponse<String> response = adminApiClient.rejectSession(sessionId, adminId, reason);
-        return parseApiResult(response, "Đã từ chối phiên đấu giá.");
+        return executeAction(
+                () -> adminApiClient.rejectSession(sessionId, adminId, reason),
+                REJECT_SUCCESS_MESSAGE
+        );
     }
 
     public ApiResult<Void> banUser(int userId, int adminId) throws Exception {
-        HttpResponse<String> response = adminApiClient.banUser(userId, adminId);
-        return parseApiResult(response, "Đã khóa tài khoản user.");
+        return executeAction(
+                () -> adminApiClient.banUser(userId, adminId),
+                BAN_USER_SUCCESS_MESSAGE
+        );
     }
 
     public ApiResult<Void> cancelAuction(int sessionId, int adminId) throws Exception {
-        HttpResponse<String> response = adminApiClient.cancelAuction(sessionId, adminId);
-        return parseApiResult(response, "Đã hủy phiên đấu giá.");
+        return executeAction(
+                () -> adminApiClient.cancelAuction(sessionId, adminId),
+                CANCEL_AUCTION_SUCCESS_MESSAGE
+        );
+    }
+
+    private <T> List<T> fetchArrayData(
+            AdminRequest request,
+            Function<JSONArray, List<T>> parser
+    ) throws Exception {
+        HttpResponse<String> response = request.execute();
+        ApiResult<JSONArray> api = extractArray(response);
+        return parser.apply(api.data);
+    }
+
+    private ApiResult<Void> executeAction(AdminRequest request, String successMessage) throws Exception {
+        HttpResponse<String> response = request.execute();
+        return parseApiResult(response, successMessage);
     }
 
     private ApiResult<JSONArray> extractArray(HttpResponse<String> response) {
@@ -72,5 +104,10 @@ public class AdminDashboardService {
 
     private ApiResult<Void> parseApiResult(HttpResponse<String> response, String successMessage) {
         return AdminResponseParser.parseApiResponse(response.body(), response.statusCode(), successMessage);
+    }
+
+    @FunctionalInterface
+    private interface AdminRequest {
+        HttpResponse<String> execute() throws Exception;
     }
 }
