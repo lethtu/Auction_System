@@ -9,6 +9,10 @@ public final class SessionResponseMapper {
     }
 
     public static SessionResponseDTO toDTO(AuctionSession session) {
+        return toDTO(session, 0);
+    }
+
+    public static SessionResponseDTO toDTO(AuctionSession session, Integer bidCount) {
         SessionResponseDTO dto = new SessionResponseDTO();
 
         dto.setId(session.getId());
@@ -32,6 +36,7 @@ public final class SessionResponseMapper {
         dto.setStepPrice(session.getStepPrice());
         dto.setReservePrice(session.getReservePrice());
         dto.setHighestBidderId(session.getHighestBidderId());
+        dto.setBidCount(bidCount == null ? 0 : Math.max(0, bidCount));
         dto.setCreatedAt(session.getCreatedAt());
         dto.setStartTime(session.getStartTime());
         dto.setEndTime(session.getEndTime());

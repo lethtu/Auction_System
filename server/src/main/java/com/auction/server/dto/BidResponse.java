@@ -11,13 +11,14 @@ public class BidResponse implements Serializable {
     private final BigDecimal currentPrice;
     private final String newEndTime;
     private final Integer highestBidderId;
+    private final Integer bidCount;
 
     public BidResponse(boolean success, String message, BigDecimal currentPrice) {
-        this(success, message, currentPrice, null, null);
+        this(success, message, currentPrice, null, null, null);
     }
 
     public BidResponse(boolean success, String message, BigDecimal currentPrice, String newEndTime) {
-        this(success, message, currentPrice, newEndTime, null);
+        this(success, message, currentPrice, newEndTime, null, null);
     }
 
     public BidResponse(
@@ -27,11 +28,23 @@ public class BidResponse implements Serializable {
             String newEndTime,
             Integer highestBidderId
     ) {
+        this(success, message, currentPrice, newEndTime, highestBidderId, null);
+    }
+
+    public BidResponse(
+            boolean success,
+            String message,
+            BigDecimal currentPrice,
+            String newEndTime,
+            Integer highestBidderId,
+            Integer bidCount
+    ) {
         this.success = success;
         this.message = message;
         this.currentPrice = currentPrice;
         this.newEndTime = newEndTime;
         this.highestBidderId = highestBidderId;
+        this.bidCount = bidCount;
     }
 
     public boolean isSuccess() {
@@ -52,5 +65,9 @@ public class BidResponse implements Serializable {
 
     public Integer getHighestBidderId() {
         return highestBidderId;
+    }
+
+    public Integer getBidCount() {
+        return bidCount;
     }
 }

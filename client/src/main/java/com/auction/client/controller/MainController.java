@@ -234,8 +234,7 @@ public class MainController implements Initializable {
             productContainer.getChildren().clear();
 
             for (JSONObject sessionObj : allProducts) {
-                JSONObject itemObj = sessionObj.optJSONObject("item");
-                if (itemObj == null) continue;
+                JSONObject itemObj = getItemObject(sessionObj);
 
                 String name = itemObj.optString("name", "");
                 String type = itemObj.optString("type", "");
@@ -253,7 +252,7 @@ public class MainController implements Initializable {
 
                 if (matchKeyword && matchCategory && matchStatus) {
                     int id = sessionObj.optInt("id");
-                    BigDecimal currentPrice = sessionObj.optBigDecimal("currentPrice", BigDecimal.ZERO);
+                    BigDecimal currentPrice = getMoney(sessionObj, "currentPrice", getMoney(sessionObj, "startingPrice", BigDecimal.ZERO));
 
                     String startTime = sessionObj.isNull("startTime") ? "Chưa bắt đầu" : sessionObj.getString("startTime").replace("T", " ");
                     String endTime = sessionObj.isNull("endTime") ? "Chưa rõ" : sessionObj.getString("endTime").replace("T", " ");
@@ -288,7 +287,7 @@ public class MainController implements Initializable {
 
         String type = itemObj.optString("type", "");
         String name = itemObj.optString("name", "");
-        BigDecimal currentPrice = sessionObj.optBigDecimal("currentPrice", BigDecimal.ZERO);
+        BigDecimal currentPrice = getMoney(sessionObj, "currentPrice", getMoney(sessionObj, "startingPrice", BigDecimal.ZERO));
 
         String status = sessionObj.optString("status", "ACTIVE");
 
@@ -310,30 +309,31 @@ public class MainController implements Initializable {
         imageWrapper.setStyle("-fx-background-radius: 12px; -fx-border-radius: 12px; -fx-border-color: #f2e8f2; -fx-border-width: 1px;");
 
         ImageView imageView = new ImageView();
-        try {
-            if (!imagePath.isEmpty()) {
-                Image cached = imageCache.get(imagePath);
-                if (cached == null || cached.isError()) {
-                    String imageUrl = Config.API_URL + "/api/files/images/" + imagePath;
-                    cached = new Image(imageUrl, true);
-                    imageCache.put(imagePath, cached);
-                }
-                imageView.setImage(cached);
-            } else {
-                throw new Exception("Không có ảnh");
-            }
-        } catch (Exception e) {
-            Label errorLabel = new Label("No Image");
-            errorLabel.setAlignment(Pos.CENTER);
-            errorLabel.setStyle("-fx-text-fill: #adb5bd;");
-            imageWrapper.getChildren().add(errorLabel);
-        }
+        imageView.setFitHeight(192.0);
+        imageView.setFitWidth(208.0);
+        imageView.setPreserveRatio(true);
+        imageView.setSmooth(true);
 
-        if (imageView.getImage() != null) {
-            imageView.setFitHeight(192.0);
-            imageView.setFitWidth(208.0);
-            imageView.setPreserveRatio(true);
+        Label imageStatusLabel = new Label("No Image");
+        imageStatusLabel.setAlignment(Pos.CENTER);
+        imageStatusLabel.setStyle("-fx-text-fill: #adb5bd;");
+
+        String imageUrl = buildImageUrl(imagePath);
+        if (!imageUrl.isBlank()) {
+            Image cached = imageCache.get(imageUrl);
+            if (cached == null || cached.isError()) {
+                cached = new Image(imageUrl, true);
+                imageCache.put(imageUrl, cached);
+            }
+            imageView.setImage(cached);
             imageWrapper.getChildren().add(imageView);
+            cached.errorProperty().addListener((obs, oldValue, isError) -> {
+                if (isError && !imageWrapper.getChildren().contains(imageStatusLabel)) {
+                    imageWrapper.getChildren().setAll(imageStatusLabel);
+                }
+            });
+        } else {
+            imageWrapper.getChildren().add(imageStatusLabel);
         }
 
         String shortEnd = endTime.length() >= 16 ? endTime.substring(0, 16) : endTime;
@@ -525,6 +525,59 @@ public class MainController implements Initializable {
         // Cập nhật lại Grid Layout cho Center vì diện tích khả dụng đã thay đổi
         Platform.runLater(this::updateGridLayout);
     }
+
+    private JSONObject getItemObject(JSONObject sessionObj) {
+        JSONObject itemObj = sessionObj.optJSONObject("item");
+        if (itemObj != null) {
+            return itemObj;
+        }
+
+        JSONObject fallback = new JSONObject();
+        fallback.put("name", sessionObj.optString("productName", ""));
+        fallback.put("type", sessionObj.optString("productType", ""));
+        fallback.put("description", sessionObj.optString("description", ""));
+        fallback.put("imagePath", sessionObj.optString("imagePath", ""));
+        return fallback;
+    }
+
+    private BigDecimal getMoney(JSONObject object, String key, BigDecimal defaultValue) {
+        if (object == null || !object.has(key) || object.isNull(key)) {
+            return defaultValue == null ? BigDecimal.ZERO : defaultValue;
+        }
+
+        try {
+            return new BigDecimal(object.get(key).toString());
+        } catch (Exception e) {
+            return defaultValue == null ? BigDecimal.ZERO : defaultValue;
+        }
+    }
+
+    private String buildImageUrl(String rawPath) {
+        if (rawPath == null || rawPath.isBlank()) {
+            return "";
+        }
+
+        String path = rawPath.trim().replace("\\", "/");
+        if (path.startsWith("http://") || path.startsWith("https://")) {
+            return path;
+        }
+
+        while (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+        if (path.startsWith("server/upload/images/")) {
+            path = path.substring("server/upload/images/".length());
+        }
+        if (path.startsWith("upload/images/")) {
+            path = path.substring("upload/images/".length());
+        }
+        if (path.startsWith("images/")) {
+            path = path.substring("images/".length());
+        }
+
+        return path.isBlank() ? "" : Config.API_URL + "/api/files/images/" + path;
+    }
+
     private String formatPrice(BigDecimal price) {
         if (price == null) return "0";
         DecimalFormatSymbols symbols = new DecimalFormatSymbols();

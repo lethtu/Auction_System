@@ -60,6 +60,9 @@ public class AuctionPageController {
     @FXML private Label minBidIncrementLabel;
     @FXML private Label highestBidderLabel;
     @FXML private Label reserveStatusLabel;
+    @FXML private Label totalBidsLabel;
+    @FXML private Label watchingCountLabel;
+    @FXML private Label itemDescriptionLabel;
 
     private Socket socket;
     private PrintWriter out;
@@ -72,8 +75,11 @@ public class AuctionPageController {
     private BigDecimal startingPrice = BigDecimal.ZERO;
     private BigDecimal reservePrice = BigDecimal.ZERO;
     private Integer highestBidderId;
+    private int bidCount;
+    private int watchingCount;
 
     private Timeline timeline;
+    private Timeline bidTimeout;
 
     @FXML
     public void initialize() {
@@ -88,6 +94,15 @@ public class AuctionPageController {
         }
         if (reserveStatusLabel != null) {
             reserveStatusLabel.setText("");
+        }
+        if (totalBidsLabel != null) {
+            totalBidsLabel.setText("0");
+        }
+        if (watchingCountLabel != null) {
+            watchingCountLabel.setText("0");
+        }
+        if (itemDescriptionLabel != null) {
+            itemDescriptionLabel.setText("Chưa có mô tả sản phẩm.");
         }
 
         // Gắn listeners sau khi scene sẵn sàng
@@ -212,18 +227,24 @@ public class AuctionPageController {
         this.stepPrice = getMoney(sessionObj, "stepPrice", BigDecimal.ZERO);
         this.reservePrice = getMoney(sessionObj, "reservePrice", BigDecimal.ZERO);
         this.highestBidderId = getOptionalInt(sessionObj, "highestBidderId");
+        this.bidCount = getBidCount(sessionObj);
 
         if (currentPrice.compareTo(BigDecimal.ZERO) <= 0 && startingPrice.compareTo(BigDecimal.ZERO) > 0) {
             currentPrice = startingPrice;
         }
 
+        String description;
         if (itemObj != null) {
-            productNameLabel.setText(itemObj.optString("name", "Unknown Product"));
-            loadProductImage(itemObj.optString("imagePath", ""));
+            productNameLabel.setText(itemObj.optString("name", sessionObj.optString("productName", "Unknown Product")));
+            description = itemObj.optString("description", sessionObj.optString("description", ""));
+            loadProductImage(itemObj.optString("imagePath", sessionObj.optString("imagePath", "")));
         } else {
             productNameLabel.setText(sessionObj.optString("productName", "Unknown Product"));
+            description = sessionObj.optString("description", "");
             loadProductImage(sessionObj.optString("imagePath", ""));
         }
+
+        updateDescription(description);
 
         currentPriceLabel.setText("₫ " + formatPrice(currentPrice));
         startPriceLabel.setText(startingPrice.compareTo(BigDecimal.ZERO) > 0 ? "₫ " + formatPrice(startingPrice) : "---");
@@ -236,13 +257,20 @@ public class AuctionPageController {
     }
 
     private void loadProductImage(String imagePath) {
-        if (imagePath == null || imagePath.isBlank()) {
+        String imageUrl = buildImageUrl(imagePath);
+        if (imageUrl.isBlank()) {
+            productImageView.setImage(null);
             return;
         }
 
-        String imageUrl = Config.API_URL + "/api/files/images/" + imagePath;
         try {
-            productImageView.setImage(new Image(imageUrl, true));
+            Image image = new Image(imageUrl, true);
+            image.errorProperty().addListener((obs, wasError, isError) -> {
+                if (isError) {
+                    logger.warn("Không tải được ảnh sản phẩm từ {}", imageUrl);
+                }
+            });
+            productImageView.setImage(image);
         } catch (Exception e) {
             logger.error("Error loading product image from {}: {}", imageUrl, e.getMessage());
         }
@@ -270,6 +298,14 @@ public class AuctionPageController {
                 reserveStatusLabel.setText("Giá sàn chưa đạt");
             }
         }
+
+        if (totalBidsLabel != null) {
+            totalBidsLabel.setText(String.valueOf(Math.max(0, bidCount)));
+        }
+
+        if (watchingCountLabel != null) {
+            watchingCountLabel.setText(String.valueOf(Math.max(0, watchingCount)));
+        }
     }
 
     private void connectToServer() {
@@ -296,6 +332,9 @@ public class AuctionPageController {
 
                             currentPriceLabel.setText("₫ " + formatPrice(newPrice));
                             this.highestBidderId = getOptionalInt(noticeObj, "highestBidderId");
+                            if (noticeObj.has("bidCount") && !noticeObj.isNull("bidCount")) {
+                                this.bidCount = noticeObj.optInt("bidCount", bidCount);
+                            }
                             updateBidInfoLabels();
 
                             // ==========================================
@@ -330,9 +369,13 @@ public class AuctionPageController {
                         JSONObject responseObj = new JSONObject(jsonString);
 
                         Platform.runLater(() -> {
+                            finishBidProcessing();
                             if (responseObj.getBoolean("success")) {
                                 currentPrice = getMoney(responseObj, "currentPrice", currentPrice);
                                 highestBidderId = getOptionalInt(responseObj, "highestBidderId");
+                                if (responseObj.has("bidCount") && !responseObj.isNull("bidCount")) {
+                                    bidCount = responseObj.optInt("bidCount", bidCount);
+                                }
                                 currentPriceLabel.setText("₫ " + formatPrice(currentPrice));
                                 updateBidInfoLabels();
                                 messageLabel.setStyle("-fx-text-fill: green;");
@@ -343,6 +386,12 @@ public class AuctionPageController {
                                 messageLabel.setText(responseObj.getString("message"));
                             }
                         });
+                    } else if (serverResponse.startsWith("ROOM_COUNT:")) {
+                        int count = Integer.parseInt(serverResponse.substring(11));
+                        Platform.runLater(() -> {
+                            watchingCount = count;
+                            updateBidInfoLabels();
+                        });
                     }
                 }
             } catch (EOFException | java.net.SocketException e) {
@@ -350,6 +399,7 @@ public class AuctionPageController {
             } catch (Exception e) {
                 e.printStackTrace();
                 Platform.runLater(() -> {
+                    finishBidProcessing();
                     messageLabel.setStyle("-fx-text-fill: red;");
                     messageLabel.setText("Mất kết nối với máy chủ Socket!");
                 });
@@ -413,8 +463,36 @@ public class AuctionPageController {
 
         out.println("BID:" + jsonBid.toString());
 
+        placeBidBtn.setDisable(true);
         messageLabel.setStyle("-fx-text-fill: orange;");
         messageLabel.setText("Đang xử lý yêu cầu...");
+        startBidTimeout();
+    }
+
+
+    private void startBidTimeout() {
+        if (bidTimeout != null) {
+            bidTimeout.stop();
+        }
+
+        bidTimeout = new Timeline(new KeyFrame(javafx.util.Duration.seconds(8), event -> {
+            placeBidBtn.setDisable(false);
+            if ("Đang xử lý yêu cầu...".equals(messageLabel.getText())) {
+                messageLabel.setStyle("-fx-text-fill: orange;");
+                messageLabel.setText("Máy chủ phản hồi hơi lâu, kiểm tra kết nối hoặc thử lại.");
+            }
+        }));
+        bidTimeout.setCycleCount(1);
+        bidTimeout.play();
+    }
+
+    private void finishBidProcessing() {
+        if (bidTimeout != null) {
+            bidTimeout.stop();
+        }
+        if (placeBidBtn != null) {
+            placeBidBtn.setDisable(false);
+        }
     }
 
     private void showError(String msg) {
@@ -553,6 +631,57 @@ public class AuctionPageController {
         }
 
         return object.optInt(key);
+    }
+
+
+    private int getBidCount(JSONObject object) {
+        if (object == null) {
+            return 0;
+        }
+        if (object.has("bidCount") && !object.isNull("bidCount")) {
+            return object.optInt("bidCount", 0);
+        }
+        if (object.has("bids") && !object.isNull("bids")) {
+            return object.optJSONArray("bids") == null ? 0 : object.optJSONArray("bids").length();
+        }
+        return 0;
+    }
+
+    private void updateDescription(String description) {
+        if (itemDescriptionLabel == null) {
+            return;
+        }
+        if (description == null || description.isBlank()) {
+            itemDescriptionLabel.setText("Chưa có mô tả sản phẩm.");
+        } else {
+            itemDescriptionLabel.setText(description.trim());
+        }
+    }
+
+    private String buildImageUrl(String rawPath) {
+        if (rawPath == null || rawPath.isBlank()) {
+            return "";
+        }
+
+        String path = rawPath.trim().replace("\\", "/");
+        if (path.startsWith("http://") || path.startsWith("https://")) {
+            return path;
+        }
+
+        while (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+        if (path.startsWith("server/upload/images/")) {
+            path = path.substring("server/upload/images/".length());
+        }
+        if (path.startsWith("upload/images/")) {
+            path = path.substring("upload/images/".length());
+        }
+        if (path.startsWith("images/")) {
+            path = path.substring("images/".length());
+        }
+
+        return path.isBlank() ? "" : Config.API_URL + "/api/files/images/" + path;
     }
 
     private String formatPrice(BigDecimal price) {

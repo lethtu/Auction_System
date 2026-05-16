@@ -129,8 +129,16 @@ public class AuctionService {
                 bidRepository.save(bid);
                 auctionSessionRepository.save(item);
                 logger.info("Đã cập nhật giá mới cho AuctionItem {} thành {} bởi {}", ItemAuctionId, newBidAmount, BidderId);
-                // Trả về kèm theo thời gian mới (nếu có)
-                return new BidResponse(true, "THÀNH CÔNG: Bạn đang dẫn đầu phiên đấu giá!", newBidAmount, updatedEndTimeStr, BidderId);
+                int bidCount = Math.toIntExact(bidRepository.countBySessionId(ItemAuctionId));
+                // Trả về kèm theo thời gian mới (nếu có) và số lượt bid thật trong DB
+                return new BidResponse(
+                        true,
+                        "THÀNH CÔNG: Bạn đang dẫn đầu phiên đấu giá!",
+                        newBidAmount,
+                        updatedEndTimeStr,
+                        BidderId,
+                        bidCount
+                );
             }
             catch (Exception e) {
                 logger.error("Lỗi khi lưu Database: ", e);
