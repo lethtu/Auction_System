@@ -26,32 +26,40 @@ public class SellerSessionGuard {
     }
 
     public Seller getSellerById(Integer sellerId) {
+        if (sellerId == null) {
+            throw new IllegalArgumentException("Không tìm thấy người bán");
+        }
+
         User user = userRepository.findById(sellerId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người bán"));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người bán"));
 
         if (!(user instanceof Seller)) {
             logger.error("Người dùng {} không phải seller", sellerId);
-            throw new RuntimeException("Người dùng này không phải seller");
+            throw new IllegalArgumentException("Người dùng này không phải seller");
         }
 
         return (Seller) user;
     }
 
     public AuctionSession getSessionById(Integer sessionId) {
+        if (sessionId == null) {
+            throw new IllegalArgumentException("Phiên đấu giá không tồn tại");
+        }
+
         return auctionSessionRepository.findById(sessionId)
-                .orElseThrow(() -> new RuntimeException("Phiên đấu giá không tồn tại"));
+                .orElseThrow(() -> new IllegalArgumentException("Phiên đấu giá không tồn tại"));
     }
 
     public void validateSessionOwner(AuctionSession session, Integer sellerId, String errorMessage) {
         if (session.getSeller() == null || !session.getSeller().getId().equals(sellerId)) {
             logger.error("Seller {} không có quyền với phiên {}", sellerId, session.getId());
-            throw new RuntimeException(errorMessage);
+            throw new IllegalArgumentException(errorMessage);
         }
     }
 
     public void validatePendingSession(AuctionSession session) {
         if (session.getStatus() != AuctionStatus.PENDING) {
-            throw new RuntimeException("Chỉ được thao tác với phiên đang chờ duyệt");
+            throw new IllegalArgumentException("Chỉ được thao tác với phiên đang chờ duyệt");
         }
     }
 }

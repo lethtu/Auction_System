@@ -79,7 +79,7 @@ public final class SellerAuctionValidator {
             throw new InvalidItemException("Thời gian kết thúc phải ở tương lai");
         }
 
-        if (startTime != null && endTime.isBefore(startTime)) {
+        if (startTime != null && !endTime.isAfter(startTime)) {
             throw new InvalidItemException("Thời gian kết thúc phải diễn ra sau thời gian bắt đầu");
         }
     }

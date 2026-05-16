@@ -199,6 +199,21 @@ class SellerValidationTest {
         assertEquals("Thời gian kết thúc phải diễn ra sau thời gian bắt đầu", ex.getMessage());
     }
 
+    @Test
+    void endTimeEqualStartTimeThrowsException() {
+        CreateAuctionRequest request = validRequest();
+        LocalDateTime startTime = LocalDateTime.now().plusDays(1);
+        request.setStartTime(startTime);
+        request.setEndTime(startTime);
+
+        InvalidItemException ex = assertThrows(
+                InvalidItemException.class,
+                () -> SellerAuctionValidator.validate(request)
+        );
+
+        assertEquals("Thời gian kết thúc phải diễn ra sau thời gian bắt đầu", ex.getMessage());
+    }
+
     private CreateAuctionRequest validRequest() {
         CreateAuctionRequest request = new CreateAuctionRequest();
         request.setName("Laptop Gaming");

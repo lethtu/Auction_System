@@ -39,7 +39,14 @@ class SellerSessionGuardTest {
 
     @Test
     void getSellerById_missingUser_throwsException() {
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> guard.getSellerById(99));
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> guard.getSellerById(99));
+
+        assertEquals("Không tìm thấy người bán", ex.getMessage());
+    }
+
+    @Test
+    void getSellerById_nullId_throwsCleanException() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> guard.getSellerById(null));
 
         assertEquals("Không tìm thấy người bán", ex.getMessage());
     }
@@ -50,7 +57,7 @@ class SellerSessionGuardTest {
         user.setId(2);
         userRepository.users.put(2, user);
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> guard.getSellerById(2));
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> guard.getSellerById(2));
 
         assertEquals("Người dùng này không phải seller", ex.getMessage());
     }
@@ -67,7 +74,14 @@ class SellerSessionGuardTest {
 
     @Test
     void getSessionById_missingSession_throwsException() {
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> guard.getSessionById(10));
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> guard.getSessionById(10));
+
+        assertEquals("Phiên đấu giá không tồn tại", ex.getMessage());
+    }
+
+    @Test
+    void getSessionById_nullId_throwsCleanException() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> guard.getSessionById(null));
 
         assertEquals("Phiên đấu giá không tồn tại", ex.getMessage());
     }
@@ -85,8 +99,8 @@ class SellerSessionGuardTest {
         Seller seller = seller(1);
         AuctionSession session = session(10, seller, AuctionStatus.PENDING);
 
-        RuntimeException ex = assertThrows(
-                RuntimeException.class,
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
                 () -> guard.validateSessionOwner(session, 2, "Không có quyền sửa phiên này")
         );
 
@@ -97,8 +111,8 @@ class SellerSessionGuardTest {
     void validateSessionOwner_nullSeller_throwsCustomMessage() {
         AuctionSession session = session(10, null, AuctionStatus.PENDING);
 
-        RuntimeException ex = assertThrows(
-                RuntimeException.class,
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
                 () -> guard.validateSessionOwner(session, 1, "Không có quyền xem phiên này")
         );
 
@@ -116,7 +130,7 @@ class SellerSessionGuardTest {
     void validatePendingSession_active_throwsException() {
         AuctionSession session = session(10, seller(1), AuctionStatus.ACTIVE);
 
-        RuntimeException ex = assertThrows(RuntimeException.class, () -> guard.validatePendingSession(session));
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> guard.validatePendingSession(session));
 
         assertEquals("Chỉ được thao tác với phiên đang chờ duyệt", ex.getMessage());
     }
