@@ -1,5 +1,6 @@
 package com.auction.server.socket;
 
+import org.json.JSONObject;
 import com.auction.server.controller.BiddingController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,6 +67,7 @@ public class SocketServer {
     public static void joinRoom(Integer sessionId, PrintWriter out) {
         rooms.computeIfAbsent(sessionId, k -> new CopyOnWriteArrayList<>()).add(out);
         logger.info("SERVER: Client đã tham gia vào phòng ID: {}", sessionId);
+        broadcastWatchingCount(sessionId);
     }
 
     public static void broadcastToRoom(Integer sessionId, String message) {
@@ -79,7 +81,20 @@ public class SocketServer {
     }
 
     public static void removeFromAllRooms(PrintWriter out) {
-        rooms.values().forEach(list -> list.remove(out));
+        rooms.forEach((sessionId, list) -> {
+            if (list.remove(out)) {
+                broadcastWatchingCount(sessionId);
+            }
+        });
+    }
+
+    private static void broadcastWatchingCount(Integer sessionId) {
+        List<PrintWriter> clients = rooms.get(sessionId);
+        if (clients != null) {
+            JSONObject notice = new JSONObject();
+            notice.put("watchingCount", clients.size());
+            broadcastToRoom(sessionId, "WATCHING:" + notice.toString());
+        }
     }
 
     public void stop() {

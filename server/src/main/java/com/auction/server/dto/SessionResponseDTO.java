@@ -33,6 +33,9 @@ public class SessionResponseDTO {
     private Integer approvedByAdminId;
     private Integer rejectedByAdminId;
 
+    private Boolean applyMinRate;
+    private BigDecimal minRate;
+
     public SessionResponseDTO() {
     }
 
@@ -202,5 +205,21 @@ public class SessionResponseDTO {
 
     public void setRejectedByAdminId(Integer rejectedByAdminId) {
         this.rejectedByAdminId = rejectedByAdminId;
+    }
+
+    public Boolean getApplyMinRate() {
+        return applyMinRate;
+    }
+
+    public void setApplyMinRate(Boolean applyMinRate) {
+        this.applyMinRate = applyMinRate;
+    }
+
+    public BigDecimal getMinRate() {
+        return minRate;
+    }
+
+    public void setMinRate(BigDecimal minRate) {
+        this.minRate = minRate;
     }
 }

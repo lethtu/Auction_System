@@ -40,13 +40,23 @@ public class AuctionSchedulerService {
             auctionSessionRepository.saveAll(pendingSessions);
         }
 
-        // Bước 2: Đóng phiên (ACTIVE -> ENDED)
+        // Bước 2: Đóng phiên (ACTIVE -> ENDED hoặc CANCELED nếu không đạt min rate)
         List<AuctionSession> activeSessions = auctionSessionRepository
                 .findByStatusAndEndTimeLessThanEqual(AuctionStatus.ACTIVE, now);
 
         if (!activeSessions.isEmpty()) {
             for (AuctionSession session : activeSessions) {
-                session.setStatus(AuctionStatus.ENDED);
+                if (Boolean.TRUE.equals(session.getApplyMinRate()) && session.getMinRate() != null) {
+                    if (session.getCurrentPrice() != null && session.getCurrentPrice().compareTo(session.getMinRate()) >= 0) {
+                        session.setStatus(AuctionStatus.ENDED);
+                    } else {
+                        session.setStatus(AuctionStatus.CANCELED);
+                        logger.info("Phiên ID {} bị hủy do giá cuối ({}) không đạt min rate ({})",
+                                session.getId(), session.getCurrentPrice(), session.getMinRate());
+                    }
+                } else {
+                    session.setStatus(AuctionStatus.ENDED);
+                }
             }
             auctionSessionRepository.saveAll(activeSessions);
         }

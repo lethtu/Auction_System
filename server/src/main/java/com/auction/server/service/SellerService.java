@@ -122,6 +122,8 @@ public class SellerService {
         }
 
         session.setEndTime(request.getEndTime());
+        session.setApplyMinRate(request.getApplyMinRate() != null ? request.getApplyMinRate() : false);
+        session.setMinRate(request.getMinRate() != null ? request.getMinRate() : BigDecimal.ZERO);
 
         session.setApprovedAt(null);
         session.setRejectedAt(null);
@@ -201,6 +203,8 @@ public class SellerService {
         session.setStepPrice(request.getStepPrice());
         session.setStartTime(request.getStartTime());
         session.setEndTime(request.getEndTime());
+        session.setApplyMinRate(request.getApplyMinRate() != null ? request.getApplyMinRate() : false);
+        session.setMinRate(request.getMinRate() != null ? request.getMinRate() : BigDecimal.ZERO);
 
         return auctionSessionRepository.save(session);
     }
@@ -281,6 +285,8 @@ public class SellerService {
 
         dto.setApprovedByAdminId(session.getApprovedByAdminId());
         dto.setRejectedByAdminId(session.getRejectedByAdminId());
+        dto.setApplyMinRate(session.getApplyMinRate());
+        dto.setMinRate(session.getMinRate());
 
         return dto;
     }

@@ -38,6 +38,9 @@ public class SellerDashboardController {
     @FXML private TextField txtStartTime;
     @FXML private DatePicker datePickerEnd;
     @FXML private TextField txtEndTime;
+    @FXML private CheckBox applyMinRateCheck;
+    @FXML private TextField minRateField;
+    @FXML private Label lblMinRate;
 
     private final HttpClient httpClient = HttpClientSingleton.getInstance().getHttpClient();
     private final List<SessionItem> allSessions = new ArrayList<>();
@@ -50,6 +53,15 @@ public class SellerDashboardController {
         ));
         productTypeCombo.setValue("Electronics");
         fillDefaultEndTime();
+
+        minRateField.setDisable(true);
+        applyMinRateCheck.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            minRateField.setDisable(!newVal);
+            if (!newVal) {
+                minRateField.clear();
+            }
+        });
+
         loadMySessions();
     }
 
@@ -88,6 +100,24 @@ public class SellerDashboardController {
             body.put("startingPrice", startingPrice);
             body.put("stepPrice", stepPrice);
             body.put("sellerId", sellerId);
+
+            boolean applyMinRate = applyMinRateCheck.isSelected();
+            body.put("applyMinRate", applyMinRate);
+            if (applyMinRate) {
+                String minRateText = minRateField.getText().trim();
+                if (minRateText.isEmpty()) {
+                    showAlert(Alert.AlertType.WARNING, "Thiếu dữ liệu", "Vui lòng nhập giá tối thiểu (Min rate).");
+                    return;
+                }
+                BigDecimal minRate = new BigDecimal(minRateText);
+                if (minRate.compareTo(startingPrice) < 0) {
+                    showAlert(Alert.AlertType.WARNING, "Lỗi dữ liệu", "Giá tối thiểu phải lớn hơn hoặc bằng giá khởi điểm.");
+                    return;
+                }
+                body.put("minRate", minRate);
+            } else {
+                body.put("minRate", JSONObject.NULL);
+            }
 
             // --- XỬ LÝ THỜI GIAN BẮT ĐẦU ---
             if (datePickerStart.getValue() == null) {
@@ -306,6 +336,8 @@ public class SellerDashboardController {
         s.stepPrice = parseBigDecimal(item, "stepPrice");
         s.endTime = item.optString("endTime", "");
         s.status = item.optString("status", "UNKNOWN");
+        s.applyMinRate = item.optBoolean("applyMinRate", false);
+        s.minRate = parseBigDecimal(item, "minRate");
         return s;
     }
 
@@ -342,7 +374,8 @@ public class SellerDashboardController {
 
         List<String> rendered = new ArrayList<>();
         for (SessionItem s : sessions) {
-            rendered.add("Session #" + s.id + " | " + s.productName + " | " + s.status);
+            String minRateInfo = s.applyMinRate ? " | MinRate: " + s.minRate : "";
+            rendered.add("Session #" + s.id + " | " + s.productName + minRateInfo + " | " + s.status);
         }
         mySessionsList.setItems(FXCollections.observableArrayList(rendered));
     }
@@ -375,7 +408,7 @@ public class SellerDashboardController {
                 case "PENDING" -> pending++;
                 case "ACTIVE" -> active++;
                 case "REJECTED" -> rejected++;
-                case "COMPLETED" -> {
+                case "COMPLETED", "ENDED" -> {
                     completed++;
                     if (s.currentPrice != null) {
                         revenue = revenue.add(s.currentPrice);
@@ -403,6 +436,8 @@ public class SellerDashboardController {
         descriptionArea.clear();
         startingPriceField.clear();
         stepPriceField.clear();
+        applyMinRateCheck.setSelected(false);
+        minRateField.clear();
         fillDefaultEndTime();
         productTypeCombo.setValue("Electronics");
     }
@@ -498,6 +533,8 @@ public class SellerDashboardController {
         BigDecimal stepPrice = BigDecimal.ZERO;
         String endTime;
         String status;
+        boolean applyMinRate;
+        BigDecimal minRate;
     }
 
     private static class ApiResult {

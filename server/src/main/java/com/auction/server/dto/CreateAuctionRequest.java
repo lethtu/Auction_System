@@ -16,6 +16,8 @@ public class CreateAuctionRequest {
     private BigDecimal stepPrice;     // Thêm bước giá
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    private Boolean applyMinRate;
+    private BigDecimal minRate;
 
     // --- Getters and Setters ---
 
@@ -45,4 +47,10 @@ public class CreateAuctionRequest {
 
     public LocalDateTime getEndTime() { return endTime; }
     public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
+
+    public Boolean getApplyMinRate() { return applyMinRate; }
+    public void setApplyMinRate(Boolean applyMinRate) { this.applyMinRate = applyMinRate; }
+
+    public BigDecimal getMinRate() { return minRate; }
+    public void setMinRate(BigDecimal minRate) { this.minRate = minRate; }
 }

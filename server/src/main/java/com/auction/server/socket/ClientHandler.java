@@ -56,6 +56,7 @@ public class ClientHandler implements Runnable {
                     if (response.isSuccess()) {
                         JSONObject notice = new JSONObject();
                         notice.put("newPrice", response.getCurrentPrice());
+                        notice.put("bidderId", request.getBidderId());
 
                         // QUAN TRỌNG: Nhét thời gian mới vào JSON để mọi người cùng thấy đồng hồ nảy lên
                         if (response.getNewEndTime() != null) {
@@ -66,7 +67,11 @@ public class ClientHandler implements Runnable {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            if (e instanceof java.net.SocketException) {
+                System.out.println("Client disconnected: " + e.getMessage());
+            } else {
+                e.printStackTrace();
+            }
         } finally {
             SocketServer.removeFromAllRooms(out);
             try { clientSocket.close(); } catch (IOException e) { e.printStackTrace(); }

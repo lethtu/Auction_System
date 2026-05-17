@@ -1,7 +1,6 @@
 package com.auction.client.controller;
 
-import javafx.scene.control.MenuButton;
-import javafx.scene.control.MenuItem;
+import javafx.scene.control.*;
 import javafx.scene.Cursor;
 import javafx.fxml.FXMLLoader;
 import org.slf4j.Logger;
@@ -15,11 +14,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.geometry.Bounds;
-import javafx.scene.control.Button;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
@@ -28,16 +22,15 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.Priority;
-import javafx.scene.control.Separator;
 import javafx.geometry.Insets;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.paint.Color;
-import javafx.scene.control.Tooltip;
 import javafx.util.Duration;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import com.auction.client.model.User;
+import com.auction.client.service.ClientLogger;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.math.BigDecimal;
@@ -52,6 +45,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class MainController implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(MainController.class);
@@ -87,19 +83,21 @@ public class MainController implements Initializable {
     @FXML private ComboBox<String> cbStatus;
     @FXML private Button btnDashboard;
 
-    @FXML private ScrollPane sidebarContainer;
-    @FXML private VBox sidebarContent;
+    @FXML private SidebarController sidebarController;
     @FXML private Button btnHamburger;
-    @FXML private Button btnStartSelling;
 
-    private boolean isSidebarCollapsed = false;
-    private final Map<Button, String> sidebarButtonTextMap = new java.util.HashMap<>();
+    private boolean showingWatchlistOnly = false;
+    public static boolean initialShowWatchlist = false;
 
     // Kho lưu trữ Caching cục bộ, giúp Real-time filter không bị trễ
     private final List<JSONObject> allProducts = new ArrayList<>();
 
     // Cache ảnh để tránh tải lại mỗi lần render
     private final Map<String, Image> imageCache = new ConcurrentHashMap<>();
+
+    // Executor cho Polling
+    private ScheduledExecutorService pollingScheduler;
+    private final List<Integer> currentRenderedIds = new ArrayList<>();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -130,7 +128,31 @@ public class MainController implements Initializable {
             updateGridLayout();
         });
 
-        loadProductsFromServer();
+        if (sidebarController != null) {
+            sidebarController.setSidebarListener(new SidebarController.SidebarListener() {
+                @Override
+                public void onFilterWatchlist() {
+                    showingWatchlistOnly = true;
+                    filterAndRenderProducts();
+                }
+
+                @Override
+                public void onResetFilter() {
+                    showingWatchlistOnly = false;
+                    filterAndRenderProducts();
+                }
+            });
+
+            if (initialShowWatchlist) {
+                showingWatchlistOnly = true;
+                initialShowWatchlist = false;
+                sidebarController.setActiveWatchlist();
+            } else {
+                sidebarController.setActiveDashboard();
+            }
+        }
+
+        startPolling();
     }
 
     private void updateGridLayout() {
@@ -178,47 +200,64 @@ public class MainController implements Initializable {
 
     }
 
-    private void loadProductsFromServer() {
-        new Thread(() -> {
-            try {
-                HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(Config.API_URL + "/api/auctions/all"))
-                        .GET()
-                        .build();
+    private void startPolling() {
+        pollingScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r);
+            t.setDaemon(true); // Đảm bảo thread tắt khi tắt app
+            return t;
+        });
 
-                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        // Gọi API 5 giây 1 lần
+        pollingScheduler.scheduleAtFixedRate(this::fetchProductsData, 0, 5, TimeUnit.SECONDS);
+    }
 
-                if (response.statusCode() == 200) {
-                    JSONObject responseJson = new JSONObject(response.body());
+    private void fetchProductsData() {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Config.API_URL + "/api/auctions/all"))
+                    .GET()
+                    .build();
 
-                    if (responseJson.getInt("status") == 200) {
-                        Object dataObj = responseJson.get("data");
-                        JSONArray jsonArray = new JSONArray();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-                        // Xử lý linh hoạt: Nếu API trả về Page (có content) hoặc mảng thuần
-                        if (dataObj instanceof JSONObject) {
-                            jsonArray = ((JSONObject) dataObj).getJSONArray("content");
-                        } else if (dataObj instanceof JSONArray) {
-                            jsonArray = (JSONArray) dataObj;
-                        }
+            if (response.statusCode() == 200) {
+                JSONObject responseJson = new JSONObject(response.body());
 
-                        // Lưu vào bộ nhớ Caching
-                        allProducts.clear();
-                        for (int i = 0; i < jsonArray.length(); i++) {
-                            allProducts.add(jsonArray.getJSONObject(i));
-                        }
+                if (responseJson.getInt("status") == 200) {
+                    Object dataObj = responseJson.get("data");
+                    JSONArray jsonArray = new JSONArray();
 
-                        // Tiến hành render và gắn luồng UI vào Platform.runLater
-                        filterAndRenderProducts();
+                    if (dataObj instanceof JSONObject) {
+                        jsonArray = ((JSONObject) dataObj).getJSONArray("content");
+                    } else if (dataObj instanceof JSONArray) {
+                        jsonArray = (JSONArray) dataObj;
                     }
-                } else {
-                    logger.error("Lỗi từ Server: {}", response.statusCode());
-                }
 
-            } catch (Exception e) {
-                logger.error("Lỗi hệ thống khi tải sản phẩm!: {}", e.getMessage(), e);
+                    List<JSONObject> newProducts = new ArrayList<>();
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        newProducts.add(jsonArray.getJSONObject(i));
+                    }
+
+                    allProducts.clear();
+                    allProducts.addAll(newProducts);
+
+                    Platform.runLater(this::filterAndRenderProducts);
+                }
+            } else {
+                logger.error("Lỗi từ Server: {}", response.statusCode());
             }
-        }).start();
+
+        } catch (Exception e) {
+            logger.error("Lỗi hệ thống khi tải sản phẩm!: {}", e.getMessage(), e);
+        }
+    }
+
+    private void loadProductsFromServer() {
+        if (pollingScheduler != null && !pollingScheduler.isShutdown()) {
+            pollingScheduler.execute(this::fetchProductsData);
+        } else {
+            new Thread(this::fetchProductsData).start();
+        }
     }
 
     /**
@@ -229,10 +268,10 @@ public class MainController implements Initializable {
         String selectedCategory = cbCategory.getValue();
         String selectedStatus = cbStatus.getValue();
 
-        // Toàn bộ tương tác dọn dẹp và thêm Component UI bắt buộc phải nhét vào luồng chính JavaFX
         Platform.runLater(() -> {
-            productContainer.getChildren().clear();
-
+            List<Integer> newIdsToRender = new ArrayList<>();
+            
+            // Bước 1: Tính toán danh sách ID sẽ hiển thị sau khi lọc
             for (JSONObject sessionObj : allProducts) {
                 JSONObject itemObj = sessionObj.optJSONObject("item");
                 if (itemObj == null) continue;
@@ -241,31 +280,63 @@ public class MainController implements Initializable {
                 String type = itemObj.optString("type", "");
                 String status = sessionObj.optString("status", "ACTIVE");
 
-                // ĐÃ SỬA: Chặn đứng PENDING, REJECTED, CANCELED. Chỉ cho ACTIVE và ENDED lên sàn chính.
                 if ("PENDING".equalsIgnoreCase(status) || "REJECTED".equalsIgnoreCase(status) || "CANCELED".equalsIgnoreCase(status)) {
                     continue;
                 }
 
-                // Logic lọc 3 lớp
                 boolean matchKeyword = keyword.isEmpty() || name.toLowerCase().contains(keyword);
                 boolean matchCategory = "Tất cả".equals(selectedCategory) || type.equalsIgnoreCase(selectedCategory);
                 boolean matchStatus = "Tất cả".equals(selectedStatus) || status.equalsIgnoreCase(selectedStatus);
+                boolean matchWatchlist = !showingWatchlistOnly || User.watchlistIds.contains(sessionObj.optInt("id"));
 
-                if (matchKeyword && matchCategory && matchStatus) {
-                    int id = sessionObj.optInt("id");
-                    BigDecimal currentPrice = sessionObj.optBigDecimal("currentPrice", BigDecimal.ZERO);
-
-                    String startTime = sessionObj.isNull("startTime") ? "Chưa bắt đầu" : sessionObj.getString("startTime").replace("T", " ");
-                    String endTime = sessionObj.isNull("endTime") ? "Chưa rõ" : sessionObj.getString("endTime").replace("T", " ");
-                    String imagePath = itemObj.optString("imagePath", "default.png");
-
-                    // Truyền cả type (thể loại) và status (trạng thái) vào
-                    VBox card = createProductCard(sessionObj, itemObj);
-                    productContainer.getChildren().add(card);
+                if (matchKeyword && matchCategory && matchStatus && matchWatchlist) {
+                    newIdsToRender.add(sessionObj.optInt("id"));
                 }
             }
-            // Sau khi đổ xong dữ liệu, tính toán lại Layout
-            updateGridLayout();
+
+            // Bước 2: So sánh xem danh sách hiển thị có bị đổi không (thêm/bớt/đổi bộ lọc)
+            if (!currentRenderedIds.equals(newIdsToRender)) {
+                // Có sự thay đổi => Vẽ lại toàn bộ
+                productContainer.getChildren().clear();
+                currentRenderedIds.clear();
+
+                for (JSONObject sessionObj : allProducts) {
+                    JSONObject itemObj = sessionObj.optJSONObject("item");
+                    if (itemObj == null) continue;
+
+                    String name = itemObj.optString("name", "");
+                    String type = itemObj.optString("type", "");
+                    String status = sessionObj.optString("status", "ACTIVE");
+
+                    if ("PENDING".equalsIgnoreCase(status) || "REJECTED".equalsIgnoreCase(status) || "CANCELED".equalsIgnoreCase(status)) {
+                        continue;
+                    }
+
+                    boolean matchKeyword = keyword.isEmpty() || name.toLowerCase().contains(keyword);
+                    boolean matchCategory = "Tất cả".equals(selectedCategory) || type.equalsIgnoreCase(selectedCategory);
+                    boolean matchStatus = "Tất cả".equals(selectedStatus) || status.equalsIgnoreCase(selectedStatus);
+                    boolean matchWatchlist = !showingWatchlistOnly || User.watchlistIds.contains(sessionObj.optInt("id"));
+
+                    if (matchKeyword && matchCategory && matchStatus && matchWatchlist) {
+                        VBox card = createProductCard(sessionObj, itemObj);
+                        productContainer.getChildren().add(card);
+                        currentRenderedIds.add(sessionObj.optInt("id"));
+                    }
+                }
+                updateGridLayout();
+            } else {
+                // Cấu trúc không đổi (chỉ là Polling lấy được giá mới) => Cập nhật Label tại chỗ để không giật UI
+                for (JSONObject sessionObj : allProducts) {
+                    int id = sessionObj.optInt("id");
+                    if (currentRenderedIds.contains(id)) {
+                        BigDecimal currentPrice = sessionObj.optBigDecimal("currentPrice", BigDecimal.ZERO);
+                        javafx.scene.Node priceNode = productContainer.lookup("#priceLabel_" + id);
+                        if (priceNode instanceof Label) {
+                            ((Label) priceNode).setText("₫ " + formatPrice(currentPrice));
+                        }
+                    }
+                }
+            }
         });
     }
 
@@ -361,21 +432,46 @@ public class MainController implements Initializable {
         Label lblCurrentBid = new Label("CURRENT BID");
         lblCurrentBid.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #907898;");
         Label priceLabel = new Label("₫ " + formatPrice(currentPrice));
+        priceLabel.setId("priceLabel_" + id); // Đặt ID để cập nhật nhanh
         priceLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 18px; -fx-text-fill: #e040a0;");
         priceBox.getChildren().addAll(lblCurrentBid, priceLabel);
 
         Region hSpacer = new Region();
         HBox.setHgrow(hSpacer, Priority.ALWAYS);
 
-        Button bidBtn = new Button();
-        Label addIcon = new Label("\uE145");
-        addIcon.getStyleClass().add("material-icon");
+        HBox actionBox = new HBox(8);
+        actionBox.setAlignment(Pos.CENTER_RIGHT);
+
+        Button mainBtn = new Button();
+        Label addIcon = new Label("\uE145"); // + icon
+        addIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 22px; -fx-text-fill: #e040a0;");
+        addIcon.setAlignment(Pos.CENTER);
+        mainBtn.setGraphic(addIcon);
+        mainBtn.setStyle("-fx-background-color: #ffd6ee; -fx-background-radius: 20px; -fx-min-width: 40px; -fx-min-height: 40px; -fx-max-width: 40px; -fx-max-height: 40px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
+        Tooltip.install(mainBtn, new Tooltip("Tùy chọn"));
+
+        Button btnWatch = new Button();
+        Label watchIcon = new Label(User.watchlistIds.contains(id) ? "\uE87D" : "\uE87E"); // heart filled or outline
+        watchIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: " + (User.watchlistIds.contains(id) ? "#e040a0" : "#604868") + ";");
+        watchIcon.setAlignment(Pos.CENTER);
+        btnWatch.setGraphic(watchIcon);
+        btnWatch.setStyle("-fx-background-color: #f2e8f2; -fx-background-radius: 20px; -fx-min-width: 40px; -fx-min-height: 40px; -fx-max-width: 40px; -fx-max-height: 40px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
+        Tooltip.install(btnWatch, new Tooltip(User.watchlistIds.contains(id) ? "Đã yêu thích" : "Thêm vào yêu thích"));
+
+        Button btnBid = new Button();
+        Label bidIcon = new Label("\uE8CC"); // shopping cart / bid
+        bidIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: white;");
+        bidIcon.setAlignment(Pos.CENTER);
+        btnBid.setGraphic(bidIcon);
+        btnBid.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 20px; -fx-min-width: 40px; -fx-min-height: 40px; -fx-max-width: 40px; -fx-max-height: 40px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224,64,160,0.3), 8, 0, 0, 2);");
+        Tooltip.install(btnBid, new Tooltip("Đấu giá ngay"));
+
+        btnWatch.setVisible(false); btnWatch.setManaged(false);
+        btnBid.setVisible(false); btnBid.setManaged(false);
 
         if ("ACTIVE".equalsIgnoreCase(status)) {
-            addIcon.setStyle("-fx-text-fill: #e040a0;");
-            bidBtn.setStyle("-fx-background-color: #ffd6ee; -fx-background-radius: 20px; -fx-min-width: 40px; -fx-min-height: 40px; -fx-cursor: hand;");
-            bidBtn.setGraphic(addIcon);
-            bidBtn.setOnAction(event -> {
+            btnBid.setOnAction(event -> {
+                ClientLogger.logViewHistory(User.getUsername(), name, id, currentPrice);
                 try {
                     FXMLLoader loader = SceneSwitcher.switchScene(event, "AuctionPage.fxml");
                     AuctionPageController controller = loader.getController();
@@ -384,30 +480,77 @@ public class MainController implements Initializable {
                     throw new RuntimeException(e);
                 }
             });
+
+            btnWatch.setOnAction(event -> {
+                if (User.getId() == null) {
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle("Yêu cầu đăng nhập");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Vui lòng đăng nhập để sử dụng tính năng Yêu thích!");
+                    alert.show();
+                    return;
+                }
+                if (User.watchlistIds.contains(id)) {
+                    User.watchlistIds.remove(id);
+                    watchIcon.setText("\uE87E");
+                    watchIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #604868;");
+                    Tooltip.install(btnWatch, new Tooltip("Thêm vào yêu thích"));
+                    ClientLogger.logFavorite(User.getUsername(), name, id, false);
+                } else {
+                    User.watchlistIds.add(id);
+                    watchIcon.setText("\uE87D");
+                    watchIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #e040a0;");
+                    Tooltip.install(btnWatch, new Tooltip("Đã yêu thích"));
+                    ClientLogger.logFavorite(User.getUsername(), name, id, true);
+                }
+                if (showingWatchlistOnly) {
+                    filterAndRenderProducts();
+                }
+            });
+
+            actionBox.setOnMouseEntered(e -> {
+                mainBtn.setVisible(false); mainBtn.setManaged(false);
+                btnWatch.setVisible(true); btnWatch.setManaged(true);
+                btnBid.setVisible(true); btnBid.setManaged(true);
+            });
+            actionBox.setOnMouseExited(e -> {
+                btnWatch.setVisible(false); btnWatch.setManaged(false);
+                btnBid.setVisible(false); btnBid.setManaged(false);
+                mainBtn.setVisible(true); mainBtn.setManaged(true);
+            });
+
+            mainBtn.setOnAction(e -> {
+                mainBtn.setVisible(false); mainBtn.setManaged(false);
+                btnWatch.setVisible(true); btnWatch.setManaged(true);
+                btnBid.setVisible(true); btnBid.setManaged(true);
+            });
+
+            actionBox.getChildren().addAll(btnWatch, btnBid, mainBtn);
         } else {
-            addIcon.setStyle("-fx-text-fill: #907898;");
-            bidBtn.setStyle("-fx-background-color: #f2e8f2; -fx-background-radius: 20px; -fx-min-width: 40px; -fx-min-height: 40px;");
-            bidBtn.setGraphic(addIcon);
-            bidBtn.setDisable(true);
+            addIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 22px; -fx-text-fill: #907898;");
+            mainBtn.setStyle("-fx-background-color: #f2e8f2; -fx-background-radius: 20px; -fx-min-width: 40px; -fx-min-height: 40px; -fx-max-width: 40px; -fx-max-height: 40px;");
+            mainBtn.setGraphic(addIcon);
+            mainBtn.setDisable(true);
+            actionBox.getChildren().add(mainBtn);
         }
 
-        bottomRow.getChildren().addAll(priceBox, hSpacer, bidBtn);
-
+        bottomRow.getChildren().addAll(priceBox, hSpacer, actionBox);
         vbox.getChildren().addAll(imageWrapper, nameLabel, categoryLabel, spacer, bottomRow);
 
         return vbox;
     }
 
+    @FXML
+    public void handleToggleSidebar(ActionEvent event) {
+        if (sidebarController != null) {
+            sidebarController.toggleSidebar();
+            Platform.runLater(this::updateGridLayout);
+        }
+    }
+
     public void handleLogout(ActionEvent event) throws IOException {
         User.clearSession();
         SceneSwitcher.switchScene(event, "Login.fxml", 400, 500);
-    }
-
-    @FXML
-    public void handleStartSelling(ActionEvent event) {
-        // Đây có thể là trang tạo phiên đấu giá mới
-        logger.info("Người dùng nhấn nút Start Selling (+)");
-        // Tạm thời có thể cho quay về Main hoặc một trang thông báo
     }
 
     public void setHttpClient(HttpClient httpClient) {
@@ -417,99 +560,10 @@ public class MainController implements Initializable {
     @FXML
     public void handleGoToDashboard(ActionEvent event) {
         try {
-            // Có thể chỉnh lại kích thước width, height cho vừa vặn.
             SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1024, 768);
         } catch (Exception e) {
             logger.error("Lỗi khi chuyển về trang Quản lý Seller: ", e);
         }
-    }
-
-    @FXML
-    public void handleToggleSidebar(ActionEvent event) {
-        isSidebarCollapsed = !isSidebarCollapsed;
-
-        if (isSidebarCollapsed) {
-            // Collapse
-            sidebarContainer.setMinWidth(70);
-            sidebarContainer.setPrefWidth(70);
-            sidebarContainer.setMaxWidth(70);
-            sidebarContent.setPadding(new Insets(24, 0, 24, 0));
-            sidebarContent.setAlignment(Pos.TOP_CENTER);
-
-            for (javafx.scene.Node node : sidebarContent.getChildren()) {
-                if (node instanceof Button) {
-                    Button btn = (Button) node;
-                    String currentText = btn.getText();
-                    if (currentText != null && !currentText.isEmpty()) {
-                        sidebarButtonTextMap.put(btn, currentText);
-                    }
-                    
-                    String tooltipText = sidebarButtonTextMap.get(btn);
-                    if (tooltipText != null) {
-                        Tooltip tooltip = new Tooltip(tooltipText);
-                        // Deep pink background, white text, bold, rounded corners
-                        tooltip.setStyle("-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 6px 12px; -fx-font-size: 13px;");
-                        
-                        // Tạo hiệu ứng delay thủ công để có thể cố định vị trí
-                        PauseTransition pause = new PauseTransition(Duration.millis(300));
-                        pause.setOnFinished(e -> {
-                            if (btn.isHover()) {
-                                Bounds bounds = btn.localToScreen(btn.getBoundsInLocal());
-                                // Hiện Tooltip ở bên phải nút, căn giữa theo chiều dọc
-                                tooltip.show(btn, bounds.getMaxX() + 15, bounds.getMinY() + btn.getHeight() / 2 - 18);
-                            }
-                        });
-
-                        btn.setOnMouseEntered(e -> pause.playFromStart());
-                        btn.setOnMouseExited(e -> {
-                            pause.stop();
-                            tooltip.hide();
-                        });
-                    }
-
-                    btn.setTooltip(null); // Tắt Tooltip mặc định của JavaFX
-
-                    btn.setText("");
-                    btn.setPrefWidth(50);
-                    btn.setMinWidth(50);
-                    btn.setAlignment(Pos.CENTER);
-                    // Adjust graphic alignment
-                    if (btn.getGraphic() != null) {
-                        btn.getGraphic().setTranslateX(0);
-                    }
-                } else if (node instanceof Label) {
-                    node.setVisible(false);
-                    node.setManaged(false);
-                }
-            }
-        } else {
-            // Expand
-            sidebarContainer.setMinWidth(200);
-            sidebarContainer.setPrefWidth(200);
-            sidebarContainer.setMaxWidth(200);
-            sidebarContent.setPadding(new Insets(24, 8, 24, 8));
-            sidebarContent.setAlignment(Pos.TOP_LEFT);
-
-            for (javafx.scene.Node node : sidebarContent.getChildren()) {
-                if (node instanceof Button) {
-                    Button btn = (Button) node;
-                    btn.setTooltip(null);
-                    btn.setOnMouseEntered(null); // Gỡ bỏ listener thủ công
-                    btn.setOnMouseExited(null);
-                    String originalText = sidebarButtonTextMap.getOrDefault(btn, "");
-                    btn.setText(originalText);
-                    btn.setPrefWidth(165);
-                    btn.setMinWidth(165);
-                    btn.setAlignment(Pos.CENTER_LEFT);
-                } else if (node instanceof Label) {
-                    node.setVisible(true);
-                    node.setManaged(true);
-                }
-            }
-        }
-        
-        // Cập nhật lại Grid Layout cho Center vì diện tích khả dụng đã thay đổi
-        Platform.runLater(this::updateGridLayout);
     }
     private String formatPrice(BigDecimal price) {
         if (price == null) return "0";
