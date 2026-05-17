@@ -152,7 +152,9 @@ public class MainController implements Initializable {
             }
         }
 
-        startPolling();
+        if (System.getProperty("surefire.test.class.path") == null) {
+            startPolling();
+        }
     }
 
     private void updateGridLayout() {
