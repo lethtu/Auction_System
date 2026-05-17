@@ -40,13 +40,6 @@
     <left>
         <VBox spacing="8" prefWidth="240" minWidth="240"
               style="-fx-background-color: #ffffff; -fx-padding: 28px 14px; -fx-border-color: #f2e8f2; -fx-border-width: 0 2px 0 0;">
-            <Label text="MAIN MENU"
-                   style="-fx-text-fill: #907898; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 0 0 6px 16px;"/>
-
-            <Button text="Selling" alignment="CENTER_LEFT" prefWidth="200" onAction="#showMySessionsTab"
-                    style="-fx-font-size: 14px; -fx-background-color: #fef7ff; -fx-text-fill: #e040a0; -fx-font-weight: bold; -fx-background-radius: 22; -fx-padding: 10px 18px; -fx-cursor: hand;"/>
-
-            <Region prefHeight="12"/>
             <Label text="SELLER TOOLS"
                    style="-fx-text-fill: #907898; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 0 0 6px 16px;"/>
             <Button text="Phiên của tôi" alignment="CENTER_LEFT" prefWidth="200" onAction="#showMySessionsTab"
@@ -57,8 +50,6 @@
                     style="-fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 22; -fx-padding: 10px 18px; -fx-cursor: hand;"/>
 
             <Region VBox.vgrow="ALWAYS"/>
-            <Button text="Tạo phiên mới" prefWidth="200" onAction="#showCreateAuctionTab"
-                    style="-fx-font-size: 14px; -fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 22; -fx-padding: 13px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.30), 16, 0, 0, 4);"/>
         </VBox>
     </left>
 

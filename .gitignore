@@ -148,3 +148,4 @@ buildNumber.properties
 # Uploaded product images
 server/upload/images/*
 !server/upload/images/.gitkeep
+upload/
