@@ -101,6 +101,7 @@ public class MainController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        btnHamburger.setId("btnSidebarCategories");
         if (User.getFullname() != null) {
             createUserOption("Chào, " + User.getFullname());
         }
