@@ -67,7 +67,7 @@ public class SocketServer {
     public static void joinRoom(Integer sessionId, PrintWriter out) {
         rooms.computeIfAbsent(sessionId, k -> new CopyOnWriteArrayList<>()).add(out);
         logger.info("SERVER: Client đã tham gia vào phòng ID: {}", sessionId);
-        broadcastWatchingCount(sessionId);
+        broadcastCounts(sessionId);
     }
 
     public static void broadcastToRoom(Integer sessionId, String message) {
@@ -81,20 +81,20 @@ public class SocketServer {
     }
 
     public static void removeFromAllRooms(PrintWriter out) {
-        rooms.forEach((sessionId, list) -> {
-            if (list.remove(out)) {
-                broadcastWatchingCount(sessionId);
+        rooms.forEach((sessionId, clients) -> {
+            if (clients.remove(out)) {
+                broadcastCounts(sessionId);
             }
         });
     }
 
-    private static void broadcastWatchingCount(Integer sessionId) {
+    private static void broadcastCounts(Integer sessionId) {
         List<PrintWriter> clients = rooms.get(sessionId);
-        if (clients != null) {
-            JSONObject notice = new JSONObject();
-            notice.put("watchingCount", clients.size());
-            broadcastToRoom(sessionId, "WATCHING:" + notice.toString());
-        }
+        int count = clients == null ? 0 : clients.size();
+        JSONObject notice = new JSONObject();
+        notice.put("watchingCount", count);
+        broadcastToRoom(sessionId, "WATCHING:" + notice.toString());
+        broadcastToRoom(sessionId, "ROOM_COUNT:" + count);
     }
 
     public void stop() {

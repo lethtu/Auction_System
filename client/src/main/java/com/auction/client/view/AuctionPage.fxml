@@ -165,7 +165,7 @@
                                                                 <VBox spacing="12.0">
                                                                     <children>
                                                                         <Label text="Item Description" style="-fx-font-family: 'DM Sans'; -fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;" />
-                                                                        <Label fx:id="itemDescriptionLabel" text="Loading item description..." wrapText="true" style="-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-text-fill: #604868; -fx-line-spacing: 6;" />
+                                                                        <Label fx:id="itemDescriptionLabel" text="Chưa có mô tả sản phẩm." wrapText="true" style="-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-text-fill: #604868; -fx-line-spacing: 6;" />
                                                                     </children>
                                                                 </VBox>
                                                                 
@@ -186,6 +186,8 @@
                                                                         <Label fx:id="currentPriceLabel" text="₫ 0" style="-fx-font-family: 'DM Sans'; -fx-font-size: 48px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;" />
                                                                     </children>
                                                                 </HBox>
+                                                                <Label fx:id="highestBidderLabel" text="Chưa có người đặt giá" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 800; -fx-text-fill: #604868;" />
+                                                                <Label fx:id="reserveStatusLabel" text="" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: #e040a0;" />
                                                             </children>
                                                         </VBox>
                                                         

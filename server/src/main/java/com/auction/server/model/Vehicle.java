@@ -6,5 +6,9 @@ import jakarta.persistence.Entity;
 @Entity
 @DiscriminatorValue("vehicle")
 public class Vehicle extends Item {
-    // Specific fields for vehicle can be added here
+
+    @Override
+    public String getCategoryInfo() {
+        return "Vehicle - phương tiện xe cộ";
+    }
 }

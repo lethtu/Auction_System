@@ -39,6 +39,11 @@ public class AuctionSession implements Serializable{
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal stepPrice;
 
+    @Column(precision = 15, scale = 2)
+    private BigDecimal reservePrice;
+
+    private Integer highestBidderId;
+
     private LocalDateTime createdAt;
     private LocalDateTime startTime;
 
@@ -139,6 +144,22 @@ public class AuctionSession implements Serializable{
 
     public void setStepPrice(BigDecimal stepPrice) {
         this.stepPrice = stepPrice;
+    }
+
+    public BigDecimal getReservePrice() {
+        return reservePrice;
+    }
+
+    public void setReservePrice(BigDecimal reservePrice) {
+        this.reservePrice = reservePrice;
+    }
+
+    public Integer getHighestBidderId() {
+        return highestBidderId;
+    }
+
+    public void setHighestBidderId(Integer highestBidderId) {
+        this.highestBidderId = highestBidderId;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -253,6 +274,8 @@ public class AuctionSession implements Serializable{
                 ", startingPrice=" + startingPrice +
                 ", currentPrice=" + currentPrice +
                 ", stepPrice=" + stepPrice +
+                ", reservePrice=" + reservePrice +
+                ", highestBidderId=" + highestBidderId +
                 ", status=" + status +
                 ", startTime=" + startTime +
                 ", endTime=" + endTime +

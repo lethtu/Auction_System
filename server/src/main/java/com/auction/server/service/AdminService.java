@@ -1,107 +1,90 @@
 package com.auction.server.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.dto.UserResponseDTO;
-import com.auction.server.model.*;
+import com.auction.server.mapper.SessionResponseMapper;
+import com.auction.server.model.Admin;
+import com.auction.server.model.AuctionSession;
+import com.auction.server.model.AuctionStatus;
+import com.auction.server.model.User;
 import com.auction.server.repository.AuctionSessionRepository;
 import com.auction.server.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class AdminService {
     private static final Logger logger = LoggerFactory.getLogger(AdminService.class);
-    @Autowired
-    private AuctionSessionRepository sessionRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    private static final String DEFAULT_ROLE = "user";
 
-    private Admin checkAdminPermission(Integer adminId) {
-        User user = userRepository.findById(adminId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên"));
+    private static final String ERROR_ADMIN_NOT_FOUND = "Không tìm thấy admin";
+    private static final String ERROR_NOT_ADMIN = "Người này không phải là Quản trị viên";
+    private static final String ERROR_SESSION_NOT_FOUND = "Không tìm thấy phiên đấu giá";
+    private static final String ERROR_TARGET_USER_NOT_FOUND = "Không tìm thấy user cần khóa";
+    private static final String ERROR_SELF_BAN = "Không thể khóa chính tài khoản admin hiện tại";
+    private static final String ERROR_BAN_ADMIN = "Không được khóa tài khoản Admin khác";
+    private static final String ERROR_REJECT_REASON_REQUIRED = "Vui lòng nhập lý do từ chối";
+    private static final String ERROR_CANCEL_FINISHED_SESSION = "Phiên này đã kết thúc hoặc đã bị hủy";
 
-        if (!(user instanceof Admin)) {
-            logger.error("{} không phải là quản trị viên", adminId);
-            throw new RuntimeException("Người này không phải là Quản trị viên");
-        }
+    private final AuctionSessionRepository sessionRepository;
+    private final UserRepository userRepository;
 
-        Admin admin = (Admin) user;
-
-        if (admin.getRole() == AdminRole.SUPPORT) {
-            logger.error("LỖI QUYỀN HẠN: Nhân viên Hỗ trợ không được phép duyệt/từ chối phiên đấu giá!");
-            throw new RuntimeException("LỖI QUYỀN HẠN: Nhân viên Hỗ trợ không được phép duyệt/từ chối phiên đấu giá!");
-        }
-
-        return admin;
+    public AdminService(
+            AuctionSessionRepository sessionRepository,
+            UserRepository userRepository
+    ) {
+        this.sessionRepository = sessionRepository;
+        this.userRepository = userRepository;
     }
 
     public List<SessionResponseDTO> getPendingSessions() {
-        // Sửa: Dùng Enum AuctionStatus.PENDING thay vì String "PENDING"
         return sessionRepository.findByStatus(AuctionStatus.PENDING)
                 .stream()
-                .map(this::mapToSessionResponseDTO)
+                .map(SessionResponseMapper::toDTO)
                 .toList();
     }
 
     public List<SessionResponseDTO> getAllSessions(String status) {
-        List<AuctionSession> sessions = sessionRepository.findAll();
-
-        if (status != null && !status.trim().isEmpty()) {
-            try {
-                // Sửa: Chuyển String từ client gửi lên thành Enum để so sánh
-                AuctionStatus filterStatus = AuctionStatus.valueOf(status.trim().toUpperCase());
-                sessions = sessions.stream()
-                        .filter(session -> session.getStatus() == filterStatus)
-                        .toList();
-            } catch (IllegalArgumentException e) {
-                // Nếu status gửi lên không hợp lệ, trả về danh sách trống hoặc xử lý tùy ý
-                return List.of();
-            }
-        }
-
-        return sessions.stream()
-                .map(this::mapToSessionResponseDTO)
+        return findSessionsByStatus(status)
+                .stream()
+                .map(SessionResponseMapper::toDTO)
                 .toList();
     }
 
     public SessionResponseDTO getSessionDetail(Integer sessionId) {
-        AuctionSession session = sessionRepository.findById(sessionId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy phiên đấu giá"));
+        return SessionResponseMapper.toDTO(getSessionById(sessionId));
+    }
 
-        return mapToSessionResponseDTO(session);
+    public List<UserResponseDTO> getAllUsers(String role) {
+        return findUsersByRole(role)
+                .stream()
+                .map(this::mapToUserResponseDTO)
+                .toList();
     }
 
     @Transactional
     public void approveSession(Integer sessionId, Integer adminId) {
         Admin admin = checkAdminPermission(adminId);
+        AuctionSession session = getSessionById(sessionId);
 
-        AuctionSession session = sessionRepository.findById(sessionId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy phiên đấu giá"));
-
-        // Sửa: So sánh Enum bằng ==
-        if (session.getStatus() != AuctionStatus.PENDING) {
-            logger.error("Phiên {} đã được xử lý hoặc không ở trạng thái chờ duyệt", sessionId);
-            throw new RuntimeException("Phiên này đã được xử lý hoặc không ở trạng thái chờ duyệt");
-        }
+        validatePendingSession(session, "Phiên này đã được xử lý hoặc không ở trạng thái chờ duyệt");
 
         LocalDateTime now = LocalDateTime.now();
 
-        session.setStatus(AuctionStatus.ACTIVE); // Sửa: Gán Enum
+        session.setStatus(AuctionStatus.ACTIVE);
         session.setStartTime(now);
         session.setApprovedAt(now);
         session.setApprovedByAdminId(admin.getId());
 
-        // Đảm bảo các field này đã được khai báo chuẩn trong AuctionSession
-        session.setRejectedAt(null);
-        session.setRejectedByAdminId(null);
-        session.setRejectReason(null);
+        clearRejectionInfo(session);
 
         sessionRepository.save(session);
     }
@@ -109,110 +92,168 @@ public class AdminService {
     @Transactional
     public void rejectSession(Integer sessionId, Integer adminId, String reason) {
         Admin admin = checkAdminPermission(adminId);
+        String cleanReason = normalizeRequiredReason(reason);
 
-        if (reason == null || reason.trim().isEmpty()) {
-            throw new RuntimeException("Vui lòng nhập lý do từ chối");
-        }
+        AuctionSession session = getSessionById(sessionId);
 
-        AuctionSession session = sessionRepository.findById(sessionId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy phiên đấu giá"));
-
-        if (session.getStatus() != AuctionStatus.PENDING) {
-            logger.error("Chỉ được từ chối các phiên đang ở trạng thái chờ duyệt");
-            throw new RuntimeException("Chỉ được từ chối các phiên đang ở trạng thái chờ duyệt");
-        }
+        validatePendingSession(session, "Chỉ được từ chối các phiên đang ở trạng thái chờ duyệt");
 
         LocalDateTime now = LocalDateTime.now();
 
-        session.setStatus(AuctionStatus.REJECTED); // Sửa: Gán Enum REJECTED
+        session.setStatus(AuctionStatus.REJECTED);
         session.setRejectedAt(now);
         session.setRejectedByAdminId(admin.getId());
-        session.setRejectReason(reason.trim());
+        session.setRejectReason(cleanReason);
 
-        session.setApprovedAt(null);
-        session.setApprovedByAdminId(null);
-        session.setStartTime(null);
+        clearApprovalInfo(session);
 
         sessionRepository.save(session);
     }
 
-    public List<UserResponseDTO> getAllUsers(String role) {
-        List<User> users = userRepository.findAll();
+    @Transactional
+    public void banUser(Integer targetUserId, Integer adminId) {
+        Admin admin = checkAdminPermission(adminId);
 
-        if (role != null && !role.trim().isEmpty()) {
-            String normalizedRole = role.trim();
-
-            users = users.stream()
-                    .filter(user -> user.getAccountType() != null
-                            && user.getAccountType().equalsIgnoreCase(normalizedRole))
-                    .toList();
+        if (targetUserId == null || targetUserId.equals(admin.getId())) {
+            throw new IllegalArgumentException(ERROR_SELF_BAN);
         }
 
+        User target = getUserById(targetUserId, ERROR_TARGET_USER_NOT_FOUND);
+
+        if (target instanceof Admin) {
+            throw new IllegalArgumentException(ERROR_BAN_ADMIN);
+        }
+
+        target.setBanned(true);
+        userRepository.save(target);
+    }
+
+    @Transactional
+    public void cancelAuction(Integer sessionId, Integer adminId) {
+        checkAdminPermission(adminId);
+
+        AuctionSession session = getSessionById(sessionId);
+
+        if (session.getStatus() == AuctionStatus.ENDED || session.getStatus() == AuctionStatus.CANCELED) {
+            throw new IllegalArgumentException(ERROR_CANCEL_FINISHED_SESSION);
+        }
+
+        session.setStatus(AuctionStatus.CANCELED);
+        sessionRepository.save(session);
+    }
+
+    private List<AuctionSession> findSessionsByStatus(String status) {
+        if (!hasText(status)) {
+            return sessionRepository.findAll();
+        }
+
+        try {
+            AuctionStatus enumStatus = AuctionStatus.valueOf(status.trim().toUpperCase(Locale.ROOT));
+            return sessionRepository.findByStatus(enumStatus);
+        } catch (IllegalArgumentException e) {
+            return List.of();
+        }
+    }
+
+    private List<User> findUsersByRole(String role) {
+        List<User> users = userRepository.findAll();
+
+        if (!hasText(role)) {
+            return users;
+        }
+
+        String normalizedRole = normalizeRole(role);
+
         return users.stream()
-                .map(this::mapToUserResponseDTO)
+                .filter(user -> normalizedRole.equals(normalizeRole(user.getAccountType())))
                 .toList();
     }
 
-    private UserResponseDTO mapToUserResponseDTO(User user) {
-        UserResponseDTO dto = new UserResponseDTO();
-        dto.setId(user.getId());
-        dto.setUsername(user.getUsername());
-        dto.setFullname(user.getFullname());
-        dto.setEmail(user.getEmail());
-        dto.setAccountType(user.getAccountType());
-        dto.setBalance(user.getBalance());
-
-        if (user instanceof Seller seller) {
-            dto.setShopName(seller.getShopName());
+    private AuctionSession getSessionById(Integer sessionId) {
+        if (sessionId == null) {
+            throw new IllegalArgumentException(ERROR_SESSION_NOT_FOUND);
         }
 
-        if (user instanceof Admin admin) {
-            dto.setEmployeeCode(admin.getEmployeeCode());
-            dto.setAdminRole(admin.getRole() != null ? admin.getRole().name() : null);
-        }
-
-        return dto;
+        return sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new IllegalArgumentException(ERROR_SESSION_NOT_FOUND));
     }
 
-    private SessionResponseDTO mapToSessionResponseDTO(AuctionSession session) {
-        SessionResponseDTO dto = new SessionResponseDTO();
-
-        dto.setId(session.getId());
-
-        if (session.getItem() != null) {
-            dto.setProductId(session.getItem().getId());
-            dto.setProductName(session.getItem().getName());
-            dto.setProductType(session.getItem().getType());
-            dto.setImageUrl(session.getItem().getImagePath()); // Sửa: getImagePath()
-            dto.setDescription(session.getItem().getDescription());
+    private User getUserById(Integer userId, String errorMessage) {
+        if (userId == null) {
+            throw new IllegalArgumentException(errorMessage);
         }
 
-        if (session.getSeller() != null) {
-            dto.setSellerId(session.getSeller().getId());
-            dto.setSellerUsername(session.getSeller().getUsername());
-            dto.setSellerFullname(session.getSeller().getFullname());
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException(errorMessage));
+    }
+
+    private Admin checkAdminPermission(Integer adminId) {
+        User user = getUserById(adminId, ERROR_ADMIN_NOT_FOUND);
+
+        if (!(user instanceof Admin admin)) {
+            logger.warn("{} không phải là quản trị viên", adminId);
+            throw new IllegalArgumentException(ERROR_NOT_ADMIN);
         }
 
-        dto.setStartingPrice(session.getStartingPrice());
-        dto.setCurrentPrice(session.getCurrentPrice());
-        dto.setStepPrice(session.getStepPrice());
+        return admin;
+    }
 
-        dto.setCreatedAt(session.getCreatedAt());
-        dto.setStartTime(session.getStartTime());
-        dto.setEndTime(session.getEndTime());
-        dto.setApprovedAt(session.getApprovedAt());
-        dto.setRejectedAt(session.getRejectedAt());
+    private void validatePendingSession(AuctionSession session, String errorMessage) {
+        if (session.getStatus() != AuctionStatus.PENDING) {
+            logger.warn("Phiên {} không ở trạng thái chờ duyệt", session.getId());
+            throw new IllegalArgumentException(errorMessage);
+        }
+    }
 
-        // Sửa: Convert Enum sang String để đưa vào DTO
-        if (session.getStatus() != null) {
-            dto.setStatus(session.getStatus().name());
+    private String normalizeRequiredReason(String reason) {
+        if (!hasText(reason)) {
+            throw new IllegalArgumentException(ERROR_REJECT_REASON_REQUIRED);
         }
 
-        dto.setRejectReason(session.getRejectReason());
+        return reason.trim();
+    }
 
-        dto.setApprovedByAdminId(session.getApprovedByAdminId());
-        dto.setRejectedByAdminId(session.getRejectedByAdminId());
+    private void clearApprovalInfo(AuctionSession session) {
+        session.setApprovedAt(null);
+        session.setApprovedByAdminId(null);
+        session.setStartTime(null);
+    }
 
-        return dto;
+    private void clearRejectionInfo(AuctionSession session) {
+        session.setRejectedAt(null);
+        session.setRejectedByAdminId(null);
+        session.setRejectReason(null);
+    }
+
+    private UserResponseDTO mapToUserResponseDTO(User user) {
+        return new UserResponseDTO(
+                user.getId(),
+                nullToEmpty(user.getUsername()),
+                nullToEmpty(user.getFullname()),
+                nullToEmpty(user.getEmail()),
+                normalizeRole(user.getAccountType()),
+                defaultMoney(user.getBalance()),
+                user.isBanned()
+        );
+    }
+
+    private String normalizeRole(String role) {
+        if (!hasText(role)) {
+            return DEFAULT_ROLE;
+        }
+
+        return role.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String nullToEmpty(String value) {
+        return value == null ? "" : value;
+    }
+
+    private BigDecimal defaultMoney(BigDecimal value) {
+        return value == null ? BigDecimal.ZERO : value;
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 }

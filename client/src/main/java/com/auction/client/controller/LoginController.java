@@ -1,28 +1,38 @@
 package com.auction.client.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
 import com.auction.client.HttpClientSingleton;
 import com.auction.client.model.User;
-import javafx.scene.control.Alert;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Locale;
 
 public class LoginController {
-    private HttpClient client = HttpClientSingleton.getInstance().getHttpClient();
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
-    @FXML private TextField txtUsername;
-    @FXML private PasswordField txtPassword;
+
+    private static final String SELLER_ROLE = "seller";
+    private static final String ADMIN_ROLE = "admin";
+    private static final String DEFAULT_ROLE = "user";
+
+    private HttpClient client = HttpClientSingleton.getInstance().getHttpClient();
+
+    @FXML
+    private TextField txtUsername;
+
+    @FXML
+    private PasswordField txtPassword;
 
     @FXML
     public void handleLogin(ActionEvent event) {
@@ -34,18 +44,8 @@ public class LoginController {
             return;
         }
 
-        String jsonBody = String.format(
-                "{\"username\":\"%s\", \"password\":\"%s\"}",
-                loginField, password
-        );
-
         try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(Config.API_URL + "/api/login"))
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
-                    .build();
-
+            HttpRequest request = buildLoginRequest(loginField, password);
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
@@ -63,32 +63,12 @@ public class LoginController {
             }
 
             JSONObject data = responseJson.getJSONObject("data");
-
-            int id = data.getInt("id");
-            String username = data.optString("username", loginField);
-            String fullname = data.optString("fullname", username);
-            String email = data.optString("email", "");
-            String dob = data.optString("dob", null);
-            String placeOfBirth = data.optString("place_of_birth", null);
-
-            String role = data.optString("role",
-                    data.optString("accountType", "USER"));
-
-            User.setSession(id, username, fullname, email, dob, placeOfBirth, role);
+            String role = saveUserSession(data, loginField);
 
             showAlert(Alert.AlertType.INFORMATION, "Thành công", "Chào mừng bạn đã quay lại!");
             logger.info("Đăng nhập thành công");
-            String normalizedRole = role.trim().toUpperCase();
 
-            if (normalizedRole.equals("SELLER")) {
-                SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1000, 650);
-            } else if (normalizedRole.equals("ADMIN")
-                    || normalizedRole.equals("SUPER_ADMIN")) {
-                SceneSwitcher.switchScene(event, "AdminDashboard.fxml", 1000, 650);
-            } else {
-                SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
-            }
-
+            switchSceneByRole(event, role);
         } catch (Exception e) {
             logger.error("Không thể kết nối máy chủ: {}", e.getMessage(), e);
             showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
@@ -107,6 +87,51 @@ public class LoginController {
 
     public void setHttpClient(HttpClient httpClient) {
         this.client = httpClient;
+    }
+
+    private HttpRequest buildLoginRequest(String loginField, String password) {
+        JSONObject body = new JSONObject();
+        body.put("username", loginField);
+        body.put("password", password);
+
+        return HttpRequest.newBuilder()
+                .uri(URI.create(Config.API_URL + "/api/login"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
+                .build();
+    }
+
+    private String saveUserSession(JSONObject data, String fallbackUsername) {
+        int id = data.getInt("id");
+        String username = data.optString("username", fallbackUsername);
+        String fullname = data.optString("fullname", username);
+        String email = data.optString("email", "");
+        String dob = data.optString("dob", null);
+        String placeOfBirth = data.optString("place_of_birth", null);
+        String role = normalizeRole(data.optString("role", data.optString("accountType", DEFAULT_ROLE)));
+
+        User.setSession(id, username, fullname, email, dob, placeOfBirth, role);
+        return role;
+    }
+
+    private void switchSceneByRole(ActionEvent event, String role) throws IOException {
+        String normalizedRole = normalizeRole(role);
+
+        if (SELLER_ROLE.equals(normalizedRole)) {
+            SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1000, 650);
+        } else if (ADMIN_ROLE.equals(normalizedRole)) {
+            SceneSwitcher.switchScene(event, "AdminDashboard.fxml", 1000, 650);
+        } else {
+            SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
+        }
+    }
+
+    private String normalizeRole(String role) {
+        if (role == null || role.isBlank()) {
+            return DEFAULT_ROLE;
+        }
+
+        return role.trim().toLowerCase(Locale.ROOT);
     }
 
     private void showAlert(Alert.AlertType alertType, String title, String message) {

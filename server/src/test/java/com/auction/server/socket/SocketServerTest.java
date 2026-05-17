@@ -38,29 +38,49 @@ public class SocketServerTest {
     @DisplayName("Test kết nối và gửi lệnh BID bằng JSON")
     public void testBidWithJson() {
         assertDoesNotThrow(() -> {
-            try (Socket clientSocket = new Socket("127.0.0.1", TEST_PORT);
-                 PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))) {
+            try (Socket clientSocket = new Socket("127.0.0.1", TEST_PORT)) {
+                clientSocket.setSoTimeout(3000);
 
-                out.println("JOIN:1");
+                try (PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+                     BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))) {
 
-                JSONObject jsonBid = new JSONObject();
-                jsonBid.put("auctionId", 1);
-                jsonBid.put("bidderId", 12);
-                jsonBid.put("amount", new BigDecimal("1000000"));
-                out.println("BID:" + jsonBid.toString());
+                    out.println("JOIN:1");
 
-                String response = in.readLine();
-                System.out.println("TEST: Server trả về: " + response);
+                    JSONObject jsonBid = new JSONObject();
+                    jsonBid.put("auctionId", 1);
+                    jsonBid.put("bidderId", 12);
+                    jsonBid.put("amount", new BigDecimal("1000000"));
+                    out.println("BID:" + jsonBid.toString());
 
-                assertNotNull(response, "Server không được trả về null!");
-                assertTrue(response.startsWith("RESPONSE:"), "Phải bắt đầu bằng RESPONSE:");
+                    String response = readUntilPrefix(in, "RESPONSE:");
+                    System.out.println("TEST: Server trả về: " + response);
 
-                // Cắt lấy phần JSON sau "RESPONSE:" (9 ký tự)
-                JSONObject resJson = new JSONObject(response.substring(9));
-                assertTrue(resJson.getBoolean("success"));
-                assertEquals("TEST_SUCCESS", resJson.getString("message"));
+                    assertNotNull(response, "Server không được trả về null!");
+                    assertTrue(response.startsWith("RESPONSE:"), "Phải bắt đầu bằng RESPONSE:");
+
+                    // Cắt lấy phần JSON sau "RESPONSE:" (9 ký tự)
+                    JSONObject resJson = new JSONObject(response.substring(9));
+                    assertTrue(resJson.getBoolean("success"));
+                    assertEquals("TEST_SUCCESS", resJson.getString("message"));
+                }
             }
         });
+    }
+
+    private String readUntilPrefix(BufferedReader in, String prefix) throws IOException {
+        long deadline = System.currentTimeMillis() + 3000;
+        String line;
+
+        try {
+            while (System.currentTimeMillis() < deadline && (line = in.readLine()) != null) {
+                if (line.startsWith(prefix)) {
+                    return line;
+                }
+            }
+        } catch (java.net.SocketTimeoutException e) {
+            return null;
+        }
+
+        return null;
     }
 }

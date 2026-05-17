@@ -17,11 +17,12 @@ public abstract class Item {
     private String name;
     private String type;
 
-    @Column(name = "image_path")
-    private String imagePath;
-
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    private String imagePath;
+
+    public abstract String getCategoryInfo();
 
     public Integer getId() {
         return id;
@@ -34,6 +35,7 @@ public abstract class Item {
     public String getName() {
         return name;
     }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -41,23 +43,24 @@ public abstract class Item {
     public String getType() {
         return type;
     }
+
     public void setType(String type) {
         this.type = type;
-        }
-
-    public String getImagePath() {
-        return imagePath;
-        }
+    }
 
     public String getDescription() {
         return description;
     }
 
-    public void setImagePath(String imagePath) {
-        this.imagePath = imagePath;
-    }
-
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
     }
 }
