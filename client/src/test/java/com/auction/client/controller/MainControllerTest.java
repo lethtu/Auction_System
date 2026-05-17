@@ -3,6 +3,7 @@ package com.auction.client.controller;
 import com.auction.client.model.User;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.control.Button;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.stage.Stage;
@@ -16,6 +17,7 @@ import org.testfx.framework.junit5.Start;
 import org.testfx.matcher.base.NodeMatchers;
 import org.testfx.matcher.control.LabeledMatchers;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.testfx.api.FxAssert.verifyThat;
 import static org.testfx.matcher.base.NodeMatchers.isVisible;
 
@@ -40,6 +42,19 @@ public class MainControllerTest {
     @Test
     public void should_have_search_field(FxRobot robot) {
         verifyThat("#txtSearch", isVisible());
+    }
+
+
+    @Test
+    @DisplayName("Test: Filter reset và Categories sidebar có handler")
+    public void testFilterAndCategoryButtonsHaveHandlers(FxRobot robot) {
+        Button resetFilterButton = robot.lookup("#btnResetFilter").queryAs(Button.class);
+        Button categoriesButton = robot.lookup("#btnSidebarCategories").queryAs(Button.class);
+
+        assertNotNull(resetFilterButton);
+        assertNotNull(categoriesButton);
+        assertNotNull(resetFilterButton.getOnAction());
+        assertNotNull(categoriesButton.getOnAction());
     }
 
     @Test
