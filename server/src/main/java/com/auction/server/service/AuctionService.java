@@ -73,6 +73,11 @@ public class AuctionService {
         AuctionSession item = itemOptional.get();
         BigDecimal currentPrice = item.getCurrentPrice();
 
+        if (item.getStartTime() != null && LocalDateTime.now().isBefore(item.getStartTime())) {
+            logger.error("Đặt giá thất bại: Phiên đấu giá {} chưa đến giờ bắt đầu.", ItemAuctionId);
+            return new BidResponse(false, "LỖI: Phiên đấu giá này chưa bắt đầu!", currentPrice, null);
+        }
+
         if (item.getStatus().equals(AuctionStatus.ACTIVE)){
             if (newBidAmount.compareTo(currentPrice) <= 0) {
                 logger.error("Đặt giá thất bại từ UserId: {} với giá: {} và giá hiện tại: {}", BidderId, newBidAmount, currentPrice);

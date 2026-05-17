@@ -116,8 +116,8 @@ public class MainController implements Initializable {
         cbCategory.getItems().addAll("Tất cả", "Electronics", "Art", "Vehicle");
         cbCategory.setValue("Tất cả");
 
-        // ĐÃ SỬA: Xóa "PENDING" khỏi bộ lọc trên giao diện sàn chính
-        cbStatus.getItems().addAll("Tất cả", "ACTIVE", "ENDED");
+        // Khởi tạo các trạng thái hiển thị trên sàn chính, bao gồm cả COMING SOON
+        cbStatus.getItems().addAll("Tất cả", "ACTIVE", "COMING SOON", "ENDED");
         cbStatus.setValue("Tất cả");
 
         // Lắng nghe sự kiện để lọc Real-time
@@ -241,15 +241,39 @@ public class MainController implements Initializable {
                 String type = itemObj.optString("type", "");
                 String status = sessionObj.optString("status", "ACTIVE");
 
-                // ĐÃ SỬA: Chặn đứng PENDING, REJECTED, CANCELED. Chỉ cho ACTIVE và ENDED lên sàn chính.
-                if ("PENDING".equalsIgnoreCase(status) || "REJECTED".equalsIgnoreCase(status) || "CANCELED".equalsIgnoreCase(status)) {
+                // Chỉ chặn đứng các phiên bị hủy
+                if ("CANCELED".equalsIgnoreCase(status)) {
                     continue;
+                }
+
+                // Xác định trạng thái "Coming Soon" (Chưa bắt đầu bán)
+                boolean isComingSoon = "COMING".equalsIgnoreCase(status);
+                String startTimeStr = sessionObj.optString("startTime", "");
+                if (!isComingSoon && !startTimeStr.isEmpty()) {
+                    try {
+                        java.time.LocalDateTime startTime = java.time.LocalDateTime.parse(startTimeStr);
+                        if (java.time.LocalDateTime.now().isBefore(startTime)) {
+                            isComingSoon = true;
+                        }
+                    } catch (Exception e) {
+                        // ignore parse error
+                    }
                 }
 
                 // Logic lọc 3 lớp
                 boolean matchKeyword = keyword.isEmpty() || name.toLowerCase().contains(keyword);
                 boolean matchCategory = "Tất cả".equals(selectedCategory) || type.equalsIgnoreCase(selectedCategory);
-                boolean matchStatus = "Tất cả".equals(selectedStatus) || status.equalsIgnoreCase(selectedStatus);
+                
+                boolean matchStatus = false;
+                if ("Tất cả".equals(selectedStatus)) {
+                    matchStatus = true;
+                } else if ("COMING SOON".equals(selectedStatus)) {
+                    matchStatus = isComingSoon;
+                } else if ("ACTIVE".equals(selectedStatus)) {
+                    matchStatus = !isComingSoon && "ACTIVE".equalsIgnoreCase(status);
+                } else if ("ENDED".equals(selectedStatus)) {
+                    matchStatus = !isComingSoon && "ENDED".equalsIgnoreCase(status);
+                }
 
                 if (matchKeyword && matchCategory && matchStatus) {
                     int id = sessionObj.optInt("id");
@@ -322,8 +346,39 @@ public class MainController implements Initializable {
             imageWrapper.getChildren().add(imageView);
         }
 
+        // Tính toán trạng thái Coming Soon cho Card hiển thị
+        boolean isComingSoon = "COMING".equalsIgnoreCase(status);
+        String startTimeStr = sessionObj.optString("startTime", "");
+        if (!isComingSoon && !startTimeStr.isEmpty()) {
+            try {
+                java.time.LocalDateTime startDT = java.time.LocalDateTime.parse(startTimeStr);
+                if (java.time.LocalDateTime.now().isBefore(startDT)) {
+                    isComingSoon = true;
+                }
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+
         String shortEnd = endTime.length() >= 16 ? endTime.substring(0, 16) : endTime;
-        if ("ACTIVE".equalsIgnoreCase(status)) {
+        if (isComingSoon) {
+            HBox timerBadge = new HBox(4.0);
+            timerBadge.setStyle("-fx-background-color: rgba(96, 72, 104, 0.9); -fx-background-radius: 15px; -fx-padding: 4px 8px;");
+            timerBadge.setAlignment(Pos.CENTER);
+            timerBadge.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+
+            Label timerIcon = new Label("\uE8B5");
+            timerIcon.getStyleClass().add("material-icon");
+            timerIcon.setStyle("-fx-text-fill: #ffffff; -fx-font-size: 14px;");
+
+            Label timerText = new Label("Coming Soon");
+            timerText.setStyle("-fx-font-weight: 900; -fx-font-size: 11px; -fx-text-fill: #ffffff;");
+
+            timerBadge.getChildren().addAll(timerIcon, timerText);
+            StackPane.setAlignment(timerBadge, Pos.TOP_RIGHT);
+            StackPane.setMargin(timerBadge, new Insets(8, 8, 0, 0));
+            imageWrapper.getChildren().add(timerBadge);
+        } else if ("ACTIVE".equalsIgnoreCase(status)) {
             HBox timerBadge = new HBox(4.0);
             timerBadge.setStyle("-fx-background-color: rgba(255, 255, 255, 0.9); -fx-background-radius: 15px; -fx-padding: 4px 8px;");
             timerBadge.setAlignment(Pos.CENTER);
@@ -371,7 +426,7 @@ public class MainController implements Initializable {
         Label addIcon = new Label("\uE145");
         addIcon.getStyleClass().add("material-icon");
 
-        if ("ACTIVE".equalsIgnoreCase(status)) {
+        if (!isComingSoon && "ACTIVE".equalsIgnoreCase(status)) {
             addIcon.setStyle("-fx-text-fill: #e040a0;");
             bidBtn.setStyle("-fx-background-color: #ffd6ee; -fx-background-radius: 20px; -fx-min-width: 40px; -fx-min-height: 40px; -fx-cursor: hand;");
             bidBtn.setGraphic(addIcon);
@@ -422,6 +477,21 @@ public class MainController implements Initializable {
         } catch (Exception e) {
             logger.error("Lỗi khi chuyển về trang Quản lý Seller: ", e);
         }
+    }
+
+    @FXML
+    public void handleResetDashboard(ActionEvent event) {
+        logger.info("Resetting dashboard filters and search text...");
+        if (txtSearch != null) {
+            txtSearch.clear();
+        }
+        if (cbCategory != null) {
+            cbCategory.setValue("Tất cả");
+        }
+        if (cbStatus != null) {
+            cbStatus.setValue("Tất cả");
+        }
+        filterAndRenderProducts();
     }
 
     @FXML

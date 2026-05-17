@@ -182,6 +182,27 @@ public class AuctionPageController {
                 setRemainingTime(endTimeStr);
             }
 
+            String status = sessionsObj.optString("status", "ACTIVE");
+            String startTimeStr = sessionsObj.optString("startTime", "");
+            boolean isComingSoon = "COMING".equalsIgnoreCase(status);
+            if (!isComingSoon && !startTimeStr.isEmpty()) {
+                try {
+                    java.time.LocalDateTime startTime = java.time.LocalDateTime.parse(startTimeStr);
+                    if (java.time.LocalDateTime.now().isBefore(startTime)) {
+                        isComingSoon = true;
+                    }
+                } catch (Exception e) {
+                    // ignore
+                }
+            }
+
+            if (isComingSoon) {
+                placeBidBtn.setDisable(true);
+                bidAmountField.setDisable(true);
+                messageLabel.setText("Phiên đấu giá chưa bắt đầu (Coming Soon)!");
+                messageLabel.setStyle("-fx-text-fill: orange; -fx-font-weight: bold;");
+            }
+
             connectToServer();
             logger.info("Successfully set item for session ID: {}", currentSessionId);
         } catch (Exception e) {

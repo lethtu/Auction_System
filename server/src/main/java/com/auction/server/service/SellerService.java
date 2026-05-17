@@ -47,7 +47,7 @@ public class SellerService {
         return (Seller) user;
     }
 
-    private void validateAuctionInput(CreateAuctionRequest request) {
+    private void validateAuctionInput(CreateAuctionRequest request, boolean isUpdate) {
         if (request.getName() == null || request.getName().trim().isEmpty()) {
             logger.error("Tên sản phẩm không được để trống");
             throw new IllegalArgumentException("Tên sản phẩm không được để trống");
@@ -76,7 +76,7 @@ public class SellerService {
         LocalDateTime now = LocalDateTime.now();
 
         // Cho phép dung sai 10 giây do độ trễ mạng (Network Latency) nếu Client có gửi startTime
-        if (request.getStartTime() != null && request.getStartTime().isBefore(now.minusSeconds(10))) {
+        if (!isUpdate && request.getStartTime() != null && request.getStartTime().isBefore(now.minusSeconds(10))) {
             logger.error("Thời gian bắt đầu không được nằm trong quá khứ.");
             throw new IllegalArgumentException("Thời gian bắt đầu không được nằm trong quá khứ.");
         }
@@ -95,7 +95,7 @@ public class SellerService {
      */
     @Transactional
     public AuctionSession createAuctionSession(CreateAuctionRequest request) {
-        validateAuctionInput(request);
+        validateAuctionInput(request, false);
         Seller seller = getSellerById(request.getSellerId());
 
         // Dùng ItemFactory của Khánh, map dữ liệu từ Request
@@ -123,13 +123,19 @@ public class SellerService {
 
         session.setEndTime(request.getEndTime());
 
-        session.setApprovedAt(null);
+        session.setApprovedAt(LocalDateTime.now());
         session.setRejectedAt(null);
         session.setRejectReason(null);
         session.setApprovedByAdminId(null);
         session.setRejectedByAdminId(null);
 
-        session.setStatus(AuctionStatus.PENDING); // Ép dùng Enum PENDING
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startTime = session.getStartTime();
+        if (startTime != null && startTime.isAfter(now)) {
+            session.setStatus(AuctionStatus.COMING);
+        } else {
+            session.setStatus(AuctionStatus.ACTIVE);
+        }
 
         return auctionSessionRepository.save(session);
     }
@@ -172,8 +178,8 @@ public class SellerService {
     }
 
     @Transactional
-    public AuctionSession updatePendingSession(Integer sessionId, Integer sellerId, CreateAuctionRequest request) {
-        validateAuctionInput(request);
+    public AuctionSession updateSession(Integer sessionId, Integer sellerId, CreateAuctionRequest request) {
+        validateAuctionInput(request, true);
         Seller seller = getSellerById(sellerId);
 
         AuctionSession session = auctionSessionRepository.findById(sessionId)
@@ -184,9 +190,9 @@ public class SellerService {
             throw new RuntimeException("Bạn không có quyền sửa phiên này");
         }
 
-        if (session.getStatus() != AuctionStatus.PENDING) {
-            logger.error("Chỉ được sửa phiên đang chờ duyệt");
-            throw new RuntimeException("Chỉ được sửa phiên đang chờ duyệt");
+        if (session.getStatus() != AuctionStatus.ACTIVE && session.getStatus() != AuctionStatus.COMING) {
+            logger.error("Chỉ được sửa phiên chưa kết thúc");
+            throw new RuntimeException("Chỉ được sửa phiên chưa kết thúc");
         }
 
         Item item = session.getItem();
@@ -201,6 +207,14 @@ public class SellerService {
         session.setStepPrice(request.getStepPrice());
         session.setStartTime(request.getStartTime());
         session.setEndTime(request.getEndTime());
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startTime = session.getStartTime();
+        if (startTime != null && startTime.isAfter(now)) {
+            session.setStatus(AuctionStatus.COMING);
+        } else {
+            session.setStatus(AuctionStatus.ACTIVE);
+        }
 
         return auctionSessionRepository.save(session);
     }
@@ -217,9 +231,9 @@ public class SellerService {
             throw new RuntimeException("Bạn không có quyền hủy phiên này");
         }
 
-        if (session.getStatus() != AuctionStatus.PENDING) {
-            logger.error("Chỉ được hủy phiên ở trạng thái chờ duyệt");
-            throw new RuntimeException("Chỉ được hủy phiên ở trạng thái chờ duyệt");
+        if (session.getStatus() != AuctionStatus.ACTIVE && session.getStatus() != AuctionStatus.COMING) {
+            logger.error("Chỉ được hủy phiên đang hoạt động hoặc chuẩn bị diễn ra");
+            throw new RuntimeException("Chỉ được hủy phiên đang hoạt động hoặc chuẩn bị diễn ra");
         }
 
         session.setStatus(AuctionStatus.CANCELED); // Ép dùng Enum CANCELED
