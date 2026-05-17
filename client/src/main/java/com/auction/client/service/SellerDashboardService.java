@@ -112,7 +112,9 @@ public class SellerDashboardService {
                 request.reservePrice,
                 request.startTime,
                 request.endTime,
-                request.sellerId
+                request.sellerId,
+                request.applyMinRate,
+                request.minRate
         );
     }
 

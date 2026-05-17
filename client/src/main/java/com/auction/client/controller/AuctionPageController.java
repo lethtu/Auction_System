@@ -14,6 +14,8 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
@@ -41,24 +43,9 @@ import java.time.LocalDateTime;
 public class AuctionPageController {
     private static final Logger logger = LoggerFactory.getLogger(AuctionPageController.class);
 
-    private static final String MAIN_TEMPLATE_FXML = "MainTemplate.fxml";
+    @FXML private MenuButton userMenuButton;
 
-    private static final String JOIN_PREFIX = "JOIN:";
-    private static final String BID_PREFIX = "BID:";
-    private static final String NOTICE_PREFIX = "NOTICE:";
-    private static final String RESPONSE_PREFIX = "RESPONSE:";
-    private static final String ROOM_COUNT_PREFIX = "ROOM_COUNT:";
     private static final String AUTOBID_PREFIX = "AUTOBID:";
-
-    private static final String MONEY_PREFIX = "₫ ";
-    private static final String DEFAULT_PRODUCT_NAME = "Unknown Product";
-    private static final String DEFAULT_DESCRIPTION = "Chưa có mô tả sản phẩm.";
-    private static final String DEFAULT_HIGHEST_BIDDER = "Chưa có người đặt giá";
-    private static final String PROCESSING_MESSAGE = "Đang xử lý yêu cầu...";
-
-    private static final int EXPANDED_SIDEBAR_WIDTH = 200;
-    private static final int COLLAPSED_SIDEBAR_WIDTH = 70;
-    private static final int BID_TIMEOUT_SECONDS = 8;
 
     private static final String ERROR_STYLE = "-fx-text-fill: red;";
     private static final String SUCCESS_STYLE = "-fx-text-fill: green;";
@@ -75,6 +62,7 @@ public class AuctionPageController {
     @FXML private Label remainingTimeLabel;
     @FXML private Label startPriceLabel;
     @FXML private ImageView productImageView;
+    @FXML private SidebarController sidebarController;
     @FXML private VBox sideBar;
 
     @FXML private Label mainMenuLabel;
@@ -98,8 +86,34 @@ public class AuctionPageController {
     @FXML private Label highestBidderLabel;
     @FXML private Label reserveStatusLabel;
     @FXML private Label totalBidsLabel;
-    @FXML private Label watchingCountLabel;
+    @FXML private Label watchingLabel;
     @FXML private Label itemDescriptionLabel;
+    @FXML private Label minIncrementLabel;
+    @FXML private VBox chartContainer;
+    @FXML private VBox bidHistoryContainer;
+
+    private static final String MAIN_TEMPLATE_FXML = "MainTemplate.fxml";
+    private static final String JOIN_PREFIX = "JOIN:";
+    private static final String BID_PREFIX = "BID:";
+    private static final String NOTICE_PREFIX = "NOTICE:";
+    private static final String RESPONSE_PREFIX = "RESPONSE:";
+    private static final String ROOM_COUNT_PREFIX = "ROOM_COUNT:";
+
+    private static final String MONEY_PREFIX = "₫ ";
+    private static final String DEFAULT_PRODUCT_NAME = "Unknown Product";
+    private static final String DEFAULT_DESCRIPTION = "Chưa có mô tả sản phẩm.";
+    private static final String DEFAULT_HIGHEST_BIDDER = "Chưa có người đặt giá";
+    private static final String PROCESSING_MESSAGE = "Đang xử lý yêu cầu...";
+
+    private static final int EXPANDED_SIDEBAR_WIDTH = 200;
+    private static final int COLLAPSED_SIDEBAR_WIDTH = 70;
+    private static final int BID_TIMEOUT_SECONDS = 8;
+
+
+    private final java.util.List<BidHistoryItem> bidHistoryData = new java.util.ArrayList<>();
+    private javafx.scene.chart.AreaChart<Number, Number> areaChart;
+    private javafx.scene.chart.XYChart.Series<Number, Number> priceSeries;
+    private int tickCount = 0;
 
     private Socket socket;
     private PrintWriter out;
@@ -114,27 +128,81 @@ public class AuctionPageController {
     private Integer highestBidderId;
     private int bidCount;
     private int watchingCount;
+    private int currentUserId;
+    private BigDecimal sessionStepPrice;
+    private BigDecimal myLastBidAmount = null;
 
     private Timeline timeline;
     private Timeline bidTimeout;
 
+    private static class BidHistoryItem {
+        private final BigDecimal amount;
+        private final String bidderName;
+        private final String timeAgo;
+
+        public BidHistoryItem(BigDecimal amount, String bidderName, String timeAgo) {
+            this.amount = amount;
+            this.bidderName = bidderName;
+            this.timeAgo = timeAgo;
+        }
+
+        public BigDecimal getAmount() {
+            return amount;
+        }
+
+        public String getBidderName() {
+            return bidderName;
+        }
+
+        public String getTimeAgo() {
+            return timeAgo;
+        }
+    }
+
     @FXML
     public void initialize() {
+        createUserOption("Avatar");
         initDefaultView();
+        if (sidebarController != null) {
+            sidebarController.setOnBeforeNavigate(this::disconnectSocket);
+            sidebarController.forceCollapse();
+        }
         setupResponsiveFontListeners();
     }
 
     public void setItem(JSONObject sessionObj, JSONObject itemObj) {
-        try {
-            currentSessionId = sessionObj.getInt("id");
-            applySessionData(sessionObj, itemObj);
-            refreshSessionFromServer();
-            connectToServer();
-            logger.info("Successfully set item for session ID: {}", currentSessionId);
-        } catch (Exception e) {
-            logger.error("Error while setting auction item", e);
-            showError("Không thể tải thông tin phiên đấu giá.");
+        if (sessionObj == null) return;
+        this.currentSessionId = sessionObj.optInt("id", 0);
+        applySessionData(sessionObj, itemObj);
+        initChart();
+        loadBidHistoryData(sessionObj);
+        renderBidHistoryUI();
+        renderLast3BidsToChart();
+        connectToServer();
+    }
+
+    private void createUserOption(String text) {
+        MenuItem accountItem = new MenuItem("Tài Khoản Của Tôi");
+        MenuItem depositMoney = new MenuItem("Nạp tiền");
+        MenuItem logoutItem = new MenuItem("Đăng Xuất");
+
+        logoutItem.setOnAction(event -> {
+            try {
+                handleLogout(event);
+            } catch (IOException e) {
+                e.printStackTrace();
+                logger.error("Lỗi khi chuyển sang màn hình Login!", e);
+            }
+        });
+
+        if (userMenuButton != null) {
+            userMenuButton.getItems().addAll(accountItem, depositMoney, logoutItem);
         }
+    }
+
+    public void handleLogout(ActionEvent event) throws IOException {
+        User.clearSession();
+        SceneSwitcher.switchScene(event, "Login.fxml", 400, 500);
     }
 
     @FXML
@@ -154,14 +222,19 @@ public class AuctionPageController {
             return;
         }
 
+        myLastBidAmount = bidAmount;
         sendBidRequest(bidAmount);
         showBidProcessing();
     }
 
     @FXML
     private void handleToggleSidebar(ActionEvent event) {
-        boolean shouldExpand = sideBar.getPrefWidth() <= COLLAPSED_SIDEBAR_WIDTH;
-        setSidebarExpanded(shouldExpand);
+        if (sidebarController != null) {
+            sidebarController.toggleSidebar();
+        } else if (sideBar != null) {
+            boolean shouldExpand = sideBar.getPrefWidth() <= COLLAPSED_SIDEBAR_WIDTH;
+            setSidebarExpanded(shouldExpand);
+        }
     }
 
     @FXML
@@ -371,7 +444,13 @@ public class AuctionPageController {
 
     @FXML
     private void handleStartSelling(ActionEvent event) {
-        logger.info("Start selling clicked in auction room");
+        disconnectSocket();
+        logger.info("Người dùng nhấn nút Start Selling (+), chuyển sang UpToSeller.fxml");
+        try {
+            SceneSwitcher.switchScene(event, "UpToSeller.fxml", 1280, 800);
+        } catch (Exception e) {
+            logger.error("Lỗi khi chuyển sang trang đăng ký Seller: ", e);
+        }
     }
 
     @FXML
@@ -386,6 +465,212 @@ public class AuctionPageController {
         }
     }
 
+    private void initChart() {
+        javafx.scene.chart.NumberAxis xAxis = new javafx.scene.chart.NumberAxis();
+        xAxis.setTickLabelsVisible(false);
+        xAxis.setMinorTickVisible(false);
+        xAxis.setTickMarkVisible(false);
+        xAxis.setOpacity(0);
+
+        javafx.scene.chart.NumberAxis yAxis = new javafx.scene.chart.NumberAxis();
+        yAxis.setTickLabelsVisible(false);
+        yAxis.setMinorTickVisible(false);
+        yAxis.setTickMarkVisible(false);
+        yAxis.setOpacity(0);
+        yAxis.setAutoRanging(true);
+
+        areaChart = new javafx.scene.chart.AreaChart<>(xAxis, yAxis);
+        areaChart.setLegendVisible(false);
+        areaChart.setCreateSymbols(true);
+        areaChart.setAnimated(true);
+        areaChart.lookup(".chart-plot-background").setStyle("-fx-background-color: transparent;");
+
+        priceSeries = new javafx.scene.chart.XYChart.Series<>();
+        priceSeries.setName("Bid Trajectory");
+        areaChart.getData().add(priceSeries);
+
+        Platform.runLater(() -> {
+            try {
+                areaChart.lookup(".default-color0.chart-series-area-line").setStyle("-fx-stroke: #e040a0; -fx-stroke-width: 3px;");
+                areaChart.lookup(".default-color0.chart-series-area-fill").setStyle("-fx-fill: linear-gradient(to bottom, rgba(224,64,160,0.3) 0%, rgba(224,64,160,0) 100%);");
+            } catch (Exception e) {}
+        });
+
+        if (chartContainer != null) {
+            chartContainer.getChildren().clear();
+            chartContainer.getChildren().add(areaChart);
+        }
+
+        tickCount = 0;
+    }
+
+    private void loadBidHistoryData(JSONObject sessionsObj) {
+        bidHistoryData.clear();
+
+        if (sessionsObj == null || !sessionsObj.has("bids") || sessionsObj.isNull("bids")) {
+            return;
+        }
+
+        org.json.JSONArray bidsArray = sessionsObj.getJSONArray("bids");
+
+        for (int i = 0; i < bidsArray.length(); i++) {
+            JSONObject bid = bidsArray.getJSONObject(i);
+
+            BigDecimal amount = bid.getBigDecimal("amount");
+
+            String timeAgo = "Vừa xong";
+            if (bid.has("time") && !bid.isNull("time")) {
+                timeAgo = calculateTimeAgo(bid.getString("time"));
+            }
+
+            String bidderName = "Bidder #Unknown";
+            if (bid.has("bidder") && !bid.isNull("bidder")) {
+                JSONObject bidderObj = bid.getJSONObject("bidder");
+                int bidderId = bidderObj.optInt("id", 0);
+                if (User.getId() != null && bidderId == User.getId()) {
+                    bidderName = "Bạn (You)";
+                } else {
+                    bidderName = "Bidder #" + bidderId;
+                }
+            }
+
+            bidHistoryData.add(new BidHistoryItem(amount, bidderName, timeAgo));
+        }
+    }
+
+    private void renderBidHistoryUI() {
+        if (bidHistoryContainer == null) return;
+        bidHistoryContainer.getChildren().clear();
+
+        int start = Math.max(0, bidHistoryData.size() - 3);
+
+        for (int i = bidHistoryData.size() - 1; i >= start; i--) {
+            BidHistoryItem item = bidHistoryData.get(i);
+            addBidRowToHistoryUI(
+                item.getBidderName(),
+                item.getAmount(),
+                item.getTimeAgo()
+            );
+        }
+    }
+
+    private void increaseTotalBidCount() {
+        try {
+            if (totalBidsLabel != null) {
+                String cleanTotal = totalBidsLabel.getText().replace(".", "");
+                int currentTotal = Integer.parseInt(cleanTotal);
+                totalBidsLabel.setText(formatPrice(new BigDecimal(currentTotal + 1)));
+            }
+        } catch (Exception e) {
+            logger.warn("Cannot increase total bid count", e);
+        }
+    }
+
+    private String calculateTimeAgo(String timeStr) {
+        try {
+            LocalDateTime past = LocalDateTime.parse(timeStr);
+            LocalDateTime now = LocalDateTime.now();
+            long seconds = Duration.between(past, now).getSeconds();
+            if (seconds < 60) return seconds + " seconds ago";
+            long minutes = seconds / 60;
+            if (minutes < 60) return minutes + " minutes ago";
+            long hours = minutes / 60;
+            if (hours < 24) return hours + " hours ago";
+            return (hours / 24) + " days ago";
+        } catch (Exception e) {
+            return "Past";
+        }
+    }
+
+    private void addBidToHistory(String bidderName, BigDecimal amount, String timeAgo) {
+        Platform.runLater(() -> {
+            if (bidHistoryContainer == null) return;
+            javafx.scene.layout.HBox historyRow = new javafx.scene.layout.HBox();
+            historyRow.setAlignment(javafx.geometry.Pos.CENTER);
+            historyRow.setSpacing(10);
+
+            Label nameLabel = new Label(bidderName);
+            nameLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
+
+            javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
+            javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
+
+            Label amountLabel = new Label("₫ " + formatPrice(amount));
+            amountLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
+            amountLabel.setPrefWidth(95);
+            amountLabel.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+
+            Label timeLabel = new Label(timeAgo);
+            timeLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 10px; -fx-text-fill: #604868;");
+            timeLabel.setPrefWidth(65);
+            timeLabel.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+
+            historyRow.getChildren().addAll(nameLabel, spacer, amountLabel, timeLabel);
+
+            if (bidHistoryContainer.getChildren().size() >= 3) {
+                bidHistoryContainer.getChildren().remove(bidHistoryContainer.getChildren().size() - 1);
+            }
+            bidHistoryContainer.getChildren().add(0, historyRow);
+
+            if (priceSeries != null && timeAgo.equals("Vừa xong")) {
+                priceSeries.getData().add(new javafx.scene.chart.XYChart.Data<>(tickCount++, amount.doubleValue()));
+            }
+        });
+    }
+
+    private void addBidRowToHistoryUI(String bidderName, BigDecimal amount, String timeAgo) {
+        if (bidHistoryContainer == null) return;
+        javafx.scene.layout.HBox historyRow = new javafx.scene.layout.HBox();
+        historyRow.setAlignment(javafx.geometry.Pos.CENTER);
+        historyRow.setSpacing(10);
+
+        Label nameLabel = new Label(bidderName);
+        nameLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
+
+        javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
+        javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
+
+        Label amountLabel = new Label("₫ " + formatPrice(amount));
+        amountLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
+        amountLabel.setPrefWidth(95);
+        amountLabel.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+
+        Label timeLabel = new Label(timeAgo);
+        timeLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 10px; -fx-text-fill: #604868;");
+        timeLabel.setPrefWidth(65);
+        timeLabel.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+
+        historyRow.getChildren().addAll(nameLabel, spacer, amountLabel, timeLabel);
+        bidHistoryContainer.getChildren().add(historyRow);
+    }
+
+    private void renderLast3BidsToChart() {
+        if (priceSeries == null) return;
+
+        priceSeries.getData().clear();
+        tickCount = 0;
+
+        int start = Math.max(0, bidHistoryData.size() - 3);
+
+        for (int i = start; i < bidHistoryData.size(); i++) {
+            BidHistoryItem item = bidHistoryData.get(i);
+            priceSeries.getData().add(
+                new javafx.scene.chart.XYChart.Data<>(
+                    tickCount++,
+                    item.getAmount().doubleValue()
+                )
+            );
+        }
+
+        if (bidHistoryData.isEmpty() && currentPrice != null) {
+            priceSeries.getData().add(
+                new javafx.scene.chart.XYChart.Data<>(
+                    tickCount++,
+                    currentPrice.doubleValue()
+                )
+            );
+        }
+    }
     public void setRemainingTime(String endTimeStr) {
         stopTimeline();
 
@@ -401,11 +686,11 @@ public class AuctionPageController {
         currentPriceLabel.setText("...");
         remainingTimeLabel.setText("00:00:00");
 
-        setLabelText(minBidIncrementLabel, "Tăng tối thiểu ₫ 0");
+        setLabelText(minIncrementLabel, "Tăng tối thiểu ₫ 0");
         setLabelText(highestBidderLabel, DEFAULT_HIGHEST_BIDDER);
         setLabelText(reserveStatusLabel, "");
         setLabelText(totalBidsLabel, "0");
-        setLabelText(watchingCountLabel, "0");
+        setLabelText(watchingLabel, "0");
         setLabelText(itemDescriptionLabel, DEFAULT_DESCRIPTION);
     }
 
@@ -568,7 +853,7 @@ public class AuctionPageController {
     private void updatePriceLabels() {
         currentPriceLabel.setText(MONEY_PREFIX + formatPrice(currentPrice));
 
-        if (startingPrice.compareTo(BigDecimal.ZERO) > 0) {
+        if (startingPrice.compareTo(BigDecimal.ZERO) >= 0) {
             startPriceLabel.setText(MONEY_PREFIX + formatPrice(startingPrice));
         } else {
             startPriceLabel.setText("---");
@@ -596,18 +881,40 @@ public class AuctionPageController {
         }
     }
 
+    private BigDecimal getEffectiveStepPrice() {
+        if (stepPrice != null && stepPrice.compareTo(BigDecimal.ZERO) > 0) {
+            return stepPrice;
+        }
+        if (currentPrice == null) return new BigDecimal("10000");
+        if (currentPrice.compareTo(new BigDecimal("100000")) < 0) {
+            return new BigDecimal("10000");
+        } else if (currentPrice.compareTo(new BigDecimal("500000")) < 0) {
+            return new BigDecimal("20000");
+        } else if (currentPrice.compareTo(new BigDecimal("1000000")) < 0) {
+            return new BigDecimal("50000");
+        } else if (currentPrice.compareTo(new BigDecimal("5000000")) < 0) {
+            return new BigDecimal("100000");
+        } else {
+            return new BigDecimal("200000");
+        }
+    }
+
     private void updateBidInfoLabels() {
-        setLabelText(minBidIncrementLabel, "Tăng tối thiểu ₫ " + formatPrice(stepPrice));
+        setLabelText(minIncrementLabel, "Tăng tối thiểu ₫ " + formatPrice(getEffectiveStepPrice()));
         setLabelText(highestBidderLabel, formatHighestBidder());
         setLabelText(reserveStatusLabel, formatReserveStatus());
         setLabelText(totalBidsLabel, String.valueOf(Math.max(0, bidCount)));
-        setLabelText(watchingCountLabel, String.valueOf(Math.max(0, watchingCount)));
+        setLabelText(watchingLabel, String.valueOf(Math.max(0, watchingCount)));
     }
 
     private String formatHighestBidder() {
-        return highestBidderId == null
-                ? DEFAULT_HIGHEST_BIDDER
-                : "Người đang giữ giá: User #" + highestBidderId;
+        if (highestBidderId == null) {
+            return DEFAULT_HIGHEST_BIDDER;
+        }
+        if (User.getId() != null && highestBidderId.equals(User.getId())) {
+            return "Người đang giữ giá: Bạn (You)";
+        }
+        return "Người đang giữ giá: User #" + highestBidderId;
     }
 
     private String formatReserveStatus() {
@@ -685,10 +992,18 @@ public class AuctionPageController {
             bidCount = getOptionalIntOrDefault(noticeObj, "bidCount", bidCount);
             updateBidInfoLabels();
 
+            String bidderName = "User #" + highestBidderId;
+            if (User.getId() != null && highestBidderId != null && highestBidderId.equals(User.getId())) {
+                bidderName = "Bạn (You)";
+            }
+            addBidToHistory(bidderName, newPrice, "Vừa xong");
+
             if (noticeObj.has("newEndTime")) {
                 handleAuctionExtended(noticeObj.getString("newEndTime"));
             } else {
-                showInfo("Có người vừa ra giá mới!");
+                if (User.getId() == null || highestBidderId == null || !highestBidderId.equals(User.getId())) {
+                    showInfo("Có người vừa ra giá mới!");
+                }
             }
         });
     }
@@ -765,7 +1080,13 @@ public class AuctionPageController {
             return null;
         }
 
-        BigDecimal minimumBid = currentPrice.add(stepPrice);
+        if (bidAmount.compareTo(currentPrice) <= 0) {
+            showError("Giá đặt phải LỚN HƠN giá hiện tại (₫ " + formatPrice(currentPrice) + ")!");
+            return null;
+        }
+
+        BigDecimal increment = getEffectiveStepPrice();
+        BigDecimal minimumBid = currentPrice.add(increment);
         if (bidAmount.compareTo(minimumBid) < 0) {
             showError("Giá đặt tối thiểu là ₫ " + formatPrice(minimumBid) + "!");
             return null;

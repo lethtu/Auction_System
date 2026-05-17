@@ -34,6 +34,8 @@ public final class SellerRequestBuilder {
         body.put(KEY_START_TIME, request.startTime);
         body.put(KEY_END_TIME, request.endTime);
         body.put(KEY_SELLER_ID, request.sellerId);
+        body.put("applyMinRate", request.applyMinRate != null ? request.applyMinRate : false);
+        putIfNotNull(body, "minRate", request.minRate);
 
         return body;
     }

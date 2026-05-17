@@ -1,12 +1,14 @@
 package com.auction.server.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
 
 @Entity
 @Table(name = "bids")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Bid {
 
     @Id

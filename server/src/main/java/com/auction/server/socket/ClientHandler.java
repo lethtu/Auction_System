@@ -43,7 +43,11 @@ public class ClientHandler implements Runnable {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            if (e instanceof java.net.SocketException) {
+                System.out.println("Client disconnected: " + e.getMessage());
+            } else {
+                e.printStackTrace();
+            }
         } finally {
             SocketServer.removeFromAllRooms(out);
             try {
@@ -109,6 +113,7 @@ public class ClientHandler implements Runnable {
 
         if (response.getHighestBidderId() != null) {
             notice.put("highestBidderId", response.getHighestBidderId());
+            notice.put("bidderId", response.getHighestBidderId());
         }
         if (response.getBidCount() != null) {
             notice.put("bidCount", response.getBidCount());
