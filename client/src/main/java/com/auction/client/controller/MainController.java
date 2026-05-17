@@ -101,12 +101,20 @@ public class MainController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        btnHamburger.setId("btnHamburger");
+
         Button fakeBtn = new Button();
+        fakeBtn.setId("btnSidebarCategories");
         fakeBtn.setVisible(false);
         fakeBtn.setManaged(false);
-        fakeBtn.setId("btnSidebarCategories");
+
+        // QUAN TRỌNG
+        fakeBtn.setOnAction(e -> {});
 
         productContainer.getChildren().add(fakeBtn);
+
+        // QUAN TRỌNG
+        btnHamburger.setOnAction(this::handleToggleSidebar);
         
         if (User.getFullname() != null) {
             createUserOption("Chào, " + User.getFullname());
