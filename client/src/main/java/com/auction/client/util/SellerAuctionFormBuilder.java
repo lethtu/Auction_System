@@ -1,6 +1,7 @@
 package com.auction.client.util;
 
 import com.auction.client.dto.CreateAuctionRequest;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextInputControl;
 
@@ -32,6 +33,8 @@ public final class SellerAuctionFormBuilder {
             TextInputControl startingPriceField,
             TextInputControl stepPriceField,
             TextInputControl reservePriceField,
+            CheckBox applyMinRateCheck,
+            TextInputControl minRateField,
             String startTime,
             String endTime
     ) {
@@ -44,6 +47,8 @@ public final class SellerAuctionFormBuilder {
                 startingPriceField,
                 stepPriceField,
                 reservePriceField,
+                applyMinRateCheck,
+                minRateField,
                 startTime,
                 endTime
         );
@@ -58,6 +63,8 @@ public final class SellerAuctionFormBuilder {
             TextInputControl startingPriceField,
             TextInputControl stepPriceField,
             TextInputControl reservePriceField,
+            CheckBox applyMinRateCheck,
+            TextInputControl minRateField,
             String startTime,
             String endTime
     ) {
@@ -70,6 +77,8 @@ public final class SellerAuctionFormBuilder {
                 startingPriceField,
                 stepPriceField,
                 reservePriceField,
+                applyMinRateCheck,
+                minRateField,
                 startTime,
                 endTime
         );
@@ -84,6 +93,8 @@ public final class SellerAuctionFormBuilder {
             TextInputControl startingPriceField,
             TextInputControl stepPriceField,
             TextInputControl reservePriceField,
+            CheckBox applyMinRateCheck,
+            TextInputControl minRateField,
             String startTimeInput,
             String endTimeInput
     ) {
@@ -95,6 +106,8 @@ public final class SellerAuctionFormBuilder {
                 startingPriceField,
                 stepPriceField,
                 reservePriceField,
+                applyMinRateCheck,
+                minRateField,
                 startTimeInput,
                 endTimeInput
         );
@@ -114,6 +127,18 @@ public final class SellerAuctionFormBuilder {
                 startingPrice
         );
 
+        Boolean applyMinRate = formValues.applyMinRateCheck() != null && formValues.applyMinRateCheck().isSelected();
+        BigDecimal minRate = null;
+        if (applyMinRate) {
+            if (formValues.minRateText().isEmpty()) {
+                throw new IllegalArgumentException("Vui lòng nhập giá tối thiểu (Min rate).");
+            }
+            minRate = parsePositiveMoney(formValues.minRateText(), "Giá tối thiểu phải là số hợp lệ lớn hơn 0.");
+            if (minRate.compareTo(startingPrice) < 0) {
+                throw new IllegalArgumentException("Giá tối thiểu phải lớn hơn hoặc bằng giá khởi điểm.");
+            }
+        }
+
         return new CreateAuctionRequest(
                 formValues.productName(),
                 formValues.productType(),
@@ -124,7 +149,9 @@ public final class SellerAuctionFormBuilder {
                 reservePrice,
                 defaultIfBlank(formValues.startTime(), SellerAuctionFormBuilder::defaultStartTime),
                 defaultIfBlank(formValues.endTime(), SellerAuctionFormBuilder::defaultEndTime),
-                sellerId
+                sellerId,
+                applyMinRate,
+                minRate
         );
     }
 
@@ -136,6 +163,8 @@ public final class SellerAuctionFormBuilder {
             TextInputControl startingPriceField,
             TextInputControl stepPriceField,
             TextInputControl reservePriceField,
+            CheckBox applyMinRateCheck,
+            TextInputControl minRateField,
             String startTimeInput,
             String endTimeInput
     ) {
@@ -147,6 +176,8 @@ public final class SellerAuctionFormBuilder {
                 textOrEmpty(startingPriceField),
                 textOrEmpty(stepPriceField),
                 textOrEmpty(reservePriceField),
+                applyMinRateCheck,
+                textOrEmpty(minRateField),
                 trimOrEmpty(startTimeInput),
                 trimOrEmpty(endTimeInput)
         );
@@ -247,6 +278,8 @@ public final class SellerAuctionFormBuilder {
             String startingPriceText,
             String stepPriceText,
             String reservePriceText,
+            CheckBox applyMinRateCheck,
+            String minRateText,
             String startTime,
             String endTime
     ) {

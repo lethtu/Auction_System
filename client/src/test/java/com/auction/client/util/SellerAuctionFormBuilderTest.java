@@ -36,6 +36,8 @@ class SellerAuctionFormBuilderTest {
                 textField("1.000.000 đ"),
                 textField("100.000"),
                 textField("1.500.000"),
+                checkBox(false),
+                textField(""),
                 START_TIME,
                 END_TIME
         );
@@ -50,8 +52,31 @@ class SellerAuctionFormBuilderTest {
         assertEquals(START_TIME, request.startTime);
         assertEquals(END_TIME, request.endTime);
         assertEquals(SELLER_ID, request.sellerId);
+        assertFalse(request.applyMinRate);
+        assertNull(request.minRate);
         assertTrue(request.hasImagePath());
         assertTrue(request.hasReservePrice());
+    }
+
+    @Test
+    void buildCreateRequest_validMinRateInput() {
+        CreateAuctionRequest request = SellerAuctionFormBuilder.buildCreateRequest(
+                SELLER_ID,
+                combo("Electronics"),
+                textField(" Laptop Gaming "),
+                textArea(" Máy còn tốt "),
+                textField(" upload/images/laptop.png "),
+                textField("1.000.000 đ"),
+                textField("100.000"),
+                textField("1.500.000"),
+                checkBox(true),
+                textField("1.200.000"),
+                START_TIME,
+                END_TIME
+        );
+
+        assertTrue(request.applyMinRate);
+        assertEquals(new BigDecimal("1200000"), request.minRate);
     }
 
     @Test
@@ -72,6 +97,8 @@ class SellerAuctionFormBuilderTest {
                 textField(""),
                 textField("1000000"),
                 textField("100000"),
+                textField(""),
+                checkBox(false),
                 textField(""),
                 "",
                 ""
@@ -96,6 +123,8 @@ class SellerAuctionFormBuilderTest {
                         textField("1000000"),
                         textField("100000"),
                         textField(""),
+                        checkBox(false),
+                        textField(""),
                         START_TIME,
                         END_TIME
                 )
@@ -116,6 +145,8 @@ class SellerAuctionFormBuilderTest {
                         textField(""),
                         textField("abc"),
                         textField("100000"),
+                        textField(""),
+                        checkBox(false),
                         textField(""),
                         START_TIME,
                         END_TIME
@@ -138,6 +169,8 @@ class SellerAuctionFormBuilderTest {
                         textField("0"),
                         textField("100000"),
                         textField(""),
+                        checkBox(false),
+                        textField(""),
                         START_TIME,
                         END_TIME
                 )
@@ -159,6 +192,8 @@ class SellerAuctionFormBuilderTest {
                         textField("1000000"),
                         textField("0"),
                         textField(""),
+                        checkBox(false),
+                        textField(""),
                         START_TIME,
                         END_TIME
                 )
@@ -177,6 +212,29 @@ class SellerAuctionFormBuilderTest {
         assertEquals("Giá sàn không được nhỏ hơn giá khởi điểm.", ex.getMessage());
     }
 
+    @Test
+    void buildCreateRequest_minRateBelowStartingPrice_throwsException() {
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> SellerAuctionFormBuilder.buildCreateRequest(
+                        SELLER_ID,
+                        combo("Electronics"),
+                        textField("Laptop"),
+                        textArea("Mô tả"),
+                        textField(""),
+                        textField("1000000"),
+                        textField("100000"),
+                        textField(""),
+                        checkBox(true),
+                        textField("500000"),
+                        START_TIME,
+                        END_TIME
+                )
+        );
+
+        assertEquals("Giá tối thiểu phải lớn hơn hoặc bằng giá khởi điểm.", ex.getMessage());
+    }
+
     private CreateAuctionRequest validRequestWithReservePrice(String reservePrice) {
         return SellerAuctionFormBuilder.buildCreateRequest(
                 SELLER_ID,
@@ -187,6 +245,8 @@ class SellerAuctionFormBuilderTest {
                 textField("1000000"),
                 textField("100000"),
                 textField(reservePrice),
+                checkBox(false),
+                textField(""),
                 START_TIME,
                 END_TIME
         );
@@ -208,5 +268,11 @@ class SellerAuctionFormBuilderTest {
         TextArea textArea = new TextArea();
         textArea.setText(value);
         return textArea;
+    }
+
+    private javafx.scene.control.CheckBox checkBox(boolean value) {
+        javafx.scene.control.CheckBox cb = new javafx.scene.control.CheckBox();
+        cb.setSelected(value);
+        return cb;
     }
 }

@@ -23,14 +23,18 @@ public class SessionItem {
     public String startTime = "";
     public String endTime = "";
     public String status = DEFAULT_STATUS;
+    public boolean applyMinRate;
+    public BigDecimal minRate;
 
     public String toDisplayText() {
         return toDisplayText(0);
     }
 
     public String toDisplayText(int displayIndex) {
+        String minRateInfo = applyMinRate && minRate != null ? " | MinRate: " + formatPrice(minRate) : "";
         return buildPrefix(displayIndex)
                 + " | " + normalizeText(productName)
+                + minRateInfo
                 + " | " + normalizeText(status)
                 + " | Giá hiện tại: " + formatPrice(currentPrice)
                 + " | Bước giá: " + formatPrice(stepPrice)
