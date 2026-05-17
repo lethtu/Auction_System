@@ -57,7 +57,7 @@ public class SellerService {
         }
 
         SellerSessionUpdater.resetApprovalInfo(session);
-        session.setStatus(AuctionStatus.PENDING);
+        session.setStatus(AuctionStatus.ACTIVE);
 
         AuctionSession savedSession = auctionSessionRepository.save(session);
         return SessionResponseMapper.toDTO(savedSession);

@@ -8,10 +8,15 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -43,6 +48,7 @@ public class AuctionPageController {
     private static final String NOTICE_PREFIX = "NOTICE:";
     private static final String RESPONSE_PREFIX = "RESPONSE:";
     private static final String ROOM_COUNT_PREFIX = "ROOM_COUNT:";
+    private static final String AUTOBID_PREFIX = "AUTOBID:";
 
     private static final String MONEY_PREFIX = "₫ ";
     private static final String DEFAULT_PRODUCT_NAME = "Unknown Product";
@@ -64,6 +70,7 @@ public class AuctionPageController {
     @FXML private Label currentPriceLabel;
     @FXML private TextField bidAmountField;
     @FXML private Button placeBidBtn;
+    @FXML private Button btnAutoBid;
     @FXML private Label messageLabel;
     @FXML private Label remainingTimeLabel;
     @FXML private Label startPriceLabel;
@@ -155,6 +162,211 @@ public class AuctionPageController {
     private void handleToggleSidebar(ActionEvent event) {
         boolean shouldExpand = sideBar.getPrefWidth() <= COLLAPSED_SIDEBAR_WIDTH;
         setSidebarExpanded(shouldExpand);
+    }
+
+    @FXML
+    public void handleAutoBidConfig(ActionEvent event) {
+        if (!isUserLoggedIn()) {
+            showError("Vui lòng đăng nhập để cấu hình Auto-bid!");
+            return;
+        }
+
+        if (!isSocketReady()) {
+            showError("Chưa kết nối máy chủ Socket!");
+            return;
+        }
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("⚡ Cấu hình Auto-bidding");
+        dialog.setHeaderText(null); // Custom header below
+
+        ButtonType activateButtonType = new ButtonType("Kích hoạt", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(activateButtonType, ButtonType.CANCEL);
+
+        // ── Custom styled DialogPane ──
+        DialogPane dialogPane = dialog.getDialogPane();
+        dialogPane.setStyle(
+                "-fx-background-color: #ffffff;" +
+                "-fx-border-color: #f2e8f2;" +
+                "-fx-border-width: 2px;" +
+                "-fx-border-radius: 12px;" +
+                "-fx-background-radius: 12px;"
+        );
+        dialogPane.setPrefWidth(420);
+
+        // ── Header VBox ──
+        VBox headerBox = new VBox(4);
+        headerBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+        Label titleLabel = new Label("⚡ Cấu hình Auto-bidding");
+        titleLabel.setStyle(
+                "-fx-font-size: 18px;" +
+                "-fx-font-weight: 900;" +
+                "-fx-text-fill: #2e1a28;"
+        );
+
+        Label subtitleLabel = new Label("Hệ thống sẽ tự động đặt giá khi có người trả giá cao hơn bạn.");
+        subtitleLabel.setStyle(
+                "-fx-font-size: 12px;" +
+                "-fx-text-fill: #907898;"
+        );
+        subtitleLabel.setWrapText(true);
+
+        headerBox.getChildren().addAll(titleLabel, subtitleLabel);
+
+        // ── Current price badge ──
+        Label priceBadge = new Label("💰 Giá hiện tại: " + MONEY_PREFIX + formatPrice(currentPrice));
+        priceBadge.setStyle(
+                "-fx-background-color: #fff0f8;" +
+                "-fx-background-radius: 8px;" +
+                "-fx-padding: 8px 14px;" +
+                "-fx-font-size: 13px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-text-fill: #e040a0;" +
+                "-fx-border-color: #ffe8f2;" +
+                "-fx-border-radius: 8px;" +
+                "-fx-border-width: 1px;"
+        );
+        priceBadge.setMaxWidth(Double.MAX_VALUE);
+
+        // ── Input GridPane ──
+        GridPane grid = new GridPane();
+        grid.setHgap(12);
+        grid.setVgap(15);
+
+        Label maxBidLabel = new Label("Giá kịch kim (Max Bid)");
+        maxBidLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
+        Label maxBidHint = new Label("Mức giá cao nhất bạn chấp nhận trả");
+        maxBidHint.setStyle("-fx-font-size: 11px; -fx-text-fill: #a890a8;");
+
+        TextField maxBidField = new TextField();
+        maxBidField.setPromptText("Nhập giá cao nhất... VD: 5000000");
+        maxBidField.setStyle(
+                "-fx-background-color: #faf6fa;" +
+                "-fx-border-color: #e8d8e8;" +
+                "-fx-border-radius: 8px;" +
+                "-fx-background-radius: 8px;" +
+                "-fx-padding: 10px 14px;" +
+                "-fx-font-size: 13px;" +
+                "-fx-pref-height: 40px;"
+        );
+        maxBidField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+            if (isFocused) {
+                maxBidField.setStyle(maxBidField.getStyle() + "-fx-border-color: #e040a0;");
+            } else {
+                maxBidField.setStyle(maxBidField.getStyle().replace("-fx-border-color: #e040a0;", "-fx-border-color: #e8d8e8;"));
+            }
+        });
+
+        Label incLabel = new Label("Bước giá tự động (Increment)");
+        incLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
+        Label incHint = new Label("Mỗi lần hệ thống sẽ cộng thêm bước giá này");
+        incHint.setStyle("-fx-font-size: 11px; -fx-text-fill: #a890a8;");
+
+        TextField incrementField = new TextField();
+        incrementField.setPromptText("Nhập bước giá... VD: 100000");
+        incrementField.setStyle(
+                "-fx-background-color: #faf6fa;" +
+                "-fx-border-color: #e8d8e8;" +
+                "-fx-border-radius: 8px;" +
+                "-fx-background-radius: 8px;" +
+                "-fx-padding: 10px 14px;" +
+                "-fx-font-size: 13px;" +
+                "-fx-pref-height: 40px;"
+        );
+        incrementField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+            if (isFocused) {
+                incrementField.setStyle(incrementField.getStyle() + "-fx-border-color: #e040a0;");
+            } else {
+                incrementField.setStyle(incrementField.getStyle().replace("-fx-border-color: #e040a0;", "-fx-border-color: #e8d8e8;"));
+            }
+        });
+
+        VBox maxBidGroup = new VBox(3, maxBidLabel, maxBidHint, maxBidField);
+        VBox incGroup = new VBox(3, incLabel, incHint, incrementField);
+
+        // ── Main layout ──
+        VBox mainContent = new VBox(15);
+        mainContent.setStyle("-fx-padding: 20px;");
+        mainContent.getChildren().addAll(headerBox, priceBadge, maxBidGroup, incGroup);
+
+        dialogPane.setContent(mainContent);
+
+        // ── Style buttons ──
+        javafx.scene.Node activateBtn = dialogPane.lookupButton(activateButtonType);
+        if (activateBtn != null) {
+            activateBtn.setStyle(
+                    "-fx-background-color: linear-gradient(to right, #e040a0, #f06292);" +
+                    "-fx-text-fill: white;" +
+                    "-fx-font-weight: bold;" +
+                    "-fx-font-size: 13px;" +
+                    "-fx-background-radius: 10px;" +
+                    "-fx-padding: 8px 24px;" +
+                    "-fx-cursor: hand;"
+            );
+        }
+
+        javafx.scene.Node cancelBtn = dialogPane.lookupButton(ButtonType.CANCEL);
+        if (cancelBtn != null) {
+            cancelBtn.setStyle(
+                    "-fx-background-color: #f2e8f2;" +
+                    "-fx-text-fill: #604868;" +
+                    "-fx-font-weight: bold;" +
+                    "-fx-font-size: 13px;" +
+                    "-fx-background-radius: 10px;" +
+                    "-fx-padding: 8px 24px;" +
+                    "-fx-cursor: hand;"
+            );
+        }
+
+        Platform.runLater(maxBidField::requestFocus);
+
+        dialog.showAndWait().ifPresent(result -> {
+            if (result == activateButtonType) {
+                processAutoBidInput(maxBidField.getText(), incrementField.getText());
+            }
+        });
+    }
+
+    private void processAutoBidInput(String maxBidText, String incrementText) {
+        BigDecimal maxBid;
+        BigDecimal increment;
+
+        try {
+            maxBid = parseMoneyInput(maxBidText);
+        } catch (NumberFormatException e) {
+            showError("Giá kịch kim phải là con số hợp lệ!");
+            return;
+        }
+
+        try {
+            increment = parseMoneyInput(incrementText);
+        } catch (NumberFormatException e) {
+            showError("Bước giá phải là con số hợp lệ!");
+            return;
+        }
+
+        if (maxBid.compareTo(currentPrice) <= 0) {
+            showError("Giá kịch kim phải lớn hơn giá hiện tại (" + MONEY_PREFIX + formatPrice(currentPrice) + ")!");
+            return;
+        }
+
+        if (increment.compareTo(BigDecimal.ZERO) <= 0) {
+            showError("Bước giá phải lớn hơn 0!");
+            return;
+        }
+
+        JSONObject json = new JSONObject();
+        json.put("auctionId", currentSessionId);
+        json.put("bidderId", User.getId());
+        json.put("maxBid", maxBid);
+        json.put("increment", increment);
+
+        out.println(AUTOBID_PREFIX + json.toString());
+
+        messageLabel.setStyle(WARNING_STYLE);
+        messageLabel.setText("Đang kích hoạt Auto-bidding...");
+        logger.info("Sent AUTOBID request: {}", json);
     }
 
     @FXML

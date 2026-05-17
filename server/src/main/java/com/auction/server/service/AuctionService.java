@@ -36,6 +36,9 @@ public class AuctionService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private com.auction.server.repository.AutoBidConfigRepository autoBidConfigRepository;
+
     public List<AuctionSession> getActiveSessions() {
         return auctionSessionRepository.findByStatus(AuctionStatus.ACTIVE);
     }
@@ -148,6 +151,204 @@ public class AuctionService {
         else{
             logger.error("Lỗi: Phiên đấu giá: {} hiện đang có trạng thái: {}", ItemAuctionId, item.getStatus());
             return new BidResponse(false, "Lỗi: Phiên này chưa được phép đấu giá", currentPrice, null, item.getHighestBidderId());
+        }
+    }
+
+    // ==========================================
+    // AUTO-BID ENGINE O(1)
+    // ==========================================
+
+    /**
+     * Đăng ký hoặc cập nhật cấu hình Auto-bid vào Database (upsert).
+     */
+    @Transactional
+    public void registerAutoBid(Integer sessionId, Integer bidderId, BigDecimal maxBid, BigDecimal increment) {
+        Optional<com.auction.server.model.AutoBidConfig> existing =
+                autoBidConfigRepository.findBySessionIdAndBidderIdAndActiveTrue(sessionId, bidderId);
+
+        com.auction.server.model.AutoBidConfig config;
+        if (existing.isPresent()) {
+            config = existing.get();
+            config.setMaxBid(maxBid);
+            config.setIncrement(increment);
+            logger.info("AUTO-BID updated: sessionId={}, bidderId={}, maxBid={}, increment={}",
+                    sessionId, bidderId, maxBid, increment);
+        } else {
+            config = new com.auction.server.model.AutoBidConfig(sessionId, bidderId, maxBid, increment);
+            logger.info("AUTO-BID registered: sessionId={}, bidderId={}, maxBid={}, increment={}",
+                    sessionId, bidderId, maxBid, increment);
+        }
+
+        autoBidConfigRepository.save(config);
+    }
+
+    /**
+     * Thuật toán O(1): Tính giá chốt hạ dựa trên Top 2 auto-bidder.
+     * Công thức: newPrice = min(challenger.maxBid + winner.increment, winner.maxBid)
+     *
+     * @param sessionId phiên đấu giá
+     * @return BidResponse nếu auto-bid thành công, null nếu không cần hành động
+     */
+    @Transactional
+    public BidResponse resolveAutoBids(Integer sessionId) {
+        // 1. Lấy session với pessimistic lock
+        Optional<AuctionSession> sessionOpt = auctionSessionRepository.findByIdForUpdate(sessionId);
+        if (sessionOpt.isEmpty()) {
+            return null;
+        }
+
+        AuctionSession session = sessionOpt.get();
+        if (!session.getStatus().equals(AuctionStatus.ACTIVE)) {
+            return null;
+        }
+
+        BigDecimal currentPrice = session.getCurrentPrice() == null ? BigDecimal.ZERO : session.getCurrentPrice();
+
+        // 2. Query Top 2 auto-bid configs (đã sort maxBid DESC)
+        List<com.auction.server.model.AutoBidConfig> configs =
+                autoBidConfigRepository.findBySessionIdAndActiveTrueOrderByMaxBidDesc(sessionId);
+
+        if (configs.isEmpty()) {
+            return null; // Không có auto-bid nào
+        }
+
+        com.auction.server.model.AutoBidConfig winner = configs.get(0); // maxBid cao nhất
+
+        // Nếu winner đang là người giữ giá → không cần auto-bid
+        if (winner.getBidderId().equals(session.getHighestBidderId())) {
+            // Winner đã dẫn đầu, kiểm tra xem có challenger nào cần phản đòn không
+            if (configs.size() < 2) {
+                return null; // Chỉ 1 auto-bidder và đã dẫn đầu
+            }
+            // Swap: challenger trở thành người cần phản đòn
+            com.auction.server.model.AutoBidConfig challenger = configs.get(1);
+            // Challenger cần bid currentPrice + challenger.increment
+            BigDecimal challengerBid = currentPrice.add(challenger.getIncrement());
+            if (challengerBid.compareTo(challenger.getMaxBid()) > 0) {
+                // Challenger hết maxBid → vô hiệu hóa
+                challenger.setActive(false);
+                autoBidConfigRepository.save(challenger);
+                logger.info("AUTO-BID expired: bidderId={} hết maxBid={}", challenger.getBidderId(), challenger.getMaxBid());
+                return null;
+            }
+            // Challenger đặt giá, rồi winner sẽ phản đòn ở lần resolve tiếp
+            // Nhưng ta tính O(1) luôn:
+            BigDecimal newPrice = challengerBid.min(winner.getMaxBid());
+            // Winner cần phản đòn nếu challenger bid thành công
+            if (newPrice.compareTo(currentPrice) > 0) {
+                BigDecimal finalPrice = newPrice.add(winner.getIncrement()).min(winner.getMaxBid());
+                if (finalPrice.compareTo(newPrice) > 0) {
+                    // Winner phản đòn thành công
+                    return executeAutoBid(session, winner, configs, finalPrice, currentPrice);
+                } else {
+                    // Winner hết room → challenger thắng tại newPrice
+                    return executeAutoBid(session, challenger, configs, newPrice, currentPrice);
+                }
+            }
+            return null;
+        }
+
+        // 3. Xác định Challenger
+        BigDecimal challengerMax;
+        if (configs.size() >= 2) {
+            challengerMax = configs.get(1).getMaxBid(); // Người có maxBid thứ 2
+        } else {
+            challengerMax = currentPrice; // Không có đối thủ → giá hiện tại
+        }
+
+        // 4. CÔNG THỨC O(1): Tính giá chốt hạ
+        BigDecimal newPrice = challengerMax.add(winner.getIncrement()).min(winner.getMaxBid());
+
+        // 5. Đảm bảo newPrice > currentPrice
+        if (newPrice.compareTo(currentPrice) <= 0) {
+            return null;
+        }
+
+        // Đảm bảo newPrice >= currentPrice + stepPrice (đáp ứng bước giá tối thiểu)
+        BigDecimal stepPrice = session.getStepPrice() == null ? BigDecimal.ONE : session.getStepPrice();
+        BigDecimal minimumBid = currentPrice.add(stepPrice);
+        if (newPrice.compareTo(minimumBid) < 0) {
+            newPrice = minimumBid.min(winner.getMaxBid());
+            if (newPrice.compareTo(minimumBid) < 0) {
+                return null; // Winner không đủ maxBid để đặt bước giá tối thiểu
+            }
+        }
+
+        return executeAutoBid(session, winner, configs, newPrice, currentPrice);
+    }
+
+    /**
+     * Thực hiện auto-bid: cập nhật session, ghi bid vào DB, vô hiệu hóa config hết hạn.
+     */
+    private BidResponse executeAutoBid(
+            AuctionSession session,
+            com.auction.server.model.AutoBidConfig winner,
+            List<com.auction.server.model.AutoBidConfig> allConfigs,
+            BigDecimal newPrice,
+            BigDecimal previousPrice
+    ) {
+        // Kiểm tra user tồn tại
+        User bidder = userRepository.findById(winner.getBidderId()).orElse(null);
+        if (bidder == null) {
+            logger.error("AUTO-BID: Không tìm thấy User ID={}", winner.getBidderId());
+            return null;
+        }
+
+        LocalDateTime time = LocalDateTime.now();
+        session.setCurrentPrice(newPrice);
+        session.setHighestBidderId(winner.getBidderId());
+
+        // Anti-sniping
+        String updatedEndTimeStr = null;
+        LocalDateTime currentEndTime = session.getEndTime();
+        if (currentEndTime != null) {
+            try {
+                long secondsLeft = java.time.Duration.between(time, currentEndTime).getSeconds();
+                if (secondsLeft < 60 && secondsLeft >= 0) {
+                    LocalDateTime newEndTime = currentEndTime.plusSeconds(60);
+                    session.setEndTime(newEndTime);
+                    updatedEndTimeStr = newEndTime.toString();
+                    logger.info("AUTO-BID Anti-Sniping: Gia hạn phiên {} thêm 60s", session.getId());
+                }
+            } catch (Exception e) {
+                logger.warn("AUTO-BID: Lỗi tính Anti-sniping: {}", e.getMessage());
+            }
+        }
+
+        // Ghi Bid vào DB
+        Bid bid = new Bid(session, bidder, newPrice, time);
+        session.addBid(bid);
+
+        try {
+            bidRepository.save(bid);
+            auctionSessionRepository.save(session);
+
+            int bidCount = Math.toIntExact(bidRepository.countBySessionId(session.getId()));
+
+            // Vô hiệu hóa các config đã hết maxBid
+            for (com.auction.server.model.AutoBidConfig cfg : allConfigs) {
+                if (newPrice.compareTo(cfg.getMaxBid()) >= 0 && !cfg.getId().equals(winner.getId())) {
+                    cfg.setActive(false);
+                    autoBidConfigRepository.save(cfg);
+                    logger.info("AUTO-BID deactivated: bidderId={} hết maxBid={}",
+                            cfg.getBidderId(), cfg.getMaxBid());
+                }
+            }
+
+            logger.info("AUTO-BID O(1) thành công: sessionId={}, winner={}, newPrice={}",
+                    session.getId(), winner.getBidderId(), newPrice);
+
+            return new BidResponse(
+                    true,
+                    "Auto-bid: Giá đã được đẩy lên tự động!",
+                    newPrice,
+                    updatedEndTimeStr,
+                    winner.getBidderId(),
+                    bidCount
+            );
+        } catch (Exception e) {
+            logger.error("AUTO-BID: Lỗi khi lưu DB", e);
+            return null;
         }
     }
 }
