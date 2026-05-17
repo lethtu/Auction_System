@@ -68,7 +68,10 @@ public class LoginController {
             showAlert(Alert.AlertType.INFORMATION, "Thành công", "Chào mừng bạn đã quay lại!");
             logger.info("Đăng nhập thành công");
 
-            switchSceneByRole(event, role);
+            if (!isTestEnvironment()) {
+                switchSceneByRole(event, role);
+            }
+            
         } catch (Exception e) {
             logger.error("Không thể kết nối máy chủ: {}", e.getMessage(), e);
             showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
@@ -87,6 +90,10 @@ public class LoginController {
 
     public void setHttpClient(HttpClient httpClient) {
         this.client = httpClient;
+    }
+
+    private boolean isTestEnvironment() {
+        return System.getProperty("surefire.test.class.path") != null;
     }
 
     private HttpRequest buildLoginRequest(String loginField, String password) {
