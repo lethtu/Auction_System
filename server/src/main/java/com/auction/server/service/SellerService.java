@@ -59,7 +59,7 @@ public class SellerService {
         session.setApplyMinRate(request.getApplyMinRate() != null ? request.getApplyMinRate() : false);
         session.setMinRate(request.getMinRate() != null ? request.getMinRate() : BigDecimal.ZERO);
         SellerSessionUpdater.resetApprovalInfo(session);
-        session.setStatus(AuctionStatus.ACTIVE);
+        session.setStatus(AuctionStatus.PENDING);
 
         AuctionSession savedSession = auctionSessionRepository.save(session);
         return SessionResponseMapper.toDTO(savedSession);
