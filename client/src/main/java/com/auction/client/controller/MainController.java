@@ -419,9 +419,17 @@ public class MainController implements Initializable {
 
     @FXML
     public void handleStartSelling(ActionEvent event) {
-        // Đây có thể là trang tạo phiên đấu giá mới
-        logger.info("Người dùng nhấn nút Start Selling (+)");
-        // Tạm thời có thể cho quay về Main hoặc một trang thông báo
+        try {
+            SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1024, 768);
+        } catch (IOException e) {
+            logger.error("Lỗi khi chuyển sang trang Quản lý Seller: ", e);
+        }
+    }
+
+    @FXML
+    private void handleShowCategories(ActionEvent event) {
+        cbCategory.requestFocus();
+        cbCategory.show();
     }
 
     public void setHttpClient(HttpClient httpClient) {
