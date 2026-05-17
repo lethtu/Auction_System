@@ -77,19 +77,19 @@ public class SellerController {
     }
 
     /**
-     * API Sửa phiên đấu giá đang chờ duyệt
+     * API Sửa phiên đấu giá
      */
     @PutMapping("/update-session/{sessionId}")
-    public ApiResponse<AuctionSession> updatePendingSession(
+    public ApiResponse<AuctionSession> updateSession(
             @PathVariable Integer sessionId,
             @RequestParam Integer sellerId,
             @RequestBody CreateAuctionRequest request // Đổi AuctionRequestDTO thành chuẩn
     ) {
         try {
-            logger.info("Đang sửa phiên đấu giá, chờ duyệt");
+            logger.info("Đang sửa phiên đấu giá");
             request.setSellerId(sellerId);
-            AuctionSession updatedSession = sellerService.updatePendingSession(sessionId, sellerId, request);
-            return new ApiResponse<>(200, "Đã cập nhật phiên chờ duyệt cho món: " + updatedSession.getItem().getName(), updatedSession);
+            AuctionSession updatedSession = sellerService.updateSession(sessionId, sellerId, request);
+            return new ApiResponse<>(200, "Đã cập nhật phiên đấu giá thành công cho món: " + updatedSession.getItem().getName(), updatedSession);
         } catch (Exception e) {
             logger.error("Lỗi không mong muốn: {}", e.getMessage(), e);
             return new ApiResponse<>(500, e.getMessage(), null);

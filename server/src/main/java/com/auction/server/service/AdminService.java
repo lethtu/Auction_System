@@ -43,11 +43,7 @@ public class AdminService {
     }
 
     public List<SessionResponseDTO> getPendingSessions() {
-        // Sửa: Dùng Enum AuctionStatus.PENDING thay vì String "PENDING"
-        return sessionRepository.findByStatus(AuctionStatus.PENDING)
-                .stream()
-                .map(this::mapToSessionResponseDTO)
-                .toList();
+        return List.of();
     }
 
     public List<SessionResponseDTO> getAllSessions(String status) {
@@ -80,60 +76,12 @@ public class AdminService {
 
     @Transactional
     public void approveSession(Integer sessionId, Integer adminId) {
-        Admin admin = checkAdminPermission(adminId);
-
-        AuctionSession session = sessionRepository.findById(sessionId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy phiên đấu giá"));
-
-        // Sửa: So sánh Enum bằng ==
-        if (session.getStatus() != AuctionStatus.PENDING) {
-            logger.error("Phiên {} đã được xử lý hoặc không ở trạng thái chờ duyệt", sessionId);
-            throw new RuntimeException("Phiên này đã được xử lý hoặc không ở trạng thái chờ duyệt");
-        }
-
-        LocalDateTime now = LocalDateTime.now();
-
-        session.setStatus(AuctionStatus.ACTIVE); // Sửa: Gán Enum
-        session.setStartTime(now);
-        session.setApprovedAt(now);
-        session.setApprovedByAdminId(admin.getId());
-
-        // Đảm bảo các field này đã được khai báo chuẩn trong AuctionSession
-        session.setRejectedAt(null);
-        session.setRejectedByAdminId(null);
-        session.setRejectReason(null);
-
-        sessionRepository.save(session);
+        throw new RuntimeException("Chức năng duyệt phiên đã bị bãi bỏ");
     }
 
     @Transactional
     public void rejectSession(Integer sessionId, Integer adminId, String reason) {
-        Admin admin = checkAdminPermission(adminId);
-
-        if (reason == null || reason.trim().isEmpty()) {
-            throw new RuntimeException("Vui lòng nhập lý do từ chối");
-        }
-
-        AuctionSession session = sessionRepository.findById(sessionId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy phiên đấu giá"));
-
-        if (session.getStatus() != AuctionStatus.PENDING) {
-            logger.error("Chỉ được từ chối các phiên đang ở trạng thái chờ duyệt");
-            throw new RuntimeException("Chỉ được từ chối các phiên đang ở trạng thái chờ duyệt");
-        }
-
-        LocalDateTime now = LocalDateTime.now();
-
-        session.setStatus(AuctionStatus.REJECTED); // Sửa: Gán Enum REJECTED
-        session.setRejectedAt(now);
-        session.setRejectedByAdminId(admin.getId());
-        session.setRejectReason(reason.trim());
-
-        session.setApprovedAt(null);
-        session.setApprovedByAdminId(null);
-        session.setStartTime(null);
-
-        sessionRepository.save(session);
+        throw new RuntimeException("Chức năng từ chối phiên đã bị bãi bỏ");
     }
 
     public List<UserResponseDTO> getAllUsers(String role) {
