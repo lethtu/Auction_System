@@ -60,15 +60,19 @@ public class SceneSwitcher {
 
         if (width != null) {
             stage.setMinWidth(width);
-            stage.setWidth(width);
+            if (Double.isNaN(stage.getWidth()) || stage.getWidth() < width) {
+                stage.setWidth(width);
+            }
         }
         if (height != null) {
             stage.setMinHeight(height);
-            stage.setHeight(height);
+            if (Double.isNaN(stage.getHeight()) || stage.getHeight() < height) {
+                stage.setHeight(height);
+            }
         }
         stage.setResizable(true);
-        stage.centerOnScreen();
         stage.show();
+        stage.centerOnScreen();
         logger.info("Đang chuyển sang: {}", fxmlFile);
 
         return loader;

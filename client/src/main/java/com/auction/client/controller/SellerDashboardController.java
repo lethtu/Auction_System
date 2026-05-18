@@ -71,6 +71,9 @@ public class SellerDashboardController {
     @FXML private TextField txtStartTime;
     @FXML private DatePicker datePickerEnd;
     @FXML private TextField txtEndTime;
+    @FXML private CheckBox applyMinRateCheck;
+    @FXML private TextField minRateField;
+    @FXML private Label lblMinRate;
 
     @FXML private TextArea statsArea;
     @FXML private Button btnCreateOrUpdate;
@@ -86,6 +89,16 @@ public class SellerDashboardController {
     public void initialize() {
         setupProductTypeCombo();
         initializeDateInputs();
+
+        if (minRateField != null && applyMinRateCheck != null) {
+            minRateField.setDisable(true);
+            applyMinRateCheck.selectedProperty().addListener((obs, oldVal, newVal) -> {
+                minRateField.setDisable(!newVal);
+                if (!newVal) {
+                    minRateField.clear();
+                }
+            });
+        }
         loadMySessions();
         resetSubmitButton();
     }
@@ -234,6 +247,8 @@ public class SellerDashboardController {
                 startingPriceField,
                 stepPriceField,
                 reservePriceField,
+                applyMinRateCheck,
+                minRateField,
                 buildStartDateTimeText(),
                 buildEndDateTimeText()
         );
@@ -249,6 +264,8 @@ public class SellerDashboardController {
                 startingPriceField,
                 stepPriceField,
                 reservePriceField,
+                applyMinRateCheck,
+                minRateField,
                 buildStartDateTimeText(),
                 buildEndDateTimeText()
         );
@@ -278,6 +295,8 @@ public class SellerDashboardController {
         startingPriceField.setText(toEditableMoneyText(session.startingPrice));
         stepPriceField.setText(toEditableMoneyText(session.stepPrice));
         setTextIfPresent(reservePriceField, toEditableMoneyText(session.reservePrice));
+        if (applyMinRateCheck != null) applyMinRateCheck.setSelected(session.applyMinRate);
+        setTextIfPresent(minRateField, toEditableMoneyText(session.minRate));
         fillStartDateTimeInputs(session.startTime);
         fillEndDateTimeInputs(session.endTime);
     }
@@ -547,8 +566,9 @@ public class SellerDashboardController {
         imagePathField.clear();
         startingPriceField.clear();
         stepPriceField.clear();
-
         clearIfPresent(reservePriceField);
+        if (applyMinRateCheck != null) applyMinRateCheck.setSelected(false);
+        if (minRateField != null) minRateField.clear();
     }
 
     private void resetDateInputs() {

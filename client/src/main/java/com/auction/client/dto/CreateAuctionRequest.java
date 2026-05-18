@@ -13,6 +13,8 @@ public final class CreateAuctionRequest {
     public final String startTime;
     public final String endTime;
     public final int sellerId;
+    public final Boolean applyMinRate;
+    public final BigDecimal minRate;
 
     public CreateAuctionRequest(
             String productName,
@@ -34,7 +36,9 @@ public final class CreateAuctionRequest {
                 null,
                 startTime,
                 endTime,
-                sellerId
+                sellerId,
+                false,
+                null
         );
     }
 
@@ -59,7 +63,9 @@ public final class CreateAuctionRequest {
                 null,
                 startTime,
                 endTime,
-                sellerId
+                sellerId,
+                false,
+                null
         );
     }
 
@@ -75,6 +81,36 @@ public final class CreateAuctionRequest {
             String endTime,
             int sellerId
     ) {
+        this(
+                productName,
+                productType,
+                description,
+                imagePath,
+                startingPrice,
+                stepPrice,
+                reservePrice,
+                startTime,
+                endTime,
+                sellerId,
+                false,
+                null
+        );
+    }
+
+    public CreateAuctionRequest(
+            String productName,
+            String productType,
+            String description,
+            String imagePath,
+            BigDecimal startingPrice,
+            BigDecimal stepPrice,
+            BigDecimal reservePrice,
+            String startTime,
+            String endTime,
+            int sellerId,
+            Boolean applyMinRate,
+            BigDecimal minRate
+    ) {
         this.productName = productName;
         this.productType = productType;
         this.description = description;
@@ -85,6 +121,8 @@ public final class CreateAuctionRequest {
         this.startTime = startTime;
         this.endTime = endTime;
         this.sellerId = sellerId;
+        this.applyMinRate = applyMinRate != null ? applyMinRate : false;
+        this.minRate = minRate;
     }
 
     public boolean hasImagePath() {

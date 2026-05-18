@@ -17,6 +17,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
+<?import javafx.scene.control.CheckBox?>
 <BorderPane prefWidth="1280" prefHeight="720"
             stylesheets="@styles.css"
             xmlns="http://javafx.com/javafx/21"
@@ -137,6 +138,11 @@
 
                                     <Label text="Bước giá" style="-fx-text-fill: #604868; -fx-font-weight: bold;"/>
                                     <TextField fx:id="stepPriceField" promptText="500000"
+                                               style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 16; -fx-background-radius: 16; -fx-padding: 10 14;"/>
+
+                                    <CheckBox fx:id="applyMinRateCheck" text="Bán sản phẩm nếu giá cuối cùng &gt;= Giá tối thiểu (Min rate)" style="-fx-font-weight: bold; -fx-text-fill: #604868;"/>
+                                    <Label fx:id="lblMinRate" text="Giá tối thiểu (Min rate):" style="-fx-text-fill: #604868; -fx-font-weight: bold;"/>
+                                    <TextField fx:id="minRateField" promptText="Ví dụ: 18000000"
                                                style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 16; -fx-background-radius: 16; -fx-padding: 10 14;"/>
 
                                     <Label text="Giá sàn / Reserve price" style="-fx-text-fill: #604868; -fx-font-weight: bold;"/>

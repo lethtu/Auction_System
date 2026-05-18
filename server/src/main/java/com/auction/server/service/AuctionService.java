@@ -41,7 +41,11 @@ public class AuctionService {
     }
 
     public AuctionSession getSessionById(Integer id) {
-        return auctionSessionRepository.findById(id).orElse(null);
+        AuctionSession session = auctionSessionRepository.findById(id).orElse(null);
+        if (session != null) {
+            session.setTotalBids(bidRepository.countBySessionId(session.getId()));
+        }
+        return session;
     }
 
     public List<AuctionSession> getSessionsBySeller(Integer sellerId) {
@@ -53,12 +57,38 @@ public class AuctionService {
         Optional<AuctionSession> sessionOpt = auctionSessionRepository.findById(sessionId);
         if (sessionOpt.isPresent()) {
             AuctionSession session = sessionOpt.get();
-            session.setStatus(AuctionStatus.ENDED);
+            if (Boolean.TRUE.equals(session.getApplyMinRate()) && session.getMinRate() != null) {
+                if (session.getCurrentPrice() != null && session.getCurrentPrice().compareTo(session.getMinRate()) >= 0) {
+                    session.setStatus(AuctionStatus.ENDED);
+                } else {
+                    session.setStatus(AuctionStatus.CANCELED);
+                    logger.info("Phiên ID {} bị hủy do giá cuối ({}) không đạt min rate ({})",
+                            session.getId(), session.getCurrentPrice(), session.getMinRate());
+                }
+            } else {
+                session.setStatus(AuctionStatus.ENDED);
+            }
             auctionSessionRepository.save(session);
-            logger.info("Đã kết thúc phiên đấu giá ID: {}", sessionId);
+            logger.info("Đã kết thúc phiên đấu giá ID: {} với trạng thái: {}", sessionId, session.getStatus());
             return true;
         }
         return false;
+    }
+
+    private BigDecimal calculateMinimumNextBid(BigDecimal currentPrice) {
+        if (currentPrice == null) return BigDecimal.ZERO;
+        
+        if (currentPrice.compareTo(new BigDecimal("100000")) < 0) {
+            return currentPrice.add(new BigDecimal("10000")); // + 10k
+        } else if (currentPrice.compareTo(new BigDecimal("500000")) < 0) {
+            return currentPrice.add(new BigDecimal("20000")); // + 20k
+        } else if (currentPrice.compareTo(new BigDecimal("1000000")) < 0) {
+            return currentPrice.add(new BigDecimal("50000")); // + 50k
+        } else if (currentPrice.compareTo(new BigDecimal("5000000")) < 0) {
+            return currentPrice.add(new BigDecimal("100000")); // + 100k
+        } else {
+            return currentPrice.add(new BigDecimal("200000")); // + 200k
+        }
     }
 
     @Transactional
@@ -72,15 +102,20 @@ public class AuctionService {
 
         AuctionSession item = itemOptional.get();
         BigDecimal currentPrice = item.getCurrentPrice() == null ? BigDecimal.ZERO : item.getCurrentPrice();
-        BigDecimal stepPrice = item.getStepPrice() == null ? BigDecimal.ONE : item.getStepPrice();
-        BigDecimal minimumBid = currentPrice.add(stepPrice);
+        
+        BigDecimal minimumRequiredBid;
+        if (item.getStepPrice() != null && item.getStepPrice().compareTo(BigDecimal.ZERO) > 0) {
+            minimumRequiredBid = currentPrice.add(item.getStepPrice());
+        } else {
+            minimumRequiredBid = calculateMinimumNextBid(currentPrice);
+        }
 
         if (item.getStatus().equals(AuctionStatus.ACTIVE)){
-            if (newBidAmount.compareTo(minimumBid) < 0) {
-                logger.error("Đặt giá thất bại từ UserId: {} với giá: {}, giá hiện tại: {}, bước giá: {}", BidderId, newBidAmount, currentPrice, stepPrice);
+            if (newBidAmount.compareTo(minimumRequiredBid) < 0) {
+                logger.error("Đặt giá thất bại từ UserId: {} với giá: {} nhưng hệ thống yêu cầu tối thiểu: {}", BidderId, newBidAmount, minimumRequiredBid);
                 return new BidResponse(
                         false,
-                        "THẤT BẠI: Giá đặt tối thiểu phải là " + minimumBid + " (giá hiện tại + bước giá)",
+                        "THẤT BẠI: Mức giá hợp lệ tiếp theo phải từ " + minimumRequiredBid + " trở lên!",
                         currentPrice,
                         null,
                         item.getHighestBidderId()
@@ -122,6 +157,7 @@ public class AuctionService {
             }
             // ==========================================
 
+            item.setWinner(bidder); // QUAN TRỌNG: Ghi nhận người dẫn đầu/chiến thắng
             Bid bid = new Bid(item, bidder, newBidAmount, time);
             item.addBid(bid);
 

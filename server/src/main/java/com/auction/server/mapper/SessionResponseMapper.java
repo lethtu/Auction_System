@@ -50,6 +50,8 @@ public final class SessionResponseMapper {
         dto.setRejectReason(session.getRejectReason());
         dto.setApprovedByAdminId(session.getApprovedByAdminId());
         dto.setRejectedByAdminId(session.getRejectedByAdminId());
+        dto.setApplyMinRate(session.getApplyMinRate());
+        dto.setMinRate(session.getMinRate());
 
         return dto;
     }

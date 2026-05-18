@@ -75,6 +75,8 @@ public final class SellerResponseParser {
         session.startTime = item.optString(KEY_START_TIME, DEFAULT_TEXT);
         session.endTime = item.optString(KEY_END_TIME, DEFAULT_TEXT);
         session.status = item.optString(KEY_STATUS, DEFAULT_STATUS);
+        session.applyMinRate = item.optBoolean("applyMinRate", false);
+        session.minRate = parseBigDecimal(item, "minRate");
 
         return session;
     }

@@ -33,6 +33,7 @@ public class AuctionPageControllerTest {
 
     @Start
     public void start(Stage stage) throws Exception {
+        SidebarController.isSidebarCollapsed = false;
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/auction/client/view/AuctionPage.fxml"));
         scene = new Scene(loader.load(), 1280, 800);
         controller = loader.getController();
@@ -94,7 +95,7 @@ public class AuctionPageControllerTest {
     @Test
     public void testNavigationButtons() {
         Button logoBtn = (Button) scene.lookup("#logoBtn");
-        Button dashboardBtn = (Button) scene.lookup("#dashboardBtn");
+        Button dashboardBtn = (Button) scene.lookup("#btnSidebarDashboard");
 
         assertNotNull(logoBtn, "Logo button (BidPop) should exist");
         assertNotNull(dashboardBtn, "Dashboard sidebar button should exist");
@@ -105,26 +106,26 @@ public class AuctionPageControllerTest {
 
     @Test
     public void testSidebarToggle() throws Exception {
-        VBox sideBar = (VBox) scene.lookup("#sideBar");
-        Label dashboardText = (Label) scene.lookup("#dashboardText");
+        javafx.scene.control.ScrollPane sideBar = (javafx.scene.control.ScrollPane) scene.lookup("#sidebarContainer");
         Button hamburgerBtn = (Button) scene.lookup("#hamburgerBtn");
+        Button dashboardBtn = (Button) scene.lookup("#btnSidebarDashboard");
 
         assertNotNull(sideBar);
-        assertNotNull(dashboardText);
         assertNotNull(hamburgerBtn);
+        assertNotNull(dashboardBtn);
 
         assertEquals(70.0, sideBar.getPrefWidth(), 0.1);
-        assertFalse(dashboardText.isVisible());
+        assertEquals("", dashboardBtn.getText());
 
         runOnFxThread(hamburgerBtn::fire);
 
         assertEquals(200.0, sideBar.getPrefWidth(), 0.1);
-        assertTrue(dashboardText.isVisible());
+        assertEquals("Dashboard", dashboardBtn.getText());
 
         runOnFxThread(hamburgerBtn::fire);
 
         assertEquals(70.0, sideBar.getPrefWidth(), 0.1);
-        assertFalse(dashboardText.isVisible());
+        assertEquals("", dashboardBtn.getText());
     }
 
     private void invokeUpdateResponsiveFonts(double width) {

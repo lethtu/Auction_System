@@ -56,6 +56,8 @@ public class SellerService {
             session.setStartTime(LocalDateTime.now());
         }
 
+        session.setApplyMinRate(request.getApplyMinRate() != null ? request.getApplyMinRate() : false);
+        session.setMinRate(request.getMinRate() != null ? request.getMinRate() : BigDecimal.ZERO);
         SellerSessionUpdater.resetApprovalInfo(session);
         session.setStatus(AuctionStatus.PENDING);
 
@@ -95,6 +97,8 @@ public class SellerService {
         itemRepository.save(item);
 
         SellerSessionUpdater.updateSessionFromRequest(session, request);
+        session.setApplyMinRate(request.getApplyMinRate() != null ? request.getApplyMinRate() : false);
+        session.setMinRate(request.getMinRate() != null ? request.getMinRate() : BigDecimal.ZERO);
 
         AuctionSession savedSession = auctionSessionRepository.save(session);
         return SessionResponseMapper.toDTO(savedSession);

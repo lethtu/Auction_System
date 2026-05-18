@@ -18,6 +18,8 @@ public class CreateAuctionRequest {
 
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    private Boolean applyMinRate;
+    private BigDecimal minRate;
 
     public CreateAuctionRequest() {
     }
@@ -124,5 +126,21 @@ public class CreateAuctionRequest {
 
     public void setEndTime(LocalDateTime endTime) {
         this.endTime = endTime;
+    }
+
+    public Boolean getApplyMinRate() {
+        return applyMinRate;
+    }
+
+    public void setApplyMinRate(Boolean applyMinRate) {
+        this.applyMinRate = applyMinRate;
+    }
+
+    public BigDecimal getMinRate() {
+        return minRate;
+    }
+
+    public void setMinRate(BigDecimal minRate) {
+        this.minRate = minRate;
     }
 }
