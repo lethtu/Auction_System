@@ -52,6 +52,7 @@ public class AuctionServiceTest {
         // Chuẩn bị một Bidder giả
         mockUser = new User();
         mockUser.setId(99);
+        mockUser.setBalance(new BigDecimal("9999999.00")); // Anti joy-bidding requires sufficient balance
     }
     // Test 1: ĐẶT GIÁ HỢP LỆ
     @Test
@@ -61,8 +62,8 @@ public class AuctionServiceTest {
         when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
         when(userRepository.findById(99)).thenReturn(Optional.of(mockUser));
 
-        // 2. Chạy hành động đặt giá (Giá mới = 1500 > 1000)
-        BigDecimal validBidPrice = new BigDecimal("1500.00");
+        // 2. Chạy hành động đặt giá (Giá mới = 15000 >= 11000)
+        BigDecimal validBidPrice = new BigDecimal("15000.00");
         BidResponse response = auctionService.updateBid(1, 99, validBidPrice);
 
         System.out.println("LÝ DO THẤT BẠI: " + response.getMessage());
