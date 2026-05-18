@@ -29,9 +29,15 @@ public class PublicAuctionController {
     public ResponseEntity<ApiResponse<List<SessionResponseDTO>>> getAllSessions() {
         List<SessionResponseDTO> sessions = auctionSessionRepository.findAll()
                 .stream()
+                .filter(this::isProductVisible)
                 .map(SessionResponseMapper::toDTO)
                 .toList();
 
         return ResponseEntity.ok(ApiResponse.success("Lấy toàn bộ phiên đấu giá thành công", sessions));
     }
+
+    private boolean isProductVisible(AuctionSession session) {
+        return session != null && session.getItem() != null && !session.getItem().isHidden();
+    }
 }
+

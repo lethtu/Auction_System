@@ -24,6 +24,8 @@ public class AdminController {
     private static final String LOG_REJECT_SESSION = "Đang từ chối phiên đấu giá ";
     private static final String LOG_BAN_USER = "Đang khóa tài khoản user ";
     private static final String LOG_CANCEL_AUCTION = "Đang hủy phiên đấu giá ";
+    private static final String LOG_HIDE_PRODUCT = "Đang ẩn sản phẩm ";
+    private static final String LOG_SHOW_PRODUCT = "Đang hiện sản phẩm ";
     private static final String LOG_GET_ALL_USERS = "Đang lấy danh sách người dùng";
 
     private static final String SUCCESS_GET_PENDING_SESSIONS = "Lấy danh sách phiên chờ duyệt thành công";
@@ -33,6 +35,8 @@ public class AdminController {
     private static final String SUCCESS_REJECT_SESSION = "Đã từ chối phiên đấu giá.";
     private static final String SUCCESS_BAN_USER = "Đã khóa tài khoản user.";
     private static final String SUCCESS_CANCEL_AUCTION = "Đã hủy phiên đấu giá.";
+    private static final String SUCCESS_HIDE_PRODUCT = "Đã ẩn sản phẩm.";
+    private static final String SUCCESS_SHOW_PRODUCT = "Đã hiện sản phẩm.";
     private static final String SUCCESS_GET_ALL_USERS = "Lấy danh sách người dùng thành công";
 
     private static final int BAD_REQUEST_STATUS = 400;
@@ -118,6 +122,30 @@ public class AdminController {
                 LOG_CANCEL_AUCTION + sessionId,
                 SUCCESS_CANCEL_AUCTION,
                 () -> adminService.cancelAuction(sessionId, adminId)
+        );
+    }
+
+    @PostMapping("/hide-product/{productId}")
+    public ApiResponse<Void> hideProduct(
+            @PathVariable Integer productId,
+            @RequestParam Integer adminId
+    ) {
+        return handleCommand(
+                LOG_HIDE_PRODUCT + productId,
+                SUCCESS_HIDE_PRODUCT,
+                () -> adminService.hideProduct(productId, adminId)
+        );
+    }
+
+    @PostMapping("/show-product/{productId}")
+    public ApiResponse<Void> showProduct(
+            @PathVariable Integer productId,
+            @RequestParam Integer adminId
+    ) {
+        return handleCommand(
+                LOG_SHOW_PRODUCT + productId,
+                SUCCESS_SHOW_PRODUCT,
+                () -> adminService.showProduct(productId, adminId)
         );
     }
 

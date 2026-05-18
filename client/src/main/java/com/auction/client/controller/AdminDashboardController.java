@@ -30,6 +30,8 @@ public class AdminDashboardController {
     private static final String CURRENCY_SUFFIX = " VND";
     private static final String USER_BANNED_TEXT = "Đã khóa";
     private static final String USER_ACTIVE_TEXT = "Hoạt động";
+    private static final String PRODUCT_VISIBLE_TEXT = "Đang hiện";
+    private static final String PRODUCT_HIDDEN_TEXT = "Đang ẩn";
 
     private static final String NO_SESSION_SELECTED_TITLE = "Chưa chọn phiên";
     private static final String NO_USER_SELECTED_TITLE = "Chưa chọn user";
@@ -64,6 +66,7 @@ public class AdminDashboardController {
     @FXML private TableColumn<AdminSessionRow, String> colSessionSeller;
     @FXML private TableColumn<AdminSessionRow, BigDecimal> colSessionPrice;
     @FXML private TableColumn<AdminSessionRow, String> colSessionStatus;
+    @FXML private TableColumn<AdminSessionRow, Boolean> colProductVisible;
 
     @FXML
     public void initialize() {
@@ -98,8 +101,10 @@ public class AdminDashboardController {
         colSessionSeller.setCellValueFactory(cellData -> cellData.getValue().sellerUsernameProperty());
         colSessionPrice.setCellValueFactory(cellData -> cellData.getValue().startingPriceProperty());
         colSessionStatus.setCellValueFactory(cellData -> cellData.getValue().statusProperty());
+        colProductVisible.setCellValueFactory(cellData -> cellData.getValue().productVisibleProperty());
 
         setupPriceColumn(colSessionPrice);
+        setupProductVisibleColumn();
     }
 
     private void setupBannedColumn() {
@@ -112,8 +117,22 @@ public class AdminDashboardController {
         });
     }
 
+    private void setupProductVisibleColumn() {
+        colProductVisible.setCellFactory(column -> new TableCell<>() {
+            @Override
+            protected void updateItem(Boolean visible, boolean empty) {
+                super.updateItem(visible, empty);
+                setText(empty || visible == null ? null : formatProductVisibleStatus(visible));
+            }
+        });
+    }
+
     private String formatBannedStatus(boolean banned) {
         return banned ? USER_BANNED_TEXT : USER_ACTIVE_TEXT;
+    }
+
+    private String formatProductVisibleStatus(boolean visible) {
+        return visible ? PRODUCT_VISIBLE_TEXT : PRODUCT_HIDDEN_TEXT;
     }
 
     private <T> void setupPriceColumn(TableColumn<T, BigDecimal> column) {
@@ -184,6 +203,26 @@ public class AdminDashboardController {
                 NO_SESSION_SELECTED_TITLE,
                 "Hãy chọn phiên cần hủy.",
                 (selected, adminId) -> adminDashboardService.cancelAuction(selected.getId(), adminId)
+        );
+    }
+
+    @FXML
+    public void handleHideProduct() {
+        runSelectedAdminAction(
+                tableSessions,
+                NO_SESSION_SELECTED_TITLE,
+                "Hãy chọn sản phẩm cần ẩn.",
+                (selected, adminId) -> adminDashboardService.hideProduct(selected.getProductId(), adminId)
+        );
+    }
+
+    @FXML
+    public void handleShowProduct() {
+        runSelectedAdminAction(
+                tableSessions,
+                NO_SESSION_SELECTED_TITLE,
+                "Hãy chọn sản phẩm cần hiện.",
+                (selected, adminId) -> adminDashboardService.showProduct(selected.getProductId(), adminId)
         );
     }
 

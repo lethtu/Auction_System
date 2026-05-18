@@ -18,6 +18,8 @@ public class AdminDashboardService {
     private static final String REJECT_SUCCESS_MESSAGE = "Đã từ chối phiên đấu giá.";
     private static final String BAN_USER_SUCCESS_MESSAGE = "Đã khóa tài khoản user.";
     private static final String CANCEL_AUCTION_SUCCESS_MESSAGE = "Đã hủy phiên đấu giá.";
+    private static final String HIDE_PRODUCT_SUCCESS_MESSAGE = "Đã ẩn sản phẩm.";
+    private static final String SHOW_PRODUCT_SUCCESS_MESSAGE = "Đã hiện sản phẩm.";
 
     private final AdminApiClient adminApiClient;
 
@@ -75,6 +77,20 @@ public class AdminDashboardService {
         return executeAction(
                 () -> adminApiClient.cancelAuction(sessionId, adminId),
                 CANCEL_AUCTION_SUCCESS_MESSAGE
+        );
+    }
+
+    public ApiResult<Void> hideProduct(int productId, int adminId) throws Exception {
+        return executeAction(
+                () -> adminApiClient.hideProduct(productId, adminId),
+                HIDE_PRODUCT_SUCCESS_MESSAGE
+        );
+    }
+
+    public ApiResult<Void> showProduct(int productId, int adminId) throws Exception {
+        return executeAction(
+                () -> adminApiClient.showProduct(productId, adminId),
+                SHOW_PRODUCT_SUCCESS_MESSAGE
         );
     }
 
