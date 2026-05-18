@@ -2,6 +2,7 @@ package com.auction.server.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.auction.server.dto.BidHistoryDTO;
 import com.auction.server.dto.BidResponse;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.model.AuctionStatus;
@@ -67,6 +68,21 @@ public class AuctionService {
                     session.setStatus(AuctionStatus.CANCELED);
                     logger.info("Phiên ID {} bị hủy do giá cuối ({}) không đạt min rate ({})",
                             session.getId(), session.getCurrentPrice(), session.getMinRate());
+
+                    // ============ HOÀN TIỀN KHI PHIÊN BỊ CANCELED ============
+                    if (session.getHighestBidderId() != null) {
+                        User topBidder = userRepository.findById(session.getHighestBidderId()).orElse(null);
+                        if (topBidder != null && session.getCurrentPrice() != null) {
+                            topBidder.setBalance(topBidder.getBalance().add(session.getCurrentPrice()));
+                            userRepository.save(topBidder);
+                            logger.info("Hoàn tiền {} cho User ID={} do phiên bị CANCELED",
+                                    session.getCurrentPrice(), topBidder.getId());
+                        } else {
+                            logger.warn("Không thể hoàn tiền: Top Bidder ID={} không tồn tại trong DB",
+                                    session.getHighestBidderId());
+                        }
+                    }
+                    // =========================================================
                 }
             } else {
                 session.setStatus(AuctionStatus.ENDED);
@@ -131,6 +147,41 @@ public class AuctionService {
                 return new BidResponse(false, "Lỗi: Tài khoản người dùng không tồn tại!", currentPrice, null, item.getHighestBidderId());
             }
 
+            // ============ HOLD BALANCE: Anti Joy-Bidding ============
+            // Step 1: Validate số dư
+            if (bidder.getBalance().compareTo(newBidAmount) < 0) {
+                logger.warn("Đặt giá thất bại: User ID={} có số dư {} nhưng cần {}",
+                        BidderId, bidder.getBalance(), newBidAmount);
+                return new BidResponse(false, "Tài khoản không đủ số dư để đặt giá",
+                        currentPrice, null, item.getHighestBidderId());
+            }
+
+            // Step 2: Tìm Old Top Bidder (người đang giữ giá cao nhất)
+            User oldTopBidder = null;
+            BigDecimal oldBidAmount = BigDecimal.ZERO;
+            if (item.getHighestBidderId() != null) {
+                oldTopBidder = userRepository.findById(item.getHighestBidderId()).orElse(null);
+                oldBidAmount = currentPrice; // giá hiện tại chính là mức giá Old Top đã đặt
+            }
+
+            // Step 3: Trừ tiền New Bidder
+            if (oldTopBidder != null && oldTopBidder.getId().equals(BidderId)) {
+                // Cùng người bid lại → chỉ trừ phần chênh lệch
+                BigDecimal diff = newBidAmount.subtract(oldBidAmount);
+                bidder.setBalance(bidder.getBalance().subtract(diff));
+            } else {
+                bidder.setBalance(bidder.getBalance().subtract(newBidAmount));
+            }
+            userRepository.save(bidder);
+
+            // Step 4: Hoàn tiền Old Top Bidder (nếu khác New Bidder)
+            if (oldTopBidder != null && !oldTopBidder.getId().equals(BidderId)) {
+                oldTopBidder.setBalance(oldTopBidder.getBalance().add(oldBidAmount));
+                userRepository.save(oldTopBidder);
+                logger.info("Hoàn tiền {} cho Old Top Bidder ID={}", oldBidAmount, oldTopBidder.getId());
+            }
+            // ========================================================
+
             LocalDateTime time = LocalDateTime.now();
             item.setCurrentPrice(newBidAmount);
             item.setHighestBidderId(BidderId);
@@ -176,7 +227,9 @@ public class AuctionService {
                         newBidAmount,
                         updatedEndTimeStr,
                         BidderId,
-                        bidCount
+                        bidCount,
+                        time.toString(),
+                        bid.getId()
                 );
             }
             catch (Exception e) {
@@ -330,6 +383,42 @@ public class AuctionService {
             return null;
         }
 
+        // ============ HOLD BALANCE: Auto-bid Anti Joy-Bidding ============
+        // Validate số dư auto-bidder
+        if (bidder.getBalance().compareTo(newPrice) < 0) {
+            logger.warn("AUTO-BID: User ID={} không đủ số dư ({}) để auto-bid ({})",
+                    winner.getBidderId(), bidder.getBalance(), newPrice);
+            winner.setActive(false);
+            autoBidConfigRepository.save(winner);
+            return null;
+        }
+
+        // Tìm Old Top Bidder
+        User oldTopBidder = null;
+        BigDecimal oldBidAmount = BigDecimal.ZERO;
+        if (session.getHighestBidderId() != null) {
+            oldTopBidder = userRepository.findById(session.getHighestBidderId()).orElse(null);
+            oldBidAmount = previousPrice;
+        }
+
+        // Trừ tiền auto-bidder
+        if (oldTopBidder != null && oldTopBidder.getId().equals(winner.getBidderId())) {
+            // Cùng người → chỉ trừ phần chênh lệch
+            BigDecimal diff = newPrice.subtract(oldBidAmount);
+            bidder.setBalance(bidder.getBalance().subtract(diff));
+        } else {
+            bidder.setBalance(bidder.getBalance().subtract(newPrice));
+        }
+        userRepository.save(bidder);
+
+        // Hoàn tiền Old Top Bidder (nếu khác auto-bidder)
+        if (oldTopBidder != null && !oldTopBidder.getId().equals(winner.getBidderId())) {
+            oldTopBidder.setBalance(oldTopBidder.getBalance().add(oldBidAmount));
+            userRepository.save(oldTopBidder);
+            logger.info("AUTO-BID: Hoàn tiền {} cho Old Top Bidder ID={}", oldBidAmount, oldTopBidder.getId());
+        }
+        // ==================================================================
+
         LocalDateTime time = LocalDateTime.now();
         session.setCurrentPrice(newPrice);
         session.setHighestBidderId(winner.getBidderId());
@@ -380,11 +469,52 @@ public class AuctionService {
                     newPrice,
                     updatedEndTimeStr,
                     winner.getBidderId(),
-                    bidCount
+                    bidCount,
+                    time.toString(),
+                    bid.getId()
             );
         } catch (Exception e) {
             logger.error("AUTO-BID: Lỗi khi lưu DB", e);
             return null;
         }
+    }
+
+    // ==========================================
+    // BID HISTORY (CHART DATA)
+    // ==========================================
+
+    /**
+     * Lấy lịch sử bid của một session, sắp xếp theo thời gian tăng dần.
+     * Dùng cho REST endpoint GET /api/auctions/{id}/bid-history.
+     */
+    public List<BidHistoryDTO> getBidHistory(Integer sessionId) {
+        List<Bid> bids = bidRepository.findBySessionIdOrderByTimeAsc(sessionId);
+        return bids.stream().map(this::toBidHistoryDTO).toList();
+    }
+
+    private BidHistoryDTO toBidHistoryDTO(Bid bid) {
+        Integer sessionId = bid.getSession() != null ? bid.getSession().getId() : null;
+        Integer bidderId = bid.getBidder() != null ? bid.getBidder().getId() : null;
+        String maskedCode = generateMaskedCode(sessionId, bidderId);
+
+        return new BidHistoryDTO(
+                bid.getId(),
+                sessionId,
+                bidderId,
+                maskedCode,
+                bid.getAmount(),
+                bid.getTime() != null ? bid.getTime().toString() : null
+        );
+    }
+
+    /**
+     * Tạo mã ẩn danh bidder dạng #XXXX.
+     * Cùng bidder + cùng session = cùng code.
+     * Khác session có thể khác code (do hash có sessionId).
+     */
+    private String generateMaskedCode(Integer sessionId, Integer bidderId) {
+        if (bidderId == null) return "#????";
+        int hash = java.util.Objects.hash(sessionId, bidderId, "BidPop");
+        return String.format("#%04X", Math.abs(hash) % 0xFFFF);
     }
 }

@@ -47,7 +47,6 @@ public class AuctionServiceTest {
         mockSession = new AuctionSession();
         mockSession.setId(1);
         mockSession.setCurrentPrice(new BigDecimal("1000.00"));
-        mockSession.setStepPrice(new BigDecimal("100.00"));
         mockSession.setStatus(AuctionStatus.ACTIVE);
 
         // Chuẩn bị một Bidder giả

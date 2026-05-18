@@ -1,6 +1,7 @@
 package com.auction.server.controller;
 
 import com.auction.server.dto.ApiResponse;
+import com.auction.server.dto.BidHistoryDTO;
 import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.mapper.SessionResponseMapper;
 import com.auction.server.model.AuctionSession;
@@ -47,6 +48,21 @@ public class AuctionController {
         }
 
         return ResponseEntity.ok(toSessionResponseDTO(session, id));
+    }
+
+    /**
+     * Lấy lịch sử bid của một phiên đấu giá, sắp xếp theo thời gian tăng dần.
+     * Dùng cho Bid History Chart trên client.
+     * Trả 404 nếu session không tồn tại (nhất quán với GET /api/auctions/{id}).
+     */
+    @GetMapping("/{id}/bid-history")
+    public ResponseEntity<List<BidHistoryDTO>> getBidHistory(@PathVariable Integer id) {
+        AuctionSession session = auctionService.getSessionById(id);
+        if (session == null) {
+            return ResponseEntity.notFound().build();
+        }
+        List<BidHistoryDTO> history = auctionService.getBidHistory(id);
+        return ResponseEntity.ok(history);
     }
 
     private SessionResponseDTO toSessionResponseDTO(AuctionSession session, Integer sessionId) {

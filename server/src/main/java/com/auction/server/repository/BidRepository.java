@@ -6,5 +6,6 @@ import java.util.List;
 
 public interface BidRepository extends JpaRepository<Bid, Integer> {
     List<Bid> findBySessionIdOrderByAmountDesc(Integer sessionId);
+    List<Bid> findBySessionIdOrderByTimeAsc(Integer sessionId);
     int countBySessionId(Integer sessionId);
 }

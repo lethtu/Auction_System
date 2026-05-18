@@ -114,6 +114,8 @@ public class ClientHandler implements Runnable {
         if (response.getHighestBidderId() != null) {
             notice.put("highestBidderId", response.getHighestBidderId());
             notice.put("bidderId", response.getHighestBidderId());
+            // Privacy: masked bidder code
+            notice.put("maskedBidderCode", generateMaskedCode(auctionId, response.getHighestBidderId()));
         }
         if (response.getBidCount() != null) {
             notice.put("bidCount", response.getBidCount());
@@ -121,8 +123,20 @@ public class ClientHandler implements Runnable {
         if (response.getNewEndTime() != null) {
             notice.put("newEndTime", response.getNewEndTime());
         }
+        if (response.getBidTime() != null) {
+            notice.put("bidTime", response.getBidTime());
+        }
+        if (response.getBidId() != null) {
+            notice.put("bidId", response.getBidId());
+        }
 
         SocketServer.broadcastToRoom(auctionId, "NOTICE:" + notice);
+    }
+
+    private String generateMaskedCode(Integer sessionId, Integer bidderId) {
+        if (bidderId == null) return "#????";
+        int hash = java.util.Objects.hash(sessionId, bidderId, "BidPop");
+        return String.format("#%04X", Math.abs(hash) % 0xFFFF);
     }
 
     private void handleAutoBidMessage(String jsonString) {
