@@ -13,7 +13,9 @@ import java.util.List;
 
 public final class AdminResponseParser {
     private static final String KEY_ID = "id";
+    private static final String KEY_PRODUCT_ID = "productId";
     private static final String KEY_PRODUCT_NAME = "productName";
+    private static final String KEY_PRODUCT_VISIBLE = "productVisible";
     private static final String KEY_SELLER_USERNAME = "sellerUsername";
     private static final String KEY_STARTING_PRICE = "startingPrice";
     private static final String KEY_STATUS = "status";
@@ -62,10 +64,12 @@ public final class AdminResponseParser {
     private static AdminSessionRow toAdminSessionRow(JSONObject item) {
         return new AdminSessionRow(
                 item.optInt(KEY_ID, 0),
+                item.optInt(KEY_PRODUCT_ID, 0),
                 item.optString(KEY_PRODUCT_NAME, DEFAULT_UNKNOWN_TEXT),
                 item.optString(KEY_SELLER_USERNAME, DEFAULT_UNKNOWN_TEXT),
                 parseBigDecimal(item, KEY_STARTING_PRICE),
-                item.optString(KEY_STATUS, DEFAULT_UNKNOWN_STATUS)
+                item.optString(KEY_STATUS, DEFAULT_UNKNOWN_STATUS),
+                item.optBoolean(KEY_PRODUCT_VISIBLE, true)
         );
     }
 

@@ -36,12 +36,18 @@ public class ClientHandler implements Runnable {
                 if (inputLine.startsWith("JOIN:")) {
                     int sessionId = Integer.parseInt(inputLine.substring(5));
                     SocketServer.joinRoom(sessionId, out);
+
                 } else if (inputLine.startsWith("BID:")) {
                     handleBidMessage(inputLine.substring(4));
+
                 } else if (inputLine.startsWith("AUTOBID:")) {
                     handleAutoBidMessage(inputLine.substring(8));
+
+                } else if ("JOIN_HOME".equals(inputLine)) {
+                    SocketServer.joinHome(out);
                 }
             }
+
         } catch (IOException e) {
             if (e instanceof java.net.SocketException) {
                 System.out.println("Client disconnected: " + e.getMessage());
@@ -67,8 +73,16 @@ public class ClientHandler implements Runnable {
                     new BigDecimal(jsonObj.get("amount").toString())
             );
 
-            BidResponse response = biddingController.handleBid(request);
-            sendBidResponse(response);
+            BidResponse response;
+            try {
+                response = biddingController.handleBid(request);
+            } catch (com.auction.server.exception.AuctionClosedException e) {
+                JSONObject errorJson = new JSONObject();
+                errorJson.put("success", false);
+                errorJson.put("message", e.getMessage());
+                out.println("RESPONSE:" + errorJson);
+                return;
+            }
 
             if (response.isSuccess()) {
                 broadcastBidNotice(request.getAuctionId(), response);
@@ -79,8 +93,11 @@ public class ClientHandler implements Runnable {
                     broadcastBidNotice(request.getAuctionId(), autoBidResult);
                 }
             }
+
+            sendBidResponse(response);
+
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error processing BID message", e);
             JSONObject errorResponse = new JSONObject();
             errorResponse.put("success", false);
             errorResponse.put("message", "LỖI HỆ THỐNG: Không xử lý được yêu cầu đặt giá.");
@@ -114,7 +131,6 @@ public class ClientHandler implements Runnable {
         if (response.getHighestBidderId() != null) {
             notice.put("highestBidderId", response.getHighestBidderId());
             notice.put("bidderId", response.getHighestBidderId());
-            // Privacy: masked bidder code
             notice.put("maskedBidderCode", generateMaskedCode(auctionId, response.getHighestBidderId()));
         }
         if (response.getBidCount() != null) {
@@ -134,7 +150,10 @@ public class ClientHandler implements Runnable {
     }
 
     private String generateMaskedCode(Integer sessionId, Integer bidderId) {
-        if (bidderId == null) return "#????";
+        if (bidderId == null) {
+            return "#????";
+        }
+
         int hash = java.util.Objects.hash(sessionId, bidderId, "BidPop");
         return String.format("#%04X", Math.abs(hash) % 0xFFFF);
     }
@@ -147,15 +166,22 @@ public class ClientHandler implements Runnable {
             BigDecimal maxBid = new BigDecimal(jsonObj.get("maxBid").toString());
             BigDecimal increment = new BigDecimal(jsonObj.get("increment").toString());
 
-            // Lưu config vào Database qua service layer
             biddingController.registerAutoBid(auctionId, bidderId, maxBid, increment);
 
-            logger.info("AUTOBID registered — auctionId={}, bidderId={}, maxBid={}, increment={}",
-                    auctionId, bidderId, maxBid, increment);
+            logger.info(
+                    "AUTOBID registered — auctionId={}, bidderId={}, maxBid={}, increment={}",
+                    auctionId,
+                    bidderId,
+                    maxBid,
+                    increment
+            );
 
             JSONObject response = new JSONObject();
             response.put("success", true);
-            response.put("message", "Kích hoạt Auto-bidding thành công! Hệ thống sẽ tự đặt giá khi có người trả giá cao hơn.");
+            response.put(
+                    "message",
+                    "Kích hoạt Auto-bidding thành công! Hệ thống sẽ tự đặt giá khi có người trả giá cao hơn."
+            );
             out.println("RESPONSE:" + response);
 
             // Resolve ngay lập tức nếu đang có giá cần phản đòn
@@ -163,8 +189,10 @@ public class ClientHandler implements Runnable {
             if (autoBidResult != null && autoBidResult.isSuccess()) {
                 broadcastBidNotice(auctionId, autoBidResult);
             }
+
         } catch (Exception e) {
             logger.error("Error processing AUTOBID message", e);
+
             JSONObject errorResponse = new JSONObject();
             errorResponse.put("success", false);
             errorResponse.put("message", "Lỗi xử lý Auto-bidding: " + e.getMessage());
