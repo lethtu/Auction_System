@@ -6,6 +6,7 @@ import com.auction.server.model.AuctionSession;
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.model.Electronics;
 import com.auction.server.repository.AuctionSessionRepository;
+import com.auction.server.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -24,6 +25,9 @@ class PublicAuctionControllerTest {
 
     @Mock
     private AuctionSessionRepository auctionSessionRepository;
+
+    @Mock
+    private UserRepository userRepository;
 
     @Test
     void getAllSessions_returnsDtoListForMainAuctionScreen() {
@@ -44,8 +48,11 @@ class PublicAuctionControllerTest {
 
         when(auctionSessionRepository.findAll()).thenReturn(List.of(session));
 
-        PublicAuctionController controller = new PublicAuctionController(auctionSessionRepository);
-        ResponseEntity<ApiResponse<List<SessionResponseDTO>>> response = controller.getAllSessions();
+        PublicAuctionController controller =
+                new PublicAuctionController(auctionSessionRepository, userRepository);
+
+        ResponseEntity<ApiResponse<List<SessionResponseDTO>>> response =
+                controller.getAllSessions();
 
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
