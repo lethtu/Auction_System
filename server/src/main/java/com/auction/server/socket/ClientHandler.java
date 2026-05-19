@@ -65,14 +65,16 @@ public class ClientHandler implements Runnable {
     }
 
     private void handleBidMessage(String jsonString) {
+        BidRequest request = null;
+    
         try {
             JSONObject jsonObj = new JSONObject(jsonString);
-            BidRequest request = new BidRequest(
+            request = new BidRequest(
                     jsonObj.getInt("auctionId"),
                     jsonObj.getInt("bidderId"),
                     new BigDecimal(jsonObj.get("amount").toString())
             );
-
+    
             BidResponse response;
             try {
                 response = biddingController.handleBid(request);
@@ -83,21 +85,32 @@ public class ClientHandler implements Runnable {
                 out.println("RESPONSE:" + errorJson);
                 return;
             }
-
+    
+            // QUAN TRỌNG:
+            // Trả kết quả bid chính trước, để client/test nhận đúng RESPONSE thành công.
+            sendBidResponse(response);
+    
             if (response.isSuccess()) {
                 broadcastBidNotice(request.getAuctionId(), response);
-
-                // Resolve auto-bid O(1) sau khi bid thành công — 1 lần duy nhất
-                BidResponse autoBidResult = biddingController.resolveAutoBids(request.getAuctionId());
-                if (autoBidResult != null && autoBidResult.isSuccess()) {
-                    broadcastBidNotice(request.getAuctionId(), autoBidResult);
+    
+                // Auto-bid là xử lý phụ. Không được để lỗi auto-bid làm fail bid chính.
+                try {
+                    BidResponse autoBidResult = biddingController.resolveAutoBids(request.getAuctionId());
+                    if (autoBidResult != null && autoBidResult.isSuccess()) {
+                        broadcastBidNotice(request.getAuctionId(), autoBidResult);
+                    }
+                } catch (Exception autoBidException) {
+                    logger.error(
+                            "Auto-bid resolve failed after successful bid. auctionId={}",
+                            request.getAuctionId(),
+                            autoBidException
+                    );
                 }
             }
-
-            sendBidResponse(response);
-
+    
         } catch (Exception e) {
             logger.error("Error processing BID message", e);
+    
             JSONObject errorResponse = new JSONObject();
             errorResponse.put("success", false);
             errorResponse.put("message", "LỖI HỆ THỐNG: Không xử lý được yêu cầu đặt giá.");
