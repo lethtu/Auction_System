@@ -6,11 +6,14 @@ import com.auction.server.mapper.SessionResponseMapper;
 import com.auction.server.model.Admin;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.model.AuctionStatus;
+import com.auction.server.model.Item;
 import com.auction.server.model.User;
 import com.auction.server.repository.AuctionSessionRepository;
+import com.auction.server.repository.ItemRepository;
 import com.auction.server.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +32,8 @@ public class AdminService {
     private static final String ERROR_NOT_ADMIN = "Người này không phải là Quản trị viên";
     private static final String ERROR_SESSION_NOT_FOUND = "Không tìm thấy phiên đấu giá";
     private static final String ERROR_TARGET_USER_NOT_FOUND = "Không tìm thấy user cần khóa";
+    private static final String ERROR_PRODUCT_NOT_FOUND = "Không tìm thấy sản phẩm";
+    private static final String ERROR_ITEM_REPOSITORY_NOT_READY = "Chưa cấu hình kho dữ liệu sản phẩm";
     private static final String ERROR_SELF_BAN = "Không thể khóa chính tài khoản admin hiện tại";
     private static final String ERROR_BAN_ADMIN = "Không được khóa tài khoản Admin khác";
     private static final String ERROR_REJECT_REASON_REQUIRED = "Vui lòng nhập lý do từ chối";
@@ -36,13 +41,24 @@ public class AdminService {
 
     private final AuctionSessionRepository sessionRepository;
     private final UserRepository userRepository;
+    private final ItemRepository itemRepository;
 
     public AdminService(
             AuctionSessionRepository sessionRepository,
             UserRepository userRepository
     ) {
+        this(sessionRepository, userRepository, null);
+    }
+
+    @Autowired
+    public AdminService(
+            AuctionSessionRepository sessionRepository,
+            UserRepository userRepository,
+            ItemRepository itemRepository
+    ) {
         this.sessionRepository = sessionRepository;
         this.userRepository = userRepository;
+        this.itemRepository = itemRepository;
     }
 
     public List<SessionResponseDTO> getPendingSessions() {
@@ -142,6 +158,24 @@ public class AdminService {
         sessionRepository.save(session);
     }
 
+    @Transactional
+    public void hideProduct(Integer productId, Integer adminId) {
+        setProductHidden(productId, adminId, true);
+    }
+
+    @Transactional
+    public void showProduct(Integer productId, Integer adminId) {
+        setProductHidden(productId, adminId, false);
+    }
+
+    private void setProductHidden(Integer productId, Integer adminId, boolean hidden) {
+        checkAdminPermission(adminId);
+
+        Item item = getItemById(productId);
+        item.setHidden(hidden);
+        itemRepository.save(item);
+    }
+
     private List<AuctionSession> findSessionsByStatus(String status) {
         if (!hasText(status)) {
             return sessionRepository.findAll();
@@ -185,6 +219,19 @@ public class AdminService {
 
         return userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException(errorMessage));
+    }
+
+    private Item getItemById(Integer productId) {
+        if (itemRepository == null) {
+            throw new IllegalStateException(ERROR_ITEM_REPOSITORY_NOT_READY);
+        }
+
+        if (productId == null) {
+            throw new IllegalArgumentException(ERROR_PRODUCT_NOT_FOUND);
+        }
+
+        return itemRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException(ERROR_PRODUCT_NOT_FOUND));
     }
 
     private Admin checkAdminPermission(Integer adminId) {

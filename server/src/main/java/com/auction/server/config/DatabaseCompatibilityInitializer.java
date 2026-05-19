@@ -21,6 +21,7 @@ public class DatabaseCompatibilityInitializer implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         normalizeRoleValues();
         allowRejectedAuctionStatus();
+        ensureItemHiddenColumn();
         repairBidSessionForeignKey();
     }
 
@@ -53,6 +54,33 @@ public class DatabaseCompatibilityInitializer implements ApplicationRunner {
                 "ALTER TABLE auction_sessions MODIFY COLUMN status "
                         + "ENUM('PENDING','ACTIVE','ENDED','CANCELED','REJECTED') DEFAULT NULL"
         );
+    }
+
+    private void ensureItemHiddenColumn() {
+        try {
+            Integer count = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) "
+                            + "FROM information_schema.COLUMNS "
+                            + "WHERE TABLE_SCHEMA = DATABASE() "
+                            + "AND TABLE_NAME = 'items' "
+                            + "AND COLUMN_NAME = 'hidden'",
+                    Integer.class
+            );
+
+            if (count == null || count == 0) {
+                runStatement(
+                        "Bổ sung cột items.hidden để admin ẩn/hiện sản phẩm",
+                        "ALTER TABLE items ADD COLUMN hidden BOOLEAN NOT NULL DEFAULT FALSE"
+                );
+            }
+
+            runUpdate(
+                    "Chuẩn hóa sản phẩm chưa có trạng thái ẩn/hiện",
+                    "UPDATE items SET hidden = FALSE WHERE hidden IS NULL"
+            );
+        } catch (Exception e) {
+            logger.warn("Bổ sung cột items.hidden bị bỏ qua: {}", e.getMessage());
+        }
     }
 
     private void repairBidSessionForeignKey() {

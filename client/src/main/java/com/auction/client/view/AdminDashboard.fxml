@@ -128,16 +128,21 @@
                                        style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 18; -fx-background-radius: 18; -fx-padding: 6;">
                                 <columns>
                                     <TableColumn fx:id="colSessionId" text="ID" prefWidth="70"/>
-                                    <TableColumn fx:id="colSessionProduct" text="Tên sản phẩm" prefWidth="300"/>
-                                    <TableColumn fx:id="colSessionSeller" text="Seller" prefWidth="150"/>
-                                    <TableColumn fx:id="colSessionPrice" text="Giá khởi điểm" prefWidth="170"/>
-                                    <TableColumn fx:id="colSessionStatus" text="Trạng thái" prefWidth="130"/>
+                                    <TableColumn fx:id="colSessionProduct" text="Tên sản phẩm" prefWidth="260"/>
+                                    <TableColumn fx:id="colSessionSeller" text="Seller" prefWidth="140"/>
+                                    <TableColumn fx:id="colSessionPrice" text="Giá khởi điểm" prefWidth="160"/>
+                                    <TableColumn fx:id="colSessionStatus" text="Trạng thái phiên" prefWidth="130"/>
+                                    <TableColumn fx:id="colProductVisible" text="Sản phẩm" prefWidth="120"/>
                                 </columns>
                             </TableView>
 
                             <HBox spacing="10">
                                 <Button text="Hủy phiên" onAction="#handleCancelAuction" prefWidth="140" prefHeight="40"
                                         style="-fx-background-color: #f97316; -fx-text-fill: white; -fx-font-size: 14; -fx-font-weight: bold; -fx-background-radius: 18; -fx-cursor: hand;"/>
+                                <Button text="Ẩn sản phẩm" onAction="#handleHideProduct" prefWidth="140" prefHeight="40"
+                                        style="-fx-background-color: #64748b; -fx-text-fill: white; -fx-font-size: 14; -fx-font-weight: bold; -fx-background-radius: 18; -fx-cursor: hand;"/>
+                                <Button text="Hiện sản phẩm" onAction="#handleShowProduct" prefWidth="150" prefHeight="40"
+                                        style="-fx-background-color: #22c55e; -fx-text-fill: white; -fx-font-size: 14; -fx-font-weight: bold; -fx-background-radius: 18; -fx-cursor: hand;"/>
                                 <Button text="Làm mới" onAction="#handleRefresh" prefWidth="120" prefHeight="40"
                                         style="-fx-background-color: #fef7ff; -fx-text-fill: #e040a0; -fx-font-weight: bold; -fx-border-color: #f2e8f2; -fx-border-radius: 18; -fx-background-radius: 18; -fx-cursor: hand;"/>
                             </HBox>

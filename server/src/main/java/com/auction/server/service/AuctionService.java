@@ -37,7 +37,10 @@ public class AuctionService {
     private UserRepository userRepository;
 
     public List<AuctionSession> getActiveSessions() {
-        return auctionSessionRepository.findByStatus(AuctionStatus.ACTIVE);
+        return auctionSessionRepository.findByStatus(AuctionStatus.ACTIVE)
+                .stream()
+                .filter(this::isProductVisible)
+                .toList();
     }
 
     public AuctionSession getSessionById(Integer id) {
@@ -75,6 +78,10 @@ public class AuctionService {
         return false;
     }
 
+    private boolean isProductVisible(AuctionSession session) {
+        return session != null && (session.getItem() == null || !session.getItem().isHidden());
+    }
+
     private BigDecimal calculateMinimumNextBid(BigDecimal currentPrice) {
         if (currentPrice == null) return BigDecimal.ZERO;
         
@@ -101,6 +108,12 @@ public class AuctionService {
         }
 
         AuctionSession item = itemOptional.get();
+
+        if (!isProductVisible(item)) {
+            logger.error("Đặt giá thất bại: sản phẩm của phiên {} đang bị ẩn", ItemAuctionId);
+            return new BidResponse(false, "Lỗi: Sản phẩm này đang bị ẩn", BigDecimal.ZERO, null, null);
+        }
+
         BigDecimal currentPrice = item.getCurrentPrice() == null ? BigDecimal.ZERO : item.getCurrentPrice();
         
         BigDecimal minimumRequiredBid;

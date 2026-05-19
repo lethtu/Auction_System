@@ -23,6 +23,7 @@ public final class SessionResponseMapper {
             dto.setProductType(session.getItem().getType());
             dto.setDescription(session.getItem().getDescription());
             dto.setImagePath(session.getItem().getImagePath());
+            dto.setProductVisible(!session.getItem().isHidden());
         }
 
         if (session.getSeller() != null) {
