@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane prefWidth="1280.0" prefHeight="800.0" stylesheets="@styles.css" style="-fx-background-color: #fef7ff; -fx-font-family: 'DM Sans';" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.SupportController">
+
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-background-color: rgba(254, 247, 255, 0.9); -fx-padding: 12px 30px; -fx-border-color: #ffe8e8; -fx-border-width: 0 0 2px 0; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.15), 20, 0, 0, 4);">
+            <Button fx:id="btnHamburger" onAction="#handleToggleSidebar" style="-fx-background-color: transparent; -fx-cursor: hand;">
+                <graphic>
+                    <Label text="&#xe5d2;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" />
+                </graphic>
+            </Button>
+            <Label text="HY Auction" textFill="#e040a0" onMouseClicked="#handleGoToDashboard" style="-fx-cursor: hand; -fx-font-weight: bold;">
+                <font>
+                    <Font name="System Bold" size="28.0" />
+                </font>
+            </Label>
+            
+            <Region HBox.hgrow="ALWAYS" />
+            
+            <HBox alignment="CENTER_LEFT" prefWidth="500.0" prefHeight="40.0" style="-fx-background-color: #ffffff; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 999; -fx-background-radius: 999; -fx-padding: 0 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.05), 10, 0, 0, 2);">
+                <Label text="&#xe8b6;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #e040a0;" translateY="3.0" />
+                <TextField fx:id="txtSearch" promptText="Search items, categories, or auctions..." HBox.hgrow="ALWAYS" style="-fx-background-color: transparent; -fx-padding: 0 0 0 8px; -fx-prompt-text-fill: #907898; -fx-text-fill: #2e1a28; -fx-font-size: 14px;" />
+            </HBox>
+            
+            <Region HBox.hgrow="ALWAYS" />
+            
+            <HBox spacing="15.0" alignment="CENTER_RIGHT">
+                <Button style="-fx-background-color: transparent; -fx-cursor: hand;">
+                    <graphic>
+                        <Label text="&#xe7f4;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" />
+                    </graphic>
+                </Button>
+                <Button style="-fx-background-color: transparent; -fx-cursor: hand;">
+                    <graphic>
+                        <Label text="&#xe8b8;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" />
+                    </graphic>
+                </Button>
+                <MenuButton fx:id="userMenuButton" id="profile-menu" style="-fx-background-color: transparent; -fx-cursor: hand;">
+                    <graphic>
+                        <StackPane minWidth="36" maxWidth="36" minHeight="36" maxHeight="36" prefWidth="36" prefHeight="36" style="-fx-background-color: #1a1a3a; -fx-background-radius: 18px;">
+                            <Label text="&#xe7fd;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: white;" />
+                        </StackPane>
+                    </graphic>
+                </MenuButton>
+                <Button fx:id="btnDashboard" onAction="#handleGoToDashboard" text="Kênh Người Bán" visible="false" managed="false" />
+            </HBox>
+        </HBox>
+    </top>
+
+    <left>
+        <fx:include source="Sidebar.fxml" fx:id="sidebar" />
+    </left>
+
+    <center>
+        <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: transparent;">
+            <VBox spacing="35.0" style="-fx-padding: 40px 60px;">
+                <!-- Header Title -->
+                <VBox spacing="10.0">
+                    <Label text="TRUNG TÂM TRỢ GIÚP &amp; HỖ TRỢ" style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;" />
+                    <Label text="Chúng tôi luôn sẵn sàng giải đáp thắc mắc và hỗ trợ bạn trong quá trình đấu giá." style="-fx-font-size: 15px; -fx-text-fill: #604868;" />
+                </VBox>
+
+                <!-- 2-Column Grid Area -->
+                <HBox spacing="40.0" alignment="TOP_LEFT">
+                    <!-- Column 1: Contact Form (Left) -->
+                    <VBox spacing="24.0" prefWidth="480.0" minWidth="400.0" HBox.hgrow="ALWAYS" style="-fx-background-color: #ffffff; -fx-padding: 30px; -fx-background-radius: 24px; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.06), 20, 0, 0, 6);">
+                        <Label text="GỬI YÊU CẦU TRỢ GIÚP" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #e040a0;" />
+                        
+                        <VBox spacing="8.0">
+                            <Label text="Email liên hệ *" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #604868;" />
+                            <TextField fx:id="txtEmail" promptText="Nhập email của bạn..." style="-fx-background-color: #ffffff; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 12px; -fx-background-radius: 12px; -fx-padding: 12px 16px; -fx-text-fill: #2e1a28; -fx-font-size: 14px;" />
+                        </VBox>
+
+                        <VBox spacing="8.0">
+                            <Label text="Chủ đề *" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #604868;" />
+                            <TextField fx:id="txtSubject" promptText="Nhập chủ đề cần hỗ trợ..." style="-fx-background-color: #ffffff; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 12px; -fx-background-radius: 12px; -fx-padding: 12px 16px; -fx-text-fill: #2e1a28; -fx-font-size: 14px;" />
+                        </VBox>
+
+                        <VBox spacing="8.0">
+                            <Label text="Nội dung tin nhắn *" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #604868;" />
+                            <TextArea fx:id="txtAreaMessage" prefHeight="160.0" wrapText="true" promptText="Nhập chi tiết nội dung cần trợ giúp..." style="-fx-background-color: #ffffff; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 12px; -fx-background-radius: 12px; -fx-padding: 8px; -fx-text-fill: #2e1a28; -fx-font-size: 14px;" />
+                        </VBox>
+
+                        <Label fx:id="lblMessageStatus" text="" visible="false" managed="false" style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+
+                        <Button fx:id="btnSendSupport" onAction="#handleSendSupport" text="Gửi Tin Nhắn" maxWidth="Infinity" prefHeight="48.0" style="-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 24px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.3), 12, 0, 0, 4);">
+                            <graphic>
+                                <Label text="&#xe163;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: white;" translateY="2.0" />
+                            </graphic>
+                        </Button>
+                    </VBox>
+
+                    <!-- Column 2: FAQ & Contacts (Right) -->
+                    <VBox spacing="24.0" HBox.hgrow="ALWAYS">
+                        <!-- FAQ Header -->
+                        <VBox spacing="16.0" style="-fx-background-color: #ffffff; -fx-padding: 30px; -fx-background-radius: 24px; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.06), 20, 0, 0, 6);">
+                            <Label text="CÂU HỎI THƯỜNG GẶP (FAQ)" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #e040a0;" />
+                            
+                            <!-- Question 1 -->
+                            <VBox spacing="6.0" style="-fx-border-color: #f2e8f2; -fx-border-width: 0 0 1px 0; -fx-padding: 0 0 12px 0;">
+                                <Label text="Làm thế nào để đấu giá sản phẩm?" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;" />
+                                <Label text="Bạn chỉ cần tìm sản phẩm mong muốn, vào phòng đấu giá và nhập mức giá hợp lệ lớn hơn mức giá hiện tại cộng với bước giá tối thiểu." wrapText="true" style="-fx-font-size: 13.5px; -fx-text-fill: #604868;" />
+                            </VBox>
+
+                            <!-- Question 2 -->
+                            <VBox spacing="6.0" style="-fx-border-color: #f2e8f2; -fx-border-width: 0 0 1px 0; -fx-padding: 0 0 12px 0;">
+                                <Label text="Làm sao để nạp tiền vào tài khoản?" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;" />
+                                <Label text="Nhấp vào biểu tượng tài khoản ở thanh điều hướng trên cùng, chọn 'Nạp tiền' và thực hiện chuyển khoản theo đúng nội dung hiển thị." wrapText="true" style="-fx-font-size: 13.5px; -fx-text-fill: #604868;" />
+                            </VBox>
+
+                            <!-- Question 3 -->
+                            <VBox spacing="6.0" style="-fx-padding: 0 0 4px 0;">
+                                <Label text="Làm cách nào để trở thành Người Bán?" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;" />
+                                <Label text="Chọn nút 'Start Selling' ở thanh bên trái (nếu bạn chưa là Người bán), đọc kỹ điều khoản và nhấn nút 'Nâng cấp ngay'." wrapText="true" style="-fx-font-size: 13.5px; -fx-text-fill: #604868;" />
+                            </VBox>
+                        </VBox>
+
+                        <!-- Contact Channels Card -->
+                        <VBox spacing="16.0" style="-fx-background-color: #ffffff; -fx-padding: 30px; -fx-background-radius: 24px; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.06), 20, 0, 0, 6);">
+                            <Label text="KÊNH LIÊN HỆ TRỰC TIẾP" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #e040a0;" />
+                            
+                            <HBox spacing="12.0" alignment="CENTER_LEFT">
+                                <Label text="&#xe0b0;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #e040a0;" />
+                                <Label text="Hotline hỗ trợ: 1900 6868 (8:00 - 22:00)" style="-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-font-weight: bold;" />
+                            </HBox>
+
+                            <HBox spacing="12.0" alignment="CENTER_LEFT">
+                                <Label text="&#xe158;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #e040a0;" />
+                                <Label text="Email: lethanhtungbot01@gmail.com" style="-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-font-weight: bold;" />
+                            </HBox>
+
+                            <HBox spacing="12.0" alignment="CENTER_LEFT">
+                                <Label text="&#xe0c8;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #e040a0;" />
+                                <Label text="Địa chỉ: Hà Nội" wrapText="true" style="-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-font-weight: bold;" />
+                            </HBox>
+                        </VBox>
+                    </VBox>
+                </HBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

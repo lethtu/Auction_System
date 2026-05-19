@@ -169,13 +169,13 @@ public class MainController implements Initializable {
         if (sidebarController != null) {
             sidebarController.setSidebarListener(new SidebarController.SidebarListener() {
                 @Override
-                public void onFilterWatchlist() {
+                public void onFilterWatchlist(ActionEvent event) {
                     showingWatchlistOnly = true;
                     filterAndRenderProducts();
                 }
 
                 @Override
-                public void onResetFilter() {
+                public void onResetFilter(ActionEvent event) {
                     showingWatchlistOnly = false;
                     filterAndRenderProducts();
                 }

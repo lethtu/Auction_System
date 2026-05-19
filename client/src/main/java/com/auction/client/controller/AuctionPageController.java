@@ -166,6 +166,7 @@ public class AuctionPageController {
         initBidTrajectoryCard();
         connectToServer();
         loadBidHistoryFromServer();
+        refreshSessionFromServer();
     }
 
     private void createUserOption(String text) {
@@ -494,9 +495,11 @@ public class AuctionPageController {
                 org.json.JSONArray arr = new org.json.JSONArray(res.body());
                 Platform.runLater(() -> {
                     for (int i = 0; i < arr.length(); i++) { JSONObject b = arr.getJSONObject(i);
-                        appendOrMergeBidPoint(b.optInt("bidId",-1), b.getBigDecimal("amount"), b.optString("bidTime",null), b.optInt("bidderId",0), b.optString("bidderName","#????")); }
+                        appendOrMergeBidPoint(b.optInt("bidId",-1), getMoney(b, "amount", BigDecimal.ZERO), b.optString("bidTime",null), b.optInt("bidderId",0), b.optString("bidderName","#????")); }
                     allBidPoints.sort(java.util.Comparator.comparingLong(com.auction.client.model.BidChartPoint::getEpochMillis));
+                    bidCount = allBidPoints.size();
                     renderMiniChart(); renderRecentActivity();
+                    updateBidInfoLabels();
                     if (fullHistoryUpdater != null) fullHistoryUpdater.run();
                 });
             }
@@ -1055,7 +1058,8 @@ public class AuctionPageController {
         setLabelText(minIncrementLabel, "Tăng tối thiểu ₫ " + formatPrice(getEffectiveStepPrice()));
         setLabelText(highestBidderLabel, formatHighestBidder());
         setLabelText(reserveStatusLabel, formatReserveStatus());
-        setLabelText(totalBidsLabel, String.valueOf(Math.max(0, bidCount)));
+        int displayBidCount = Math.max(Math.max(0, bidCount), allBidPoints.size());
+        setLabelText(totalBidsLabel, String.valueOf(displayBidCount));
         setLabelText(watchingLabel, String.valueOf(Math.max(0, watchingCount)));
     }
 
