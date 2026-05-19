@@ -34,8 +34,11 @@ public class ClientHandler implements Runnable {
                     SocketServer.joinRoom(sessionId, out);
                 } else if (inputLine.startsWith("BID:")) {
                     handleBidMessage(inputLine.substring(4));
+                } else if ("JOIN_HOME".equals(inputLine)) {
+                    SocketServer.joinHome(out);
                 }
             }
+        
         } catch (IOException e) {
             if (e instanceof java.net.SocketException) {
                 System.out.println("Client disconnected: " + e.getMessage());
