@@ -74,7 +74,7 @@ public class ClientHandler implements Runnable {
                         errorJson.put("success", false);
                         errorJson.put("message", e.getMessage());
                         out.println("RESPONSE:" + errorJson.toString());
-                        continue; // Bỏ qua các bước phía dưới, quay lại lắng nghe tiếp
+                        return; // Bỏ qua các bước phía dưới, quay lại lắng nghe tiếp
                     }
 
             if (response.isSuccess()) {
