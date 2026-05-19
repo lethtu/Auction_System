@@ -1,5 +1,6 @@
 package com.auction.server.service;
 
+import com.auction.server.model.Electronics;
 import com.auction.server.dto.BidResponse;
 import com.auction.server.exception.AuctionClosedException;
 import com.auction.server.model.AuctionSession;
@@ -53,19 +54,21 @@ public class AuctionLifecycleTest {
         mockSession = new AuctionSession();
         mockSession.setId(1);
         mockSession.setCurrentPrice(new BigDecimal("1000.00"));
+        mockSession.setStepPrice(new BigDecimal("100.00"));
         mockSession.setStatus(AuctionStatus.ACTIVE);
         mockSession.setStartTime(LocalDateTime.now().minusMinutes(10));
         mockSession.setEndTime(LocalDateTime.now().plusMinutes(10));
-
-        // BƠM THÊM ITEM ẢO ĐỂ KHÔNG BỊ NULL LÚC CHECK BƯỚC GIÁ
-        com.auction.server.model.Item mockItem = new com.auction.server.model.Item();
-        // Ghi chú: Nếu Entity của cậu dùng chữ stepPrice thì đổi thành setStepPrice nhé
-        mockItem.setIncrement(new BigDecimal("100.00")); 
+    
+        Electronics mockItem = new Electronics();
+        mockItem.setId(1);
+        mockItem.setName("Mock Electronics Item");
+        mockItem.setType("electronics");
+        mockItem.setDescription("Mock item for auction lifecycle test");
         mockSession.setItem(mockItem);
-
+    
         mockUser = new User();
         mockUser.setId(99);
-        mockUser.setBalance(new BigDecimal("999999999.00")); 
+        mockUser.setBalance(new BigDecimal("999999999.00"));
     }
 
     // ========================================================================
