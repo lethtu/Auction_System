@@ -18,8 +18,8 @@ public class DatabaseMigrationRunner {
     public void migrateDatabase() {
         try {
             logger.info("[MIGRATION] Bắt đầu tự động cập nhật cấu trúc bảng auction_sessions (loại bỏ PENDING và REJECTED)...");
-            jdbcTemplate.execute("ALTER TABLE auction_sessions MODIFY COLUMN status ENUM('ACTIVE', 'ENDED', 'CANCELED', 'COMING') NOT NULL;");
-            logger.info("[MIGRATION] Cập nhật kiểu dữ liệu cột status thành công (chỉ giữ lại ACTIVE, ENDED, CANCELED, COMING)!");
+            jdbcTemplate.execute("ALTER TABLE auction_sessions MODIFY COLUMN status ENUM('ACTIVE', 'ENDED', 'CANCELED', 'COMING', 'DRAFT') NOT NULL;");
+            logger.info("[MIGRATION] Cập nhật kiểu dữ liệu cột status thành công (chỉ giữ lại ACTIVE, ENDED, CANCELED, COMING, DRAFT)!");
         } catch (Exception e) {
             logger.warn("[MIGRATION] Bỏ qua cập nhật cột status (bảng đã cập nhật hoặc không dùng ENUM): " + e.getMessage());
         }

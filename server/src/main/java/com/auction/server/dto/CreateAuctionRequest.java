@@ -16,8 +16,12 @@ public class CreateAuctionRequest {
     private BigDecimal stepPrice;     // Thêm bước giá
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    private String status;
 
     // --- Getters and Setters ---
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }

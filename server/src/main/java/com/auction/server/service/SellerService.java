@@ -63,9 +63,20 @@ public class SellerService {
             throw new IllegalArgumentException("Mô tả không được quá 1000 ký tự");
         }
 
-        if (request.getStartingPrice() == null || request.getStartingPrice().compareTo(BigDecimal.ZERO) <= 0) {
-            logger.error("Giá khởi điểm phải lớn hơn 0");
-            throw new IllegalArgumentException("Giá khởi điểm phải lớn hơn 0");
+        boolean isDraft = "DRAFT".equalsIgnoreCase(request.getStatus());
+        if (!isDraft) {
+            if (request.getStartingPrice() == null || request.getStartingPrice().compareTo(BigDecimal.ZERO) <= 0) {
+                logger.error("Giá khởi điểm phải lớn hơn 0");
+                throw new IllegalArgumentException("Giá khởi điểm phải lớn hơn 0");
+            }
+        } else {
+            if (request.getStartingPrice() == null) {
+                request.setStartingPrice(BigDecimal.ZERO);
+            }
+            if (request.getStartingPrice().compareTo(BigDecimal.ZERO) < 0) {
+                logger.error("Giá khởi điểm không được âm");
+                throw new IllegalArgumentException("Giá khởi điểm không được âm");
+            }
         }
 
         if (request.getStepPrice() != null && request.getStepPrice().compareTo(BigDecimal.ZERO) <= 0) {
@@ -73,20 +84,16 @@ public class SellerService {
             throw new IllegalArgumentException("Bước giá phải lớn hơn 0");
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        if (!isDraft) {
+            LocalDateTime now = LocalDateTime.now();
 
-        // Cho phép dung sai 10 giây do độ trễ mạng (Network Latency) nếu Client có gửi startTime
-        if (!isUpdate && request.getStartTime() != null && request.getStartTime().isBefore(now.minusSeconds(10))) {
-            logger.error("Thời gian bắt đầu không được nằm trong quá khứ.");
-            throw new IllegalArgumentException("Thời gian bắt đầu không được nằm trong quá khứ.");
-        }
+            // Xác định thời gian bắt đầu thực tế để làm mốc so sánh với thời gian kết thúc
+            LocalDateTime actualStart = (request.getStartTime() == null) ? now : request.getStartTime();
 
-        // Xác định thời gian bắt đầu thực tế để làm mốc so sánh với thời gian kết thúc
-        LocalDateTime actualStart = (request.getStartTime() == null) ? now : request.getStartTime();
-
-        if (request.getEndTime() == null || !request.getEndTime().isAfter(actualStart)) {
-            logger.error("Thời gian kết thúc phải diễn ra sau thời gian bắt đầu.");
-            throw new IllegalArgumentException("Thời gian kết thúc phải diễn ra sau thời gian bắt đầu.");
+            if (request.getEndTime() == null || !request.getEndTime().isAfter(actualStart)) {
+                logger.error("Thời gian kết thúc phải diễn ra sau thời gian bắt đầu.");
+                throw new IllegalArgumentException("Thời gian kết thúc phải diễn ra sau thời gian bắt đầu.");
+            }
         }
     }
 
@@ -129,12 +136,16 @@ public class SellerService {
         session.setApprovedByAdminId(null);
         session.setRejectedByAdminId(null);
 
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime startTime = session.getStartTime();
-        if (startTime != null && startTime.isAfter(now)) {
-            session.setStatus(AuctionStatus.COMING);
+        if ("DRAFT".equalsIgnoreCase(request.getStatus())) {
+            session.setStatus(AuctionStatus.DRAFT);
         } else {
-            session.setStatus(AuctionStatus.ACTIVE);
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime startTime = session.getStartTime();
+            if (startTime != null && startTime.isAfter(now)) {
+                session.setStatus(AuctionStatus.COMING);
+            } else {
+                session.setStatus(AuctionStatus.ACTIVE);
+            }
         }
 
         return auctionSessionRepository.save(session);
@@ -190,9 +201,9 @@ public class SellerService {
             throw new RuntimeException("Bạn không có quyền sửa phiên này");
         }
 
-        if (session.getStatus() != AuctionStatus.ACTIVE && session.getStatus() != AuctionStatus.COMING) {
-            logger.error("Chỉ được sửa phiên chưa kết thúc");
-            throw new RuntimeException("Chỉ được sửa phiên chưa kết thúc");
+        if (session.getStatus() != AuctionStatus.ACTIVE && session.getStatus() != AuctionStatus.COMING && session.getStatus() != AuctionStatus.DRAFT) {
+            logger.error("Chỉ được sửa phiên chưa kết thúc hoặc bản nháp");
+            throw new RuntimeException("Chỉ được sửa phiên chưa kết thúc hoặc bản nháp");
         }
 
         Item item = session.getItem();
@@ -208,12 +219,16 @@ public class SellerService {
         session.setStartTime(request.getStartTime());
         session.setEndTime(request.getEndTime());
 
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime startTime = session.getStartTime();
-        if (startTime != null && startTime.isAfter(now)) {
-            session.setStatus(AuctionStatus.COMING);
+        if ("DRAFT".equalsIgnoreCase(request.getStatus())) {
+            session.setStatus(AuctionStatus.DRAFT);
         } else {
-            session.setStatus(AuctionStatus.ACTIVE);
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime startTime = session.getStartTime();
+            if (startTime != null && startTime.isAfter(now)) {
+                session.setStatus(AuctionStatus.COMING);
+            } else {
+                session.setStatus(AuctionStatus.ACTIVE);
+            }
         }
 
         return auctionSessionRepository.save(session);
@@ -231,9 +246,9 @@ public class SellerService {
             throw new RuntimeException("Bạn không có quyền hủy phiên này");
         }
 
-        if (session.getStatus() != AuctionStatus.ACTIVE && session.getStatus() != AuctionStatus.COMING) {
-            logger.error("Chỉ được hủy phiên đang hoạt động hoặc chuẩn bị diễn ra");
-            throw new RuntimeException("Chỉ được hủy phiên đang hoạt động hoặc chuẩn bị diễn ra");
+        if (session.getStatus() != AuctionStatus.ACTIVE && session.getStatus() != AuctionStatus.COMING && session.getStatus() != AuctionStatus.DRAFT) {
+            logger.error("Chỉ được hủy phiên đang hoạt động, chuẩn bị diễn ra hoặc bản nháp");
+            throw new RuntimeException("Chỉ được hủy phiên đang hoạt động, chuẩn bị diễn ra hoặc bản nháp");
         }
 
         session.setStatus(AuctionStatus.CANCELED); // Ép dùng Enum CANCELED
