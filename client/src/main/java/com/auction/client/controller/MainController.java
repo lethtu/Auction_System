@@ -384,7 +384,7 @@ public class MainController implements Initializable {
                         productContainer.getChildren().add(card);
                         currentRenderedIds.add(sessionObj.optInt("id"));
                       
-                        sessionCardMap.put(id, card);
+                        sessionCardMap.put(sessionObj.optInt("id"), card);
                     }
                 }
                 updateGridLayout();
