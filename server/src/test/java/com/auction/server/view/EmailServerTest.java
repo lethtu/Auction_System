@@ -1,5 +1,6 @@
 package com.auction.server.view;
 
+import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,6 +14,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Duration;
+import java.util.Properties;
 
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
@@ -32,9 +34,10 @@ public class EmailServerTest {
         // Vì class dùng @Value cho senderEmail, ta dùng Reflection để set giá trị giả
         ReflectionTestUtils.setField(emailServer, "senderEmail", "noreply@auction.com");
 
-        // Mock hành động tạo MimeMessage (vì mailSender.send cần cái này)
-        MimeMessage mockMimeMessage = mock(MimeMessage.class);
-        when(mailSender.createMimeMessage()).thenReturn(mockMimeMessage);
+        // Không mock MimeMessage trực tiếp vì Mockito/Byte Buddy có thể lỗi trên JDK mới.
+        // Dùng MimeMessage thật, còn JavaMailSender vẫn là mock.
+        MimeMessage message = new MimeMessage(Session.getInstance(new Properties()));
+        when(mailSender.createMimeMessage()).thenReturn(message);
     }
 
     @Test

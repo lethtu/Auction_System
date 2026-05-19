@@ -1,0 +1,42 @@
+package com.auction.server.util;
+
+import com.auction.server.dto.CreateAuctionRequest;
+import com.auction.server.model.AuctionSession;
+import com.auction.server.model.Item;
+
+import java.math.BigDecimal;
+
+public final class SellerSessionUpdater {
+
+    private SellerSessionUpdater() {
+    }
+
+    public static void updateItemFromRequest(Item item, CreateAuctionRequest request) {
+        item.setName(request.getName());
+        item.setType(request.getType());
+        item.setDescription(request.getDescription());
+        item.setImagePath(request.getImagePath());
+    }
+
+    public static void updateSessionFromRequest(AuctionSession session, CreateAuctionRequest request) {
+        session.setStartingPrice(request.getStartingPrice());
+        session.setCurrentPrice(request.getStartingPrice());
+        session.setStepPrice(request.getStepPrice());
+        session.setReservePrice(resolveReservePrice(request));
+        session.setHighestBidderId(null);
+        session.setStartTime(request.getStartTime());
+        session.setEndTime(request.getEndTime());
+    }
+
+    private static BigDecimal resolveReservePrice(CreateAuctionRequest request) {
+        return request.getReservePrice() == null ? request.getStartingPrice() : request.getReservePrice();
+    }
+
+    public static void resetApprovalInfo(AuctionSession session) {
+        session.setApprovedAt(null);
+        session.setRejectedAt(null);
+        session.setRejectReason(null);
+        session.setApprovedByAdminId(null);
+        session.setRejectedByAdminId(null);
+    }
+}

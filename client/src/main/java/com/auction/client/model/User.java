@@ -15,6 +15,8 @@ public class User {
 
     private static String role;
 
+    public static final java.util.Set<Integer> watchlistIds = new java.util.concurrent.ConcurrentSkipListSet<>();
+
     public static void setSession(Integer Id, String Username, String Fullname, String Email, String Dob, String Place_of_birth, String Role){
         id = Id;
         username = Username;
@@ -23,6 +25,10 @@ public class User {
         dob = Dob;
         place_of_birth = Place_of_birth;
         role = Role;
+        watchlistIds.clear();
+        if (username != null) {
+            watchlistIds.addAll(com.auction.client.service.ClientLogger.loadUserFavorites(username));
+        }
     }
 
     public static void clearSession(){
@@ -33,6 +39,7 @@ public class User {
         dob = null;
         place_of_birth = null;
         role = null;
+        watchlistIds.clear();
     }
 
     public static String getRole(){

@@ -3,124 +3,184 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<?import javafx.scene.control.DatePicker?>
-<VBox spacing="15"
-      xmlns="http://javafx.com/javafx/21"
-      xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.auction.client.controller.SellerDashboardController"
-      style="-fx-background-color: #f8fafc;">
+<?import javafx.scene.control.CheckBox?>
+<BorderPane prefWidth="1280" prefHeight="720"
+            stylesheets="@styles.css"
+            xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.auction.client.controller.SellerDashboardController"
+            style="-fx-background-color: #fef7ff; -fx-font-family: 'DM Sans';">
 
-    <padding>
-        <Insets top="20" right="20" bottom="20" left="20"/>
-    </padding>
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="22"
+              style="-fx-background-color: #ffffff; -fx-padding: 14px 28px; -fx-border-color: #f2e8f2; -fx-border-width: 0 0 2px 0;">
+            <Label text="☰" style="-fx-text-fill: #604868; -fx-font-size: 22px;"/>
+            <Label text="HY Auctions" style="-fx-text-fill: #e040a0; -fx-font-size: 28px; -fx-font-weight: bold;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Quay lại"
+                    onAction="#goBack"
+                    prefHeight="36"
+                    style="-fx-background-color: #17183b; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 18; -fx-padding: 8px 18px; -fx-cursor: hand;"/>
+        </HBox>
+    </top>
 
-    <HBox spacing="12" alignment="CENTER_LEFT">
-        <Label text="SELLER DASHBOARD">
-            <font>
-                <Font size="24"/>
-            </font>
-        </Label>
+    <left>
+        <VBox spacing="8" prefWidth="240" minWidth="240"
+              style="-fx-background-color: #ffffff; -fx-padding: 28px 14px; -fx-border-color: #f2e8f2; -fx-border-width: 0 2px 0 0;">
+            <Label text="SELLER TOOLS"
+                   style="-fx-text-fill: #907898; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 0 0 6px 16px;"/>
+            <Button text="Phiên của tôi" alignment="CENTER_LEFT" prefWidth="200" onAction="#showMySessionsTab"
+                    style="-fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 22; -fx-padding: 10px 18px; -fx-cursor: hand;"/>
+            <Button text="Tạo phiên" alignment="CENTER_LEFT" prefWidth="200" onAction="#showCreateAuctionTab"
+                    style="-fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 22; -fx-padding: 10px 18px; -fx-cursor: hand;"/>
+            <Button text="Thống kê" alignment="CENTER_LEFT" prefWidth="200" onAction="#showStatsTab"
+                    style="-fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 22; -fx-padding: 10px 18px; -fx-cursor: hand;"/>
 
-        <Button text="Quay lại"
-                onAction="#goBack"
-                style="-fx-background-color: #334155; -fx-text-fill: white; -fx-background-radius: 10;"/>
-    </HBox>
+            <Region VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </left>
 
-    <TabPane fx:id="sellerTabPane" tabClosingPolicy="UNAVAILABLE">
-        <tabs>
-
-            <Tab fx:id="tabMySessions" text="Phiên của tôi">
-                <VBox spacing="12" style="-fx-background-color: white;">
-                    <padding>
-                        <Insets top="15" right="15" bottom="15" left="15"/>
-                    </padding>
-
-                    <HBox spacing="10">
-                        <Button text="Tất cả" onAction="#handleShowAllSessions"/>
-                        <Button text="PENDING" onAction="#handleShowPendingSessions"/>
-                        <Button text="ACTIVE" onAction="#handleShowActiveSessions"/>
-                        <Button text="REJECTED" onAction="#handleShowRejectedSessions"/>
-                    </HBox>
-
-                    <ListView fx:id="mySessionsList" prefHeight="340"/>
-
-                    <HBox spacing="10">
-                        <Button text="Sửa phiên đã chọn"
-                                onAction="#handleEditSelectedSession"
-                                style="-fx-background-color: #3b82f6; -fx-text-fill: white;"/>
-
-                        <Button text="Hủy phiên đã chọn"
-                                onAction="#handleCancelSelectedSession"
-                                style="-fx-background-color: #ef4444; -fx-text-fill: white;"/>
-                    </HBox>
+    <center>
+        <VBox spacing="18" style="-fx-padding: 28px 34px 30px 34px;">
+            <HBox alignment="CENTER_LEFT" spacing="18">
+                <VBox spacing="3">
+                    <Label text="Seller Studio" textFill="#2e1a28">
+                        <font>
+                            <Font name="System Bold" size="30"/>
+                        </font>
+                    </Label>
+                    <Label text="Quản lý phiên đấu giá, tạo sản phẩm mới và theo dõi hiệu quả bán hàng."
+                           style="-fx-text-fill: #907898; -fx-font-size: 13px;"/>
                 </VBox>
-            </Tab>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="Seller Dashboard"
+                       style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 18; -fx-background-radius: 18; -fx-padding: 9px 16px; -fx-text-fill: #604868; -fx-font-weight: bold;"/>
+            </HBox>
 
-            <Tab fx:id="tabCreateSession" text="Tạo phiên">
-                <VBox spacing="10" style="-fx-background-color: white;">
-                    <padding>
-                        <Insets top="15" right="15" bottom="15" left="15"/>
-                    </padding>
+            <TabPane fx:id="sellerTabPane"
+                     styleClass="navigationless-tab-pane"
+                     tabClosingPolicy="UNAVAILABLE"
+                     VBox.vgrow="ALWAYS"
+                     style="-fx-background-color: #ffffff; -fx-background-radius: 26; -fx-border-color: #f2e8f2; -fx-border-radius: 26; -fx-padding: 12;">
 
-                    <Label text="Tên sản phẩm"/>
-                    <TextField fx:id="productNameField" promptText="Ví dụ: Laptop Dell XPS 13"/>
+                <tabs>
+                    <Tab fx:id="tabMySessions" text="Phiên của tôi">
+                        <VBox spacing="14" style="-fx-background-color: #ffffff; -fx-padding: 18;" VBox.vgrow="ALWAYS">
+                            <HBox spacing="10">
+                                <Button text="Tất cả" onAction="#handleShowAllSessions"
+                                        style="-fx-background-color: #fef7ff; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 18; -fx-border-color: #f2e8f2; -fx-border-radius: 18; -fx-padding: 8px 18px; -fx-cursor: hand;"/>
+                                <Button text="PENDING" onAction="#handleShowPendingSessions"
+                                        style="-fx-background-color: #fef7ff; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 18; -fx-border-color: #f2e8f2; -fx-border-radius: 18; -fx-padding: 8px 18px; -fx-cursor: hand;"/>
+                                <Button text="ACTIVE" onAction="#handleShowActiveSessions"
+                                        style="-fx-background-color: #fef7ff; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 18; -fx-border-color: #f2e8f2; -fx-border-radius: 18; -fx-padding: 8px 18px; -fx-cursor: hand;"/>
+                                <Button text="REJECTED" onAction="#handleShowRejectedSessions"
+                                        style="-fx-background-color: #fef7ff; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 18; -fx-border-color: #f2e8f2; -fx-border-radius: 18; -fx-padding: 8px 18px; -fx-cursor: hand;"/>
+                            </HBox>
 
-                    <Label text="Loại sản phẩm"/>
-                    <ComboBox fx:id="productTypeCombo"/>
+                            <ListView fx:id="mySessionsList"
+                                      prefHeight="430"
+                                      VBox.vgrow="ALWAYS"
+                                      style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 18; -fx-background-radius: 18; -fx-padding: 6;"/>
 
-                    <Label text="Link ảnh"/>
-                    <TextField fx:id="imageUrlField" promptText="https://..."/>
+                            <HBox spacing="10">
+                                <Button text="Sửa phiên đã chọn"
+                                        onAction="#handleEditSelectedSession"
+                                        style="-fx-background-color: #17183b; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 18; -fx-padding: 10px 18px; -fx-cursor: hand;"/>
+                                <Button text="Hủy phiên đã chọn"
+                                        onAction="#handleCancelSelectedSession"
+                                        style="-fx-background-color: #ef4444; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 18; -fx-padding: 10px 18px; -fx-cursor: hand;"/>
+                            </HBox>
+                        </VBox>
+                    </Tab>
 
-                    <Label text="Mô tả"/>
-                    <TextArea fx:id="descriptionArea" prefRowCount="4"/>
+                    <Tab fx:id="tabCreateSession" text="Tạo phiên">
+                        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" pannable="true"
+                                    style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
+                            <content>
+                                <VBox spacing="12" style="-fx-background-color: #ffffff; -fx-padding: 18 18 34 18;">
+                                    <Label text="Tên sản phẩm" style="-fx-text-fill: #604868; -fx-font-weight: bold;"/>
+                                    <TextField fx:id="productNameField" promptText="Ví dụ: Laptop Dell XPS 13"
+                                               style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 16; -fx-background-radius: 16; -fx-padding: 10 14;"/>
 
-                    <Label text="Giá khởi điểm"/>
-                    <TextField fx:id="startingPriceField" promptText="15000000"/>
+                                    <Label text="Loại sản phẩm" style="-fx-text-fill: #604868; -fx-font-weight: bold;"/>
+                                    <ComboBox fx:id="productTypeCombo" prefWidth="180"
+                                              style="-fx-background-color: #fef7ff; -fx-border-color: #f2e8f2; -fx-border-radius: 16; -fx-background-radius: 16;"/>
 
-                    <Label text="Bước giá"/>
-                    <TextField fx:id="stepPriceField" promptText="500000"/>
+                                    <Label text="Ảnh sản phẩm" style="-fx-text-fill: #604868; -fx-font-weight: bold;"/>
+                                    <HBox spacing="10">
+                                        <TextField fx:id="imagePathField" editable="false" promptText="Chưa chọn ảnh" HBox.hgrow="ALWAYS"
+                                                   style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 16; -fx-background-radius: 16; -fx-padding: 10 14;"/>
+                                        <Button text="Chọn ảnh" onAction="#handleChooseImage"
+                                                style="-fx-background-color: #fef7ff; -fx-text-fill: #e040a0; -fx-font-weight: bold; -fx-border-color: #f2e8f2; -fx-border-radius: 16; -fx-background-radius: 16; -fx-padding: 10px 18px; -fx-cursor: hand;"/>
+                                    </HBox>
 
-                    <Label text="Thời gian bắt đầu (Để trống nếu muốn bắt đầu ngay):" style="-fx-font-weight: bold;"/>
-                    <HBox spacing="10">
-                        <DatePicker fx:id="datePickerStart" prefWidth="150" promptText="Chọn ngày"/>
-                        <TextField fx:id="txtStartTime" prefWidth="100" promptText="HH:mm" text="00:00"/>
-                    </HBox>
+                                    <Label text="Mô tả" style="-fx-text-fill: #604868; -fx-font-weight: bold;"/>
+                                    <TextArea fx:id="descriptionArea" prefRowCount="4" wrapText="true"
+                                              style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 16; -fx-background-radius: 16;"/>
 
-                    <Label text="Thời gian kết thúc (Bắt buộc):" style="-fx-font-weight: bold;"/>
-                    <HBox spacing="10">
-                        <DatePicker fx:id="datePickerEnd" prefWidth="150" promptText="Chọn ngày"/>
-                        <TextField fx:id="txtEndTime" prefWidth="100" promptText="HH:mm" text="23:59"/>
-                    </HBox>
+                                    <Label text="Giá khởi điểm" style="-fx-text-fill: #604868; -fx-font-weight: bold;"/>
+                                    <TextField fx:id="startingPriceField" promptText="15000000"
+                                               style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 16; -fx-background-radius: 16; -fx-padding: 10 14;"/>
 
-                    <Button fx:id="btnCreateOrUpdate"
-                            text="Tạo phiên"
-                            onAction="#handleCreateSession"
-                            prefHeight="40"
-                            style="-fx-background-color: #22c55e; -fx-text-fill: white; -fx-font-size: 14;"/>
-                </VBox>
-            </Tab>
+                                    <Label text="Bước giá" style="-fx-text-fill: #604868; -fx-font-weight: bold;"/>
+                                    <TextField fx:id="stepPriceField" promptText="500000"
+                                               style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 16; -fx-background-radius: 16; -fx-padding: 10 14;"/>
 
-            <Tab text="Thống kê">
-                <VBox spacing="10" style="-fx-background-color: white;">
-                    <padding>
-                        <Insets top="15" right="15" bottom="15" left="15"/>
-                    </padding>
+                                    <CheckBox fx:id="applyMinRateCheck" text="Bán sản phẩm nếu giá cuối cùng &gt;= Giá tối thiểu (Min rate)" style="-fx-font-weight: bold; -fx-text-fill: #604868;"/>
+                                    <Label fx:id="lblMinRate" text="Giá tối thiểu (Min rate):" style="-fx-text-fill: #604868; -fx-font-weight: bold;"/>
+                                    <TextField fx:id="minRateField" promptText="Ví dụ: 18000000"
+                                               style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 16; -fx-background-radius: 16; -fx-padding: 10 14;"/>
 
-                    <Label text="Thống kê seller"/>
-                    <TextArea fx:id="statsArea" editable="false" prefHeight="400"/>
-                </VBox>
-            </Tab>
+                                    <Label text="Giá sàn / Reserve price" style="-fx-text-fill: #604868; -fx-font-weight: bold;"/>
+                                    <TextField fx:id="reservePriceField" promptText="Ví dụ: 20000000, để trống = bằng giá khởi điểm"
+                                               style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 16; -fx-background-radius: 16; -fx-padding: 10 14;"/>
 
-        </tabs>
-    </TabPane>
-</VBox>
+                                    <Label text="Thời gian bắt đầu (Để trống nếu muốn bắt đầu ngay):" style="-fx-text-fill: #604868; -fx-font-weight: bold;"/>
+                                    <HBox spacing="10">
+                                        <DatePicker fx:id="datePickerStart" prefWidth="170" promptText="Chọn ngày"
+                                                    style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 16; -fx-background-radius: 16;"/>
+                                        <TextField fx:id="txtStartTime" prefWidth="110" promptText="HH:mm" text="00:00"
+                                                   style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 16; -fx-background-radius: 16; -fx-padding: 10 14;"/>
+                                    </HBox>
+
+                                    <Label text="Thời gian kết thúc (Bắt buộc):" style="-fx-text-fill: #604868; -fx-font-weight: bold;"/>
+                                    <HBox spacing="10">
+                                        <DatePicker fx:id="datePickerEnd" prefWidth="170" promptText="Chọn ngày"
+                                                    style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 16; -fx-background-radius: 16;"/>
+                                        <TextField fx:id="txtEndTime" prefWidth="110" promptText="HH:mm" text="23:59"
+                                                   style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 16; -fx-background-radius: 16; -fx-padding: 10 14;"/>
+                                    </HBox>
+
+                                    <Button fx:id="btnCreateOrUpdate" text="Tạo phiên" onAction="#handleCreateSession" prefHeight="44" minHeight="44"
+                                            style="-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-size: 14; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 10px 22px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.28), 14, 0, 0, 4);"/>
+                                </VBox>
+                            </content>
+                        </ScrollPane>
+                    </Tab>
+
+                    <Tab fx:id="tabStats" text="Thống kê">
+                        <VBox spacing="14" style="-fx-background-color: #ffffff; -fx-padding: 18;" VBox.vgrow="ALWAYS">
+                            <Label text="Thống kê seller" style="-fx-text-fill: #2e1a28; -fx-font-size: 18px; -fx-font-weight: bold;"/>
+                            <TextArea fx:id="statsArea" editable="false" prefHeight="430" VBox.vgrow="ALWAYS"
+                                      style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 18; -fx-background-radius: 18;"/>
+                        </VBox>
+                    </Tab>
+                </tabs>
+            </TabPane>
+        </VBox>
+    </center>
+</BorderPane>
