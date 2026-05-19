@@ -245,12 +245,9 @@ public class AuctionLifecycleTest {
      * Test #8: Đặt giá với User không tồn tại trong DB
      * Kiểm tra nhánh bidder == null ở AuctionService line 110
      */
-    @@Test
+    @Test
     @DisplayName("Edge: Bid với User không tồn tại trả về lỗi, DB không bị ghi")
     public void test_Edge_BidWithNonExistentUser_ShouldFail() {
-        
-        // ĐÃ XÓA DÒNG when(auctionSessionRepository...) Ở ĐÂY ĐỂ TRÁNH UNNECESSARY STUBBING
-        
         when(userRepository.findById(999)).thenReturn(Optional.empty()); // User không tồn tại
 
         BidResponse response = auctionService.updateBid(1, 999, new BigDecimal("1500.00"));
