@@ -251,7 +251,15 @@ public class AuctionService {
      * Đăng ký hoặc cập nhật cấu hình Auto-bid vào Database (upsert).
      */
     @Transactional
-    public void registerAutoBid(Integer sessionId, Integer bidderId, BigDecimal maxBid, BigDecimal increment) {
+    public void registerAutoBid(Integer sessionId, Integer bidderId, BigDecimal maxBid, BigDecimal increment) throws Exception {
+        User bidder = userRepository.findById(bidderId).orElse(null);
+        if (bidder == null) {
+            throw new Exception("Tài khoản người dùng không tồn tại.");
+        }
+        if (bidder.getBalance() == null || bidder.getBalance().compareTo(maxBid) < 0) {
+            throw new Exception("Số dư của bạn không đủ để thiết lập giá kịch kim này. Vui lòng nạp thêm tiền.");
+        }
+
         Optional<com.auction.server.model.AutoBidConfig> existing =
                 autoBidConfigRepository.findBySessionIdAndBidderIdAndActiveTrue(sessionId, bidderId);
 

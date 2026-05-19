@@ -6,6 +6,7 @@ import com.auction.client.Config;
 import com.auction.client.model.User;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
+import com.auction.client.util.NotificationBellBinder;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
@@ -41,6 +42,9 @@ public class UpToSellerController implements Initializable {
 
     @FXML private SidebarController sidebarController;
     @FXML private Button btnHamburger;
+    
+    @FXML private Button btnNotificationBell;
+    @FXML private Label notificationBadge;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -51,6 +55,10 @@ public class UpToSellerController implements Initializable {
         if (User.getRole() != null && User.getRole().equalsIgnoreCase("seller")) {
             btnDashboard.setVisible(true);
             btnDashboard.setManaged(true);
+        }
+        
+        if (btnNotificationBell != null && notificationBadge != null) {
+            NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
         }
     }
 

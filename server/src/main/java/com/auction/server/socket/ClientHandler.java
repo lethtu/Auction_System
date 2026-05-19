@@ -155,6 +155,7 @@ public class ClientHandler implements Runnable {
 
             JSONObject response = new JSONObject();
             response.put("success", true);
+            response.put("type", "AUTOBID_CONFIG");
             response.put("message", "Kích hoạt Auto-bidding thành công! Hệ thống sẽ tự đặt giá khi có người trả giá cao hơn.");
             out.println("RESPONSE:" + response);
 

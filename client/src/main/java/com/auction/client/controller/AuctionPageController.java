@@ -18,6 +18,11 @@ import javafx.scene.layout.VBox;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.auction.client.util.NotificationBellBinder;
+import com.auction.client.model.notification.AppNotification;
+import com.auction.client.model.notification.NotificationType;
+import com.auction.client.model.notification.NotificationSeverity;
+import com.auction.client.service.NotificationCenterService;
 
 import java.io.BufferedReader;
 import java.io.EOFException;
@@ -59,6 +64,9 @@ public class AuctionPageController {
     @FXML private ImageView productImageView;
     @FXML private SidebarController sidebarController;
     @FXML private VBox sideBar;
+
+    @FXML private Button btnNotificationBell;
+    @FXML private Label notificationBadge;
 
     @FXML private Label mainMenuLabel;
     @FXML private Label dashboardText;
@@ -139,6 +147,11 @@ public class AuctionPageController {
     public void initialize() {
         createUserOption("Avatar");
         initDefaultView();
+        
+        if (btnNotificationBell != null && notificationBadge != null) {
+            NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
+        }
+        
         if (sidebarController != null) {
             sidebarController.setOnBeforeNavigate(this::disconnectSocket);
             sidebarController.forceCollapse();
@@ -436,6 +449,7 @@ public class AuctionPageController {
         messageLabel.setStyle(WARNING_STYLE);
         messageLabel.setText("Đang kích hoạt Auto-bidding...");
         logger.info("Sent AUTOBID request: {}", json);
+        
         return true;
     }
 
@@ -1143,9 +1157,27 @@ public class AuctionPageController {
 
             if (noticeObj.has("newEndTime")) {
                 handleAuctionExtended(noticeObj.getString("newEndTime"));
+                AppNotification notif = new AppNotification(NotificationType.AUCTION_EXTENDED, NotificationSeverity.INFO, 
+                    "Phiên đã được gia hạn", "Có bid trong những giây cuối nên phiên được kéo dài.");
+                notif.setAuctionId(currentSessionId);
+                notif.setItemName(productNameLabel.getText());
+                NotificationCenterService.getInstance().addNotification(notif);
             } else {
                 if (User.getId() == null || highestBidderId == null || !highestBidderId.equals(User.getId())) {
                     showInfo("Có người vừa ra giá mới!");
+                    if (myLastBidAmount != null && newPrice.compareTo(myLastBidAmount) > 0) {
+                        AppNotification notif = new AppNotification(NotificationType.OUTBID, NotificationSeverity.WARNING, 
+                            "Bạn đã bị vượt giá", "Sản phẩm " + productNameLabel.getText() + " hiện đã lên ₫ " + formatPrice(newPrice));
+                        notif.setAuctionId(currentSessionId);
+                        notif.setItemName(productNameLabel.getText());
+                        NotificationCenterService.getInstance().addNotification(notif);
+                    } else if (User.watchlistIds.contains(currentSessionId) || myLastBidAmount != null) {
+                        AppNotification notif = new AppNotification(NotificationType.NEW_BID, NotificationSeverity.INFO, 
+                            "Có giá mới", "Sản phẩm " + productNameLabel.getText() + " vừa có bid mới: ₫ " + formatPrice(newPrice));
+                        notif.setAuctionId(currentSessionId);
+                        notif.setItemName(productNameLabel.getText());
+                        NotificationCenterService.getInstance().addNotification(notif);
+                    }
                 }
             }
         });
@@ -1164,9 +1196,25 @@ public class AuctionPageController {
             finishBidProcessing();
 
             if (responseObj.getBoolean("success")) {
-                handleSuccessfulBid(responseObj);
+                if ("AUTOBID_CONFIG".equals(responseObj.optString("type"))) {
+                    messageLabel.setStyle(SUCCESS_STYLE);
+                    messageLabel.setText(responseObj.optString("message"));
+                    
+                    AppNotification notif = new AppNotification(NotificationType.AUTO_BID_CONFIGURED, NotificationSeverity.SUCCESS, 
+                        "Cấu hình Auto-bid thành công", "Hệ thống sẽ tự động đấu giá cho sản phẩm " + productNameLabel.getText());
+                    notif.setAuctionId(currentSessionId);
+                    notif.setItemName(productNameLabel.getText());
+                    NotificationCenterService.getInstance().addNotification(notif);
+                } else {
+                    handleSuccessfulBid(responseObj);
+                }
             } else {
                 showError(responseObj.optString("message", "Đặt giá thất bại."));
+                AppNotification notif = new AppNotification(NotificationType.BID_FAILED, NotificationSeverity.DANGER, 
+                    "Đặt giá thất bại", responseObj.optString("message", "Đặt giá thất bại."));
+                notif.setAuctionId(currentSessionId);
+                notif.setItemName(productNameLabel.getText());
+                NotificationCenterService.getInstance().addNotification(notif);
             }
         });
     }
@@ -1182,6 +1230,12 @@ public class AuctionPageController {
         messageLabel.setStyle(SUCCESS_STYLE);
         messageLabel.setText(responseObj.optString("message", "Đặt giá thành công."));
         bidAmountField.clear();
+        
+        AppNotification notif = new AppNotification(NotificationType.BID_SUCCESS, NotificationSeverity.SUCCESS, 
+            "Đặt giá thành công", "Bạn đã đặt giá thành công cho " + productNameLabel.getText());
+        notif.setAuctionId(currentSessionId);
+        notif.setItemName(productNameLabel.getText());
+        NotificationCenterService.getInstance().addNotification(notif);
     }
 
     private void handleRoomCountMessage(String countText) {
@@ -1334,6 +1388,20 @@ public class AuctionPageController {
         placeBidBtn.setDisable(true);
         bidAmountField.setDisable(true);
         disconnectSocket();
+        
+        if (highestBidderId != null && User.getId() != null && highestBidderId.equals(User.getId())) {
+            AppNotification notif = new AppNotification(NotificationType.AUCTION_END_WIN, NotificationSeverity.SUCCESS, 
+                "Bạn đã thắng!", "Bạn là người trả giá cao nhất cho " + productNameLabel.getText());
+            notif.setAuctionId(currentSessionId);
+            notif.setItemName(productNameLabel.getText());
+            NotificationCenterService.getInstance().addNotification(notif);
+        } else if (User.getId() != null && myLastBidAmount != null) {
+            AppNotification notif = new AppNotification(NotificationType.AUCTION_END_LOSE, NotificationSeverity.WARNING, 
+                "Phiên đấu giá kết thúc", "Rất tiếc, bạn không thắng phiên đấu giá " + productNameLabel.getText());
+            notif.setAuctionId(currentSessionId);
+            notif.setItemName(productNameLabel.getText());
+            NotificationCenterService.getInstance().addNotification(notif);
+        }
     }
 
     private void stopTimeline() {

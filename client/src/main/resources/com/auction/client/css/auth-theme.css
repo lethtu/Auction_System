@@ -1,0 +1,163 @@
+.auth-root {
+    -fx-background-color: #fef7ff;
+    -fx-font-family: "DM Sans", sans-serif;
+}
+
+.auth-shell {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-border-color: #f2e8f2;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 60, 0, 0, 20);
+}
+
+.auth-brand-panel {
+    -fx-background-color: #e040a0;
+    -fx-background-radius: 20 0 0 20;
+}
+
+.auth-brand-title {
+    -fx-font-family: "DM Sans";
+    -fx-font-size: 36px;
+    -fx-font-weight: 900;
+    -fx-text-fill: #ffffff;
+}
+
+.auth-brand-subtitle {
+    -fx-font-family: "DM Sans";
+    -fx-font-size: 18px;
+    -fx-font-weight: 500;
+    -fx-text-fill: #ffd6ee;
+    -fx-wrap-text: true;
+}
+
+.auth-card-overlay {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-background-radius: 10;
+    -fx-border-color: rgba(255, 255, 255, 0.2);
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+}
+
+.auth-title {
+    -fx-font-family: "DM Sans";
+    -fx-font-size: 32px;
+    -fx-font-weight: 900;
+    -fx-text-fill: #2e1a28;
+}
+
+.auth-subtitle {
+    -fx-font-family: "DM Sans";
+    -fx-font-size: 16px;
+    -fx-font-weight: 500;
+    -fx-text-fill: #604868;
+}
+
+.auth-input-label {
+    -fx-font-family: "DM Sans";
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #604868;
+}
+
+.auth-input {
+    -fx-background-color: #fbf2fb;
+    -fx-background-radius: 25;
+    -fx-border-radius: 25;
+    -fx-border-width: 0;
+    -fx-padding: 10 15 10 45; /* left padding for icon */
+    -fx-font-family: "DM Sans";
+    -fx-font-size: 14px;
+    -fx-font-weight: 500;
+    -fx-text-fill: #2e1a28;
+    -fx-prompt-text-fill: #dcc8e0;
+}
+
+.auth-input:focused {
+    -fx-border-color: rgba(240, 128, 192, 0.3); /* primary-container with opacity */
+    -fx-border-width: 4;
+}
+
+.auth-primary-button {
+    -fx-background-color: #e040a0;
+    -fx-background-radius: 25;
+    -fx-text-fill: #ffffff;
+    -fx-font-family: "DM Sans";
+    -fx-font-size: 18px;
+    -fx-font-weight: 900;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 30, 0, 0, 12);
+}
+
+.auth-primary-button:hover {
+    -fx-background-color: #c82888;
+}
+
+.auth-primary-button:pressed {
+    -fx-background-color: #a02070;
+}
+
+.auth-primary-button:disabled {
+    -fx-background-color: #f2e8f2;
+    -fx-text-fill: #907898;
+    -fx-effect: none;
+}
+
+.auth-secondary-link {
+    -fx-font-family: "DM Sans";
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #7c52aa; /* secondary */
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+}
+
+.auth-secondary-link:hover {
+    -fx-text-fill: #4a3068;
+    -fx-underline: true;
+}
+
+.auth-social-button {
+    -fx-background-color: transparent;
+    -fx-border-color: #f2e8f2;
+    -fx-border-width: 2;
+    -fx-border-radius: 25;
+    -fx-background-radius: 25;
+    -fx-font-family: "DM Sans";
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #2e1a28;
+    -fx-cursor: hand;
+}
+
+.auth-social-button:hover {
+    -fx-background-color: #f8eef8; /* surface-container */
+}
+
+/* Material Icons Font for text */
+.material-icon {
+    -fx-font-family: "Material Symbols Outlined";
+    -fx-font-size: 20px;
+    -fx-text-fill: #907898; /* outline */
+}
+
+/* Success/Error Alerts or Status Text */
+.status-success {
+    -fx-text-fill: #22c55e;
+    -fx-font-family: "DM Sans";
+    -fx-font-size: 13px;
+    -fx-font-weight: 500;
+}
+
+.status-error {
+    -fx-text-fill: #e53e3e;
+    -fx-font-family: "DM Sans";
+    -fx-font-size: 13px;
+    -fx-font-weight: 500;
+}
+
+.strength-weak { -fx-background-color: #e53e3e; }
+.strength-medium { -fx-background-color: #eab308; }
+.strength-strong { -fx-background-color: #22c55e; }
+.strength-empty { -fx-background-color: #f2e8f2; }

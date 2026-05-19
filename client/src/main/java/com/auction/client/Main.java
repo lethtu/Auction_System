@@ -16,11 +16,12 @@ public class Main extends Application {
         logger.info("Đã khởi động Client thành công");
         Parent root = FXMLLoader
                 .load(Objects.requireNonNull(getClass().getResource("/com/auction/client/view/Login.fxml")));
-        primaryStage.setTitle(Config.Title);
-        primaryStage.setScene(new Scene(root, Config.Width, Config.Height));
-        primaryStage.setMinWidth(Config.Width);
-        primaryStage.setMinHeight(Config.Height);
+        primaryStage.setTitle("Hệ thống đấu giá");
+        primaryStage.setScene(new Scene(root, 1100, 700));
+        primaryStage.setMinWidth(900);
+        primaryStage.setMinHeight(600);
         primaryStage.setResizable(true);
+        primaryStage.centerOnScreen();
         primaryStage.show();
     }
 

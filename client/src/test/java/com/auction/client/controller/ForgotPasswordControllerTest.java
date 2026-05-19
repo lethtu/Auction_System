@@ -43,7 +43,7 @@ public class ForgotPasswordControllerTest {
         ForgotPasswordController controller = loader.getController();
         controller.setHttpClient(mockHttpClient);
 
-        stage.setScene(new Scene(root, 400, 500));
+        stage.setScene(new Scene(root, 1000, 650));
         stage.show();
         stage.toFront();
     }
@@ -52,7 +52,7 @@ public class ForgotPasswordControllerTest {
     @DisplayName("Test: Bỏ trống Email -> Cảnh báo")
     public void testGetOTP_EmptyEmail(FxRobot robot) {
         robot.clickOn("#btnGetOTP");
-
+        robot.sleep(500);
         assertAlertAndClose(robot, "Vui lòng nhập Email!");
     }
 
@@ -65,7 +65,7 @@ public class ForgotPasswordControllerTest {
 
         robot.clickOn("#txtEmail").write("mail_ao@gmail.com");
         robot.clickOn("#btnGetOTP");
-
+        robot.sleep(500);
         assertAlertAndClose(robot, "Không có tài khoản nào liên kết với Email này");
 
         verifyThat("#btnGetOTP", NodeMatchers.isEnabled());
@@ -91,16 +91,16 @@ public class ForgotPasswordControllerTest {
         robot.clickOn("#txtNewPassword").write("Tungpro@123");
         robot.clickOn("#txtConfirmNewPassword").write("Tungpro@456");
 
-        robot.clickOn("Xác nhận Đổi Mật Khẩu");
-
+        robot.clickOn("#btnResetPassword");
+        robot.sleep(500);
         assertAlertAndClose(robot, "Thông tin không hợp lệ hoặc mật khẩu không khớp!");
 
         String jsonResetSuccess = "{\"status\": 200, \"message\": \"Đổi mật khẩu thành công!\"}";
         when(mockHttpResponse.body()).thenReturn(jsonResetSuccess);
 
         robot.clickOn("#txtConfirmNewPassword").eraseText(11).write("Tungpro@123");
-        robot.clickOn("Xác nhận Đổi Mật Khẩu");
-
+        robot.clickOn("#btnResetPassword");
+        robot.sleep(500);
         assertAlertAndClose(robot, "Đổi mật khẩu thành công!");
     }
 

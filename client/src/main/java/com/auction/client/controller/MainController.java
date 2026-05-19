@@ -12,6 +12,11 @@ import javafx.animation.PauseTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import com.auction.client.util.NotificationBellBinder;
+import com.auction.client.model.notification.AppNotification;
+import com.auction.client.model.notification.NotificationType;
+import com.auction.client.model.notification.NotificationSeverity;
+import com.auction.client.service.NotificationCenterService;
 import javafx.geometry.Pos;
 import javafx.geometry.Bounds;
 import javafx.scene.image.Image;
@@ -83,6 +88,9 @@ public class MainController implements Initializable {
     @FXML private ComboBox<String> cbStatus;
     @FXML private Button btnDashboard;
 
+    @FXML private Button btnNotificationBell;
+    @FXML private Label notificationBadge;
+
     @FXML private SidebarController sidebarController;
     @FXML private Button btnHamburger;
 
@@ -98,6 +106,7 @@ public class MainController implements Initializable {
     // Executor cho Polling
     private ScheduledExecutorService pollingScheduler;
     private final List<Integer> currentRenderedIds = new ArrayList<>();
+    private final Map<Integer, JSONObject> lastSnapshot = new ConcurrentHashMap<>();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -112,6 +121,10 @@ public class MainController implements Initializable {
         fakeBtn.setOnAction(e -> {});
 
         productContainer.getChildren().add(fakeBtn);
+
+        if (btnNotificationBell != null && notificationBadge != null) {
+            NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
+        }
 
         // QUAN TRỌNG
         btnHamburger.setOnAction(this::handleToggleSidebar);
@@ -253,6 +266,46 @@ public class MainController implements Initializable {
                     List<JSONObject> newProducts = new ArrayList<>();
                     for (int i = 0; i < jsonArray.length(); i++) {
                         newProducts.add(jsonArray.getJSONObject(i));
+                    }
+                    
+                    if (!lastSnapshot.isEmpty()) {
+                        for (JSONObject newObj : newProducts) {
+                            int auctionId = newObj.optInt("id", -1);
+                            if (auctionId == -1) continue;
+                            if (lastSnapshot.containsKey(auctionId)) {
+                                JSONObject oldObj = lastSnapshot.get(auctionId);
+                                BigDecimal oldPrice = oldObj.optBigDecimal("currentPrice", BigDecimal.ZERO);
+                                BigDecimal newPrice = newObj.optBigDecimal("currentPrice", BigDecimal.ZERO);
+                                String oldStatus = oldObj.optString("status", "");
+                                String newStatus = newObj.optString("status", "");
+                                
+                                if (User.watchlistIds.contains(auctionId)) {
+                                    String name = getItemObject(newObj).optString("name", "");
+                                    if (newPrice.compareTo(oldPrice) > 0) {
+                                        AppNotification notif = new AppNotification(NotificationType.NEW_BID, NotificationSeverity.INFO, 
+                                            "Có giá mới", "Sản phẩm " + name + " vừa có bid mới: ₫ " + formatPrice(newPrice));
+                                        notif.setAuctionId(auctionId);
+                                        notif.setItemName(name);
+                                        NotificationCenterService.getInstance().addNotification(notif);
+                                    }
+                                    if (!"ENDED".equalsIgnoreCase(oldStatus) && !oldStatus.equals(newStatus) && ("ENDED".equalsIgnoreCase(newStatus) || "FINISHED".equalsIgnoreCase(newStatus))) {
+                                        AppNotification notif = new AppNotification(NotificationType.AUCTION_END_LOSE, NotificationSeverity.INFO, 
+                                            "Phiên đấu giá kết thúc", "Sản phẩm " + name + " đã kết thúc.");
+                                        notif.setAuctionId(auctionId);
+                                        notif.setItemName(name);
+                                        NotificationCenterService.getInstance().addNotification(notif);
+                                    }
+                                }
+                            }
+                            lastSnapshot.put(auctionId, newObj);
+                        }
+                    } else {
+                        for (JSONObject newObj : newProducts) {
+                            int auctionId = newObj.optInt("id", -1);
+                            if (auctionId != -1) {
+                                lastSnapshot.put(auctionId, newObj);
+                            }
+                        }
                     }
 
                     allProducts.clear();
