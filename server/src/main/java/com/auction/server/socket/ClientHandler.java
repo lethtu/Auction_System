@@ -37,7 +37,8 @@ public class ClientHandler implements Runnable {
                 } else if ("JOIN_HOME".equals(inputLine)) {
                     SocketServer.joinHome(out);
                 }
-              
+            }
+        
         } catch (IOException e) {
             if (e instanceof java.net.SocketException) {
                 System.out.println("Client disconnected: " + e.getMessage());
