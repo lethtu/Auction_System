@@ -19,6 +19,7 @@ import com.auction.server.service.BidderService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -51,6 +52,17 @@ public class BidderController {
 
         // Gói dữ liệu vào ApiResponse chuẩn form
         return new ApiResponse<>(200, "Lấy danh sách đấu giá thành công", activeSessions);
+    }
+
+
+    @GetMapping("/my-bidding-sessions")
+    public ApiResponse<List<AuctionSession>> getMyBiddingSessions(@RequestParam Integer bidderId) {
+        if (bidderId == null || bidderId <= 0) {
+            return new ApiResponse<>(400, "bidderId không hợp lệ", List.of());
+        }
+
+        List<AuctionSession> sessions = bidRepository.findDistinctSessionsByBidderId(bidderId);
+        return new ApiResponse<>(200, "Lấy danh sách phiên người dùng đang đấu giá thành công", sessions);
     }
 
     // API Nạp tiền

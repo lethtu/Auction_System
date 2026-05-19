@@ -7,10 +7,12 @@ import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.slf4j.Logger;
@@ -19,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class SidebarController {
     private static final Logger logger = LoggerFactory.getLogger(SidebarController.class);
@@ -38,7 +41,10 @@ public class SidebarController {
 
     public interface SidebarListener {
         void onFilterWatchlist();
+        void onFilterMyBids();
+        void onFilterMySessions();
         void onResetFilter();
+        void onShowCategories();
     }
 
     private SidebarListener listener;
@@ -161,32 +167,39 @@ public class SidebarController {
     }
 
     public void setActiveWatchlist() {
-        if (btnSidebarWatchlist != null) {
-            btnSidebarWatchlist.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: rgba(224, 64, 160, 0.15); -fx-text-fill: #e040a0; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnSidebarWatchlist.getGraphic() instanceof Label) {
-                ((Label) btnSidebarWatchlist.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #e040a0;");
-            }
-        }
-        if (btnSidebarDashboard != null) {
-            btnSidebarDashboard.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnSidebarDashboard.getGraphic() instanceof Label) {
-                ((Label) btnSidebarDashboard.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
-            }
-        }
+        setActiveButton(btnSidebarWatchlist);
     }
 
     public void setActiveDashboard() {
-        if (btnSidebarDashboard != null) {
-            btnSidebarDashboard.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: rgba(224, 64, 160, 0.15); -fx-text-fill: #e040a0; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnSidebarDashboard.getGraphic() instanceof Label) {
-                ((Label) btnSidebarDashboard.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #e040a0;");
-            }
-        }
-        if (btnSidebarWatchlist != null) {
-            btnSidebarWatchlist.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnSidebarWatchlist.getGraphic() instanceof Label) {
-                ((Label) btnSidebarWatchlist.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
-            }
+        setActiveButton(btnSidebarDashboard);
+    }
+
+    public void setActiveMyBids() {
+        setActiveButton(btnMyBids);
+    }
+
+    public void setActiveSelling() {
+        setActiveButton(btnSelling);
+    }
+
+    private void setActiveButton(Button activeButton) {
+        applySidebarButtonStyle(btnSidebarDashboard, btnSidebarDashboard == activeButton);
+        applySidebarButtonStyle(btnMyBids, btnMyBids == activeButton);
+        applySidebarButtonStyle(btnSelling, btnSelling == activeButton);
+        applySidebarButtonStyle(btnCategories, btnCategories == activeButton);
+        applySidebarButtonStyle(btnSidebarWatchlist, btnSidebarWatchlist == activeButton);
+        applySidebarButtonStyle(btnSupport, btnSupport == activeButton);
+    }
+
+    private void applySidebarButtonStyle(Button button, boolean active) {
+        if (button == null) return;
+
+        String textColor = active ? "#e040a0" : "#604868";
+        String backgroundColor = active ? "rgba(224, 64, 160, 0.15)" : "transparent";
+        button.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: " + backgroundColor + "; -fx-text-fill: " + textColor + "; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
+
+        if (button.getGraphic() instanceof Label) {
+            ((Label) button.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: " + textColor + ";");
         }
     }
 
@@ -237,34 +250,77 @@ public class SidebarController {
     @FXML
     public void handleMyBids(ActionEvent event) {
         autoCollapse();
-        try {
-            if (onBeforeNavigate != null) onBeforeNavigate.run();
-            SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1024, 768);
-        } catch (IOException e) {
-            logger.error("Lỗi chuyển cảnh sang SellerDashboard: ", e);
+        setActiveMyBids();
+        if (listener != null) {
+            listener.onFilterMyBids();
+        } else {
+            try {
+                if (onBeforeNavigate != null) onBeforeNavigate.run();
+                MainController.initialHomeFilterMode = "MY_BIDS";
+                SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
+            } catch (IOException e) {
+                logger.error("Lỗi chuyển cảnh về MainTemplate để xem My Bids: ", e);
+            }
         }
     }
 
     @FXML
     public void handleSelling(ActionEvent event) {
         autoCollapse();
+        setActiveSelling();
         try {
             if (onBeforeNavigate != null) onBeforeNavigate.run();
             SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1024, 768);
         } catch (IOException e) {
             logger.error("Lỗi chuyển cảnh sang SellerDashboard: ", e);
+            showInfo("Selling", "Không thể mở Seller Dashboard. Vui lòng thử lại.");
         }
     }
 
     @FXML
     public void handleCategories(ActionEvent event) {
         autoCollapse();
-        handleDashboard(event);
+        setActiveButton(btnCategories);
+        if (listener != null) {
+            listener.onShowCategories();
+        } else {
+            try {
+                if (onBeforeNavigate != null) onBeforeNavigate.run();
+                SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
+            } catch (IOException e) {
+                logger.error("Lỗi chuyển cảnh về MainTemplate để chọn danh mục: ", e);
+            }
+        }
     }
 
     @FXML
     public void handleSupport(ActionEvent event) {
         autoCollapse();
-        logger.info("Người dùng nhấn nút Support");
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Support");
+        dialog.setHeaderText("Gửi yêu cầu hỗ trợ");
+        dialog.setContentText("Mô tả vấn đề bạn cần hỗ trợ:");
+
+        Optional<String> result = dialog.showAndWait();
+        if (result.isEmpty()) {
+            return;
+        }
+
+        String content = result.get() == null ? "" : result.get().trim();
+        if (content.isBlank()) {
+            showInfo("Support", "Bạn chưa nhập nội dung hỗ trợ.");
+            return;
+        }
+
+        logger.info("Support request from UI: {}", content);
+        showInfo("Support", "Yêu cầu hỗ trợ đã được ghi nhận trong bản demo.");
+    }
+
+    private void showInfo(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

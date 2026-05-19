@@ -31,6 +31,14 @@ public class User {
         }
     }
 
+    public static void updateProfile(String Username, String Fullname, String Email, String Dob, String Place_of_birth){
+        username = Username;
+        fullname = Fullname;
+        email = Email;
+        dob = Dob;
+        place_of_birth = Place_of_birth;
+    }
+
     public static void clearSession(){
         id = null;
         username = null;
