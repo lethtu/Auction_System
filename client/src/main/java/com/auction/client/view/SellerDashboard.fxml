@@ -245,23 +245,35 @@
                     <VBox spacing="8">
                         <Label text="Item Title" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
                         <TextField fx:id="productNameField" promptText="What are you selling?" styleClass="custom-text-input"/>
+                        <HBox fx:id="errorTitle" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
+                            <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" iconColor="#e040a0"/>
+                            <Label text="Tên sản phẩm không được để trống" style="-fx-text-fill: #e040a0; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                        </HBox>
                     </VBox>
                     
                     <HBox spacing="16">
                         <VBox spacing="8" HBox.hgrow="ALWAYS" prefWidth="250">
                             <Label text="Category" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
                             <ComboBox fx:id="productTypeCombo" maxWidth="Infinity" styleClass="custom-combo-box" style="-fx-padding: 8px 16px;"/>
+                            <HBox fx:id="errorCategory" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
+                                <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" iconColor="#e040a0"/>
+                                <Label text="Vui lòng chọn loại sản phẩm" style="-fx-text-fill: #e040a0; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                            </HBox>
                         </VBox>
                         <VBox spacing="8" HBox.hgrow="ALWAYS" prefWidth="250">
                             <Label text="Starting Price (VNĐ)" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
                             <TextField fx:id="startingPriceField" promptText="0" styleClass="custom-text-input" maxWidth="Infinity"/>
+                            <HBox fx:id="errorPrice" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
+                                <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" iconColor="#e040a0"/>
+                                <Label fx:id="lblErrorPrice" text="Giá khởi điểm không hợp lệ" style="-fx-text-fill: #e040a0; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                            </HBox>
                         </VBox>
                     </HBox>
 
                     <HBox spacing="16">
                         <VBox spacing="8" HBox.hgrow="ALWAYS" prefWidth="250">
-                            <Label text="Start Time (Empty = Now)" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
-                            <HBox alignment="CENTER_LEFT" spacing="2" styleClass="custom-segmented-input" maxWidth="Infinity">
+                            <Label text="Start Time (Required)" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
+                            <HBox fx:id="wrapperStartDT" alignment="CENTER_LEFT" spacing="2" styleClass="custom-segmented-input" maxWidth="Infinity">
                                 <Button onAction="#handleShowStartCalendar" style="-fx-background-color: transparent; -fx-padding: 0; -fx-cursor: hand;">
                                     <graphic><FontIcon iconLiteral="mdi2c-calendar" iconSize="18" iconColor="#907898"/></graphic>
                                 </Button>
@@ -277,10 +289,14 @@
                                 <TextField fx:id="txtStartMin" promptText="MM" prefWidth="28" styleClass="transparent-time-picker" style="-fx-alignment: center;"/>
                                 <DatePicker fx:id="datePickerStart" visible="false" managed="false"/>
                             </HBox>
+                            <HBox fx:id="errorStartDT" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
+                                <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" iconColor="#e040a0"/>
+                                <Label fx:id="lblErrorStartDT" text="Vui lòng nhập ngày giờ bắt đầu hợp lệ!" style="-fx-text-fill: #e040a0; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                            </HBox>
                         </VBox>
                         <VBox spacing="8" HBox.hgrow="ALWAYS" prefWidth="250">
                             <Label text="End Time (Required)" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
-                            <HBox alignment="CENTER_LEFT" spacing="2" styleClass="custom-segmented-input" maxWidth="Infinity">
+                            <HBox fx:id="wrapperEndDT" alignment="CENTER_LEFT" spacing="2" styleClass="custom-segmented-input" maxWidth="Infinity">
                                 <Button onAction="#handleShowEndCalendar" style="-fx-background-color: transparent; -fx-padding: 0; -fx-cursor: hand;">
                                     <graphic><FontIcon iconLiteral="mdi2c-calendar" iconSize="18" iconColor="#907898"/></graphic>
                                 </Button>
@@ -295,6 +311,10 @@
                                 <Label text=":" style="-fx-text-fill: #907898;"/>
                                 <TextField fx:id="txtEndMin" promptText="MM" prefWidth="28" styleClass="transparent-time-picker" style="-fx-alignment: center;"/>
                                 <DatePicker fx:id="datePickerEnd" visible="false" managed="false"/>
+                            </HBox>
+                            <HBox fx:id="errorEndDT" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
+                                <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" iconColor="#e040a0"/>
+                                <Label fx:id="lblErrorEndDT" text="Thời gian kết thúc phải sau thời gian bắt đầu" style="-fx-text-fill: #e040a0; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                             </HBox>
                         </VBox>
                     </HBox>
@@ -320,7 +340,7 @@
             
             <!-- Footer -->
             <HBox spacing="16" style="-fx-padding: 24px 32px; -fx-background-color: #ffffff; -fx-background-radius: 0 0 16px 16px;">
-                <Button text="Save as Draft" onAction="#handleCloseModal" prefWidth="200" HBox.hgrow="ALWAYS" style="-fx-background-color: #f2e8f2; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 12px 24px; -fx-background-radius: 999px; -fx-cursor: hand;"/>
+                <Button fx:id="btnDraftOrReset" text="Save as Draft" onAction="#handleSaveDraftAction" prefWidth="200" HBox.hgrow="ALWAYS" style="-fx-background-color: #f2e8f2; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 12px 24px; -fx-background-radius: 999px; -fx-cursor: hand;"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Button fx:id="btnSubmit" text="Launch Auction" onAction="#handleSaveAction" prefWidth="200" HBox.hgrow="ALWAYS" style="-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 12px 24px; -fx-background-radius: 999px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.4), 16, 0, 0, 4);"/>
             </HBox>

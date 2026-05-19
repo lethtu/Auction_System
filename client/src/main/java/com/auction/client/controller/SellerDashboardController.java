@@ -72,6 +72,17 @@ public class SellerDashboardController {
     @FXML private TextField txtEndYear;
     @FXML private TextField txtEndHour;
     @FXML private TextField txtEndMin;
+    @FXML private HBox wrapperEndDT;
+    @FXML private HBox errorEndDT;
+    @FXML private Label lblErrorEndDT;
+    @FXML private HBox wrapperStartDT;
+    @FXML private HBox errorStartDT;
+    @FXML private Label lblErrorStartDT;
+    @FXML private HBox errorTitle;
+    @FXML private HBox errorCategory;
+    @FXML private HBox errorPrice;
+    @FXML private Label lblErrorPrice;
+    @FXML private Button btnDraftOrReset;
 
     @FXML private Label lblTotalRevenue;
     @FXML private Label lblActiveAuctions;
@@ -92,9 +103,13 @@ public class SellerDashboardController {
     private boolean isSidebarCollapsed = false;
     private final java.util.Map<Button, String> sidebarButtonTextMap = new java.util.HashMap<>();
 
-    private final HttpClient httpClient = HttpClientSingleton.getInstance().getHttpClient();
-    private final List<SessionItem> allSessions = new ArrayList<>();
-    private final ObservableList<SessionItem> displayedSessions = FXCollections.observableArrayList();
+    private HttpClient httpClient = HttpClientSingleton.getInstance().getHttpClient();
+    final List<SessionItem> allSessions = new ArrayList<>();
+    final ObservableList<SessionItem> displayedSessions = FXCollections.observableArrayList();
+
+    public void setHttpClient(HttpClient client) {
+        this.httpClient = client;
+    }
 
     @FXML
     public void initialize() {
@@ -340,21 +355,32 @@ public class SellerDashboardController {
                     HBox hbox = new HBox(8);
                     hbox.setAlignment(Pos.CENTER_LEFT);
                     
-                    Button btnView = createIconButton("mdi2e-eye", "#0096cc");
+                    Button btnView;
+                    if ("DRAFT".equalsIgnoreCase(item.status)) {
+                        btnView = createIconButton("mdi2p-publish", "#0096cc");
+                        btnView.setTooltip(new javafx.scene.control.Tooltip("Đăng bán nhanh"));
+                        btnView.setOnAction(e -> handleQuickPublish(item));
+                    } else {
+                        btnView = createIconButton("mdi2e-eye", "#0096cc");
+                    }
                     Button btnEdit = createIconButton("mdi2p-pencil", "#7c52aa");
                     Button btnDelete = createIconButton("mdi2d-delete", "#e53e3e");
+                    
+                    btnView.setId("btnView_" + item.id);
+                    btnEdit.setId("btnEdit_" + item.id);
+                    btnDelete.setId("btnDelete_" + item.id);
                     
                     btnDelete.setOnAction(e -> handleCancelSpecificSession(item));
                     btnEdit.setOnAction(e -> handleShowEditModal(item));
                     
-                    // Delete is allowed for ACTIVE or COMING sessions
-                    boolean isDeletable = "ACTIVE".equalsIgnoreCase(item.status) || "COMING".equalsIgnoreCase(item.status);
+                    // Delete is allowed for ACTIVE, COMING or DRAFT sessions
+                    boolean isDeletable = "ACTIVE".equalsIgnoreCase(item.status) || "COMING".equalsIgnoreCase(item.status) || "DRAFT".equalsIgnoreCase(item.status);
                     if (!isDeletable) {
                         btnDelete.setDisable(true);
                         btnDelete.setOpacity(0.3);
                     }
-                    // Edit is allowed for ACTIVE or COMING sessions
-                    boolean isEditable = "ACTIVE".equalsIgnoreCase(item.status) || "COMING".equalsIgnoreCase(item.status);
+                    // Edit is allowed for ACTIVE, COMING or DRAFT sessions
+                    boolean isEditable = "ACTIVE".equalsIgnoreCase(item.status) || "COMING".equalsIgnoreCase(item.status) || "DRAFT".equalsIgnoreCase(item.status);
                     if (!isEditable) {
                         btnEdit.setDisable(true);
                         btnEdit.setOpacity(0.3);
@@ -386,25 +412,49 @@ public class SellerDashboardController {
         if (btnSubmit != null) {
             btnSubmit.setText("Launch Auction");
         }
+        if (btnDraftOrReset != null) {
+            btnDraftOrReset.setText("Save as Draft");
+        }
         clearForm();
         modalOverlay.setVisible(true);
     }
 
     @FXML
-    private void handleCloseModal() {
+    void handleCloseModal() {
         modalOverlay.setVisible(false);
     }
 
-    private void handleShowEditModal(SessionItem item) {
+    void handleShowEditModal(SessionItem item) {
         if (item == null) return;
         editingSession = item;
         
         if (modalTitle != null) {
             modalTitle.setText("Edit Listing");
         }
-        if (btnSubmit != null) {
-            btnSubmit.setText("Save Changes");
+        boolean isActive = item.status != null && ("ACTIVE".equalsIgnoreCase(item.status) || "LIVE".equalsIgnoreCase(item.status));
+        boolean isActiveOrComing = isActive || "COMING".equalsIgnoreCase(item.status);
+        if (isActiveOrComing) {
+            if (btnSubmit != null) {
+                btnSubmit.setText("Save Changes");
+            }
+            if (btnDraftOrReset != null) {
+                btnDraftOrReset.setText("Reset");
+            }
+        } else {
+            if (btnSubmit != null) {
+                btnSubmit.setText("Publish");
+            }
+            if (btnDraftOrReset != null) {
+                btnDraftOrReset.setText("Save Changes");
+            }
         }
+        
+        if (startingPriceField != null) startingPriceField.setDisable(isActive);
+        if (txtStartDay != null) txtStartDay.setDisable(isActive);
+        if (txtStartMonth != null) txtStartMonth.setDisable(isActive);
+        if (txtStartYear != null) txtStartYear.setDisable(isActive);
+        if (txtStartHour != null) txtStartHour.setDisable(isActive);
+        if (txtStartMin != null) txtStartMin.setDisable(isActive);
         
         // Populate the form fields
         productNameField.setText(item.productName);
@@ -473,6 +523,539 @@ public class SellerDashboardController {
         }
     }
 
+    @FXML
+    private void handleSaveDraftAction() {
+        if (editingSession != null) {
+            boolean isActiveOrComing = editingSession.status != null && ("ACTIVE".equalsIgnoreCase(editingSession.status) || "LIVE".equalsIgnoreCase(editingSession.status) || "COMING".equalsIgnoreCase(editingSession.status));
+            if (isActiveOrComing) {
+                // Clear any inline warning/error styles first
+                if (errorTitle != null) {
+                    errorTitle.setVisible(false);
+                    errorTitle.setManaged(false);
+                }
+                if (productNameField != null) {
+                    productNameField.getStyleClass().remove("error-text-input");
+                }
+                if (errorPrice != null) {
+                    errorPrice.setVisible(false);
+                    errorPrice.setManaged(false);
+                }
+                if (startingPriceField != null) {
+                    startingPriceField.getStyleClass().remove("error-text-input");
+                }
+                if (errorEndDT != null) {
+                    errorEndDT.setVisible(false);
+                    errorEndDT.setManaged(false);
+                }
+                if (wrapperEndDT != null) {
+                    wrapperEndDT.getStyleClass().remove("error-segmented-input");
+                }
+
+                // Reset the fields back to original editingSession values
+                handleShowEditModal(editingSession);
+                return;
+            }
+        }
+
+        if (editingSession == null) {
+            handleCreateDraftSession();
+        } else {
+            handleUpdateDraftSession();
+        }
+    }
+
+    private void handleCreateDraftSession() {
+        Integer sellerId = User.getId();
+        if (sellerId == null) {
+            logger.error("Không lấy được sellerId từ session");
+            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không lấy được sellerId từ session.");
+            return;
+        }
+
+        String productName = productNameField.getText().trim();
+        String productType = productTypeCombo.getValue();
+        String imageUrl = productNameOrEmpty(imageUrlField);
+        String description = productNameOrEmpty(descriptionArea);
+        String startingPriceText = productNameOrEmpty(startingPriceField);
+
+        boolean formIsValid = true;
+
+        // 1. Title Validation
+        if (productName.isEmpty()) {
+            formIsValid = false;
+            if (errorTitle != null) {
+                errorTitle.setVisible(true);
+                errorTitle.setManaged(true);
+            }
+            if (productNameField != null && !productNameField.getStyleClass().contains("error-text-input")) {
+                productNameField.getStyleClass().add("error-text-input");
+            }
+        } else {
+            if (errorTitle != null) {
+                errorTitle.setVisible(false);
+                errorTitle.setManaged(false);
+            }
+            if (productNameField != null) {
+                productNameField.getStyleClass().remove("error-text-input");
+            }
+        }
+
+        // 2. Category Validation
+        if (productType == null) {
+            formIsValid = false;
+            if (errorCategory != null) {
+                errorCategory.setVisible(true);
+                errorCategory.setManaged(true);
+            }
+            if (productTypeCombo != null && !productTypeCombo.getStyleClass().contains("error-text-input")) {
+                productTypeCombo.getStyleClass().add("error-text-input");
+            }
+        } else {
+            if (errorCategory != null) {
+                errorCategory.setVisible(false);
+                errorCategory.setManaged(false);
+            }
+            if (productTypeCombo != null) {
+                productTypeCombo.getStyleClass().remove("error-text-input");
+            }
+        }
+
+        // 3. Price Validation
+        BigDecimal startingPrice = BigDecimal.ZERO;
+        if (startingPriceText.isEmpty()) {
+            formIsValid = false;
+            if (errorPrice != null) {
+                errorPrice.setVisible(true);
+                errorPrice.setManaged(true);
+            }
+            if (lblErrorPrice != null) {
+                lblErrorPrice.setText("Giá khởi điểm không được để trống");
+            }
+            if (startingPriceField != null && !startingPriceField.getStyleClass().contains("error-text-input")) {
+                startingPriceField.getStyleClass().add("error-text-input");
+            }
+        } else {
+            try {
+                startingPrice = new BigDecimal(startingPriceText.trim());
+                if (startingPrice.compareTo(BigDecimal.ZERO) <= 0) {
+                    throw new NumberFormatException();
+                }
+                if (errorPrice != null) {
+                    errorPrice.setVisible(false);
+                    errorPrice.setManaged(false);
+                }
+                if (startingPriceField != null) {
+                    startingPriceField.getStyleClass().remove("error-text-input");
+                }
+            } catch (Exception e) {
+                formIsValid = false;
+                if (errorPrice != null) {
+                    errorPrice.setVisible(true);
+                    errorPrice.setManaged(true);
+                }
+                if (lblErrorPrice != null) {
+                    lblErrorPrice.setText("Giá khởi điểm phải là một số dương");
+                }
+                if (startingPriceField != null && !startingPriceField.getStyleClass().contains("error-text-input")) {
+                    startingPriceField.getStyleClass().add("error-text-input");
+                }
+            }
+        }
+
+        // 4. Time Validation
+        LocalDateTime startDT = getLocalDateTimeFromSplitFields(txtStartDay, txtStartMonth, txtStartYear, txtStartHour, txtStartMin);
+        LocalDateTime endDT = getLocalDateTimeFromSplitFields(txtEndDay, txtEndMonth, txtEndYear, txtEndHour, txtEndMin);
+        
+        // Validate Start Time
+        if (startDT == null) {
+            formIsValid = false;
+            if (errorStartDT != null) {
+                errorStartDT.setVisible(true);
+                errorStartDT.setManaged(true);
+            }
+            if (wrapperStartDT != null && !wrapperStartDT.getStyleClass().contains("error-segmented-input")) {
+                wrapperStartDT.getStyleClass().add("error-segmented-input");
+            }
+            if (lblErrorStartDT != null) {
+                lblErrorStartDT.setText("Vui lòng nhập ngày giờ bắt đầu hợp lệ!");
+            }
+        } else {
+            if (errorStartDT != null) {
+                errorStartDT.setVisible(false);
+                errorStartDT.setManaged(false);
+            }
+            if (wrapperStartDT != null) {
+                wrapperStartDT.getStyleClass().remove("error-segmented-input");
+            }
+        }
+
+        // Validate End Time
+        if (endDT == null) {
+            formIsValid = false;
+            if (errorEndDT != null) {
+                errorEndDT.setVisible(true);
+                errorEndDT.setManaged(true);
+            }
+            if (wrapperEndDT != null && !wrapperEndDT.getStyleClass().contains("error-segmented-input")) {
+                wrapperEndDT.getStyleClass().add("error-segmented-input");
+            }
+            if (lblErrorEndDT != null) {
+                lblErrorEndDT.setText("Vui lòng nhập ngày giờ kết thúc hợp lệ!");
+            }
+        } else {
+            if (startDT != null) {
+                boolean isEndFuture = endDT.isAfter(LocalDateTime.now());
+                boolean isEndAfterStart = endDT.isAfter(startDT);
+
+                if (!isEndFuture || !isEndAfterStart) {
+                    formIsValid = false;
+                    if (errorEndDT != null) {
+                        errorEndDT.setVisible(true);
+                        errorEndDT.setManaged(true);
+                    }
+                    if (wrapperEndDT != null && !wrapperEndDT.getStyleClass().contains("error-segmented-input")) {
+                        wrapperEndDT.getStyleClass().add("error-segmented-input");
+                    }
+                    if (lblErrorEndDT != null) {
+                        if (!isEndFuture) {
+                            lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
+                        } else {
+                            lblErrorEndDT.setText("Thời gian kết thúc phải sau thời gian bắt đầu");
+                        }
+                    }
+                } else {
+                    if (errorEndDT != null) {
+                        errorEndDT.setVisible(false);
+                        errorEndDT.setManaged(false);
+                    }
+                    if (wrapperEndDT != null) {
+                        wrapperEndDT.getStyleClass().remove("error-segmented-input");
+                    }
+                }
+            } else {
+                boolean isEndFuture = endDT.isAfter(LocalDateTime.now());
+                if (!isEndFuture) {
+                    formIsValid = false;
+                    if (errorEndDT != null) {
+                        errorEndDT.setVisible(true);
+                        errorEndDT.setManaged(true);
+                    }
+                    if (wrapperEndDT != null && !wrapperEndDT.getStyleClass().contains("error-segmented-input")) {
+                        wrapperEndDT.getStyleClass().add("error-segmented-input");
+                    }
+                    if (lblErrorEndDT != null) {
+                        lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
+                    }
+                } else {
+                    if (errorEndDT != null) {
+                        errorEndDT.setVisible(false);
+                        errorEndDT.setManaged(false);
+                    }
+                    if (wrapperEndDT != null) {
+                        wrapperEndDT.getStyleClass().remove("error-segmented-input");
+                    }
+                }
+            }
+        }
+
+        if (!formIsValid) {
+            return;
+        }
+
+        try {
+            JSONObject body = new JSONObject();
+            body.put("name", productName);
+            body.put("type", productType);
+            body.put("imagePath", imageUrl);
+            body.put("description", description);
+            body.put("startingPrice", startingPrice);
+            body.put("sellerId", sellerId);
+            body.put("stepPrice", 10000); // Default step price
+            body.put("status", "DRAFT");
+
+            if (startDT == null) {
+                body.put("startTime", JSONObject.NULL);
+            } else {
+                body.put("startTime", startDT.toString());
+            }
+
+            if (endDT == null) {
+                body.put("endTime", JSONObject.NULL);
+            } else {
+                body.put("endTime", endDT.toString());
+            }
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Config.API_URL + "/api/seller/create-auction"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "Lưu bản nháp thành công.");
+
+            if (api.success) {
+                clearForm();
+                handleCloseModal();
+                loadMySessions();
+                showAlert(Alert.AlertType.INFORMATION, "Thành công", api.message);
+            } else {
+                logger.error("Lỗi api: {}", api.message);
+                showAlert(Alert.AlertType.ERROR, "Lỗi", api.message);
+            }
+
+        } catch (Exception e) {
+            logger.error("Lỗi không thể kết nối đến máy chủ: {}", e.getMessage(), e);
+            showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
+        }
+    }
+
+    private void handleUpdateDraftSession() {
+        Integer sellerId = User.getId();
+        if (sellerId == null) {
+            logger.error("Không lấy được sellerId từ session");
+            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không lấy được sellerId từ session.");
+            return;
+        }
+
+        String productName = productNameField.getText().trim();
+        String productType = productTypeCombo.getValue();
+        String imageUrl = productNameOrEmpty(imageUrlField);
+        String description = productNameOrEmpty(descriptionArea);
+        String startingPriceText = productNameOrEmpty(startingPriceField);
+
+        boolean formIsValid = true;
+
+        // 1. Title Validation
+        if (productName.isEmpty()) {
+            formIsValid = false;
+            if (errorTitle != null) {
+                errorTitle.setVisible(true);
+                errorTitle.setManaged(true);
+            }
+            if (productNameField != null && !productNameField.getStyleClass().contains("error-text-input")) {
+                productNameField.getStyleClass().add("error-text-input");
+            }
+        } else {
+            if (errorTitle != null) {
+                errorTitle.setVisible(false);
+                errorTitle.setManaged(false);
+            }
+            if (productNameField != null) {
+                productNameField.getStyleClass().remove("error-text-input");
+            }
+        }
+
+        // 2. Category Validation
+        if (productType == null) {
+            formIsValid = false;
+            if (errorCategory != null) {
+                errorCategory.setVisible(true);
+                errorCategory.setManaged(true);
+            }
+            if (productTypeCombo != null && !productTypeCombo.getStyleClass().contains("error-text-input")) {
+                productTypeCombo.getStyleClass().add("error-text-input");
+            }
+        } else {
+            if (errorCategory != null) {
+                errorCategory.setVisible(false);
+                errorCategory.setManaged(false);
+            }
+            if (productTypeCombo != null) {
+                productTypeCombo.getStyleClass().remove("error-text-input");
+            }
+        }
+
+        // 3. Price Validation
+        BigDecimal startingPrice = BigDecimal.ZERO;
+        if (startingPriceText.isEmpty()) {
+            formIsValid = false;
+            if (errorPrice != null) {
+                errorPrice.setVisible(true);
+                errorPrice.setManaged(true);
+            }
+            if (lblErrorPrice != null) {
+                lblErrorPrice.setText("Giá khởi điểm không được để trống");
+            }
+            if (startingPriceField != null && !startingPriceField.getStyleClass().contains("error-text-input")) {
+                startingPriceField.getStyleClass().add("error-text-input");
+            }
+        } else {
+            try {
+                startingPrice = new BigDecimal(startingPriceText.trim());
+                if (startingPrice.compareTo(BigDecimal.ZERO) <= 0) {
+                    throw new NumberFormatException();
+                }
+                if (errorPrice != null) {
+                    errorPrice.setVisible(false);
+                    errorPrice.setManaged(false);
+                }
+                if (startingPriceField != null) {
+                    startingPriceField.getStyleClass().remove("error-text-input");
+                }
+            } catch (Exception e) {
+                formIsValid = false;
+                if (errorPrice != null) {
+                    errorPrice.setVisible(true);
+                    errorPrice.setManaged(true);
+                }
+                if (lblErrorPrice != null) {
+                    lblErrorPrice.setText("Giá khởi điểm phải là một số dương");
+                }
+                if (startingPriceField != null && !startingPriceField.getStyleClass().contains("error-text-input")) {
+                    startingPriceField.getStyleClass().add("error-text-input");
+                }
+            }
+        }
+
+        // 4. Time Validation
+        LocalDateTime startDT = getLocalDateTimeFromSplitFields(txtStartDay, txtStartMonth, txtStartYear, txtStartHour, txtStartMin);
+        LocalDateTime endDT = getLocalDateTimeFromSplitFields(txtEndDay, txtEndMonth, txtEndYear, txtEndHour, txtEndMin);
+        
+        // Validate Start Time
+        if (startDT == null) {
+            formIsValid = false;
+            if (errorStartDT != null) {
+                errorStartDT.setVisible(true);
+                errorStartDT.setManaged(true);
+            }
+            if (wrapperStartDT != null && !wrapperStartDT.getStyleClass().contains("error-segmented-input")) {
+                wrapperStartDT.getStyleClass().add("error-segmented-input");
+            }
+            if (lblErrorStartDT != null) {
+                lblErrorStartDT.setText("Vui lòng nhập ngày giờ bắt đầu hợp lệ!");
+            }
+        } else {
+            if (errorStartDT != null) {
+                errorStartDT.setVisible(false);
+                errorStartDT.setManaged(false);
+            }
+            if (wrapperStartDT != null) {
+                wrapperStartDT.getStyleClass().remove("error-segmented-input");
+            }
+        }
+
+        // Validate End Time
+        if (endDT == null) {
+            formIsValid = false;
+            if (errorEndDT != null) {
+                errorEndDT.setVisible(true);
+                errorEndDT.setManaged(true);
+            }
+            if (wrapperEndDT != null && !wrapperEndDT.getStyleClass().contains("error-segmented-input")) {
+                wrapperEndDT.getStyleClass().add("error-segmented-input");
+            }
+            if (lblErrorEndDT != null) {
+                lblErrorEndDT.setText("Vui lòng nhập ngày giờ kết thúc hợp lệ!");
+            }
+        } else {
+            if (startDT != null) {
+                boolean isEndFuture = endDT.isAfter(LocalDateTime.now());
+                boolean isEndAfterStart = endDT.isAfter(startDT);
+
+                if (!isEndFuture || !isEndAfterStart) {
+                    formIsValid = false;
+                    if (errorEndDT != null) {
+                        errorEndDT.setVisible(true);
+                        errorEndDT.setManaged(true);
+                    }
+                    if (wrapperEndDT != null && !wrapperEndDT.getStyleClass().contains("error-segmented-input")) {
+                        wrapperEndDT.getStyleClass().add("error-segmented-input");
+                    }
+                    if (lblErrorEndDT != null) {
+                        if (!isEndFuture) {
+                            lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
+                        } else {
+                            lblErrorEndDT.setText("Thời gian kết thúc phải sau thời gian bắt đầu");
+                        }
+                    }
+                } else {
+                    if (errorEndDT != null) {
+                        errorEndDT.setVisible(false);
+                        errorEndDT.setManaged(false);
+                    }
+                    if (wrapperEndDT != null) {
+                        wrapperEndDT.getStyleClass().remove("error-segmented-input");
+                    }
+                }
+            } else {
+                boolean isEndFuture = endDT.isAfter(LocalDateTime.now());
+                if (!isEndFuture) {
+                    formIsValid = false;
+                    if (errorEndDT != null) {
+                        errorEndDT.setVisible(true);
+                        errorEndDT.setManaged(true);
+                    }
+                    if (wrapperEndDT != null && !wrapperEndDT.getStyleClass().contains("error-segmented-input")) {
+                        wrapperEndDT.getStyleClass().add("error-segmented-input");
+                    }
+                    if (lblErrorEndDT != null) {
+                        lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
+                    }
+                } else {
+                    if (errorEndDT != null) {
+                        errorEndDT.setVisible(false);
+                        errorEndDT.setManaged(false);
+                    }
+                    if (wrapperEndDT != null) {
+                        wrapperEndDT.getStyleClass().remove("error-segmented-input");
+                    }
+                }
+            }
+        }
+
+        if (!formIsValid) {
+            return;
+        }
+
+        try {
+            JSONObject body = new JSONObject();
+            body.put("name", productName);
+            body.put("type", productType);
+            body.put("imagePath", imageUrl);
+            body.put("description", description);
+            body.put("startingPrice", startingPrice);
+            body.put("sellerId", sellerId);
+            body.put("stepPrice", 10000); // Default step price
+            body.put("status", "DRAFT");
+
+            if (startDT == null) {
+                body.put("startTime", JSONObject.NULL);
+            } else {
+                body.put("startTime", startDT.toString());
+            }
+
+            if (endDT == null) {
+                body.put("endTime", JSONObject.NULL);
+            } else {
+                body.put("endTime", endDT.toString());
+            }
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Config.API_URL + "/api/seller/update-session/" + editingSession.id + "?sellerId=" + sellerId))
+                    .header("Content-Type", "application/json")
+                    .PUT(HttpRequest.BodyPublishers.ofString(body.toString()))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "Cập nhật bản nháp thành công.");
+
+            if (api.success) {
+                clearForm();
+                handleCloseModal();
+                loadMySessions();
+                showAlert(Alert.AlertType.INFORMATION, "Thành công", api.message);
+            } else {
+                logger.error("Lỗi api: {}", api.message);
+                showAlert(Alert.AlertType.ERROR, "Lỗi", api.message);
+            }
+
+        } catch (Exception e) {
+            logger.error("Lỗi không thể kết nối đến máy chủ: {}", e.getMessage(), e);
+            showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
+        }
+    }
+
     private void handleUpdateSession() {
         Integer sellerId = User.getId();
         if (sellerId == null) {
@@ -487,17 +1070,200 @@ public class SellerDashboardController {
         String description = productNameOrEmpty(descriptionArea);
         String startingPriceText = productNameOrEmpty(startingPriceField);
 
-        if (productName.isEmpty() || productType == null || startingPriceText.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Thiếu dữ liệu",
-                    "Vui lòng nhập tên sản phẩm, loại và giá khởi điểm.");
+        boolean formIsValid = true;
+
+        // 1. Title Validation
+        if (productName.isEmpty()) {
+            formIsValid = false;
+            if (errorTitle != null) {
+                errorTitle.setVisible(true);
+                errorTitle.setManaged(true);
+            }
+            if (productNameField != null && !productNameField.getStyleClass().contains("error-text-input")) {
+                productNameField.getStyleClass().add("error-text-input");
+            }
+        } else {
+            if (errorTitle != null) {
+                errorTitle.setVisible(false);
+                errorTitle.setManaged(false);
+            }
+            if (productNameField != null) {
+                productNameField.getStyleClass().remove("error-text-input");
+            }
+        }
+
+        // 2. Category Validation
+        if (productType == null) {
+            formIsValid = false;
+            if (errorCategory != null) {
+                errorCategory.setVisible(true);
+                errorCategory.setManaged(true);
+            }
+            if (productTypeCombo != null && !productTypeCombo.getStyleClass().contains("error-text-input")) {
+                productTypeCombo.getStyleClass().add("error-text-input");
+            }
+        } else {
+            if (errorCategory != null) {
+                errorCategory.setVisible(false);
+                errorCategory.setManaged(false);
+            }
+            if (productTypeCombo != null) {
+                productTypeCombo.getStyleClass().remove("error-text-input");
+            }
+        }
+
+        // 3. Starting Price Validation
+        BigDecimal startingPrice = BigDecimal.ZERO;
+        if (startingPriceText.isEmpty()) {
+            formIsValid = false;
+            if (errorPrice != null) {
+                errorPrice.setVisible(true);
+                errorPrice.setManaged(true);
+            }
+            if (lblErrorPrice != null) {
+                lblErrorPrice.setText("Giá khởi điểm không được để trống");
+            }
+            if (startingPriceField != null && !startingPriceField.getStyleClass().contains("error-text-input")) {
+                startingPriceField.getStyleClass().add("error-text-input");
+            }
+        } else {
+            try {
+                startingPrice = new BigDecimal(startingPriceText.trim());
+                if (startingPrice.compareTo(BigDecimal.ZERO) <= 0) {
+                    throw new NumberFormatException();
+                }
+                if (errorPrice != null) {
+                    errorPrice.setVisible(false);
+                    errorPrice.setManaged(false);
+                }
+                if (startingPriceField != null) {
+                    startingPriceField.getStyleClass().remove("error-text-input");
+                }
+            } catch (Exception e) {
+                formIsValid = false;
+                if (errorPrice != null) {
+                    errorPrice.setVisible(true);
+                    errorPrice.setManaged(true);
+                }
+                if (lblErrorPrice != null) {
+                    lblErrorPrice.setText("Giá khởi điểm phải là một số dương");
+                }
+                if (startingPriceField != null && !startingPriceField.getStyleClass().contains("error-text-input")) {
+                    startingPriceField.getStyleClass().add("error-text-input");
+                }
+            }
+        }
+
+        // 3. Time Validation
+        LocalDateTime startDT = getLocalDateTimeFromSplitFields(txtStartDay, txtStartMonth, txtStartYear, txtStartHour, txtStartMin);
+        LocalDateTime endDT = getLocalDateTimeFromSplitFields(txtEndDay, txtEndMonth, txtEndYear, txtEndHour, txtEndMin);
+        
+        // Validate Start Time
+        if (startDT == null) {
+            formIsValid = false;
+            if (errorStartDT != null) {
+                errorStartDT.setVisible(true);
+                errorStartDT.setManaged(true);
+            }
+            if (wrapperStartDT != null && !wrapperStartDT.getStyleClass().contains("error-segmented-input")) {
+                wrapperStartDT.getStyleClass().add("error-segmented-input");
+            }
+            if (lblErrorStartDT != null) {
+                lblErrorStartDT.setText("Vui lòng nhập ngày giờ bắt đầu hợp lệ!");
+            }
+        } else {
+            if (errorStartDT != null) {
+                errorStartDT.setVisible(false);
+                errorStartDT.setManaged(false);
+            }
+            if (wrapperStartDT != null) {
+                wrapperStartDT.getStyleClass().remove("error-segmented-input");
+            }
+        }
+
+        // Validate End Time
+        if (endDT == null) {
+            formIsValid = false;
+            if (errorEndDT != null) {
+                errorEndDT.setVisible(true);
+                errorEndDT.setManaged(true);
+            }
+            if (wrapperEndDT != null && !wrapperEndDT.getStyleClass().contains("error-segmented-input")) {
+                wrapperEndDT.getStyleClass().add("error-segmented-input");
+            }
+            if (lblErrorEndDT != null) {
+                lblErrorEndDT.setText("Vui lòng nhập ngày giờ kết thúc hợp lệ!");
+            }
+        } else {
+            if (startDT != null) {
+                boolean isEndFuture = endDT.isAfter(LocalDateTime.now());
+                boolean isEndAfterStart = endDT.isAfter(startDT);
+
+                if (!isEndFuture || !isEndAfterStart) {
+                    formIsValid = false;
+                    if (errorEndDT != null) {
+                        errorEndDT.setVisible(true);
+                        errorEndDT.setManaged(true);
+                    }
+                    if (wrapperEndDT != null && !wrapperEndDT.getStyleClass().contains("error-segmented-input")) {
+                        wrapperEndDT.getStyleClass().add("error-segmented-input");
+                    }
+                    if (lblErrorEndDT != null) {
+                        if (!isEndFuture) {
+                            lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
+                        } else {
+                            lblErrorEndDT.setText("Thời gian kết thúc phải sau thời gian bắt đầu");
+                        }
+                    }
+                } else {
+                    if (errorEndDT != null) {
+                        errorEndDT.setVisible(false);
+                        errorEndDT.setManaged(false);
+                    }
+                    if (wrapperEndDT != null) {
+                        wrapperEndDT.getStyleClass().remove("error-segmented-input");
+                    }
+                }
+            } else {
+                boolean isEndFuture = endDT.isAfter(LocalDateTime.now());
+                if (!isEndFuture) {
+                    formIsValid = false;
+                    if (errorEndDT != null) {
+                        errorEndDT.setVisible(true);
+                        errorEndDT.setManaged(true);
+                    }
+                    if (wrapperEndDT != null && !wrapperEndDT.getStyleClass().contains("error-segmented-input")) {
+                        wrapperEndDT.getStyleClass().add("error-segmented-input");
+                    }
+                    if (lblErrorEndDT != null) {
+                        lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
+                    }
+                } else {
+                    if (errorEndDT != null) {
+                        errorEndDT.setVisible(false);
+                        errorEndDT.setManaged(false);
+                    }
+                    if (wrapperEndDT != null) {
+                        wrapperEndDT.getStyleClass().remove("error-segmented-input");
+                    }
+                }
+            }
+        }
+
+        // If any validation failed, stop here
+        if (!formIsValid) {
             return;
         }
 
+        // 4. All validations passed! Show past start confirmation if needed
+        if (startDT != null && startDT.isBefore(LocalDateTime.now())) {
+            if (!showPastStartTimeConfirmationDialog()) {
+                return;
+            }
+        }
+
         try {
-            BigDecimal startingPrice = new BigDecimal(startingPriceText.trim());
-
             JSONObject body = new JSONObject();
-
             body.put("name", productName);
             body.put("type", productType);
             body.put("imagePath", imageUrl);
@@ -506,22 +1272,10 @@ public class SellerDashboardController {
             body.put("sellerId", sellerId);
             body.put("stepPrice", 10000); // Default step price to avoid database NOT NULL constraint
 
-            LocalDateTime startDT = getLocalDateTimeFromSplitFields(txtStartDay, txtStartMonth, txtStartYear, txtStartHour, txtStartMin);
             if (startDT == null) {
                 body.put("startTime", JSONObject.NULL);
             } else {
                 body.put("startTime", startDT.toString());
-            }
-
-            LocalDateTime endDT = getLocalDateTimeFromSplitFields(txtEndDay, txtEndMonth, txtEndYear, txtEndHour, txtEndMin);
-            if (endDT == null) {
-                showAlert(Alert.AlertType.WARNING, "Thiếu dữ liệu", "Vui lòng nhập ngày giờ kết thúc hợp lệ!");
-                return;
-            }
-
-            if (!endDT.isAfter(LocalDateTime.now())) {
-                showAlert(Alert.AlertType.WARNING, "Lỗi thời gian", "Thời gian kết thúc phải ở tương lai!");
-                return;
             }
             body.put("endTime", endDT.toString());
 
@@ -574,7 +1328,7 @@ public class SellerDashboardController {
         String hStr = hour.getText().trim();
         String minStr = min.getText().trim();
 
-        if (dStr.isEmpty() || mStr.isEmpty() || yStr.isEmpty()) {
+        if (dStr.isEmpty() || mStr.isEmpty() || yStr.isEmpty() || hStr.isEmpty() || minStr.isEmpty()) {
             return null;
         }
 
@@ -582,8 +1336,8 @@ public class SellerDashboardController {
             int d = Integer.parseInt(dStr);
             int m = Integer.parseInt(mStr);
             int y = Integer.parseInt(yStr);
-            int hr = hStr.isEmpty() ? 0 : Integer.parseInt(hStr);
-            int mn = minStr.isEmpty() ? 0 : Integer.parseInt(minStr);
+            int hr = Integer.parseInt(hStr);
+            int mn = Integer.parseInt(minStr);
 
             return LocalDateTime.of(y, m, d, hr, mn);
         } catch (Exception e) {
@@ -606,45 +1360,212 @@ public class SellerDashboardController {
         String description = productNameOrEmpty(descriptionArea);
         String startingPriceText = productNameOrEmpty(startingPriceField);
 
-        if (productName.isEmpty() || productType == null || startingPriceText.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Thiếu dữ liệu",
-                    "Vui lòng nhập tên sản phẩm, loại và giá khởi điểm.");
+        boolean formIsValid = true;
+
+        // 1. Title Validation
+        if (productName.isEmpty()) {
+            formIsValid = false;
+            if (errorTitle != null) {
+                errorTitle.setVisible(true);
+                errorTitle.setManaged(true);
+            }
+            if (productNameField != null && !productNameField.getStyleClass().contains("error-text-input")) {
+                productNameField.getStyleClass().add("error-text-input");
+            }
+        } else {
+            if (errorTitle != null) {
+                errorTitle.setVisible(false);
+                errorTitle.setManaged(false);
+            }
+            if (productNameField != null) {
+                productNameField.getStyleClass().remove("error-text-input");
+            }
+        }
+
+        // 2. Category Validation
+        if (productType == null) {
+            formIsValid = false;
+            if (errorCategory != null) {
+                errorCategory.setVisible(true);
+                errorCategory.setManaged(true);
+            }
+            if (productTypeCombo != null && !productTypeCombo.getStyleClass().contains("error-text-input")) {
+                productTypeCombo.getStyleClass().add("error-text-input");
+            }
+        } else {
+            if (errorCategory != null) {
+                errorCategory.setVisible(false);
+                errorCategory.setManaged(false);
+            }
+            if (productTypeCombo != null) {
+                productTypeCombo.getStyleClass().remove("error-text-input");
+            }
+        }
+
+        // 3. Starting Price Validation
+        BigDecimal startingPrice = BigDecimal.ZERO;
+        if (startingPriceText.isEmpty()) {
+            formIsValid = false;
+            if (errorPrice != null) {
+                errorPrice.setVisible(true);
+                errorPrice.setManaged(true);
+            }
+            if (lblErrorPrice != null) {
+                lblErrorPrice.setText("Giá khởi điểm không được để trống");
+            }
+            if (startingPriceField != null && !startingPriceField.getStyleClass().contains("error-text-input")) {
+                startingPriceField.getStyleClass().add("error-text-input");
+            }
+        } else {
+            try {
+                startingPrice = new BigDecimal(startingPriceText.trim());
+                if (startingPrice.compareTo(BigDecimal.ZERO) <= 0) {
+                    throw new NumberFormatException();
+                }
+                if (errorPrice != null) {
+                    errorPrice.setVisible(false);
+                    errorPrice.setManaged(false);
+                }
+                if (startingPriceField != null) {
+                    startingPriceField.getStyleClass().remove("error-text-input");
+                }
+            } catch (Exception e) {
+                formIsValid = false;
+                if (errorPrice != null) {
+                    errorPrice.setVisible(true);
+                    errorPrice.setManaged(true);
+                }
+                if (lblErrorPrice != null) {
+                    lblErrorPrice.setText("Giá khởi điểm phải là một số dương");
+                }
+                if (startingPriceField != null && !startingPriceField.getStyleClass().contains("error-text-input")) {
+                    startingPriceField.getStyleClass().add("error-text-input");
+                }
+            }
+        }
+
+        // 3. Time Validation
+        LocalDateTime startDT = getLocalDateTimeFromSplitFields(txtStartDay, txtStartMonth, txtStartYear, txtStartHour, txtStartMin);
+        LocalDateTime endDT = getLocalDateTimeFromSplitFields(txtEndDay, txtEndMonth, txtEndYear, txtEndHour, txtEndMin);
+        
+        // Validate Start Time
+        if (startDT == null) {
+            formIsValid = false;
+            if (errorStartDT != null) {
+                errorStartDT.setVisible(true);
+                errorStartDT.setManaged(true);
+            }
+            if (wrapperStartDT != null && !wrapperStartDT.getStyleClass().contains("error-segmented-input")) {
+                wrapperStartDT.getStyleClass().add("error-segmented-input");
+            }
+            if (lblErrorStartDT != null) {
+                lblErrorStartDT.setText("Vui lòng nhập ngày giờ bắt đầu hợp lệ!");
+            }
+        } else {
+            if (errorStartDT != null) {
+                errorStartDT.setVisible(false);
+                errorStartDT.setManaged(false);
+            }
+            if (wrapperStartDT != null) {
+                wrapperStartDT.getStyleClass().remove("error-segmented-input");
+            }
+        }
+
+        // Validate End Time
+        if (endDT == null) {
+            formIsValid = false;
+            if (errorEndDT != null) {
+                errorEndDT.setVisible(true);
+                errorEndDT.setManaged(true);
+            }
+            if (wrapperEndDT != null && !wrapperEndDT.getStyleClass().contains("error-segmented-input")) {
+                wrapperEndDT.getStyleClass().add("error-segmented-input");
+            }
+            if (lblErrorEndDT != null) {
+                lblErrorEndDT.setText("Vui lòng nhập ngày giờ kết thúc hợp lệ!");
+            }
+        } else {
+            if (startDT != null) {
+                boolean isEndFuture = endDT.isAfter(LocalDateTime.now());
+                boolean isEndAfterStart = endDT.isAfter(startDT);
+
+                if (!isEndFuture || !isEndAfterStart) {
+                    formIsValid = false;
+                    if (errorEndDT != null) {
+                        errorEndDT.setVisible(true);
+                        errorEndDT.setManaged(true);
+                    }
+                    if (wrapperEndDT != null && !wrapperEndDT.getStyleClass().contains("error-segmented-input")) {
+                        wrapperEndDT.getStyleClass().add("error-segmented-input");
+                    }
+                    if (lblErrorEndDT != null) {
+                        if (!isEndFuture) {
+                            lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
+                        } else {
+                            lblErrorEndDT.setText("Thời gian kết thúc phải sau thời gian bắt đầu");
+                        }
+                    }
+                } else {
+                    if (errorEndDT != null) {
+                        errorEndDT.setVisible(false);
+                        errorEndDT.setManaged(false);
+                    }
+                    if (wrapperEndDT != null) {
+                        wrapperEndDT.getStyleClass().remove("error-segmented-input");
+                    }
+                }
+            } else {
+                boolean isEndFuture = endDT.isAfter(LocalDateTime.now());
+                if (!isEndFuture) {
+                    formIsValid = false;
+                    if (errorEndDT != null) {
+                        errorEndDT.setVisible(true);
+                        errorEndDT.setManaged(true);
+                    }
+                    if (wrapperEndDT != null && !wrapperEndDT.getStyleClass().contains("error-segmented-input")) {
+                        wrapperEndDT.getStyleClass().add("error-segmented-input");
+                    }
+                    if (lblErrorEndDT != null) {
+                        lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
+                    }
+                } else {
+                    if (errorEndDT != null) {
+                        errorEndDT.setVisible(false);
+                        errorEndDT.setManaged(false);
+                    }
+                    if (wrapperEndDT != null) {
+                        wrapperEndDT.getStyleClass().remove("error-segmented-input");
+                    }
+                }
+            }
+        }
+
+        // If any validation failed, stop here
+        if (!formIsValid) {
             return;
         }
 
+        // 4. All validations passed! Show past start confirmation if needed
+        if (startDT != null && startDT.isBefore(LocalDateTime.now())) {
+            if (!showPastStartTimeConfirmationDialog()) {
+                return;
+            }
+        }
+
         try {
-            BigDecimal startingPrice = new BigDecimal(startingPriceText.trim());
-
             JSONObject body = new JSONObject();
-
             body.put("name", productName);
             body.put("type", productType);
             body.put("imagePath", imageUrl);
             body.put("description", description);
             body.put("startingPrice", startingPrice);
             body.put("sellerId", sellerId);
-            body.put("stepPrice", 10000); // Default step price to avoid database NOT NULL constraint
+            body.put("stepPrice", 10000); // Default step price
 
-            LocalDateTime startDT = getLocalDateTimeFromSplitFields(txtStartDay, txtStartMonth, txtStartYear, txtStartHour, txtStartMin);
             if (startDT == null) {
                 body.put("startTime", JSONObject.NULL);
             } else {
-                if (startDT.isBefore(LocalDateTime.now())) {
-                    showAlert(Alert.AlertType.WARNING, "Lỗi thời gian", "Thời gian bắt đầu không được ở quá khứ!");
-                    return;
-                }
                 body.put("startTime", startDT.toString());
-            }
-
-            LocalDateTime endDT = getLocalDateTimeFromSplitFields(txtEndDay, txtEndMonth, txtEndYear, txtEndHour, txtEndMin);
-            if (endDT == null) {
-                showAlert(Alert.AlertType.WARNING, "Thiếu dữ liệu", "Vui lòng nhập ngày giờ kết thúc hợp lệ!");
-                return;
-            }
-
-            if (!endDT.isAfter(LocalDateTime.now())) {
-                showAlert(Alert.AlertType.WARNING, "Lỗi thời gian", "Thời gian kết thúc phải ở tương lai!");
-                return;
             }
             body.put("endTime", endDT.toString());
 
@@ -705,6 +1626,115 @@ public class SellerDashboardController {
             } else {
                 showAlert(Alert.AlertType.ERROR, "Lỗi", api.message);
             }
+        } catch (Exception e) {
+            logger.error("Lỗi không thể kết nối đến máy chủ: {}", e.getMessage(), e);
+            showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
+        }
+    }
+
+    private void handleQuickPublish(SessionItem selected) {
+        Integer sellerId = User.getId();
+        if (sellerId == null) {
+            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không lấy được sellerId từ session.");
+            return;
+        }
+
+        // Validate basic fields (Title, Product Type, Starting Price)
+        if (selected.productName == null || selected.productName.trim().isEmpty() || "Không rõ".equals(selected.productName)) {
+            showAlert(Alert.AlertType.ERROR, "Lỗi đăng bán", "Tên sản phẩm của bản nháp không được để trống!");
+            return;
+        }
+
+        if (selected.productType == null || selected.productType.trim().isEmpty()) {
+            showAlert(Alert.AlertType.ERROR, "Lỗi đăng bán", "Loại sản phẩm của bản nháp không được để trống!");
+            return;
+        }
+
+        if (selected.startingPrice == null || selected.startingPrice.compareTo(BigDecimal.ZERO) <= 0) {
+            showAlert(Alert.AlertType.ERROR, "Lỗi đăng bán", "Giá khởi điểm phải lớn hơn 0!");
+            return;
+        }
+
+        // Parse & validate Start/End times
+        LocalDateTime startDT = null;
+        if (selected.startTime != null && !selected.startTime.trim().isEmpty() && !"null".equalsIgnoreCase(selected.startTime)) {
+            try {
+                startDT = LocalDateTime.parse(selected.startTime);
+            } catch (Exception e) {
+                showAlert(Alert.AlertType.ERROR, "Lỗi thời gian", "Định dạng thời gian bắt đầu của bản nháp không hợp lệ!");
+                return;
+            }
+        } else {
+            showAlert(Alert.AlertType.ERROR, "Lỗi thời gian", "Vui lòng nhập ngày giờ bắt đầu hợp lệ!");
+            return;
+        }
+
+        LocalDateTime endDT = null;
+        if (selected.endTime != null && !selected.endTime.trim().isEmpty() && !"null".equalsIgnoreCase(selected.endTime)) {
+            try {
+                endDT = LocalDateTime.parse(selected.endTime);
+            } catch (Exception e) {
+                showAlert(Alert.AlertType.ERROR, "Lỗi thời gian", "Định dạng thời gian kết thúc của bản nháp không hợp lệ!");
+                return;
+            }
+        } else {
+            showAlert(Alert.AlertType.ERROR, "Lỗi thời gian", "Vui lòng nhập ngày giờ kết thúc hợp lệ!");
+            return;
+        }
+
+        // End Time must be in the future
+        if (!endDT.isAfter(LocalDateTime.now())) {
+            showAlert(Alert.AlertType.ERROR, "Lỗi thời gian", "Thời gian kết thúc phải ở tương lai!");
+            return;
+        }
+
+        // End Time must be after Start Time
+        if (!endDT.isAfter(startDT)) {
+            showAlert(Alert.AlertType.ERROR, "Lỗi thời gian", "Thời gian kết thúc phải sau thời gian bắt đầu!");
+            return;
+        }
+
+        // Confirmation dialog
+        if (!showQuickPublishConfirmationDialog(selected.id, selected.productName)) {
+            return;
+        }
+
+        // Past Start Time check:
+        if (startDT.isBefore(LocalDateTime.now())) {
+            if (!showPastStartTimeConfirmationDialog()) {
+                return;
+            }
+        }
+
+        try {
+            JSONObject body = new JSONObject();
+            body.put("name", selected.productName);
+            body.put("type", selected.productType);
+            body.put("imagePath", selected.imageUrl);
+            body.put("description", selected.description);
+            body.put("startingPrice", selected.startingPrice);
+            body.put("sellerId", sellerId);
+            body.put("stepPrice", selected.stepPrice.compareTo(BigDecimal.ZERO) <= 0 ? 10000 : selected.stepPrice);
+
+            body.put("startTime", startDT.toString());
+            body.put("endTime", endDT.toString());
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Config.API_URL + "/api/seller/update-session/" + selected.id + "?sellerId=" + sellerId))
+                    .header("Content-Type", "application/json")
+                    .PUT(HttpRequest.BodyPublishers.ofString(body.toString()))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "Đăng bán phiên đấu giá thành công.");
+
+            if (api.success) {
+                loadMySessions();
+                showAlert(Alert.AlertType.INFORMATION, "Thành công", api.message);
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Lỗi", api.message);
+            }
+
         } catch (Exception e) {
             logger.error("Lỗi không thể kết nối đến máy chủ: {}", e.getMessage(), e);
             showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
@@ -861,17 +1891,66 @@ public class SellerDashboardController {
         startingPriceField.clear();
         if (lblImageFileName != null) lblImageFileName.setText("");
         
-        txtStartDay.clear();
-        txtStartMonth.clear();
-        txtStartYear.clear();
-        txtStartHour.clear();
-        txtStartMin.clear();
+        if (startingPriceField != null) startingPriceField.setDisable(false);
+        if (txtStartDay != null) txtStartDay.setDisable(false);
+        if (txtStartMonth != null) txtStartMonth.setDisable(false);
+        if (txtStartYear != null) txtStartYear.setDisable(false);
+        if (txtStartHour != null) txtStartHour.setDisable(false);
+        if (txtStartMin != null) txtStartMin.setDisable(false);
         
-        txtEndDay.clear();
-        txtEndMonth.clear();
-        txtEndYear.clear();
-        txtEndHour.clear();
-        txtEndMin.clear();
+        LocalDateTime now = LocalDateTime.now();
+        txtStartDay.setText(String.format("%02d", now.getDayOfMonth()));
+        txtStartMonth.setText(String.format("%02d", now.getMonthValue()));
+        txtStartYear.setText(String.valueOf(now.getYear()));
+        txtStartHour.setText(String.format("%02d", now.getHour()));
+        txtStartMin.setText(String.format("%02d", now.getMinute()));
+        
+        LocalDateTime tomorrow = now.plusDays(1);
+        txtEndDay.setText(String.format("%02d", tomorrow.getDayOfMonth()));
+        txtEndMonth.setText(String.format("%02d", tomorrow.getMonthValue()));
+        txtEndYear.setText(String.valueOf(tomorrow.getYear()));
+        txtEndHour.setText(String.format("%02d", tomorrow.getHour()));
+        txtEndMin.setText(String.format("%02d", tomorrow.getMinute()));
+
+        if (errorEndDT != null) {
+            errorEndDT.setVisible(false);
+            errorEndDT.setManaged(false);
+        }
+        if (wrapperEndDT != null) {
+            wrapperEndDT.getStyleClass().remove("error-segmented-input");
+        }
+
+        if (errorStartDT != null) {
+            errorStartDT.setVisible(false);
+            errorStartDT.setManaged(false);
+        }
+        if (wrapperStartDT != null) {
+            wrapperStartDT.getStyleClass().remove("error-segmented-input");
+        }
+
+        if (errorTitle != null) {
+            errorTitle.setVisible(false);
+            errorTitle.setManaged(false);
+        }
+        if (productNameField != null) {
+            productNameField.getStyleClass().remove("error-text-input");
+        }
+
+        if (errorPrice != null) {
+            errorPrice.setVisible(false);
+            errorPrice.setManaged(false);
+        }
+        if (startingPriceField != null) {
+            startingPriceField.getStyleClass().remove("error-text-input");
+        }
+
+        if (errorCategory != null) {
+            errorCategory.setVisible(false);
+            errorCategory.setManaged(false);
+        }
+        if (productTypeCombo != null) {
+            productTypeCombo.getStyleClass().remove("error-text-input");
+        }
 
         fillDefaultStartTime();
         fillDefaultEndTime();
@@ -1020,7 +2099,10 @@ public class SellerDashboardController {
     }
 
     private String productNameOrEmpty(TextInputControl input) {
-        return input == null ? "" : input.getText().trim();
+        if (input == null || input.getText() == null) {
+            return "";
+        }
+        return input.getText().trim();
     }
 
     private String safeMessage(String body) {
@@ -1081,7 +2163,187 @@ public class SellerDashboardController {
         }
     }
 
+    private boolean showPastStartTimeConfirmationDialog() {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        DialogPane dialogPane = dialog.getDialogPane();
+        dialogPane.getButtonTypes().clear();
+        dialogPane.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
+
+        VBox container = new VBox(20);
+        container.setAlignment(Pos.CENTER);
+        container.setPadding(new javafx.geometry.Insets(32));
+        container.setPrefWidth(360);
+        container.setStyle("-fx-background-color: white; -fx-background-radius: 16px; -fx-border-color: #ffe8f2; -fx-border-width: 1px; -fx-border-radius: 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 30, 0, 0, 10);");
+
+        StackPane iconCircle = new StackPane();
+        iconCircle.setPrefSize(64, 64);
+        iconCircle.setMaxSize(64, 64);
+        iconCircle.setStyle("-fx-background-color: rgba(224, 64, 160, 0.1); -fx-background-radius: 32px;");
+
+        FontIcon timerIcon = new FontIcon("mdi2t-timer-outline");
+        timerIcon.setIconSize(36);
+        timerIcon.setIconColor(Color.valueOf("#e040a0"));
+        iconCircle.getChildren().add(timerIcon);
+
+        Label titleLabel = new Label("Thời gian bắt đầu đã đến!");
+        titleLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
+
+        Label descLabel = new Label("Phiên đấu giá cho vật phẩm của bạn đã sẵn sàng.\nBạn có muốn bắt đầu ngay bây giờ không?");
+        descLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;");
+        descLabel.setWrapText(true);
+
+        VBox btnBox = new VBox(12);
+        btnBox.setAlignment(Pos.CENTER);
+        btnBox.setPrefWidth(300);
+
+        Button btnStartNow = new Button("Bắt đầu ngay");
+        btnStartNow.setPrefHeight(44);
+        btnStartNow.setMaxWidth(Double.MAX_VALUE);
+        btnStartNow.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand;");
+
+        Button btnEdit = new Button("Sửa lại");
+        btnEdit.setPrefHeight(44);
+        btnEdit.setMaxWidth(Double.MAX_VALUE);
+        btnEdit.setStyle("-fx-background-color: transparent; -fx-border-color: #dcc8e0; -fx-border-width: 2px; -fx-border-radius: 22px; -fx-background-radius: 22px; -fx-text-fill: #604868; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
+
+        btnBox.getChildren().addAll(btnStartNow, btnEdit);
+        container.getChildren().addAll(iconCircle, titleLabel, descLabel, btnBox);
+        dialogPane.setContent(container);
+
+        btnStartNow.setOnAction(e -> {
+            dialog.setResult(ButtonType.OK);
+            dialog.close();
+        });
+
+        btnEdit.setOnAction(e -> {
+            dialog.setResult(ButtonType.CANCEL);
+            dialog.close();
+        });
+
+        javafx.stage.Stage stage = (javafx.stage.Stage) dialogPane.getScene().getWindow();
+        stage.initStyle(javafx.stage.StageStyle.TRANSPARENT);
+        dialogPane.getScene().setFill(Color.TRANSPARENT);
+
+        java.util.Optional<ButtonType> result = dialog.showAndWait();
+        return result.isPresent() && result.get() == ButtonType.OK;
+    }
+
+    private boolean showQuickPublishConfirmationDialog(int id, String productName) {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        DialogPane dialogPane = dialog.getDialogPane();
+        dialogPane.getButtonTypes().clear();
+        dialogPane.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
+
+        VBox container = new VBox(20);
+        container.setAlignment(Pos.CENTER);
+        container.setPadding(new javafx.geometry.Insets(32));
+        container.setPrefWidth(360);
+        container.setStyle("-fx-background-color: white; -fx-background-radius: 16px; -fx-border-color: #ffe8f2; -fx-border-width: 1px; -fx-border-radius: 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 30, 0, 0, 10);");
+
+        StackPane iconCircle = new StackPane();
+        iconCircle.setPrefSize(64, 64);
+        iconCircle.setMaxSize(64, 64);
+        iconCircle.setStyle("-fx-background-color: rgba(224, 64, 160, 0.1); -fx-background-radius: 32px;");
+
+        FontIcon publishIcon = new FontIcon("mdi2p-publish");
+        publishIcon.setIconSize(36);
+        publishIcon.setIconColor(Color.valueOf("#e040a0"));
+        iconCircle.getChildren().add(publishIcon);
+
+        Label titleLabel = new Label("Đăng bán nhanh");
+        titleLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
+
+        Label descLabel = new Label("Bạn có chắc chắn muốn đăng bán nhanh phiên #" + id + "\n(" + productName + ") không?");
+        descLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;");
+        descLabel.setWrapText(true);
+
+        VBox btnBox = new VBox(12);
+        btnBox.setAlignment(Pos.CENTER);
+        btnBox.setPrefWidth(300);
+
+        Button btnConfirm = new Button("Đăng bán");
+        btnConfirm.setPrefHeight(44);
+        btnConfirm.setMaxWidth(Double.MAX_VALUE);
+        btnConfirm.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand;");
+
+        Button btnCancel = new Button("Hủy");
+        btnCancel.setPrefHeight(44);
+        btnCancel.setMaxWidth(Double.MAX_VALUE);
+        btnCancel.setStyle("-fx-background-color: transparent; -fx-border-color: #dcc8e0; -fx-border-width: 2px; -fx-border-radius: 22px; -fx-background-radius: 22px; -fx-text-fill: #604868; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
+
+        btnBox.getChildren().addAll(btnConfirm, btnCancel);
+        container.getChildren().addAll(iconCircle, titleLabel, descLabel, btnBox);
+        dialogPane.setContent(container);
+
+        btnConfirm.setOnAction(e -> {
+            dialog.setResult(ButtonType.OK);
+            dialog.close();
+        });
+
+        btnCancel.setOnAction(e -> {
+            dialog.setResult(ButtonType.CANCEL);
+            dialog.close();
+        });
+
+        javafx.stage.Stage stage = (javafx.stage.Stage) dialogPane.getScene().getWindow();
+        stage.initStyle(javafx.stage.StageStyle.TRANSPARENT);
+        dialogPane.getScene().setFill(Color.TRANSPARENT);
+
+        java.util.Optional<ButtonType> result = dialog.showAndWait();
+        return result.isPresent() && result.get() == ButtonType.OK;
+    }
+
     private void showAlert(Alert.AlertType type, String title, String content) {
+        if (type == Alert.AlertType.INFORMATION) {
+            Dialog<ButtonType> dialog = new Dialog<>();
+            DialogPane dialogPane = dialog.getDialogPane();
+            dialogPane.getButtonTypes().clear();
+            dialogPane.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
+
+            VBox container = new VBox(20);
+            container.setAlignment(Pos.CENTER);
+            container.setPadding(new javafx.geometry.Insets(32));
+            container.setPrefWidth(360);
+            container.setStyle("-fx-background-color: white; -fx-background-radius: 16px; -fx-border-color: #ffe8f2; -fx-border-width: 1px; -fx-border-radius: 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 30, 0, 0, 10);");
+
+            StackPane iconCircle = new StackPane();
+            iconCircle.setPrefSize(64, 64);
+            iconCircle.setMaxSize(64, 64);
+            iconCircle.setStyle("-fx-background-color: rgba(16, 185, 129, 0.1); -fx-background-radius: 32px;");
+
+            FontIcon checkIcon = new FontIcon("mdi2c-check-decagram");
+            checkIcon.setIconSize(36);
+            checkIcon.setIconColor(Color.valueOf("#10b981"));
+            iconCircle.getChildren().add(checkIcon);
+
+            Label titleLabel = new Label(title != null ? title : "Thành công");
+            titleLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
+
+            Label descLabel = new Label(content);
+            descLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;");
+            descLabel.setWrapText(true);
+
+            Button btnOk = new Button("Đồng ý");
+            btnOk.setPrefHeight(44);
+            btnOk.setMaxWidth(Double.MAX_VALUE);
+            btnOk.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand;");
+
+            container.getChildren().addAll(iconCircle, titleLabel, descLabel, btnOk);
+            dialogPane.setContent(container);
+
+            btnOk.setOnAction(e -> {
+                dialog.setResult(ButtonType.OK);
+                dialog.close();
+            });
+
+            javafx.stage.Stage stage = (javafx.stage.Stage) dialogPane.getScene().getWindow();
+            stage.initStyle(javafx.stage.StageStyle.TRANSPARENT);
+            dialogPane.getScene().setFill(Color.TRANSPARENT);
+
+            dialog.showAndWait();
+            return;
+        }
+
         Alert alert = new Alert(type);
         alert.setTitle(title);
         alert.setHeaderText(null);
@@ -1089,7 +2351,7 @@ public class SellerDashboardController {
         alert.showAndWait();
     }
 
-    private static class SessionItem {
+    static class SessionItem {
         int id;
         String productName;
         String productType;
