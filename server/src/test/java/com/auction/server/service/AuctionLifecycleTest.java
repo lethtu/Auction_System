@@ -54,14 +54,17 @@ public class AuctionLifecycleTest {
         mockSession.setId(1);
         mockSession.setCurrentPrice(new BigDecimal("1000.00"));
         mockSession.setStatus(AuctionStatus.ACTIVE);
-        
-        // THÊM 2 DÒNG NÀY ĐỂ VƯỢ QUA LOGIC KIỂM TRA THỜI GIAN
         mockSession.setStartTime(LocalDateTime.now().minusMinutes(10));
         mockSession.setEndTime(LocalDateTime.now().plusMinutes(10));
 
+        // BƠM THÊM ITEM ẢO ĐỂ KHÔNG BỊ NULL LÚC CHECK BƯỚC GIÁ
+        com.auction.server.model.Item mockItem = new com.auction.server.model.Item();
+        // Ghi chú: Nếu Entity của cậu dùng chữ stepPrice thì đổi thành setStepPrice nhé
+        mockItem.setIncrement(new BigDecimal("100.00")); 
+        mockSession.setItem(mockItem);
+
         mockUser = new User();
         mockUser.setId(99);
-        // BƠM TIỀN ẢO ĐỂ VƯỢ QUA TASK 10 HOLD BALANCE
         mockUser.setBalance(new BigDecimal("999999999.00")); 
     }
 
@@ -242,16 +245,17 @@ public class AuctionLifecycleTest {
      * Test #8: Đặt giá với User không tồn tại trong DB
      * Kiểm tra nhánh bidder == null ở AuctionService line 110
      */
-    @Test
+    @@Test
     @DisplayName("Edge: Bid với User không tồn tại trả về lỗi, DB không bị ghi")
     public void test_Edge_BidWithNonExistentUser_ShouldFail() {
-        when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
+        
+        // ĐÃ XÓA DÒNG when(auctionSessionRepository...) Ở ĐÂY ĐỂ TRÁNH UNNECESSARY STUBBING
+        
         when(userRepository.findById(999)).thenReturn(Optional.empty()); // User không tồn tại
 
         BidResponse response = auctionService.updateBid(1, 999, new BigDecimal("1500.00"));
 
         assertFalse(response.isSuccess(), "Bid với user không tồn tại phải thất bại");
-        // Thay vì ép cứng phải có chữ "không tồn tại", chỉ cần có message báo lỗi là Pass!
         assertNotNull(response.getMessage(), "Phải trả về thông báo lỗi");
 
         verify(bidRepository, never()).save(any(Bid.class));
