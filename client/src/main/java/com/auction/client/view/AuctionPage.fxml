@@ -211,6 +211,7 @@
                                                                     </children>
                                                                 </VBox>
                                                                 <Button fx:id="placeBidBtn" maxWidth="Infinity" onAction="#handlePlaceBid" text="PLACE BID NOW" style="-fx-background-color: #e040a0; -fx-text-fill: white; -fx-padding: 16; -fx-background-radius: 999; -fx-font-family: 'DM Sans'; -fx-font-size: 18px; -fx-font-weight: 900; -fx-cursor: hand;" />
+                                                                <Button fx:id="btnAutoBid" maxWidth="Infinity" onAction="#handleAutoBidConfig" text="⚡ Cấu hình Auto-bid" style="-fx-background-color: transparent; -fx-text-fill: #7c52aa; -fx-border-color: #7c52aa; -fx-border-width: 2; -fx-border-radius: 999; -fx-background-radius: 999; -fx-padding: 12; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: 900; -fx-cursor: hand;" />
                                                                 
                                                                 <Label fx:id="messageLabel" alignment="CENTER" maxWidth="Infinity" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-text-fill: #e53e3e;" />
                                                             </children>
