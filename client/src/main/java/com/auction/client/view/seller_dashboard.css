@@ -14,8 +14,8 @@
     -fx-on-surface-variant: #604868;
     -fx-outline: #907898;
     -fx-outline-variant: #dcc8e0;
-    -fx-error: #e53e3e;
-    -fx-error-container: #ffe8e8;
+    -fx-error: #e040a0;
+    -fx-error-container: #ffe8f2;
     -fx-success: #10b981; /* emerald-500 */
     -fx-success-bg: #d1fae5; /* emerald-100 */
 }
@@ -272,5 +272,17 @@
 .custom-segmented-input:focused-within {
     -fx-border-color: -fx-primary;
     -fx-border-width: 1.5px;
+}
+
+.error-segmented-input {
+    -fx-border-color: -fx-error !important;
+    -fx-border-width: 1.5px !important;
+    -fx-background-color: -fx-error-container !important;
+}
+
+.error-text-input {
+    -fx-border-color: -fx-error !important;
+    -fx-border-width: 1.5px !important;
+    -fx-background-color: -fx-error-container !important;
 }
 
