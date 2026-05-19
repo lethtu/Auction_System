@@ -51,6 +51,8 @@ public class AuctionController {
 
     private SessionResponseDTO toSessionResponseDTO(AuctionSession session, Integer sessionId) {
         int bidCount = Math.toIntExact(bidRepository.countBySessionId(sessionId));
-        return SessionResponseMapper.toDTO(session, bidCount);
+        SessionResponseDTO dto = SessionResponseMapper.toDTO(session, bidCount);
+        dto.setBids(bidRepository.findBySessionIdOrderByAmountAsc(sessionId));
+        return dto;
     }
 }

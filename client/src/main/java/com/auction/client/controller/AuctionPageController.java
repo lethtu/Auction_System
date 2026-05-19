@@ -166,8 +166,9 @@ public class AuctionPageController {
         initChart();
         loadBidHistoryData(sessionObj);
         renderBidHistoryUI();
-        renderLast3BidsToChart();
+        renderLast5BidsToChart();
         connectToServer();
+        refreshSessionFromServer();
     }
 
     private void createUserOption(String text) {
@@ -266,25 +267,27 @@ public class AuctionPageController {
         areaChart = new javafx.scene.chart.AreaChart<>(xAxis, yAxis);
         areaChart.setLegendVisible(false);
         areaChart.setCreateSymbols(true);
-        areaChart.setAnimated(true);
-        areaChart.lookup(".chart-plot-background").setStyle("-fx-background-color: transparent;");
+        areaChart.setAnimated(false);
+        areaChart.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
         priceSeries = new javafx.scene.chart.XYChart.Series<>();
         priceSeries.setName("Bid Trajectory");
         areaChart.getData().add(priceSeries);
 
-        Platform.runLater(() -> {
-            try {
-                areaChart.lookup(".default-color0.chart-series-area-line").setStyle("-fx-stroke: #e040a0; -fx-stroke-width: 3px;");
-                areaChart.lookup(".default-color0.chart-series-area-fill").setStyle("-fx-fill: linear-gradient(to bottom, rgba(224,64,160,0.3) 0%, rgba(224,64,160,0) 100%);");
-            } catch (Exception e) {}
-        });
-
         if (chartContainer != null) {
             chartContainer.getChildren().clear();
             chartContainer.getChildren().add(areaChart);
+
+            javafx.scene.layout.VBox.setVgrow(
+                    areaChart,
+                    javafx.scene.layout.Priority.ALWAYS
+            );
+
+            areaChart.prefWidthProperty().bind(chartContainer.widthProperty());
+            areaChart.prefHeightProperty().bind(chartContainer.heightProperty());
         }
-        
+
+        // CSS in styles.css handles all chart visual styling
         tickCount = 0;
     }
 
@@ -292,27 +295,52 @@ public class AuctionPageController {
         bidHistoryData.clear();
 
         if (sessionsObj == null || !sessionsObj.has("bids") || sessionsObj.isNull("bids")) {
+            logger.info("Không tìm thấy trường 'bids' trong dữ liệu phiên. Keys: {}",
+                    sessionsObj != null ? sessionsObj.keySet() : "null");
             return;
         }
 
         org.json.JSONArray bidsArray = sessionsObj.getJSONArray("bids");
+        logger.info("Đã tải {} lượt đặt giá từ dữ liệu phiên.", bidsArray.length());
 
         for (int i = 0; i < bidsArray.length(); i++) {
             JSONObject bid = bidsArray.getJSONObject(i);
 
-            BigDecimal amount = bid.getBigDecimal("amount");
+            BigDecimal amount = getMoney(bid, "amount", BigDecimal.ZERO);
 
             String timeAgo = "Vừa xong";
             if (bid.has("time") && !bid.isNull("time")) {
                 timeAgo = calculateTimeAgo(bid.getString("time"));
             }
 
+            // Lấy bidder ID từ object hoặc trực tiếp
             String bidderName = "Bidder #Unknown";
             if (bid.has("bidder") && !bid.isNull("bidder")) {
-                JSONObject bidderObj = bid.getJSONObject("bidder");
-                int bidderId = bidderObj.optInt("id", 0);
+                Object bidderVal = bid.get("bidder");
+                if (bidderVal instanceof JSONObject) {
+                    JSONObject bidderObj = (JSONObject) bidderVal;
+                    int bidderId = bidderObj.optInt("id", 0);
+                    if (User.getId() != null && bidderId == User.getId()) {
+                        bidderName = "You (Bạn)";
+                    } else {
+                        bidderName = "Bidder #" + bidderId;
+                    }
+                } else {
+                    try {
+                        int bidderId = Integer.parseInt(bidderVal.toString());
+                        if (User.getId() != null && bidderId == User.getId()) {
+                            bidderName = "You (Bạn)";
+                        } else {
+                            bidderName = "Bidder #" + bidderId;
+                        }
+                    } catch (NumberFormatException e) {
+                        // ignore
+                    }
+                }
+            } else if (bid.has("bidderId") && !bid.isNull("bidderId")) {
+                int bidderId = bid.optInt("bidderId", 0);
                 if (User.getId() != null && bidderId == User.getId()) {
-                    bidderName = "Bạn (You)";
+                    bidderName = "You (Bạn)";
                 } else {
                     bidderName = "Bidder #" + bidderId;
                 }
@@ -320,21 +348,44 @@ public class AuctionPageController {
 
             bidHistoryData.add(new BidHistoryItem(amount, bidderName, timeAgo));
         }
+
+        logger.info("Tổng số lịch sử đấu giá đã load: {}", bidHistoryData.size());
     }
 
     private void renderBidHistoryUI() {
         if (bidHistoryContainer == null) return;
         bidHistoryContainer.getChildren().clear();
 
-        int start = Math.max(0, bidHistoryData.size() - 3);
+        if (bidHistoryData.isEmpty()) {
+            // Hiển thị thông báo khi chưa có lịch sử
+            VBox emptyBox = new VBox(8);
+            emptyBox.setAlignment(javafx.geometry.Pos.CENTER);
+            emptyBox.setStyle("-fx-padding: 20 0;");
 
-        for (int i = bidHistoryData.size() - 1; i >= start; i--) {
+            Label emptyIcon = new Label("\ue889");
+            emptyIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 32px; -fx-text-fill: #d4c4d4;");
+
+            Label emptyLabel = new Label("Chưa có lượt đặt giá nào");
+            emptyLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: 700; -fx-text-fill: #a088a8;");
+
+            Label emptyHint = new Label("Hãy là người đầu tiên đặt giá!");
+            emptyHint.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-text-fill: #c8b8c8;");
+
+            emptyBox.getChildren().addAll(emptyIcon, emptyLabel, emptyHint);
+            bidHistoryContainer.getChildren().add(emptyBox);
+            return;
+        }
+
+        // Hiển thị tối đa 5 lượt đặt giá gần nhất, mới nhất ở trên
+        int count = 0;
+        for (int i = bidHistoryData.size() - 1; i >= 0 && count < 5; i--) {
             BidHistoryItem item = bidHistoryData.get(i);
             addBidRowToHistoryUI(
                 item.getBidderName(),
                 item.getAmount(),
                 item.getTimeAgo()
             );
+            count++;
         }
     }
 
@@ -368,90 +419,150 @@ public class AuctionPageController {
 
     private void addBidToHistory(String bidderName, BigDecimal amount, String timeAgo) {
         Platform.runLater(() -> {
-            if (bidHistoryContainer == null) return;
-            javafx.scene.layout.HBox historyRow = new javafx.scene.layout.HBox();
-            historyRow.setAlignment(javafx.geometry.Pos.CENTER);
-            historyRow.setSpacing(10);
-            
-            Label nameLabel = new Label(bidderName);
-            nameLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
-            
-            javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
-            javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
-            
-            Label amountLabel = new Label("₫ " + formatPrice(amount));
-            amountLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
-            amountLabel.setPrefWidth(95);
-            amountLabel.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
-            
-            Label timeLabel = new Label(timeAgo);
-            timeLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 10px; -fx-text-fill: #604868;");
-            timeLabel.setPrefWidth(65);
-            timeLabel.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
-            
-            historyRow.getChildren().addAll(nameLabel, spacer, amountLabel, timeLabel);
-            
-            if (bidHistoryContainer.getChildren().size() >= 3) {
-                bidHistoryContainer.getChildren().remove(bidHistoryContainer.getChildren().size() - 1);
-            }
-            bidHistoryContainer.getChildren().add(0, historyRow);
-            
-            if (priceSeries != null && timeAgo.equals("Vừa xong")) {
-                priceSeries.getData().add(new javafx.scene.chart.XYChart.Data<>(tickCount++, amount.doubleValue()));
-            }
+            // Thêm lượt đấu giá mới vào mảng dữ liệu lịch sử
+            bidHistoryData.add(new BidHistoryItem(amount, bidderName, timeAgo));
+            // Cập nhật lại danh sách hiển thị
+            renderBidHistoryUI();
+            // Cập nhật lại biểu đồ với 5 lịch sử gần nhất
+            renderLast5BidsToChart();
         });
     }
 
     private void addBidRowToHistoryUI(String bidderName, BigDecimal amount, String timeAgo) {
         if (bidHistoryContainer == null) return;
+
+        int rowIndex = bidHistoryContainer.getChildren().size();
+
+        // Rank badge colors: gold → silver → bronze → purple → muted
+        String[] rankColors = {"#e040a0", "#a855f7", "#7c52aa", "#8b7399", "#a088a8"};
+        String badgeColor = rankColors[Math.min(rowIndex, rankColors.length - 1)];
+
         javafx.scene.layout.HBox historyRow = new javafx.scene.layout.HBox();
-        historyRow.setAlignment(javafx.geometry.Pos.CENTER);
-        historyRow.setSpacing(10);
+        historyRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        historyRow.setSpacing(12);
+        historyRow.getStyleClass().add("bid-history-row");
+
+        // Rank badge
+        Label rankLabel = new Label(String.valueOf(rowIndex + 1));
+        rankLabel.getStyleClass().add("bid-rank");
+        rankLabel.setStyle("-fx-background-color: " + badgeColor + ";");
+
+        // Bidder info column
+        VBox infoBox = new VBox(2);
+        javafx.scene.layout.HBox.setHgrow(infoBox, javafx.scene.layout.Priority.ALWAYS);
 
         Label nameLabel = new Label(bidderName);
-        nameLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
-
-        javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
-        javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
-
-        Label amountLabel = new Label("₫ " + formatPrice(amount));
-        amountLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
-        amountLabel.setPrefWidth(95);
-        amountLabel.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+        nameLabel.getStyleClass().add("bid-name");
 
         Label timeLabel = new Label(timeAgo);
-        timeLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 10px; -fx-text-fill: #604868;");
-        timeLabel.setPrefWidth(65);
-        timeLabel.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+        timeLabel.getStyleClass().add("bid-time");
 
-        historyRow.getChildren().addAll(nameLabel, spacer, amountLabel, timeLabel);
+        infoBox.getChildren().addAll(nameLabel, timeLabel);
+
+        // Amount
+        Label amountLabel = new Label("₫ " + formatPrice(amount));
+        amountLabel.getStyleClass().add("bid-amount");
+        amountLabel.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
+
+        historyRow.getChildren().addAll(rankLabel, infoBox, amountLabel);
         bidHistoryContainer.getChildren().add(historyRow);
     }
 
-    private void renderLast3BidsToChart() {
-        if (priceSeries == null) return;
+    private void renderLast5BidsToChart() {
+        if (priceSeries == null) {
+            return;
+        }
 
         priceSeries.getData().clear();
         tickCount = 0;
 
-        int start = Math.max(0, bidHistoryData.size() - 3);
+        /*
+        * CASE 1:
+        * Chưa có bid nào.
+        * Vẫn vẽ một đường ngang từ giá khởi điểm -> giá hiện tại
+        * để khu vực biểu đồ không bị trống.
+        */
+        if (bidHistoryData.isEmpty()) {
+            BigDecimal firstValue = startingPrice != null
+                    && startingPrice.compareTo(BigDecimal.ZERO) > 0
+                    ? startingPrice
+                    : currentPrice;
+
+            BigDecimal secondValue = currentPrice != null
+                    && currentPrice.compareTo(BigDecimal.ZERO) > 0
+                    ? currentPrice
+                    : firstValue;
+
+            if (firstValue == null) {
+                firstValue = BigDecimal.ZERO;
+            }
+
+            if (secondValue == null) {
+                secondValue = firstValue;
+            }
+
+            priceSeries.getData().add(
+                    new javafx.scene.chart.XYChart.Data<>(
+                            tickCount++,
+                            firstValue.doubleValue()
+                    )
+            );
+
+            priceSeries.getData().add(
+                    new javafx.scene.chart.XYChart.Data<>(
+                            tickCount++,
+                            secondValue.doubleValue()
+                    )
+            );
+
+            return;
+        }
+
+        /*
+        * CASE 2:
+        * Mới có đúng 1 bid.
+        * Vẽ từ giá khởi điểm -> giá bid đầu tiên.
+        */
+        if (bidHistoryData.size() == 1) {
+            BidHistoryItem firstBid = bidHistoryData.get(0);
+
+            BigDecimal basePrice = startingPrice != null
+                    && startingPrice.compareTo(BigDecimal.ZERO) > 0
+                    ? startingPrice
+                    : firstBid.getAmount();
+
+            priceSeries.getData().add(
+                    new javafx.scene.chart.XYChart.Data<>(
+                            tickCount++,
+                            basePrice.doubleValue()
+                    )
+            );
+
+            priceSeries.getData().add(
+                    new javafx.scene.chart.XYChart.Data<>(
+                            tickCount++,
+                            firstBid.getAmount().doubleValue()
+                    )
+            );
+
+            return;
+        }
+
+        /*
+        * CASE 3:
+        * Có từ 2 bid trở lên.
+        * Lấy tối đa 5 bid gần nhất để vẽ.
+        */
+        int start = Math.max(0, bidHistoryData.size() - 5);
 
         for (int i = start; i < bidHistoryData.size(); i++) {
             BidHistoryItem item = bidHistoryData.get(i);
-            priceSeries.getData().add(
-                new javafx.scene.chart.XYChart.Data<>(
-                    tickCount++,
-                    item.getAmount().doubleValue()
-                )
-            );
-        }
 
-        if (bidHistoryData.isEmpty() && currentPrice != null) {
             priceSeries.getData().add(
-                new javafx.scene.chart.XYChart.Data<>(
-                    tickCount++,
-                    currentPrice.doubleValue()
-                )
+                    new javafx.scene.chart.XYChart.Data<>(
+                            tickCount++,
+                            item.getAmount().doubleValue()
+                    )
             );
         }
     }
@@ -569,7 +680,21 @@ public class AuctionPageController {
                 if (isSuccessfulResponse(response)) {
                     JSONObject session = new JSONObject(response.body());
                     JSONObject item = session.optJSONObject("item");
-                    Platform.runLater(() -> applySessionData(session, item));
+                    Platform.runLater(() -> {
+                        try {
+                            logger.info("Chạy Platform.runLater để cập nhật dữ liệu phiên đấu giá từ máy chủ.");
+                            applySessionData(session, item);
+                            logger.info("applySessionData thành công.");
+                            loadBidHistoryData(session);
+                            logger.info("loadBidHistoryData thành công. Số lượng lịch sử: {}", bidHistoryData.size());
+                            renderBidHistoryUI();
+                            logger.info("renderBidHistoryUI thành công.");
+                            renderLast5BidsToChart();
+                            logger.info("renderLast5BidsToChart thành công.");
+                        } catch (Exception e) {
+                            logger.error("Lỗi cập nhật UI sau khi tải lại từ máy chủ:", e);
+                        }
+                    });
                 }
             } catch (Exception e) {
                 logger.warn("Không tải lại được chi tiết phiên {}: {}", currentSessionId, e.getMessage());
@@ -696,9 +821,9 @@ public class AuctionPageController {
             return DEFAULT_HIGHEST_BIDDER;
         }
         if (User.getId() != null && highestBidderId.equals(User.getId())) {
-            return "Người đang giữ giá: Bạn (You)";
+            return "Người đang giữ giá: You (Bạn)";
         }
-        return "Người đang giữ giá: User #" + highestBidderId;
+        return "Người đang giữ giá: Bidder #" + highestBidderId;
     }
 
     private String formatReserveStatus() {
@@ -776,9 +901,9 @@ public class AuctionPageController {
             bidCount = getOptionalIntOrDefault(noticeObj, "bidCount", bidCount);
             updateBidInfoLabels();
 
-            String bidderName = "User #" + highestBidderId;
+            String bidderName = "Bidder #" + highestBidderId;
             if (User.getId() != null && highestBidderId != null && highestBidderId.equals(User.getId())) {
-                bidderName = "Bạn (You)";
+                bidderName = "You (Bạn)";
             }
             addBidToHistory(bidderName, newPrice, "Vừa xong");
 

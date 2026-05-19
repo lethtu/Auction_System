@@ -16,6 +16,7 @@ import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.auction.client.model.User;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,8 +38,8 @@ public class SidebarController {
     private final Map<Button, String> sidebarButtonTextMap = new HashMap<>();
 
     public interface SidebarListener {
-        void onFilterWatchlist();
-        void onResetFilter();
+        void onFilterWatchlist(ActionEvent event);
+        void onResetFilter(ActionEvent event);
     }
 
     private SidebarListener listener;
@@ -61,6 +62,28 @@ public class SidebarController {
                 sidebarButtonTextMap.put(btn, btn.getText());
             }
         }
+
+        // Kiểm tra xem đã là seller chưa
+        if (User.getRole() != null && User.getRole().equalsIgnoreCase("seller")) {
+            if (btnStartSelling != null) {
+                btnStartSelling.setVisible(false);
+                btnStartSelling.setManaged(false);
+            }
+            if (btnSelling != null) {
+                btnSelling.setVisible(true);
+                btnSelling.setManaged(true);
+            }
+        } else {
+            if (btnStartSelling != null) {
+                btnStartSelling.setVisible(true);
+                btnStartSelling.setManaged(true);
+            }
+            if (btnSelling != null) {
+                btnSelling.setVisible(false);
+                btnSelling.setManaged(false);
+            }
+        }
+
         if (isSidebarCollapsed) {
             isSidebarCollapsed = false;
             toggleSidebar();
@@ -173,6 +196,18 @@ public class SidebarController {
                 ((Label) btnSidebarDashboard.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
             }
         }
+        if (btnMyBids != null) {
+            btnMyBids.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
+            if (btnMyBids.getGraphic() instanceof Label) {
+                ((Label) btnMyBids.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
+            }
+        }
+        if (btnSupport != null) {
+            btnSupport.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
+            if (btnSupport.getGraphic() instanceof Label) {
+                ((Label) btnSupport.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
+            }
+        }
     }
 
     public void setActiveDashboard() {
@@ -188,6 +223,72 @@ public class SidebarController {
                 ((Label) btnSidebarWatchlist.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
             }
         }
+        if (btnMyBids != null) {
+            btnMyBids.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
+            if (btnMyBids.getGraphic() instanceof Label) {
+                ((Label) btnMyBids.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
+            }
+        }
+        if (btnSupport != null) {
+            btnSupport.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
+            if (btnSupport.getGraphic() instanceof Label) {
+                ((Label) btnSupport.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
+            }
+        }
+    }
+
+    public void setActiveMyBids() {
+        if (btnMyBids != null) {
+            btnMyBids.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: rgba(224, 64, 160, 0.15); -fx-text-fill: #e040a0; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
+            if (btnMyBids.getGraphic() instanceof Label) {
+                ((Label) btnMyBids.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #e040a0;");
+            }
+        }
+        if (btnSidebarDashboard != null) {
+            btnSidebarDashboard.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
+            if (btnSidebarDashboard.getGraphic() instanceof Label) {
+                ((Label) btnSidebarDashboard.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
+            }
+        }
+        if (btnSidebarWatchlist != null) {
+            btnSidebarWatchlist.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
+            if (btnSidebarWatchlist.getGraphic() instanceof Label) {
+                ((Label) btnSidebarWatchlist.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
+            }
+        }
+        if (btnSupport != null) {
+            btnSupport.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
+            if (btnSupport.getGraphic() instanceof Label) {
+                ((Label) btnSupport.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
+            }
+        }
+    }
+
+    public void setActiveSupport() {
+        if (btnSupport != null) {
+            btnSupport.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: rgba(224, 64, 160, 0.15); -fx-text-fill: #e040a0; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
+            if (btnSupport.getGraphic() instanceof Label) {
+                ((Label) btnSupport.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #e040a0;");
+            }
+        }
+        if (btnSidebarDashboard != null) {
+            btnSidebarDashboard.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
+            if (btnSidebarDashboard.getGraphic() instanceof Label) {
+                ((Label) btnSidebarDashboard.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
+            }
+        }
+        if (btnSidebarWatchlist != null) {
+            btnSidebarWatchlist.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
+            if (btnSidebarWatchlist.getGraphic() instanceof Label) {
+                ((Label) btnSidebarWatchlist.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
+            }
+        }
+        if (btnMyBids != null) {
+            btnMyBids.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
+            if (btnMyBids.getGraphic() instanceof Label) {
+                ((Label) btnMyBids.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
+            }
+        }
     }
 
     @FXML
@@ -195,7 +296,7 @@ public class SidebarController {
         autoCollapse();
         setActiveDashboard();
         if (listener != null) {
-            listener.onResetFilter();
+            listener.onResetFilter(event);
         } else {
             try {
                 if (onBeforeNavigate != null) onBeforeNavigate.run();
@@ -211,7 +312,7 @@ public class SidebarController {
         autoCollapse();
         setActiveWatchlist();
         if (listener != null) {
-            listener.onFilterWatchlist();
+            listener.onFilterWatchlist(event);
         } else {
             try {
                 if (onBeforeNavigate != null) onBeforeNavigate.run();
@@ -239,9 +340,9 @@ public class SidebarController {
         autoCollapse();
         try {
             if (onBeforeNavigate != null) onBeforeNavigate.run();
-            SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1024, 768);
+            SceneSwitcher.switchScene(event, "MyBids.fxml", 1280, 800);
         } catch (IOException e) {
-            logger.error("Lỗi chuyển cảnh sang SellerDashboard: ", e);
+            logger.error("Lỗi chuyển cảnh sang MyBids: ", e);
         }
     }
 
@@ -265,6 +366,11 @@ public class SidebarController {
     @FXML
     public void handleSupport(ActionEvent event) {
         autoCollapse();
-        logger.info("Người dùng nhấn nút Support");
+        try {
+            if (onBeforeNavigate != null) onBeforeNavigate.run();
+            SceneSwitcher.switchScene(event, "Support.fxml", 1280, 800);
+        } catch (IOException e) {
+            logger.error("Lỗi chuyển cảnh sang Support: ", e);
+        }
     }
 }
