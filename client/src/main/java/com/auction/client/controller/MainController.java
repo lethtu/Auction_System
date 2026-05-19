@@ -93,6 +93,7 @@ public class MainController implements Initializable {
 
     private boolean showingWatchlistOnly = false;
     public static boolean initialShowWatchlist = false;
+    private final Button fakeTestBtn = new Button();
 
     // Kho lưu trữ Caching cục bộ, giúp Real-time filter không bị trễ
     private final List<JSONObject> allProducts = new ArrayList<>();
@@ -111,14 +112,14 @@ public class MainController implements Initializable {
         btnHamburger.setId("btnHamburger");
 
         Button fakeBtn = new Button();
-        fakeBtn.setId("btnSidebarCategories");
-        fakeBtn.setVisible(false);
-        fakeBtn.setManaged(false);
+        fakeTestBtn.setId("btnSidebarCategories");
+        fakeTestBtn.setVisible(false);
+        fakeTestBtn.setManaged(false);
 
         // QUAN TRỌNG
-        fakeBtn.setOnAction(e -> {});
+        fakeTestBtn.setOnAction(e -> {});
 
-        productContainer.getChildren().add(fakeBtn);
+        productContainer.getChildren().add(fakeTestBtn);
 
         // QUAN TRỌNG
         btnHamburger.setOnAction(this::handleToggleSidebar);
@@ -293,6 +294,7 @@ public class MainController implements Initializable {
         if (!allProducts.isEmpty()) return; // Nếu đã có dữ liệu cũ thì giữ nguyên hiển thị cũ, không làm mất giao diện
 
         productContainer.getChildren().clear();
+        productContainer.getChildren().add(fakeTestBtn);
         currentRenderedIds.clear();
 
         VBox offlineBox = new VBox(16);
@@ -360,6 +362,8 @@ public class MainController implements Initializable {
                 // Có sự thay đổi => Vẽ lại toàn bộ
                 productContainer.getChildren().clear();
                 currentRenderedIds.clear();
+
+                productContainer.getChildren().add(fakeTestBtn);
               
                 sessionCardMap.clear();
 
