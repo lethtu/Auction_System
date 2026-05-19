@@ -57,6 +57,7 @@ public class AuctionLifecycleTest {
 
         mockUser = new User();
         mockUser.setId(99);
+        mockUser.setBalance(new BigDecimal("999999999.00"));
     }
 
     // ========================================================================
