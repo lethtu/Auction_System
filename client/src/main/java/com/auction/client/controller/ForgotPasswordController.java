@@ -2,6 +2,7 @@ package com.auction.client.controller;
 
 
 import com.auction.client.Config;
+import com.auction.client.HttpClientSingleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javafx.application.Platform;
@@ -15,7 +16,7 @@ import java.net.http.*;
 
 public class ForgotPasswordController {
     private static final Logger logger = LoggerFactory.getLogger(ForgotPasswordController.class);
-    private HttpClient client = HttpClient.newHttpClient();
+    private HttpClient client = HttpClientSingleton.getInstance().getHttpClient();
 
     @FXML private TextField txtEmail, txtOTP;
     @FXML private PasswordField txtNewPassword, txtConfirmNewPassword;

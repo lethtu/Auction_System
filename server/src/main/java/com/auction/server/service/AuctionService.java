@@ -37,11 +37,18 @@ public class AuctionService {
     private UserRepository userRepository;
 
     public List<AuctionSession> getActiveSessions() {
-        return auctionSessionRepository.findByStatus(AuctionStatus.ACTIVE);
+        return auctionSessionRepository.findByStatus(AuctionStatus.ACTIVE)
+                .stream()
+                .filter(this::isProductVisible)
+                .toList();
     }
 
     public AuctionSession getSessionById(Integer id) {
-        return auctionSessionRepository.findById(id).orElse(null);
+        AuctionSession session = auctionSessionRepository.findById(id).orElse(null);
+        if (session != null) {
+            session.setTotalBids(bidRepository.countBySessionId(session.getId()));
+        }
+        return session;
     }
 
     public List<AuctionSession> getSessionsBySeller(Integer sellerId) {
@@ -53,12 +60,42 @@ public class AuctionService {
         Optional<AuctionSession> sessionOpt = auctionSessionRepository.findById(sessionId);
         if (sessionOpt.isPresent()) {
             AuctionSession session = sessionOpt.get();
-            session.setStatus(AuctionStatus.ENDED);
+            if (Boolean.TRUE.equals(session.getApplyMinRate()) && session.getMinRate() != null) {
+                if (session.getCurrentPrice() != null && session.getCurrentPrice().compareTo(session.getMinRate()) >= 0) {
+                    session.setStatus(AuctionStatus.ENDED);
+                } else {
+                    session.setStatus(AuctionStatus.CANCELED);
+                    logger.info("Phiên ID {} bị hủy do giá cuối ({}) không đạt min rate ({})",
+                            session.getId(), session.getCurrentPrice(), session.getMinRate());
+                }
+            } else {
+                session.setStatus(AuctionStatus.ENDED);
+            }
             auctionSessionRepository.save(session);
-            logger.info("Đã kết thúc phiên đấu giá ID: {}", sessionId);
+            logger.info("Đã kết thúc phiên đấu giá ID: {} với trạng thái: {}", sessionId, session.getStatus());
             return true;
         }
         return false;
+    }
+
+    private boolean isProductVisible(AuctionSession session) {
+        return session != null && (session.getItem() == null || !session.getItem().isHidden());
+    }
+
+    private BigDecimal calculateMinimumNextBid(BigDecimal currentPrice) {
+        if (currentPrice == null) return BigDecimal.ZERO;
+        
+        if (currentPrice.compareTo(new BigDecimal("100000")) < 0) {
+            return currentPrice.add(new BigDecimal("10000")); // + 10k
+        } else if (currentPrice.compareTo(new BigDecimal("500000")) < 0) {
+            return currentPrice.add(new BigDecimal("20000")); // + 20k
+        } else if (currentPrice.compareTo(new BigDecimal("1000000")) < 0) {
+            return currentPrice.add(new BigDecimal("50000")); // + 50k
+        } else if (currentPrice.compareTo(new BigDecimal("5000000")) < 0) {
+            return currentPrice.add(new BigDecimal("100000")); // + 100k
+        } else {
+            return currentPrice.add(new BigDecimal("200000")); // + 200k
+        }
     }
 
     @Transactional
@@ -67,20 +104,46 @@ public class AuctionService {
 
         if (itemOptional.isEmpty()) {
             logger.error("Không tìm thấy sản phẩm với ID: {}", ItemAuctionId);
-            return new BidResponse(false, "LỖI: Không tìm thấy sản phẩm với ID: " + ItemAuctionId, new BigDecimal("0"), null);
+            return new BidResponse(false, "LỖI: Không tìm thấy sản phẩm với ID: " + ItemAuctionId, new BigDecimal("0"), null, null);
         }
 
         AuctionSession item = itemOptional.get();
-        BigDecimal currentPrice = item.getCurrentPrice();
+
+        if (!isProductVisible(item)) {
+            logger.error("Đặt giá thất bại: sản phẩm của phiên {} đang bị ẩn", ItemAuctionId);
+            return new BidResponse(false, "Lỗi: Sản phẩm này đang bị ẩn", BigDecimal.ZERO, null, null);
+        }
+
+        BigDecimal currentPrice = item.getCurrentPrice() == null ? BigDecimal.ZERO : item.getCurrentPrice();
+        
+        BigDecimal minimumRequiredBid;
+        if (item.getStepPrice() != null && item.getStepPrice().compareTo(BigDecimal.ZERO) > 0) {
+            minimumRequiredBid = currentPrice.add(item.getStepPrice());
+        } else {
+            minimumRequiredBid = calculateMinimumNextBid(currentPrice);
+        }
 
         if (item.getStatus().equals(AuctionStatus.ACTIVE)){
-            if (newBidAmount.compareTo(currentPrice) <= 0) {
-                logger.error("Đặt giá thất bại từ UserId: {} với giá: {} và giá hiện tại: {}", BidderId, newBidAmount, currentPrice);
-                return new BidResponse(false, "THẤT BẠI: Giá đặt " + newBidAmount + " phải cao hơn giá hiện tại (" + currentPrice + ")", currentPrice, null);
+            if (newBidAmount.compareTo(minimumRequiredBid) < 0) {
+                logger.error("Đặt giá thất bại từ UserId: {} với giá: {} nhưng hệ thống yêu cầu tối thiểu: {}", BidderId, newBidAmount, minimumRequiredBid);
+                return new BidResponse(
+                        false,
+                        "THẤT BẠI: Mức giá hợp lệ tiếp theo phải từ " + minimumRequiredBid + " trở lên!",
+                        currentPrice,
+                        null,
+                        item.getHighestBidderId()
+                );
+            }
+
+            User bidder = userRepository.findById(BidderId).orElse(null);
+            if (bidder == null) {
+                logger.error("Thất bại: Không tìm thấy User với ID = {}", BidderId);
+                return new BidResponse(false, "Lỗi: Tài khoản người dùng không tồn tại!", currentPrice, null, item.getHighestBidderId());
             }
 
             LocalDateTime time = LocalDateTime.now();
             item.setCurrentPrice(newBidAmount);
+            item.setHighestBidderId(BidderId);
 
             // ==========================================
             // THUẬT TOÁN ANTI-SNIPING (CHỐNG BẮN TỈA) - ĐÃ BỌC GIÁP
@@ -107,31 +170,33 @@ public class AuctionService {
             }
             // ==========================================
 
-            User bidder = userRepository.findById(BidderId).orElse(null);
-            if (bidder != null) {
-                Bid bid = new Bid(item, bidder, newBidAmount, time);
-                item.addBid(bid);
+            item.setWinner(bidder); // QUAN TRỌNG: Ghi nhận người dẫn đầu/chiến thắng
+            Bid bid = new Bid(item, bidder, newBidAmount, time);
+            item.addBid(bid);
 
-                try {
-                    bidRepository.save(bid);
-                    auctionSessionRepository.save(item);
-                    logger.info("Đã cập nhật giá mới cho AuctionItem {} thành {} bởi {}", ItemAuctionId, newBidAmount, BidderId);
-                    // Trả về kèm theo thời gian mới (nếu có)
-                    return new BidResponse(true, "THÀNH CÔNG: Bạn đang dẫn đầu phiên đấu giá!", newBidAmount, updatedEndTimeStr);
-                }
-                catch (Exception e) {
-                    logger.error("Lỗi khi lưu Database: ", e);
-                    return new BidResponse(false, "LỖI HỆ THỐNG: Không thể lưu dữ liệu. Vui lòng thử lại.", currentPrice, null);
-                }
+            try {
+                bidRepository.save(bid);
+                auctionSessionRepository.save(item);
+                logger.info("Đã cập nhật giá mới cho AuctionItem {} thành {} bởi {}", ItemAuctionId, newBidAmount, BidderId);
+                int bidCount = Math.toIntExact(bidRepository.countBySessionId(ItemAuctionId));
+                // Trả về kèm theo thời gian mới (nếu có) và số lượt bid thật trong DB
+                return new BidResponse(
+                        true,
+                        "THÀNH CÔNG: Bạn đang dẫn đầu phiên đấu giá!",
+                        newBidAmount,
+                        updatedEndTimeStr,
+                        BidderId,
+                        bidCount
+                );
             }
-            else {
-                logger.error("Thất bại: Không tìm thấy User với ID = {}", BidderId);
-                return new BidResponse(false, "Lỗi: Tài khoản người dùng không tồn tại!", currentPrice, null);
+            catch (Exception e) {
+                logger.error("Lỗi khi lưu Database: ", e);
+                return new BidResponse(false, "LỖI HỆ THỐNG: Không thể lưu dữ liệu. Vui lòng thử lại.", currentPrice, null, item.getHighestBidderId());
             }
         }
         else{
             logger.error("Lỗi: Phiên đấu giá: {} hiện đang có trạng thái: {}", ItemAuctionId, item.getStatus());
-            return new BidResponse(false, "Lỗi: Phiên này chưa được phép đấu giá", currentPrice, null);
+            return new BidResponse(false, "Lỗi: Phiên này chưa được phép đấu giá", currentPrice, null, item.getHighestBidderId());
         }
     }
 }

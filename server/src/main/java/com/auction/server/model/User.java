@@ -1,60 +1,176 @@
 package com.auction.server.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-
 import java.math.BigDecimal;
+import java.util.Locale;
 
 @Entity
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "role", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorValue("user")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class User {
+
+    private static final String BIDDER_ROLE = "bidder";
+    private static final String SELLER_ROLE = "seller";
+    private static final String ADMIN_ROLE = "admin";
+    private static final String DEFAULT_ROLE = "user";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     private String username;
-    @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)    private String password;
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private String password;
+
     private String fullname;
     private String email;
     private String dob;
-    private String place_of_birth;
+
+    @Column(name = "place_of_birth")
+    private String placeOfBirth;
+
     private BigDecimal balance = BigDecimal.ZERO;
+
     @Column(name = "role", insertable = false, updatable = false)
     private String accountType;
 
-    public User() {}
+    @Column(nullable = false)
+    private boolean banned = false;
 
-    public void setId(Integer id) { this.id = id; }
+    public User() {
+    }
 
-    public void setUsername(String username) { this.username = username; }
+    public Integer getId() {
+        return id;
+    }
 
-    public void setPassword(String password) { this.password = password; }
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-    public void setFullname(String fullname) { this.fullname = fullname; }
+    public String getUsername() {
+        return username;
+    }
 
-    public void setEmail(String email) { this.email = email; }
+    public void setUsername(String username) {
+        this.username = trimToNull(username);
+    }
 
-    public void setDob(String dob) { this.dob = dob; }
+    public String getPassword() {
+        return password;
+    }
 
-    public void setPlace_of_birth(String place_of_birth) { this.place_of_birth = place_of_birth; }
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
-    public void setBalance(BigDecimal balance) { this.balance = balance; }
+    public String getFullname() {
+        return fullname;
+    }
 
-    public Integer getId() { return id; }
-    public String getFullname() { return fullname; }
-    public String getEmail() { return email; }
-    public String getDob() { return dob; }
-    public String getPlace_of_birth() { return place_of_birth; }
-    public String getUsername() { return username; }
-    public String getPassword() { return password; }
-    public String getAccountType() { return accountType; }
-    public BigDecimal getBalance() { return balance; }
+    public void setFullname(String fullname) {
+        this.fullname = trimToNull(fullname);
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = trimToNull(email);
+    }
+
+    public String getDob() {
+        return dob;
+    }
+
+    public void setDob(String dob) {
+        this.dob = trimToNull(dob);
+    }
+
+    public String getPlaceOfBirth() {
+        return placeOfBirth;
+    }
+
+    public void setPlaceOfBirth(String placeOfBirth) {
+        this.placeOfBirth = trimToNull(placeOfBirth);
+    }
+
+    public String getPlace_of_birth() {
+        return placeOfBirth;
+    }
+
+    public void setPlace_of_birth(String placeOfBirth) {
+        this.placeOfBirth = trimToNull(placeOfBirth);
+    }
+
+    public BigDecimal getBalance() {
+        return balance == null ? BigDecimal.ZERO : balance;
+    }
+
+    public void setBalance(BigDecimal balance) {
+        this.balance = balance == null ? BigDecimal.ZERO : balance;
+    }
+
+    public String getAccountType() {
+        if (accountType != null && !accountType.isBlank()) {
+            return normalizeRole(accountType);
+        }
+
+        if (this instanceof Bidder) {
+            return BIDDER_ROLE;
+        }
+
+        if (this instanceof Seller) {
+            return SELLER_ROLE;
+        }
+
+        if (this instanceof Admin) {
+            return ADMIN_ROLE;
+        }
+
+        return DEFAULT_ROLE;
+    }
+
+    public void setAccountType(String accountType) {
+        this.accountType = normalizeRole(accountType);
+    }
+
+    public boolean isBanned() {
+        return banned;
+    }
+
+    public void setBanned(boolean banned) {
+        this.banned = banned;
+    }
 
     @Override
-    public String toString(){
-        return id + " " + fullname + " " + email + " " + dob + " " + place_of_birth + " " + username + " " + password;
+    public String toString() {
+        return "User{"
+                + "id=" + id
+                + ", username='" + username + '\''
+                + ", role='" + getAccountType() + '\''
+                + ", banned=" + banned
+                + '}';
+    }
+
+    private String normalizeRole(String role) {
+        String normalizedRole = trimToNull(role);
+        return normalizedRole == null ? DEFAULT_ROLE : normalizedRole.toLowerCase(Locale.ROOT);
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

@@ -1,301 +1,406 @@
 package com.auction.client.controller;
 
-import javafx.event.ActionEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.auction.client.Config;
+import com.auction.client.dto.ApiResult;
+import com.auction.client.model.AdminSessionRow;
+import com.auction.client.model.AdminUserRow;
+import com.auction.client.model.PendingSessionRow;
 import com.auction.client.model.User;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleStringProperty;
+import com.auction.client.service.AdminDashboardService;
+import com.auction.client.util.AlertUtil;
 import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.cell.PropertyValueFactory;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TextInputDialog;
 
-import java.lang.reflect.Method;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.util.ArrayList;
+import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.util.List;
+import java.util.Locale;
 
 public class AdminDashboardController {
-    private static final Logger logger = LoggerFactory.getLogger(AdminDashboardController.class);
+    private static final String LOGIN_FXML = "Login.fxml";
+    private static final int LOGIN_WIDTH = 400;
+    private static final int LOGIN_HEIGHT = 500;
 
-    @FXML
-    private TableView<PendingSessionRow> tablePending;
+    private static final String CURRENCY_SUFFIX = " VND";
+    private static final String USER_BANNED_TEXT = "Đã khóa";
+    private static final String USER_ACTIVE_TEXT = "Hoạt động";
+    private static final String PRODUCT_VISIBLE_TEXT = "Đang hiện";
+    private static final String PRODUCT_HIDDEN_TEXT = "Đang ẩn";
 
-    @FXML
-    private TableColumn<PendingSessionRow, Integer> colId;
+    private static final String NO_SESSION_SELECTED_TITLE = "Chưa chọn phiên";
+    private static final String NO_USER_SELECTED_TITLE = "Chưa chọn user";
 
-    @FXML
-    private TableColumn<PendingSessionRow, String> colProduct;
+    private static final String INVALID_ADMIN_ID_MESSAGE = "Không lấy được ID admin hiện tại.";
+    private static final String INVALID_API_RESULT_MESSAGE = "Server không trả về kết quả hợp lệ.";
 
-    @FXML
-    private TableColumn<PendingSessionRow, Double> colPrice;
+    private final AdminDashboardService adminDashboardService = new AdminDashboardService();
+    private final NumberFormat currencyFormat = NumberFormat.getNumberInstance(Locale.forLanguageTag("vi-VN"));
 
-    private final HttpClient client = HttpClient.newHttpClient();
+    @FXML private TabPane adminTabPane;
+    @FXML private Tab tabPending;
+    @FXML private Tab tabUsers;
+    @FXML private Tab tabSessions;
+
+    @FXML private TableView<PendingSessionRow> tablePending;
+    @FXML private TableColumn<PendingSessionRow, Integer> colId;
+    @FXML private TableColumn<PendingSessionRow, String> colProduct;
+    @FXML private TableColumn<PendingSessionRow, BigDecimal> colPrice;
+
+    @FXML private TableView<AdminUserRow> tableUsers;
+    @FXML private TableColumn<AdminUserRow, Integer> colUserId;
+    @FXML private TableColumn<AdminUserRow, String> colUsername;
+    @FXML private TableColumn<AdminUserRow, String> colFullname;
+    @FXML private TableColumn<AdminUserRow, String> colEmail;
+    @FXML private TableColumn<AdminUserRow, String> colRole;
+    @FXML private TableColumn<AdminUserRow, Boolean> colBanned;
+
+    @FXML private TableView<AdminSessionRow> tableSessions;
+    @FXML private TableColumn<AdminSessionRow, Integer> colSessionId;
+    @FXML private TableColumn<AdminSessionRow, String> colSessionProduct;
+    @FXML private TableColumn<AdminSessionRow, String> colSessionSeller;
+    @FXML private TableColumn<AdminSessionRow, BigDecimal> colSessionPrice;
+    @FXML private TableColumn<AdminSessionRow, String> colSessionStatus;
+    @FXML private TableColumn<AdminSessionRow, Boolean> colProductVisible;
 
     @FXML
     public void initialize() {
-        // Thay thế PropertyValueFactory bằng Lambda (Dùng SimpleObjectProperty và SimpleStringProperty)
-        colId.setCellValueFactory(cellData -> new javafx.beans.property.SimpleObjectProperty<>(cellData.getValue().getId()));
-        colProduct.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getProductName()));
-        colPrice.setCellValueFactory(cellData -> new javafx.beans.property.SimpleObjectProperty<>(cellData.getValue().getStartingPrice()));
+        setupPendingColumns();
+        setupUserColumns();
+        setupSessionColumns();
+        loadAllData();
+    }
 
-        loadPendingSessions();
+    private void setupPendingColumns() {
+        colId.setCellValueFactory(cellData -> cellData.getValue().idProperty().asObject());
+        colProduct.setCellValueFactory(cellData -> cellData.getValue().productNameProperty());
+        colPrice.setCellValueFactory(cellData -> cellData.getValue().startingPriceProperty());
+
+        setupPriceColumn(colPrice);
+    }
+
+    private void setupUserColumns() {
+        colUserId.setCellValueFactory(cellData -> cellData.getValue().idProperty().asObject());
+        colUsername.setCellValueFactory(cellData -> cellData.getValue().usernameProperty());
+        colFullname.setCellValueFactory(cellData -> cellData.getValue().fullnameProperty());
+        colEmail.setCellValueFactory(cellData -> cellData.getValue().emailProperty());
+        colRole.setCellValueFactory(cellData -> cellData.getValue().roleProperty());
+        colBanned.setCellValueFactory(cellData -> cellData.getValue().bannedProperty());
+
+        setupBannedColumn();
+    }
+
+    private void setupSessionColumns() {
+        colSessionId.setCellValueFactory(cellData -> cellData.getValue().idProperty().asObject());
+        colSessionProduct.setCellValueFactory(cellData -> cellData.getValue().productNameProperty());
+        colSessionSeller.setCellValueFactory(cellData -> cellData.getValue().sellerUsernameProperty());
+        colSessionPrice.setCellValueFactory(cellData -> cellData.getValue().startingPriceProperty());
+        colSessionStatus.setCellValueFactory(cellData -> cellData.getValue().statusProperty());
+        colProductVisible.setCellValueFactory(cellData -> cellData.getValue().productVisibleProperty());
+
+        setupPriceColumn(colSessionPrice);
+        setupProductVisibleColumn();
+    }
+
+    private void setupBannedColumn() {
+        colBanned.setCellFactory(column -> new TableCell<>() {
+            @Override
+            protected void updateItem(Boolean banned, boolean empty) {
+                super.updateItem(banned, empty);
+                setText(empty || banned == null ? null : formatBannedStatus(banned));
+            }
+        });
+    }
+
+    private void setupProductVisibleColumn() {
+        colProductVisible.setCellFactory(column -> new TableCell<>() {
+            @Override
+            protected void updateItem(Boolean visible, boolean empty) {
+                super.updateItem(visible, empty);
+                setText(empty || visible == null ? null : formatProductVisibleStatus(visible));
+            }
+        });
+    }
+
+    private String formatBannedStatus(boolean banned) {
+        return banned ? USER_BANNED_TEXT : USER_ACTIVE_TEXT;
+    }
+
+    private String formatProductVisibleStatus(boolean visible) {
+        return visible ? PRODUCT_VISIBLE_TEXT : PRODUCT_HIDDEN_TEXT;
+    }
+
+    private <T> void setupPriceColumn(TableColumn<T, BigDecimal> column) {
+        column.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(BigDecimal price, boolean empty) {
+                super.updateItem(price, empty);
+                setText(empty || price == null ? null : formatCurrency(price));
+            }
+        });
+    }
+
+    private String formatCurrency(BigDecimal price) {
+        return currencyFormat.format(price) + CURRENCY_SUFFIX;
     }
 
     @FXML
     public void handleApprove() {
-        PendingSessionRow selected = tablePending.getSelectionModel().getSelectedItem();
+        runSelectedAdminAction(
+                tablePending,
+                NO_SESSION_SELECTED_TITLE,
+                "Hãy chọn một phiên để phê duyệt.",
+                (selected, adminId) -> adminDashboardService.approveSession(selected.getId(), adminId)
+        );
+    }
+
+    @FXML
+    public void handleReject() {
+        PendingSessionRow selected = getSelectedItem(
+                tablePending,
+                NO_SESSION_SELECTED_TITLE,
+                "Hãy chọn một phiên để từ chối."
+        );
 
         if (selected == null) {
-            showAlert(Alert.AlertType.WARNING, "Chưa chọn phiên", "Hãy chọn một phiên để phê duyệt.");
             return;
         }
 
-        int adminId = getCurrentAdminId();
-        if (adminId <= 0) {
-            logger.info("Không lấy được ID admin hiện tại");
-            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không lấy được ID admin hiện tại.");
+        Integer adminId = getValidAdminId();
+
+        if (adminId == null) {
             return;
         }
 
-        try {
-            String url = Config.API_URL + "/api/admin/approve/" + selected.getId() + "?adminId=" + adminId;
+        String reason = askRejectReason();
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.noBody())
-                    .build();
-
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "Phê duyệt phiên thành công.");
-
-            if (api.success) {
-                showAlert(Alert.AlertType.INFORMATION, "Thành công", api.message);
-                loadPendingSessions();
-            } else {
-                logger.info("Lỗi khi gọi API: {}", api.message);
-                showAlert(Alert.AlertType.ERROR, "Lỗi", api.message);
-            }
-
-        } catch (Exception e) {
-            logger.error("Lỗi không kết nối được đến máy chủ: {}", e.getMessage(), e);
-            showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ.");
+        if (reason == null) {
+            return;
         }
+
+        runAction(() -> adminDashboardService.rejectSession(selected.getId(), adminId, reason));
+    }
+
+    @FXML
+    public void handleBanUser() {
+        runSelectedAdminAction(
+                tableUsers,
+                NO_USER_SELECTED_TITLE,
+                "Hãy chọn user cần khóa.",
+                (selected, adminId) -> adminDashboardService.banUser(selected.getId(), adminId)
+        );
+    }
+
+    @FXML
+    public void handleCancelAuction() {
+        runSelectedAdminAction(
+                tableSessions,
+                NO_SESSION_SELECTED_TITLE,
+                "Hãy chọn phiên cần hủy.",
+                (selected, adminId) -> adminDashboardService.cancelAuction(selected.getId(), adminId)
+        );
+    }
+
+    @FXML
+    public void handleHideProduct() {
+        runSelectedAdminAction(
+                tableSessions,
+                NO_SESSION_SELECTED_TITLE,
+                "Hãy chọn sản phẩm cần ẩn.",
+                (selected, adminId) -> adminDashboardService.hideProduct(selected.getProductId(), adminId)
+        );
+    }
+
+    @FXML
+    public void handleShowProduct() {
+        runSelectedAdminAction(
+                tableSessions,
+                NO_SESSION_SELECTED_TITLE,
+                "Hãy chọn sản phẩm cần hiện.",
+                (selected, adminId) -> adminDashboardService.showProduct(selected.getProductId(), adminId)
+        );
+    }
+
+    @FXML
+    public void showPendingTab() {
+        selectTab(tabPending);
+    }
+
+    @FXML
+    public void showUsersTab() {
+        selectTab(tabUsers);
+    }
+
+    @FXML
+    public void showSessionsTab() {
+        selectTab(tabSessions);
+    }
+
+    @FXML
+    public void handleRefresh() {
+        loadAllData();
     }
 
     @FXML
     public void handleLogout(ActionEvent event) {
         try {
-            // Xóa thông tin user đang lưu ở bộ nhớ tạm
             User.clearSession();
-            // Chuyển về màn hình đăng nhập
-            SceneSwitcher.switchScene(event, "Login.fxml", 400, 500);
+            SceneSwitcher.switchScene(event, LOGIN_FXML, LOGIN_WIDTH, LOGIN_HEIGHT);
         } catch (Exception e) {
-            e.printStackTrace();
+            AlertUtil.showError(e, "Không thể đăng xuất.");
         }
+    }
+
+    private <T> void runSelectedAdminAction(
+            TableView<T> table,
+            String noSelectionTitle,
+            String noSelectionMessage,
+            SelectedAdminAction<T> action
+    ) {
+        T selected = getSelectedItem(table, noSelectionTitle, noSelectionMessage);
+
+        if (selected == null) {
+            return;
+        }
+
+        Integer adminId = getValidAdminId();
+
+        if (adminId == null) {
+            return;
+        }
+
+        runAction(() -> action.run(selected, adminId));
+    }
+
+    private void selectTab(Tab tab) {
+        if (adminTabPane != null && tab != null) {
+            adminTabPane.getSelectionModel().select(tab);
+        }
+    }
+
+    private <T> T getSelectedItem(TableView<T> table, String title, String message) {
+        T selected = table.getSelectionModel().getSelectedItem();
+
+        if (selected == null) {
+            AlertUtil.showWarning(title, message);
+        }
+
+        return selected;
+    }
+
+    private Integer getValidAdminId() {
+        Integer adminId = User.getId();
+
+        if (adminId == null || adminId <= 0) {
+            AlertUtil.showError(INVALID_ADMIN_ID_MESSAGE);
+            return null;
+        }
+
+        return adminId;
+    }
+
+    private String askRejectReason() {
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Từ chối phiên");
+        dialog.setHeaderText(null);
+        dialog.setContentText("Nhập lý do từ chối:");
+
+        String reason = dialog.showAndWait().orElse("").trim();
+
+        if (reason.isEmpty()) {
+            AlertUtil.showWarning("Thiếu lý do", "Vui lòng nhập lý do từ chối.");
+            return null;
+        }
+
+        return reason;
+    }
+
+    private void runAction(AdminAction action) {
+        try {
+            ApiResult<Void> api = action.run();
+            handleActionResult(api);
+        } catch (IllegalStateException e) {
+            AlertUtil.showError(e.getMessage());
+        } catch (Exception e) {
+            AlertUtil.showError(e, "Không thể thực hiện thao tác admin.");
+        }
+    }
+
+    private void handleActionResult(ApiResult<Void> api) {
+        if (api == null) {
+            AlertUtil.showError(INVALID_API_RESULT_MESSAGE);
+            return;
+        }
+
+        if (api.success) {
+            AlertUtil.showInfo(api.message);
+            loadAllData();
+            return;
+        }
+
+        AlertUtil.showError(api.message);
+    }
+
+    private void loadAllData() {
+        loadPendingSessions();
+        loadUsers();
+        loadSessions();
     }
 
     private void loadPendingSessions() {
+        loadTableData(
+                tablePending,
+                adminDashboardService::getPendingSessions,
+                "Không thể tải dữ liệu pending từ server."
+        );
+    }
+
+    private void loadUsers() {
+        loadTableData(
+                tableUsers,
+                adminDashboardService::getAllUsers,
+                "Không thể tải danh sách user từ server."
+        );
+    }
+
+    private void loadSessions() {
+        loadTableData(
+                tableSessions,
+                adminDashboardService::getAllSessions,
+                "Không thể tải danh sách phiên từ server."
+        );
+    }
+
+    private <T> void loadTableData(
+            TableView<T> table,
+            TableDataLoader<T> dataLoader,
+            String errorMessage
+    ) {
         try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(Config.API_URL + "/api/admin/pending"))
-                    .GET()
-                    .build();
-
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            ApiArrayResult api = extractDataArray(response.body(), response.statusCode());
-
-            if (!api.success) {
-                showAlert(Alert.AlertType.ERROR, "Lỗi", api.message);
-                return;
-            }
-
-            List<PendingSessionRow> rows = parsePendingSessions(api.data);
-            tablePending.setItems(FXCollections.observableArrayList(rows));
-
+            List<T> rows = dataLoader.load();
+            table.setItems(FXCollections.observableArrayList(rows));
         } catch (Exception e) {
-            logger.error("Lỗi không thể tải dữ liệu từ server: {}", e.getMessage(), e);
-            showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể tải dữ liệu pending từ server.");
+            AlertUtil.showError(e, errorMessage);
         }
     }
 
-    private List<PendingSessionRow> parsePendingSessions(JSONArray array) {
-        List<PendingSessionRow> rows = new ArrayList<>();
-
-        for (int i = 0; i < array.length(); i++) {
-            JSONObject item = array.getJSONObject(i);
-
-            int id = item.optInt("id", 0);
-            String productName = extractProductName(item);
-            double startingPrice = extractStartingPrice(item);
-
-            rows.add(new PendingSessionRow(id, productName, startingPrice));
-        }
-
-        return rows;
+    @FunctionalInterface
+    private interface AdminAction {
+        ApiResult<Void> run() throws Exception;
     }
 
-    private String extractProductName(JSONObject item) {
-        if (item.has("productName")) {
-            return item.optString("productName", "Không rõ");
-        }
-
-        if (item.has("product") && item.get("product") instanceof JSONObject) {
-            JSONObject product = item.getJSONObject("product");
-            return product.optString("name", "Không rõ");
-        }
-
-        return "Không rõ";
+    @FunctionalInterface
+    private interface SelectedAdminAction<T> {
+        ApiResult<Void> run(T selected, int adminId) throws Exception;
     }
 
-    private double extractStartingPrice(JSONObject item) {
-        if (!item.has("startingPrice") || item.isNull("startingPrice")) {
-            return 0.0;
-        }
-
-        Object value = item.get("startingPrice");
-        try {
-            return Double.parseDouble(value.toString());
-        } catch (Exception e) {
-            return 0.0;
-        }
-    }
-
-    private ApiResult parseApiResponse(String body, int httpStatus, String defaultSuccessMessage) {
-        if (body == null || body.isBlank()) {
-            return new ApiResult(httpStatus >= 200 && httpStatus < 300,
-                    httpStatus >= 200 && httpStatus < 300 ? defaultSuccessMessage : "Có lỗi xảy ra từ server.");
-        }
-
-        try {
-            String trimmed = body.trim();
-            if (trimmed.startsWith("{")) {
-                JSONObject obj = new JSONObject(trimmed);
-                int status = obj.optInt("status", httpStatus);
-                String message = obj.optString("message",
-                        status >= 200 && status < 300 ? defaultSuccessMessage : "Có lỗi xảy ra từ server.");
-                return new ApiResult(status >= 200 && status < 300, message);
-            }
-        } catch (Exception ignored) {
-        }
-
-        return new ApiResult(httpStatus >= 200 && httpStatus < 300,
-                httpStatus >= 200 && httpStatus < 300 ? defaultSuccessMessage : body);
-    }
-
-    private ApiArrayResult extractDataArray(String body, int httpStatus) {
-        if (body == null || body.isBlank()) {
-            return new ApiArrayResult(false, "Không có dữ liệu từ server.", new JSONArray());
-        }
-
-        try {
-            String trimmed = body.trim();
-
-            if (trimmed.startsWith("[")) {
-                return new ApiArrayResult(true, "OK", new JSONArray(trimmed));
-            }
-
-            JSONObject obj = new JSONObject(trimmed);
-            int status = obj.optInt("status", httpStatus);
-            String message = obj.optString("message", "Có lỗi xảy ra từ server.");
-
-            if (status < 200 || status >= 300) {
-                return new ApiArrayResult(false, message, new JSONArray());
-            }
-
-            Object data = obj.opt("data");
-            if (data instanceof JSONArray) {
-                return new ApiArrayResult(true, message, (JSONArray) data);
-            }
-
-            return new ApiArrayResult(true, message, new JSONArray());
-        } catch (Exception e) {
-            logger.error("Không đọc được dữ liệu từ server: {}",e.getMessage(), e);
-            return new ApiArrayResult(false, "Không đọc được dữ liệu từ server.", new JSONArray());
-        }
-    }
-
-    private int getCurrentAdminId() {
-        try {
-            Method method = User.class.getMethod("getId");
-            Object value = method.invoke(null);
-
-            if (value instanceof Integer) {
-                return (Integer) value;
-            }
-
-            if (value instanceof Number) {
-                return ((Number) value).intValue();
-            }
-        } catch (Exception ignored) {
-        }
-
-        return 15;
-    }
-
-    private void showAlert(Alert.AlertType type, String title, String message) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
-
-    public static class PendingSessionRow {
-        private final Integer id;
-        private final String productName;
-        private final Double startingPrice;
-
-        public PendingSessionRow(int id, String productName, double startingPrice) {
-            this.id = id;
-            this.productName = productName;
-            this.startingPrice = startingPrice;
-        }
-
-        // Bắt buộc trả về Integer, String, Double (Kiểu Object) để khớp 100% với TableColumn
-        public Integer getId() {
-            return id;
-        }
-
-        public String getProductName() {
-            return productName;
-        }
-
-        public Double getStartingPrice() {
-            return startingPrice;
-        }
-    }
-
-    private static class ApiResult {
-        boolean success;
-        String message;
-
-        ApiResult(boolean success, String message) {
-            this.success = success;
-            this.message = message;
-        }
-    }
-
-    private static class ApiArrayResult {
-        boolean success;
-        String message;
-        JSONArray data;
-
-        ApiArrayResult(boolean success, String message, JSONArray data) {
-            this.success = success;
-            this.message = message;
-            this.data = data;
-        }
+    @FunctionalInterface
+    private interface TableDataLoader<T> {
+        List<T> load() throws Exception;
     }
 }

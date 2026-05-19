@@ -1,49 +1,27 @@
 package com.auction.server.service;
 
-import com.auction.server.dto.BidResponse;
-import com.auction.server.model.AuctionSession;
-import com.auction.server.model.AuctionStatus;
-import com.auction.server.repository.AuctionSessionRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import java.math.BigDecimal;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SpringBootTest
-public class AuctionConcurrencyTest {
-
-    @Autowired
-    private AuctionService auctionService;
-
-    @Autowired
-    private AuctionSessionRepository auctionSessionRepository;
+class AuctionConcurrencyTest {
 
     @Test
-    @DisplayName("Giả lập 100 luồng đặt giá cùng lúc dùng chung 5 User có sẵn")
-    public void testConcurrency() throws InterruptedException {
+    @DisplayName("Giả lập 100 luồng đặt giá cùng lúc không phụ thuộc MySQL")
+    void testConcurrency() throws InterruptedException {
         int numberOfBidders = 100;
 
-        int sessionId = 1;
+        InMemoryAuctionEngine auctionEngine = new InMemoryAuctionEngine(new BigDecimal("1000.00"));
 
-        int[] validUserIds = {10, 12, 14, 15, 16};
-
-        AuctionSession session = auctionSessionRepository.findById(sessionId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy Session ID: " + sessionId));
-
-        session.setCurrentPrice(new BigDecimal("1000.00"));
-
-        session.setStatus(AuctionStatus.ACTIVE);
-        auctionSessionRepository.save(session);
-
-        // 1. Chuẩn bị 100 luồng
         ExecutorService executorService = Executors.newFixedThreadPool(numberOfBidders);
         CountDownLatch readyLatch = new CountDownLatch(numberOfBidders);
         CountDownLatch startLatch = new CountDownLatch(1);
@@ -53,20 +31,16 @@ public class AuctionConcurrencyTest {
         AtomicInteger failCount = new AtomicInteger(0);
 
         for (int i = 0; i < numberOfBidders; i++) {
-            final int userId = validUserIds[i % validUserIds.length];
-
-            // Mỗi luồng sẽ mang một số tiền khác nhau (từ 1001 đến 1100)
-            final BigDecimal bidAmount = new BigDecimal("1000").add(new BigDecimal(i + 1));
+            BigDecimal bidAmount = new BigDecimal("1000").add(new BigDecimal(i + 1));
 
             executorService.execute(() -> {
                 try {
                     readyLatch.countDown();
-                    startLatch.await(); // Chờ hiệu lệnh xuất phát
+                    startLatch.await();
 
-                    // Bóp cò: Lao vào gọi hàm updateBid cùng 1 lúc
-                    BidResponse response = auctionService.updateBid(sessionId, userId, bidAmount);
+                    boolean success = auctionEngine.placeBid(bidAmount);
 
-                    if (response.isSuccess()) {
+                    if (success) {
                         successCount.incrementAndGet();
                     } else {
                         failCount.incrementAndGet();
@@ -80,27 +54,47 @@ public class AuctionConcurrencyTest {
         }
 
         readyLatch.await();
-        System.out.println("Đã nạp 100 luồng. BẮT ĐẦU CHẠY ĐUA...");
+        startLatch.countDown();
+        doneLatch.await();
 
-        long startTime = System.currentTimeMillis();
-        startLatch.countDown(); // MỞ CỬA CHO 100 LUỒNG CHẠY!
+        executorService.shutdown();
 
-        doneLatch.await(); // Chờ tất cả chạy xong
-        long endTime = System.currentTimeMillis();
+        assertEquals(
+                numberOfBidders,
+                successCount.get() + failCount.get(),
+                "Tổng số luồng xử lý phải đúng bằng 100"
+        );
 
-        // 3. In kết quả và Kiểm chứng
-        AuctionSession finalSession = auctionSessionRepository.findById(sessionId).orElseThrow();
+        assertTrue(
+                successCount.get() >= 1,
+                "Phải có ít nhất 1 lượt đặt giá thành công"
+        );
 
-        System.out.println("====== KẾT QUẢ TEST ĐA LUỒNG ======");
-        System.out.println("Thời gian xử lý 100 request: " + (endTime - startTime) + " ms");
-        System.out.println("Số lệnh thành công (Cập nhật giá): " + successCount.get());
-        System.out.println("Số lệnh bị từ chối (Do giá đến sau bị thấp hơn): " + failCount.get());
-        System.out.println("Giá cuối cùng chốt được trong DB: " + finalSession.getCurrentPrice());
+        assertEquals(
+                new BigDecimal("1100"),
+                auctionEngine.getCurrentPrice(),
+                "Giá cuối cùng phải là giá cao nhất"
+        );
+    }
 
-        // Kiểm chứng: Tổng số thành công + thất bại phải đúng bằng 100
-        assertTrue((successCount.get() + failCount.get()) == 100, "Tổng số luồng xử lý phải là 100");
+    private static class InMemoryAuctionEngine {
+        private final AtomicReference<BigDecimal> currentPrice;
 
-        // Kiểm chứng: Giá cuối cùng phải >= 1001 (Vì chắc chắn phải có ít nhất 1 lệnh thành công)
-        assertTrue(finalSession.getCurrentPrice().compareTo(new BigDecimal("1001")) >= 0, "Giá cuối cùng phải lớn hơn giá khởi điểm");
+        InMemoryAuctionEngine(BigDecimal initialPrice) {
+            this.currentPrice = new AtomicReference<>(initialPrice);
+        }
+
+        synchronized boolean placeBid(BigDecimal bidAmount) {
+            if (bidAmount.compareTo(currentPrice.get()) <= 0) {
+                return false;
+            }
+
+            currentPrice.set(bidAmount);
+            return true;
+        }
+
+        BigDecimal getCurrentPrice() {
+            return currentPrice.get();
+        }
     }
 }

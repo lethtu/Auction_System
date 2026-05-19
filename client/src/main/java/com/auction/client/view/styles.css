@@ -1,0 +1,79 @@
+@font-face {
+    font-family: 'DM Sans';
+    src: url('fonts/DMSans-Variable.ttf');
+}
+
+@font-face {
+    font-family: 'Material Icons';
+    src: url('fonts/MaterialIcons-Regular.ttf');
+}
+
+@font-face {
+    font-family: 'Material Symbols Outlined';
+    src: url('fonts/MaterialSymbolsOutlined.ttf');
+}
+
+@font-face {
+    font-family: 'Material Symbols Outlined';
+    src: url('fonts/MaterialSymbolsOutlined.ttf');
+}
+
+.root {
+    -fx-font-family: 'DM Sans';
+}
+
+.material-icon {
+    -fx-font-family: 'Material Icons';
+    -fx-font-size: 20px;
+    -fx-font-weight: normal;
+}
+
+/* ── Thanh cuộn mảnh mai, màu hồng ── */
+.scroll-bar:vertical {
+    -fx-pref-width: 6px;
+    -fx-background-color: transparent;
+}
+
+.scroll-bar:vertical .track {
+    -fx-background-color: #f2e8f2;
+    -fx-background-radius: 3px;
+}
+
+.scroll-bar:vertical .thumb {
+    -fx-background-color: #e040a0;
+    -fx-background-radius: 3px;
+    -fx-opacity: 0.7;
+}
+
+.scroll-bar:vertical .thumb:hover {
+    -fx-opacity: 1.0;
+}
+
+.scroll-bar:vertical .increment-button,
+.scroll-bar:vertical .decrement-button {
+    -fx-pref-height: 0;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+
+.scroll-bar:vertical .increment-arrow,
+.scroll-bar:vertical .decrement-arrow {
+    -fx-pref-height: 0;
+    -fx-padding: 0;
+}
+
+/* Ẩn tab header khi sidebar đã là nơi điều hướng chính. */
+.navigationless-tab-pane > .tab-header-area {
+    -fx-min-height: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+    -fx-padding: 0;
+    -fx-opacity: 0;
+}
+
+.navigationless-tab-pane > .tab-header-area > .headers-region,
+.navigationless-tab-pane > .tab-header-area > .tab-header-background {
+    -fx-min-height: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+}

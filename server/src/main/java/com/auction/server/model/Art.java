@@ -6,5 +6,9 @@ import jakarta.persistence.Entity;
 @Entity
 @DiscriminatorValue("art")
 public class Art extends Item {
-    // Specific fields for art can be added here
+
+    @Override
+    public String getCategoryInfo() {
+        return "Art - tác phẩm nghệ thuật/sưu tầm";
+    }
 }

@@ -7,6 +7,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpHeaders;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -14,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(AuthGetImage.class)
@@ -25,54 +27,71 @@ public class AuthGetImageTest {
     @Autowired
     private AuthGetImage authGetImageController;
 
-    // TẠO THƯ MỤC ẢO: JUnit 5 sẽ tự tạo thư mục này khi chạy và tự xóa khi test xong
     @TempDir
     Path tempDir;
 
     @BeforeEach
     public void setup() {
-        // Tráo cái biến rootLocation cứng ngắc thành thư mục ảo
         ReflectionTestUtils.setField(authGetImageController, "rootLocation", tempDir);
     }
 
-    // TEST 1: TÌM THẤY FILE TRẢ VỀ 200 OK
+    @Test
+    @DisplayName("API UploadImage: Upload ảnh thành công -> Trả về 200 và imagePath")
+    public void testUploadImageSuccess() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "avatar.png",
+                "image/png",
+                "fake_image_data_123".getBytes()
+        );
+
+        mockMvc.perform(multipart("/api/files/images").file(file))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.data.imagePath").isNotEmpty());
+    }
+
+    @Test
+    @DisplayName("API UploadImage: File không phải ảnh -> Trả về 400")
+    public void testUploadImageInvalidContentType() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "note.txt",
+                "text/plain",
+                "hello".getBytes()
+        );
+
+        mockMvc.perform(multipart("/api/files/images").file(file))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400));
+    }
 
     @Test
     @DisplayName("API GetImage: File tồn tại -> Trả về 200 và nội dung file")
-    public void testServeFile_Success() throws Exception {
-        // CHUẨN BỊ LÚC BẮT ĐẦU: Lén tạo một file tên là "avatar.png" nhét vào thư mục ảo
+    public void testServeFileSuccess() throws Exception {
         String fileName = "avatar.png";
         Path fakeFile = tempDir.resolve(fileName);
-        Files.writeString(fakeFile, "fake_image_data_123"); // Dữ liệu giả
+        Files.writeString(fakeFile, "fake_image_data_123");
 
-        // TEST API
         mockMvc.perform(get("/api/files/images/" + fileName))
-                .andExpect(status().isOk()) // Kỳ vọng trả về HTTP 200
+                .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"avatar.png\""))
-                .andExpect(content().string("fake_image_data_123")); // Kiểm tra xem code có đọc đúng ruột file không
+                .andExpect(content().string("fake_image_data_123"));
     }
-
-    // TEST 2: KHÔNG TÌM THẤY FILE TRẢ VỀ 404 NOT FOUND
 
     @Test
     @DisplayName("API GetImage: File không tồn tại -> Trả về 404")
-    public void testServeFile_NotFound() throws Exception {
-        // Cố tình xin một cái tên file không hề có trong thư mục ảo
-        String badFileName = "tung_pro_123.jpg";
-
-        mockMvc.perform(get("/api/files/images/" + badFileName))
-                .andExpect(status().isNotFound()); // Kỳ vọng Controller bắt được lỗi và ném ra 404
+    public void testServeFileNotFound() throws Exception {
+        mockMvc.perform(get("/api/files/images/tung_pro_123.jpg"))
+                .andExpect(status().isNotFound());
     }
-
-    // TEST 3: LỖI BÊN TRONG SERVER (HTTP 500)
 
     @Test
     @DisplayName("API GetImage: Lỗi I/O nội bộ -> Trả về 500")
-    public void testServeFile_InternalServerError() throws Exception {
-        // Cố tình nhét null vào rootLocation để code ném Exception
+    public void testServeFileInternalServerError() throws Exception {
         ReflectionTestUtils.setField(authGetImageController, "rootLocation", null);
 
         mockMvc.perform(get("/api/files/images/test.jpg"))
-                .andExpect(status().isInternalServerError()); // Kỳ vọng vào khối catch (Exception e)
+                .andExpect(status().isInternalServerError());
     }
 }
