@@ -80,6 +80,7 @@ public class ClientHandler implements Runnable {
             if (response.isSuccess()) {
                 broadcastBidNotice(request.getAuctionId(), response);
             }
+            sendBidResponse(response);
         } catch (Exception e) {
             e.printStackTrace();
             JSONObject errorResponse = new JSONObject();
