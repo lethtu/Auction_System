@@ -96,6 +96,8 @@ public class MainController implements Initializable {
     private boolean showingWatchlistOnly = false;
     private boolean showingMyBidsOnly = false;
     private boolean showingMySessionsOnly = false;
+    private boolean showingAccountScreen = false;
+    private boolean showingCompactListScreen = false;
     private boolean forceRenderProducts = false;
     public static boolean initialShowWatchlist = false;
     public static String initialHomeFilterMode = "ALL";
@@ -247,7 +249,7 @@ public class MainController implements Initializable {
         MenuItem depositMoney = new MenuItem("Nạp tiền");
         MenuItem logoutItem = new MenuItem("Đăng Xuất");
 
-        accountItem.setOnAction(e -> showAccountDialog());
+        accountItem.setOnAction(e -> showAccountScreen());
         depositMoney.setOnAction(e -> handleDepositMoney());
         logoutItem.setOnAction(e -> System.out.println("Thực hiện Đăng xuất..."));
 
@@ -365,6 +367,10 @@ public class MainController implements Initializable {
      * Hàm trung tâm xử lý Data-Driven UI: Lọc bộ đệm (RAM) và vẽ lại màn hình
      */
     private void filterAndRenderProducts() {
+        if (showingAccountScreen || showingCompactListScreen) {
+            return;
+        }
+
         String keyword = txtSearch.getText() != null ? txtSearch.getText().toLowerCase().trim() : "";
         String selectedCategory = cbCategory.getValue();
         String selectedStatus = cbStatus.getValue();
@@ -486,6 +492,8 @@ public class MainController implements Initializable {
 
 
     private void showAllSessions() {
+        showingAccountScreen = false;
+        showingCompactListScreen = false;
         showingWatchlistOnly = false;
         showingMyBidsOnly = false;
         showingMySessionsOnly = false;
@@ -495,6 +503,8 @@ public class MainController implements Initializable {
     }
 
     private void showWatchlistSessions() {
+        showingAccountScreen = false;
+        showingCompactListScreen = false;
         showingWatchlistOnly = true;
         showingMyBidsOnly = false;
         showingMySessionsOnly = false;
@@ -503,6 +513,8 @@ public class MainController implements Initializable {
     }
 
     private void showMySessions() {
+        showingAccountScreen = false;
+        showingCompactListScreen = false;
         if (User.getId() == null) {
             showWarning("Yêu cầu đăng nhập", "Vui lòng đăng nhập để xem phiên đấu giá của bạn.");
             return;
@@ -516,6 +528,8 @@ public class MainController implements Initializable {
     }
 
     private void showMyBiddingSessions() {
+        showingAccountScreen = false;
+        showingCompactListScreen = false;
         if (User.getId() == null) {
             showWarning("Yêu cầu đăng nhập", "Vui lòng đăng nhập để xem các phiên bạn đang đấu giá.");
             return;
@@ -738,40 +752,61 @@ public class MainController implements Initializable {
         HBox.setHgrow(hSpacer, Priority.ALWAYS);
 
         HBox actionBox = new HBox(8);
-        actionBox.setAlignment(Pos.CENTER_RIGHT);
+        actionBox.setAlignment(Pos.CENTER);
+        actionBox.setMinWidth(96.0);
+        actionBox.setPrefWidth(96.0);
+        actionBox.setMaxWidth(96.0);
 
         Button mainBtn = new Button();
         Label mainPlusIcon = new Label("+");
         mainPlusIcon.setFont(Font.font("System", FontWeight.NORMAL, 28));
         mainPlusIcon.setTextFill(Color.web("#e040a0"));
         mainPlusIcon.setAlignment(Pos.CENTER);
-        mainPlusIcon.setMinSize(40.0, 40.0);
-        mainPlusIcon.setPrefSize(40.0, 40.0);
-        mainPlusIcon.setMaxSize(40.0, 40.0);
+        mainPlusIcon.setMinSize(44.0, 44.0);
+        mainPlusIcon.setPrefSize(44.0, 44.0);
+        mainPlusIcon.setMaxSize(44.0, 44.0);
         mainBtn.setGraphic(mainPlusIcon);
         mainBtn.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-        mainBtn.setMinSize(40.0, 40.0);
-        mainBtn.setPrefSize(40.0, 40.0);
-        mainBtn.setMaxSize(40.0, 40.0);
+        mainBtn.setMinSize(44.0, 44.0);
+        mainBtn.setPrefSize(44.0, 44.0);
+        mainBtn.setMaxSize(44.0, 44.0);
         mainBtn.setPadding(Insets.EMPTY);
         mainBtn.setAlignment(Pos.CENTER);
-        mainBtn.setStyle("-fx-background-color: #ffd6ee; -fx-background-radius: 20px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
+        mainBtn.setStyle("-fx-background-color: #ffd6ee; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
         Tooltip.install(mainBtn, new Tooltip("Tùy chọn"));
 
         Button btnWatch = new Button();
         Label watchIcon = new Label(User.watchlistIds.contains(id) ? "\uE87D" : "\uE87E"); // heart filled or outline
         watchIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: " + (User.watchlistIds.contains(id) ? "#e040a0" : "#604868") + ";");
         watchIcon.setAlignment(Pos.CENTER);
+        watchIcon.setMinSize(44.0, 44.0);
+        watchIcon.setPrefSize(44.0, 44.0);
+        watchIcon.setMaxSize(44.0, 44.0);
         btnWatch.setGraphic(watchIcon);
-        btnWatch.setStyle("-fx-background-color: #f2e8f2; -fx-background-radius: 20px; -fx-min-width: 40px; -fx-min-height: 40px; -fx-max-width: 40px; -fx-max-height: 40px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
+        btnWatch.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        btnWatch.setMinSize(44.0, 44.0);
+        btnWatch.setPrefSize(44.0, 44.0);
+        btnWatch.setMaxSize(44.0, 44.0);
+        btnWatch.setPadding(Insets.EMPTY);
+        btnWatch.setAlignment(Pos.CENTER);
+        btnWatch.setStyle("-fx-background-color: #f2e8f2; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
         Tooltip.install(btnWatch, new Tooltip(User.watchlistIds.contains(id) ? "Đã yêu thích" : "Thêm vào yêu thích"));
 
         Button btnBid = new Button();
         Label bidIcon = new Label("\uE8CC"); // shopping cart / bid
         bidIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: white;");
         bidIcon.setAlignment(Pos.CENTER);
+        bidIcon.setMinSize(44.0, 44.0);
+        bidIcon.setPrefSize(44.0, 44.0);
+        bidIcon.setMaxSize(44.0, 44.0);
         btnBid.setGraphic(bidIcon);
-        btnBid.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 20px; -fx-min-width: 40px; -fx-min-height: 40px; -fx-max-width: 40px; -fx-max-height: 40px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224,64,160,0.3), 8, 0, 0, 2);");
+        btnBid.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        btnBid.setMinSize(44.0, 44.0);
+        btnBid.setPrefSize(44.0, 44.0);
+        btnBid.setMaxSize(44.0, 44.0);
+        btnBid.setPadding(Insets.EMPTY);
+        btnBid.setAlignment(Pos.CENTER);
+        btnBid.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224,64,160,0.3), 8, 0, 0, 2);");
         Tooltip.install(btnBid, new Tooltip("Đấu giá ngay"));
 
         btnWatch.setVisible(false); btnWatch.setManaged(false);
@@ -836,7 +871,7 @@ public class MainController implements Initializable {
             actionBox.getChildren().addAll(btnWatch, btnBid, mainBtn);
         } else {
             mainPlusIcon.setTextFill(Color.web("#907898"));
-            mainBtn.setStyle("-fx-background-color: #f2e8f2; -fx-background-radius: 20px; -fx-padding: 0; -fx-alignment: center;");
+            mainBtn.setStyle("-fx-background-color: #f2e8f2; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center;");
             mainBtn.setDisable(true);
             actionBox.getChildren().add(mainBtn);
         }
@@ -863,95 +898,190 @@ public class MainController implements Initializable {
         showCompactAuctionList();
     }
 
-    private String buildAccountInfo() {
-        String fullname = safeText(User.getFullname(), "Chưa có tên");
-        String username = safeText(User.getUsername(), "Chưa có username");
-        String email = safeText(User.getEmail(), "Chưa có email");
-        String dob = safeText(User.getDob(), "Chưa có ngày sinh");
-        String placeOfBirth = safeText(User.getPlace_of_birth(), "Chưa có nơi sinh");
-        String role = safeText(User.getRole(), "Chưa rõ");
-        return "Họ tên: " + fullname
-                + "\nTên đăng nhập: " + username
-                + "\nEmail: " + email
-                + "\nNgày sinh: " + dob
-                + "\nNơi sinh: " + placeOfBirth
-                + "\nVai trò: " + role;
-    }
-
-    private void showAccountDialog() {
+    private void showAccountScreen() {
         if (User.getId() == null) {
             showWarning("Yêu cầu đăng nhập", "Vui lòng đăng nhập để xem và sửa thông tin tài khoản.");
             return;
         }
 
-        Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("Tài khoản của tôi");
-        dialog.setHeaderText("Xem và cập nhật thông tin tài khoản");
+        showingAccountScreen = true;
+        showingCompactListScreen = false;
+        renderAccountScreen(false);
+        loadLatestAccountProfileForScreen();
+    }
 
-        ButtonType saveButton = new ButtonType("Lưu thay đổi", ButtonBar.ButtonData.OK_DONE);
-        ButtonType cancelButton = new ButtonType("Hủy", ButtonBar.ButtonData.CANCEL_CLOSE);
-        dialog.getDialogPane().getButtonTypes().addAll(saveButton, cancelButton);
+    private void renderAccountScreen(boolean saving) {
+        productContainer.getChildren().clear();
+        productContainer.getChildren().add(fakeTestBtn);
+        currentRenderedIds.clear();
+        productContainer.setAlignment(Pos.TOP_CENTER);
 
-        GridPane grid = new GridPane();
-        grid.setHgap(12);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(10, 10, 10, 10));
+        VBox wrapper = new VBox(20);
+        wrapper.setAlignment(Pos.TOP_CENTER);
+        wrapper.setPadding(new Insets(22, 24, 40, 24));
+        wrapper.setPrefWidth(Math.max(760, productContainer.getPrefWidth() > 0 ? productContainer.getPrefWidth() - 80 : 900));
 
-        TextField usernameField = new TextField(safeText(User.getUsername(), ""));
-        TextField fullnameField = new TextField(safeText(User.getFullname(), ""));
-        TextField emailField = new TextField(safeText(User.getEmail(), ""));
-        TextField dobField = new TextField(safeText(User.getDob(), ""));
-        TextField placeField = new TextField(safeText(User.getPlace_of_birth(), ""));
-        Label roleLabel = new Label(safeText(User.getRole(), "Chưa rõ"));
+        HBox header = new HBox(14);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.setMaxWidth(820);
 
-        usernameField.setPromptText("Tên đăng nhập");
-        fullnameField.setPromptText("Họ tên hiển thị");
-        emailField.setPromptText("email@example.com");
-        dobField.setPromptText("YYYY-MM-DD hoặc để trống");
-        placeField.setPromptText("Nơi sinh");
+        Button backButton = new Button("← Quay lại");
+        backButton.setStyle("-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 999; -fx-background-radius: 999; -fx-text-fill: #604868; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-padding: 8 18 8 18; -fx-cursor: hand;");
+        backButton.setOnAction(e -> returnToAuctionGrid());
 
-        addProfileRow(grid, 0, "Tên đăng nhập", usernameField);
-        addProfileRow(grid, 1, "Họ tên", fullnameField);
-        addProfileRow(grid, 2, "Email", emailField);
-        addProfileRow(grid, 3, "Ngày sinh", dobField);
-        addProfileRow(grid, 4, "Nơi sinh", placeField);
-        grid.add(new Label("Vai trò"), 0, 5);
-        grid.add(roleLabel, 1, 5);
+        VBox titleBox = new VBox(2);
+        Label title = new Label("Tài khoản của tôi");
+        title.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
+        Label subtitle = new Label("Xem số dư và cập nhật thông tin cá nhân của bạn.");
+        subtitle.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #907898;");
+        titleBox.getChildren().addAll(title, subtitle);
 
-        dialog.getDialogPane().setContent(grid);
+        Region headerSpacer = new Region();
+        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
+        header.getChildren().addAll(backButton, titleBox, headerSpacer);
 
-        Optional<ButtonType> result = dialog.showAndWait();
-        if (result.isEmpty() || result.get() != saveButton) {
-            return;
-        }
+        HBox summaryRow = new HBox(16);
+        summaryRow.setAlignment(Pos.CENTER);
+        summaryRow.setMaxWidth(820);
+        summaryRow.getChildren().addAll(
+                createProfileStatCard("Số dư tài khoản", "₫ " + formatPrice(User.getBalance()), "#e040a0"),
+                createProfileStatCard("Vai trò", safeText(User.getRole(), "Chưa rõ"), "#604868"),
+                createProfileStatCard("User ID", String.valueOf(User.getId()), "#604868")
+        );
 
-        String username = usernameField.getText() == null ? "" : usernameField.getText().trim();
-        String fullname = fullnameField.getText() == null ? "" : fullnameField.getText().trim();
-        String email = emailField.getText() == null ? "" : emailField.getText().trim();
-        String dob = dobField.getText() == null ? "" : dobField.getText().trim();
-        String placeOfBirth = placeField.getText() == null ? "" : placeField.getText().trim();
+        VBox card = new VBox(18);
+        card.setMaxWidth(820);
+        card.setPadding(new Insets(26));
+        card.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 24px; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.08), 18, 0, 0, 4);");
 
-        if (username.isBlank()) {
-            showWarning("Thiếu tên đăng nhập", "Tên đăng nhập không được để trống.");
-            return;
-        }
-        if (fullname.isBlank()) {
-            showWarning("Thiếu họ tên", "Họ tên không được để trống.");
-            return;
-        }
-        if (email.isBlank() || !email.contains("@")) {
-            showWarning("Email không hợp lệ", "Vui lòng nhập email hợp lệ.");
-            return;
-        }
+        GridPane form = new GridPane();
+        form.setHgap(16);
+        form.setVgap(14);
 
-        updateAccountProfile(username, fullname, email, dob, placeOfBirth);
+        TextField usernameField = createProfileField(safeText(User.getUsername(), ""), "Tên đăng nhập");
+        TextField fullnameField = createProfileField(safeText(User.getFullname(), ""), "Họ tên hiển thị");
+        TextField emailField = createProfileField(safeText(User.getEmail(), ""), "email@example.com");
+        TextField dobField = createProfileField(safeText(User.getDob(), ""), "YYYY-MM-DD hoặc để trống");
+        TextField placeField = createProfileField(safeText(User.getPlace_of_birth(), ""), "Nơi sinh");
+
+        addProfileRow(form, 0, "Tên đăng nhập", usernameField);
+        addProfileRow(form, 1, "Họ tên", fullnameField);
+        addProfileRow(form, 2, "Email", emailField);
+        addProfileRow(form, 3, "Ngày sinh", dobField);
+        addProfileRow(form, 4, "Nơi sinh", placeField);
+
+        HBox actions = new HBox(12);
+        actions.setAlignment(Pos.CENTER_RIGHT);
+
+        Button reloadButton = new Button("Tải lại thông tin");
+        reloadButton.setDisable(saving);
+        reloadButton.setStyle("-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 999; -fx-background-radius: 999; -fx-text-fill: #604868; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-padding: 10 20 10 20; -fx-cursor: hand;");
+        reloadButton.setOnAction(e -> loadLatestAccountProfileForScreen());
+
+        Button saveButton = new Button(saving ? "Đang lưu..." : "Lưu thay đổi");
+        saveButton.setDisable(saving);
+        saveButton.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 999; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-padding: 10 24 10 24; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224,64,160,0.25), 10, 0, 0, 3);");
+        saveButton.setOnAction(e -> {
+            String username = readTrimmed(usernameField);
+            String fullname = readTrimmed(fullnameField);
+            String email = readTrimmed(emailField);
+            String dob = readTrimmed(dobField);
+            String placeOfBirth = readTrimmed(placeField);
+
+            if (username.isBlank()) {
+                showWarning("Thiếu tên đăng nhập", "Tên đăng nhập không được để trống.");
+                return;
+            }
+            if (fullname.isBlank()) {
+                showWarning("Thiếu họ tên", "Họ tên không được để trống.");
+                return;
+            }
+            if (email.isBlank() || !email.contains("@")) {
+                showWarning("Email không hợp lệ", "Vui lòng nhập email hợp lệ.");
+                return;
+            }
+
+            renderAccountScreen(true);
+            updateAccountProfile(username, fullname, email, dob, placeOfBirth);
+        });
+
+        actions.getChildren().addAll(reloadButton, saveButton);
+        card.getChildren().addAll(form, actions);
+
+        wrapper.getChildren().addAll(header, summaryRow, card);
+        productContainer.getChildren().add(wrapper);
+    }
+
+    private VBox createProfileStatCard(String title, String value, String valueColor) {
+        VBox box = new VBox(4);
+        box.setAlignment(Pos.CENTER_LEFT);
+        box.setPadding(new Insets(16, 18, 16, 18));
+        box.setPrefWidth(260);
+        box.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 20px; -fx-border-color: #ffe8e8; -fx-border-radius: 20px; -fx-border-width: 2px;");
+
+        Label titleLabel = new Label(title);
+        titleLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #907898;");
+        Label valueLabel = new Label(value);
+        valueLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: " + valueColor + ";");
+        valueLabel.setWrapText(true);
+        box.getChildren().addAll(titleLabel, valueLabel);
+        return box;
+    }
+
+    private TextField createProfileField(String value, String prompt) {
+        TextField field = new TextField(value);
+        field.setPromptText(prompt);
+        field.setPrefWidth(420);
+        field.setStyle("-fx-background-color: #fef7ff; -fx-border-color: #f2e8f2; -fx-border-radius: 14px; -fx-background-radius: 14px; -fx-padding: 10 12 10 12; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #2e1a28;");
+        return field;
     }
 
     private void addProfileRow(GridPane grid, int row, String label, TextField field) {
         Label rowLabel = new Label(label);
-        field.setPrefWidth(280);
+        rowLabel.setMinWidth(130);
+        rowLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #604868;");
         grid.add(rowLabel, 0, row);
         grid.add(field, 1, row);
+    }
+
+    private void loadLatestAccountProfileForScreen() {
+        if (User.getId() == null) return;
+
+        new Thread(() -> {
+            try {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(Config.API_URL + "/api/users/" + User.getId()))
+                        .GET()
+                        .build();
+
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                JSONObject responseJson = new JSONObject(response.body());
+                if (response.statusCode() == 200 && responseJson.optInt("status", 500) == 200) {
+                    JSONObject data = responseJson.optJSONObject("data");
+                    if (data != null) {
+                        applyUserProfileFromJson(data);
+                        Platform.runLater(() -> {
+                            if (showingAccountScreen) {
+                                renderAccountScreen(false);
+                            }
+                        });
+                    }
+                }
+            } catch (Exception e) {
+                logger.warn("Không thể tải lại thông tin tài khoản: {}", e.getMessage());
+            }
+        }, "load-account-profile").start();
+    }
+
+    private void applyUserProfileFromJson(JSONObject data) {
+        User.updateProfile(
+                data.optString("username", safeText(User.getUsername(), "")),
+                data.optString("fullname", safeText(User.getFullname(), "")),
+                data.optString("email", safeText(User.getEmail(), "")),
+                data.optString("dob", safeText(User.getDob(), "")),
+                data.optString("placeOfBirth", data.optString("place_of_birth", safeText(User.getPlace_of_birth(), ""))),
+                parseMoney(data.opt("balance"), User.getBalance())
+        );
     }
 
     private void updateAccountProfile(String username, String fullname, String email, String dob, String placeOfBirth) {
@@ -978,23 +1108,26 @@ public class MainController implements Initializable {
                 if (response.statusCode() == 200 && status == 200) {
                     JSONObject data = responseJson.optJSONObject("data");
                     if (data != null) {
-                        User.updateProfile(
-                                data.optString("username", username),
-                                data.optString("fullname", fullname),
-                                data.optString("email", email),
-                                data.optString("dob", dob),
-                                data.optString("placeOfBirth", data.optString("place_of_birth", placeOfBirth))
-                        );
+                        applyUserProfileFromJson(data);
                     } else {
                         User.updateProfile(username, fullname, email, dob, placeOfBirth);
                     }
-                    Platform.runLater(() -> showInfo("Tài khoản", message));
+                    Platform.runLater(() -> {
+                        renderAccountScreen(false);
+                        showInfo("Tài khoản", message);
+                    });
                 } else {
-                    Platform.runLater(() -> showError("Cập nhật thất bại", message));
+                    Platform.runLater(() -> {
+                        renderAccountScreen(false);
+                        showError("Cập nhật thất bại", message);
+                    });
                 }
             } catch (Exception e) {
                 logger.error("Lỗi khi cập nhật tài khoản: {}", e.getMessage(), e);
-                Platform.runLater(() -> showError("Cập nhật thất bại", "Không thể kết nối đến máy chủ hoặc dữ liệu trả về không hợp lệ."));
+                Platform.runLater(() -> {
+                    renderAccountScreen(false);
+                    showError("Cập nhật thất bại", "Không thể kết nối đến máy chủ hoặc dữ liệu trả về không hợp lệ.");
+                });
             }
         }, "update-account-profile").start();
     }
@@ -1027,7 +1160,8 @@ public class MainController implements Initializable {
                 + "\nPhiên đang hoạt động: " + active
                 + "\nPhiên đã kết thúc: " + ended
                 + "\nPhiên trong Watchlist: " + watchlist
-                + "\nPhiên của tôi: " + mySessions;
+                + "\nPhiên của tôi: " + mySessions
+                + "\nSố dư hiện tại: ₫ " + formatPrice(User.getBalance());
     }
 
     private void showSettingsDialog() {
@@ -1057,42 +1191,138 @@ public class MainController implements Initializable {
     }
 
     private void showCompactAuctionList() {
-        List<JSONObject> sessionsToShow = new ArrayList<>();
-        for (JSONObject sessionObj : allProducts) {
-            if (currentRenderedIds.contains(sessionObj.optInt("id"))) {
-                sessionsToShow.add(sessionObj);
-            }
-        }
+        showingCompactListScreen = true;
+        showingAccountScreen = false;
 
-        TextArea area = new TextArea();
-        area.setEditable(false);
-        area.setWrapText(true);
-        area.setPrefSize(620, 360);
+        List<JSONObject> sessionsToShow = getCurrentlyDisplayedSessions();
+
+        productContainer.getChildren().clear();
+        productContainer.getChildren().add(fakeTestBtn);
+        productContainer.setAlignment(Pos.TOP_CENTER);
+
+        VBox wrapper = new VBox(16);
+        wrapper.setAlignment(Pos.TOP_CENTER);
+        wrapper.setPadding(new Insets(22, 24, 40, 24));
+        wrapper.setPrefWidth(Math.max(760, productContainer.getPrefWidth() > 0 ? productContainer.getPrefWidth() - 80 : 900));
+
+        HBox header = new HBox(14);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.setMaxWidth(900);
+
+        VBox titleBox = new VBox(2);
+        Label title = new Label("Danh sách phiên rút gọn");
+        title.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 26px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
+        Label subtitle = new Label("Các phiên đang hiển thị theo bộ lọc hiện tại.");
+        subtitle.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #907898;");
+        titleBox.getChildren().addAll(title, subtitle);
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Button backButton = new Button("Quay lại dạng lưới");
+        backButton.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 999; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-padding: 9 22 9 22; -fx-cursor: hand;");
+        backButton.setOnAction(e -> returnToAuctionGrid());
+        header.getChildren().addAll(titleBox, spacer, backButton);
+
+        VBox listBox = new VBox(10);
+        listBox.setMaxWidth(900);
 
         if (sessionsToShow.isEmpty()) {
-            area.setText("Không có phiên nào trong bộ lọc hiện tại.");
+            VBox empty = new VBox(8);
+            empty.setAlignment(Pos.CENTER);
+            empty.setPadding(new Insets(60));
+            empty.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 22px; -fx-border-color: #ffe8e8; -fx-border-radius: 22px; -fx-border-width: 2px;");
+            Label emptyTitle = new Label("Không có phiên nào trong bộ lọc hiện tại");
+            emptyTitle.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
+            Label emptyMsg = new Label("Hãy đổi bộ lọc hoặc quay lại dạng lưới.");
+            emptyMsg.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #907898;");
+            empty.getChildren().addAll(emptyTitle, emptyMsg);
+            listBox.getChildren().add(empty);
         } else {
-            StringBuilder builder = new StringBuilder();
             int index = 1;
             for (JSONObject sessionObj : sessionsToShow) {
-                JSONObject itemObj = getItemObject(sessionObj);
-                BigDecimal currentPrice = getMoney(sessionObj, "currentPrice", getMoney(sessionObj, "startingPrice", BigDecimal.ZERO));
-                builder.append(index++)
-                        .append(". #").append(sessionObj.optInt("id"))
-                        .append(" | ").append(itemObj.optString("name", "Không tên"))
-                        .append(" | ").append(sessionObj.optString("status", "UNKNOWN"))
-                        .append(" | ₫ ").append(formatPrice(currentPrice))
-                        .append("\n");
+                listBox.getChildren().add(createCompactAuctionRow(index++, sessionObj));
             }
-            area.setText(builder.toString());
         }
 
-        Dialog<Void> dialog = new Dialog<>();
-        dialog.setTitle("Danh sách phiên rút gọn");
-        dialog.setHeaderText("Các phiên đang hiển thị trên màn hình");
-        dialog.getDialogPane().setContent(area);
-        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
-        dialog.showAndWait();
+        ScrollPane listScroll = new ScrollPane(listBox);
+        listScroll.setFitToWidth(true);
+        listScroll.setMaxWidth(920);
+        listScroll.setPrefHeight(460);
+        listScroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;");
+
+        wrapper.getChildren().addAll(header, listScroll);
+        productContainer.getChildren().add(wrapper);
+    }
+
+    private List<JSONObject> getCurrentlyDisplayedSessions() {
+        List<JSONObject> sessions = new ArrayList<>();
+        for (JSONObject sessionObj : allProducts) {
+            if (currentRenderedIds.contains(sessionObj.optInt("id"))) {
+                sessions.add(sessionObj);
+            }
+        }
+        return sessions;
+    }
+
+    private HBox createCompactAuctionRow(int index, JSONObject sessionObj) {
+        JSONObject itemObj = getItemObject(sessionObj);
+        BigDecimal currentPrice = getMoney(sessionObj, "currentPrice", getMoney(sessionObj, "startingPrice", BigDecimal.ZERO));
+        String status = sessionObj.optString("status", "UNKNOWN");
+
+        HBox row = new HBox(14);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(14, 18, 14, 18));
+        row.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 18px; -fx-border-color: #ffe8e8; -fx-border-width: 1.5px; -fx-border-radius: 18px;");
+
+        Label order = new Label(String.valueOf(index));
+        order.setAlignment(Pos.CENTER);
+        order.setMinSize(34, 34);
+        order.setPrefSize(34, 34);
+        order.setStyle("-fx-background-color: #ffd6ee; -fx-background-radius: 17px; -fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: 900; -fx-text-fill: #e040a0;");
+
+        VBox infoBox = new VBox(3);
+        Label name = new Label("#" + sessionObj.optInt("id") + " · " + itemObj.optString("name", "Không tên"));
+        name.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
+        Label type = new Label(itemObj.optString("type", "Không rõ danh mục"));
+        type.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-text-fill: #907898;");
+        infoBox.getChildren().addAll(name, type);
+
+        Region rowSpacer = new Region();
+        HBox.setHgrow(rowSpacer, Priority.ALWAYS);
+
+        Label statusBadge = new Label(status);
+        statusBadge.setStyle("-fx-background-color: #f2e8f2; -fx-background-radius: 999; -fx-padding: 5 12 5 12; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: #604868;");
+
+        Label price = new Label("₫ " + formatPrice(currentPrice));
+        price.setMinWidth(110);
+        price.setAlignment(Pos.CENTER_RIGHT);
+        price.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: #e040a0;");
+
+        row.getChildren().addAll(order, infoBox, rowSpacer, statusBadge, price);
+        return row;
+    }
+
+    private void returnToAuctionGrid() {
+        showingAccountScreen = false;
+        showingCompactListScreen = false;
+        forceRenderProducts = true;
+        filterAndRenderProducts();
+    }
+
+    private String readTrimmed(TextField field) {
+        return field.getText() == null ? "" : field.getText().trim();
+    }
+
+    private BigDecimal parseMoney(Object value, BigDecimal fallback) {
+        if (value == null || JSONObject.NULL.equals(value)) {
+            return fallback == null ? BigDecimal.ZERO : fallback;
+        }
+        try {
+            return new BigDecimal(value.toString());
+        } catch (Exception e) {
+            return fallback == null ? BigDecimal.ZERO : fallback;
+        }
     }
 
     private void resetFiltersAndShowAll() {

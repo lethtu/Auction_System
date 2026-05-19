@@ -13,7 +13,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.Node;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -269,8 +271,17 @@ public class SidebarController {
         autoCollapse();
         setActiveSelling();
         try {
+            Stage stage = resolveStage(event);
+            boolean wasMaximized = stage != null && stage.isMaximized();
+            int currentWidth = stage == null ? 1280 : Math.max(1280, (int) Math.round(stage.getWidth()));
+            int currentHeight = stage == null ? 800 : Math.max(800, (int) Math.round(stage.getHeight()));
+
             if (onBeforeNavigate != null) onBeforeNavigate.run();
-            SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1024, 768);
+            SceneSwitcher.switchScene(event, "SellerDashboard.fxml", currentWidth, currentHeight);
+
+            if (stage != null && wasMaximized) {
+                Platform.runLater(() -> stage.setMaximized(true));
+            }
         } catch (IOException e) {
             logger.error("Lỗi chuyển cảnh sang SellerDashboard: ", e);
             showInfo("Selling", "Không thể mở Seller Dashboard. Vui lòng thử lại.");
@@ -314,6 +325,17 @@ public class SidebarController {
 
         logger.info("Support request from UI: {}", content);
         showInfo("Support", "Yêu cầu hỗ trợ đã được ghi nhận trong bản demo.");
+    }
+
+    private Stage resolveStage(ActionEvent event) {
+        if (event == null || !(event.getSource() instanceof Node)) {
+            return null;
+        }
+        Node source = (Node) event.getSource();
+        if (source.getScene() == null || source.getScene().getWindow() == null) {
+            return null;
+        }
+        return (Stage) source.getScene().getWindow();
     }
 
     private void showInfo(String title, String message) {
