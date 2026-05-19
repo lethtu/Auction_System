@@ -29,6 +29,7 @@ public class SocketServer {
     private volatile boolean running = true;
 
     private static final ConcurrentHashMap<Integer, List<PrintWriter>> rooms = new ConcurrentHashMap<>();
+    private static final List<PrintWriter> homeClients = new CopyOnWriteArrayList<>();
 
     @Autowired
     public SocketServer(BiddingController biddingController) {
@@ -80,12 +81,33 @@ public class SocketServer {
         }
     }
 
+    public static void joinHome(PrintWriter out) {
+        homeClients.add(out);
+        logger.info("SERVER: Client Home đã kết nối để nhận event global.");
+    }
+
+    public static void broadcastToAll(String message) {
+        // Gửi cho tất cả client Home
+        homeClients.forEach(out -> {
+            out.println(message);
+            out.flush();
+        });
+        // Gửi cho tất cả client trong các phòng đấu giá
+        rooms.values().forEach(clients -> {
+            clients.forEach(out -> {
+                out.println(message);
+                out.flush();
+            });
+        });
+    }
+
     public static void removeFromAllRooms(PrintWriter out) {
         rooms.forEach((sessionId, clients) -> {
             if (clients.remove(out)) {
                 broadcastCounts(sessionId);
             }
         });
+        homeClients.remove(out);
     }
 
     private static void broadcastCounts(Integer sessionId) {
