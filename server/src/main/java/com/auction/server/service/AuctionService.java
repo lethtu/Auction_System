@@ -41,7 +41,10 @@ public class AuctionService {
     private com.auction.server.repository.AutoBidConfigRepository autoBidConfigRepository;
 
     public List<AuctionSession> getActiveSessions() {
-        return auctionSessionRepository.findByStatus(AuctionStatus.ACTIVE);
+        return auctionSessionRepository.findByStatus(AuctionStatus.ACTIVE)
+                .stream()
+                .filter(this::isProductVisible)
+                .toList();
     }
 
     public AuctionSession getSessionById(Integer id) {
@@ -94,6 +97,10 @@ public class AuctionService {
         return false;
     }
 
+    private boolean isProductVisible(AuctionSession session) {
+        return session != null && (session.getItem() == null || !session.getItem().isHidden());
+    }
+
     private BigDecimal calculateMinimumNextBid(BigDecimal currentPrice) {
         if (currentPrice == null) return BigDecimal.ZERO;
         
@@ -120,6 +127,12 @@ public class AuctionService {
         }
 
         AuctionSession item = itemOptional.get();
+
+        if (!isProductVisible(item)) {
+            logger.error("Đặt giá thất bại: sản phẩm của phiên {} đang bị ẩn", ItemAuctionId);
+            return new BidResponse(false, "Lỗi: Sản phẩm này đang bị ẩn", BigDecimal.ZERO, null, null);
+        }
+
         BigDecimal currentPrice = item.getCurrentPrice() == null ? BigDecimal.ZERO : item.getCurrentPrice();
         
         BigDecimal minimumRequiredBid;
@@ -237,7 +250,15 @@ public class AuctionService {
                 return new BidResponse(false, "LỖI HỆ THỐNG: Không thể lưu dữ liệu. Vui lòng thử lại.", currentPrice, null, item.getHighestBidderId());
             }
         }
-        else{
+        else {
+            // TASK 7: Ném Exception nếu phiên đã kết thúc hoặc bị hủy
+            if (item.getStatus() == AuctionStatus.ENDED || item.getStatus() == AuctionStatus.CANCELED) {
+                logger.warn("Chặn đặt giá: Phiên {} đã đóng.", ItemAuctionId);
+                // Đảm bảo package import khớp với project của cậu
+                throw new com.auction.server.exception.AuctionClosedException("Lỗi: Phiên đấu giá này đã kết thúc hoặc bị hủy!", ItemAuctionId);
+            }
+
+            // Nếu chỉ là PENDING (chưa mở) thì trả về false bình thường
             logger.error("Lỗi: Phiên đấu giá: {} hiện đang có trạng thái: {}", ItemAuctionId, item.getStatus());
             return new BidResponse(false, "Lỗi: Phiên này chưa được phép đấu giá", currentPrice, null, item.getHighestBidderId());
         }

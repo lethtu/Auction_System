@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.json.JSONObject;
+import com.auction.server.socket.SocketServer;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -57,11 +59,27 @@ public class AuctionSchedulerService {
                 }
             }
             auctionSessionRepository.saveAll(activeSessions);
-            logger.info(
-                    "[SCHEDULER] Lúc {} | Đã đóng {} phiên ACTIVE quá hạn.",
-                    now,
-                    activeSessions.size()
-            );
+
+            // Broadcast event AUCTION_ENDED cho từng phiên vừa đóng
+            for (AuctionSession session : activeSessions) {
+                try {
+                    if (session != null && session.getId() != null) {
+                        JSONObject endEvent = new JSONObject();
+                        endEvent.put("type", "AUCTION_ENDED");
+                        endEvent.put("sessionId", session.getId());
+                        SocketServer.broadcastToAll("EVENT:" + endEvent.toString());
+                    }
+                } catch (Exception e) {
+                    logger.error("[SCHEDULER] Lỗi khi broadcast AUCTION_ENDED cho phiên {}: {}",
+                            session != null ? session.getId() : "null", e.getMessage());
+                }
+            }
+        }
+
+        // Logging (Chỉ in ra khi có sự thay đổi để tránh rác console)
+        if (!pendingSessions.isEmpty() || !activeSessions.isEmpty()) {
+            logger.info("[SCHEDULER] Lúc " + now +
+                    " | Đã mở " + pendingSessions.size() + " phiên | Đã đóng " + activeSessions.size() + " phiên.");
         }
     }
 }

@@ -22,6 +22,9 @@ public abstract class Item {
 
     private String imagePath;
 
+    @Column(name = "hidden", nullable = false)
+    private Boolean hidden = false;
+
     public abstract String getCategoryInfo();
 
     public Integer getId() {
@@ -63,4 +66,13 @@ public abstract class Item {
     public void setImagePath(String imagePath) {
         this.imagePath = imagePath;
     }
+
+    public boolean isHidden() {
+        return Boolean.TRUE.equals(hidden);
+    }
+
+    public void setHidden(Boolean hidden) {
+        this.hidden = hidden;
+    }
 }
+

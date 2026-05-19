@@ -16,6 +16,8 @@ public class AdminApiClient {
     private static final String REJECT_SESSION_PATH = "/reject/";
     private static final String BAN_USER_PATH = "/ban-user/";
     private static final String CANCEL_AUCTION_PATH = "/cancel-auction/";
+    private static final String HIDE_PRODUCT_PATH = "/hide-product/";
+    private static final String SHOW_PRODUCT_PATH = "/show-product/";
 
     public HttpResponse<String> getPendingSessions() throws Exception {
         return get(PENDING_SESSIONS_PATH);
@@ -44,6 +46,14 @@ public class AdminApiClient {
 
     public HttpResponse<String> cancelAuction(int sessionId, int adminId) throws Exception {
         return postNoBody(withAdminId(CANCEL_AUCTION_PATH + sessionId, adminId));
+    }
+
+    public HttpResponse<String> hideProduct(int productId, int adminId) throws Exception {
+        return postNoBody(withAdminId(HIDE_PRODUCT_PATH + productId, adminId));
+    }
+
+    public HttpResponse<String> showProduct(int productId, int adminId) throws Exception {
+        return postNoBody(withAdminId(SHOW_PRODUCT_PATH + productId, adminId));
     }
 
     private HttpResponse<String> get(String path) throws Exception {
