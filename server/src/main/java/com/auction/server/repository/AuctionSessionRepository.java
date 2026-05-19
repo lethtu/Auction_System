@@ -21,6 +21,8 @@ public interface AuctionSessionRepository extends JpaRepository<AuctionSession, 
 
     List<AuctionSession> findByStatus(AuctionStatus status);
 
+    long countByStatus(AuctionStatus status);
+
     Page<AuctionSession> findByStatus(AuctionStatus status, Pageable pageable);
 
     List<AuctionSession> findBySeller_Id(Integer sellerId);

@@ -8,6 +8,10 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Label;
+import javafx.scene.control.Button;
+import javafx.scene.control.Tooltip;
+import javafx.application.Platform;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +37,92 @@ public class LoginController {
 
     @FXML
     private PasswordField txtPassword;
+
+    @FXML private Label lblLiveAuctions;
+    @FXML private Label lblActiveBidders;
+    @FXML private Button btnGoogle;
+    @FXML private Button btnFacebook;
+
+    @FXML
+    public void initialize() {
+        if (btnGoogle != null) {
+            btnGoogle.setTooltip(new Tooltip("Tính năng đăng nhập bằng Google sẽ được bổ sung sau."));
+        }
+        if (btnFacebook != null) {
+            btnFacebook.setTooltip(new Tooltip("Tính năng đăng nhập bằng Facebook sẽ được bổ sung sau."));
+        }
+        loadPublicStats();
+    }
+
+    private void loadPublicStats() {
+        if (lblLiveAuctions == null || lblActiveBidders == null) return;
+
+        lblLiveAuctions.setText("Live Auctions Now");
+        lblActiveBidders.setText("Auction activity is loading...");
+
+        new Thread(() -> {
+            try {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(Config.API_URL + "/api/auctions/stats"))
+                        .GET()
+                        .build();
+
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+                if (response.statusCode() == 200) {
+                    JSONObject resJson = new JSONObject(response.body());
+                    if (resJson.getInt("status") == 200) {
+                        JSONObject data = resJson.getJSONObject("data");
+                        long activeBidders = data.optLong("activeBidders", 12000);
+                        long liveAuctions = data.optLong("liveAuctions", 8);
+
+                        Platform.runLater(() -> {
+                            lblLiveAuctions.setText(liveAuctions + " auctions live");
+                            lblActiveBidders.setText("Join " + String.format("%,d", activeBidders) + "+ active bidders");
+                        });
+                        return;
+                    }
+                }
+                
+                Platform.runLater(this::setFallbackStats);
+                
+            } catch (Exception e) {
+                logger.error("Failed to load public stats", e);
+                Platform.runLater(this::setFallbackStats);
+            }
+        }).start();
+    }
+
+    private void setFallbackStats() {
+        if (lblLiveAuctions == null || lblActiveBidders == null) return;
+        lblLiveAuctions.setText("Live Auctions Now");
+        lblActiveBidders.setText("Join 12,000+ active bidders");
+    }
+
+    @FXML
+    public void handleGoogleLogin(ActionEvent event) {
+        handleComingSoonButton(btnGoogle);
+    }
+
+    @FXML
+    public void handleFacebookLogin(ActionEvent event) {
+        handleComingSoonButton(btnFacebook);
+    }
+
+    private void handleComingSoonButton(Button button) {
+        if (button == null) return;
+        String originalText = button.getText();
+        button.setDisable(true);
+        button.setText("Chưa hỗ trợ");
+        
+        new Thread(() -> {
+            try { Thread.sleep(2000); } catch (InterruptedException e) {}
+            Platform.runLater(() -> {
+                button.setText(originalText);
+                button.setDisable(false);
+            });
+        }).start();
+    }
 
     @FXML
     public void handleLogin(ActionEvent event) {
@@ -80,12 +170,12 @@ public class LoginController {
 
     @FXML
     public void goToSignUp(ActionEvent event) throws IOException {
-        SceneSwitcher.switchScene(event, "SignUp.fxml", 400, 550);
+        SceneSwitcher.switchScene(event, "SignUp.fxml", 1000, 650);
     }
 
     @FXML
     public void handleForgotPassword(ActionEvent event) throws IOException {
-        SceneSwitcher.switchScene(event, "ForgotPassword.fxml", 400, 450);
+        SceneSwitcher.switchScene(event, "ForgotPassword.fxml", 1000, 650);
     }
 
     public void setHttpClient(HttpClient httpClient) {

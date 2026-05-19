@@ -74,7 +74,7 @@ public class MainControllerTest {
         robot.sleep(500);
 
         // 5. Kiểm tra xem đã bay sang màn hình Login chưa
-        verifyThat("Đăng nhập Hệ thống Đấu giá", NodeMatchers.isVisible());
+        verifyThat("Welcome Back", NodeMatchers.isVisible());
     }
 
     @Test
