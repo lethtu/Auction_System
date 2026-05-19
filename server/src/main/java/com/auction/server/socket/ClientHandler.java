@@ -64,12 +64,23 @@ public class ClientHandler implements Runnable {
                     new BigDecimal(jsonObj.get("amount").toString())
             );
 
-            BidResponse response = biddingController.handleBid(request);
-            sendBidResponse(response);
+                    // BỌC GIÁP TASK 7 TẠI ĐÂY
+                    BidResponse response;
+                    try {
+                        response = biddingController.handleBid(request);
+                    } catch (com.auction.server.exception.AuctionClosedException e) {
+                        // Bắt lỗi ném ra từ Service, gửi trả Client an toàn, không sập Server
+                        JSONObject errorJson = new JSONObject();
+                        errorJson.put("success", false);
+                        errorJson.put("message", e.getMessage());
+                        out.println("RESPONSE:" + errorJson.toString());
+                        return; // Bỏ qua các bước phía dưới, quay lại lắng nghe tiếp
+                    }
 
             if (response.isSuccess()) {
                 broadcastBidNotice(request.getAuctionId(), response);
             }
+            sendBidResponse(response);
         } catch (Exception e) {
             e.printStackTrace();
             JSONObject errorResponse = new JSONObject();
