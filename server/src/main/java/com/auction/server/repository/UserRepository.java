@@ -7,8 +7,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Integer> {
+
+    Optional<User> findByUsername(String username);
+
+    Optional<User> findByEmail(String email);
 
     /**
      * Lọc user theo cột discriminator "role" dùng native SQL.
@@ -16,6 +21,9 @@ public interface UserRepository extends JpaRepository<User, Integer> {
      */
     @Query(value = "SELECT * FROM users WHERE role = :role", nativeQuery = true)
     List<User> findAllByRole(@Param("role") String role);
+
+    @Query(value = "SELECT COUNT(*) FROM users WHERE role = :role", nativeQuery = true)
+    long countAllByRole(@Param("role") String role);
 
     /**
      * Cập nhật trực tiếp cột discriminator "role" trong DB.

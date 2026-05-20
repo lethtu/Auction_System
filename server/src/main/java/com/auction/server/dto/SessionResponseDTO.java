@@ -10,8 +10,9 @@ public class SessionResponseDTO {
     private Integer productId;
     private String productName;
     private String productType;
-    private String imageUrl;
     private String description;
+    private String imagePath;
+    private Boolean productVisible;
 
     private Integer sellerId;
     private String sellerUsername;
@@ -20,20 +21,37 @@ public class SessionResponseDTO {
     private BigDecimal startingPrice;
     private BigDecimal currentPrice;
     private BigDecimal stepPrice;
+    private BigDecimal reservePrice;
+
+    private Integer highestBidderId;
+    private Integer bidCount;
 
     private LocalDateTime createdAt;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    private LocalDateTime approvedAt;
-    private LocalDateTime rejectedAt;
 
     private String status;
+
+    private LocalDateTime approvedAt;
+    private Integer approvedByAdminId;
+
+    private LocalDateTime rejectedAt;
+    private Integer rejectedByAdminId;
     private String rejectReason;
 
-    private Integer approvedByAdminId;
-    private Integer rejectedByAdminId;
+    private Boolean applyMinRate;
+    private BigDecimal minRate;
+    private java.util.List<com.auction.server.model.Bid> bids;
 
     public SessionResponseDTO() {
+    }
+
+    public java.util.List<com.auction.server.model.Bid> getBids() {
+        return bids;
+    }
+
+    public void setBids(java.util.List<com.auction.server.model.Bid> bids) {
+        this.bids = bids;
     }
 
     public Integer getId() {
@@ -68,20 +86,28 @@ public class SessionResponseDTO {
         this.productType = productType;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-
     public String getDescription() {
         return description;
     }
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
+    }
+
+    public Boolean getProductVisible() {
+        return productVisible;
+    }
+
+    public void setProductVisible(Boolean productVisible) {
+        this.productVisible = productVisible;
     }
 
     public Integer getSellerId() {
@@ -132,6 +158,30 @@ public class SessionResponseDTO {
         this.stepPrice = stepPrice;
     }
 
+    public BigDecimal getReservePrice() {
+        return reservePrice;
+    }
+
+    public void setReservePrice(BigDecimal reservePrice) {
+        this.reservePrice = reservePrice;
+    }
+
+    public Integer getHighestBidderId() {
+        return highestBidderId;
+    }
+
+    public void setHighestBidderId(Integer highestBidderId) {
+        this.highestBidderId = highestBidderId;
+    }
+
+    public Integer getBidCount() {
+        return bidCount;
+    }
+
+    public void setBidCount(Integer bidCount) {
+        this.bidCount = bidCount;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -156,22 +206,6 @@ public class SessionResponseDTO {
         this.endTime = endTime;
     }
 
-    public LocalDateTime getApprovedAt() {
-        return approvedAt;
-    }
-
-    public void setApprovedAt(LocalDateTime approvedAt) {
-        this.approvedAt = approvedAt;
-    }
-
-    public LocalDateTime getRejectedAt() {
-        return rejectedAt;
-    }
-
-    public void setRejectedAt(LocalDateTime rejectedAt) {
-        this.rejectedAt = rejectedAt;
-    }
-
     public String getStatus() {
         return status;
     }
@@ -180,12 +214,12 @@ public class SessionResponseDTO {
         this.status = status;
     }
 
-    public String getRejectReason() {
-        return rejectReason;
+    public LocalDateTime getApprovedAt() {
+        return approvedAt;
     }
 
-    public void setRejectReason(String rejectReason) {
-        this.rejectReason = rejectReason;
+    public void setApprovedAt(LocalDateTime approvedAt) {
+        this.approvedAt = approvedAt;
     }
 
     public Integer getApprovedByAdminId() {
@@ -196,11 +230,43 @@ public class SessionResponseDTO {
         this.approvedByAdminId = approvedByAdminId;
     }
 
+    public LocalDateTime getRejectedAt() {
+        return rejectedAt;
+    }
+
+    public void setRejectedAt(LocalDateTime rejectedAt) {
+        this.rejectedAt = rejectedAt;
+    }
+
     public Integer getRejectedByAdminId() {
         return rejectedByAdminId;
     }
 
     public void setRejectedByAdminId(Integer rejectedByAdminId) {
         this.rejectedByAdminId = rejectedByAdminId;
+    }
+
+    public Boolean getApplyMinRate() {
+        return applyMinRate;
+    }
+
+    public void setApplyMinRate(Boolean applyMinRate) {
+        this.applyMinRate = applyMinRate;
+    }
+
+    public BigDecimal getMinRate() {
+        return minRate;
+    }
+
+    public void setMinRate(BigDecimal minRate) {
+        this.minRate = minRate;
+    }
+
+    public String getRejectReason() {
+        return rejectReason;
+    }
+
+    public void setRejectReason(String rejectReason) {
+        this.rejectReason = rejectReason;
     }
 }

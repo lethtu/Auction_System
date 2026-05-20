@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.repository.AuctionSessionRepository;
-import com.auction.server.view.ApiResponse;
+import com.auction.server.dto.ApiResponse;
 import com.auction.server.model.*;
 import com.auction.server.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +19,7 @@ import com.auction.server.service.BidderService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -53,6 +54,17 @@ public class BidderController {
         return new ApiResponse<>(200, "Lấy danh sách đấu giá thành công", activeSessions);
     }
 
+
+    @GetMapping("/my-bidding-sessions")
+    public ApiResponse<List<AuctionSession>> getMyBiddingSessions(@RequestParam Integer bidderId) {
+        if (bidderId == null || bidderId <= 0) {
+            return new ApiResponse<>(400, "bidderId không hợp lệ", List.of());
+        }
+
+        List<AuctionSession> sessions = bidRepository.findDistinctSessionsByBidderId(bidderId);
+        return new ApiResponse<>(200, "Lấy danh sách phiên người dùng đang đấu giá thành công", sessions);
+    }
+
     // API Nạp tiền
     @PostMapping("/deposit")
     public ResponseEntity<?> depositMoney(@RequestParam Integer bidderId, @RequestParam BigDecimal amount) {
@@ -75,5 +87,18 @@ public class BidderController {
         } else {
             return new ApiResponse<>(400, message, "FAILED");
         }
+    }
+
+    @GetMapping("/my-bids")
+    public ApiResponse<java.util.List<com.auction.server.dto.SessionResponseDTO>> getMyBids(@RequestParam Integer bidderId) {
+        logger.info("Đang lấy danh sách các phiên đấu giá đã tham gia của bidderId: {}", bidderId);
+        java.util.List<AuctionSession> sessions = bidRepository.findSessionsByBidderId(bidderId);
+        java.util.List<com.auction.server.dto.SessionResponseDTO> dtos = sessions.stream()
+                .map(session -> {
+                    int bidCount = Math.toIntExact(bidRepository.countBySessionId(session.getId()));
+                    return com.auction.server.mapper.SessionResponseMapper.toDTO(session, bidCount);
+                })
+                .toList();
+        return new ApiResponse<>(200, "Lấy danh sách đấu giá đã tham gia thành công", dtos);
     }
 }

@@ -2,6 +2,7 @@ package com.auction.client.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -12,10 +13,15 @@ import java.io.IOException;
 import java.net.URL;
 import javafx.scene.control.MenuItem;
 
-
 public class SceneSwitcher {
     private static final Logger logger = LoggerFactory.getLogger(SceneSwitcher.class);
-    public static FXMLLoader Switch(ActionEvent event, String fxmlFile, Integer width, Integer height) throws IOException {
+
+    public static final double DEFAULT_WIDTH = 1100;
+    public static final double DEFAULT_HEIGHT = 700;
+    public static final double MIN_WIDTH = 900;
+    public static final double MIN_HEIGHT = 600;
+
+    public static FXMLLoader Switch(ActionEvent event, String fxmlFile, Integer targetWidth, Integer targetHeight) throws IOException {
         String path = "/com/auction/client/view/" + fxmlFile;
         URL xmlResource = SceneSwitcher.class.getResource(path);
 
@@ -30,47 +36,54 @@ public class SceneSwitcher {
         Object source = event.getSource();
 
         if (source instanceof Node) {
-            // Trường hợp 1: Chuyển cảnh từ Button, Label, AnchorPane...
             stage = (Stage) ((Node) source).getScene().getWindow();
         } else if (source instanceof MenuItem) {
-            // Trường hợp 2: Chuyển cảnh từ menu xổ xuống (Dropdown Menu)
             MenuItem menuItem = (MenuItem) source;
             stage = (Stage) menuItem.getParentPopup().getOwnerWindow();
         }
 
-        // Bắt lỗi nếu gọi hàm từ một nguồn không hợp lệ
         if (stage == null) {
             throw new RuntimeException("Không thể xác định được Stage hiện tại để chuyển cảnh!");
         }
 
-        Scene scene;
-        if (width == null || height == null) {
-            scene = new Scene(root);
+        boolean wasMaximized = stage.isMaximized();
+        boolean wasFullScreen = stage.isFullScreen();
+
+        double currentWidth = stage.getWidth() > MIN_WIDTH ? stage.getWidth() : DEFAULT_WIDTH;
+        double currentHeight = stage.getHeight() > MIN_HEIGHT ? stage.getHeight() : DEFAULT_HEIGHT;
+
+        Scene scene = stage.getScene();
+        if (scene == null) {
+            scene = new Scene(root, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+            stage.setScene(scene);
         } else {
-            scene = new Scene(root, width, height);
+            scene.setRoot(root);
         }
 
-        String cssPath = "/com/auction/client/controller/style.css";
-        URL cssResource = SceneSwitcher.class.getResource(cssPath);
-        if (cssResource != null) {
-            scene.getStylesheets().add(cssResource.toExternalForm());
+        stage.setMinWidth(MIN_WIDTH);
+        stage.setMinHeight(MIN_HEIGHT);
+
+        if (!wasMaximized && !wasFullScreen) {
+            if (Double.isNaN(currentWidth) || currentWidth < MIN_WIDTH) {
+                stage.setWidth(DEFAULT_WIDTH);
+            } else {
+                stage.setWidth(currentWidth);
+            }
+
+            if (Double.isNaN(currentHeight) || currentHeight < MIN_HEIGHT) {
+                stage.setHeight(DEFAULT_HEIGHT);
+            } else {
+                stage.setHeight(currentHeight);
+            }
         }
 
-        stage.setScene(scene);
+        final Stage finalStage = stage;
+        Platform.runLater(() -> {
+            finalStage.setMaximized(wasMaximized);
+            finalStage.setFullScreen(wasFullScreen);
+        });
 
-        if (width != null) {
-            stage.setMinWidth(width);
-            stage.setWidth(width);
-        }
-        if (height != null) {
-            stage.setMinHeight(height);
-            stage.setHeight(height);
-        }
-        stage.setResizable(true);
-        stage.centerOnScreen();
-        stage.show();
         logger.info("Đang chuyển sang: {}", fxmlFile);
-
         return loader;
     }
 
@@ -79,6 +92,6 @@ public class SceneSwitcher {
     }
 
     public static FXMLLoader switchScene(ActionEvent event, String fxmlFile, Integer width, Integer height) throws IOException {
-        return Switch(event, fxmlFile, width, height   );
+        return Switch(event, fxmlFile, width, height);
     }
 }

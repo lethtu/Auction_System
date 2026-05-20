@@ -272,6 +272,27 @@
 
                     <HBox spacing="16">
                         <VBox spacing="8" HBox.hgrow="ALWAYS" prefWidth="250">
+                            <Label text="Step Price (VNĐ)" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
+                            <TextField fx:id="stepPriceField" promptText="0" styleClass="custom-text-input" maxWidth="Infinity"/>
+                        </VBox>
+                        <VBox spacing="8" HBox.hgrow="ALWAYS" prefWidth="250">
+                            <Label text="Reserve Price (VNĐ)" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
+                            <TextField fx:id="reservePriceField" promptText="0" styleClass="custom-text-input" maxWidth="Infinity"/>
+                        </VBox>
+                    </HBox>
+
+                    <HBox spacing="16" alignment="CENTER_LEFT">
+                        <VBox spacing="8" HBox.hgrow="ALWAYS" prefWidth="250">
+                            <CheckBox fx:id="applyMinRateCheck" text="Apply Minimum Bid Rate" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
+                        </VBox>
+                        <VBox spacing="8" HBox.hgrow="ALWAYS" prefWidth="250" visible="${applyMinRateCheck.selected}" managed="${applyMinRateCheck.selected}">
+                            <Label text="Minimum Bid Rate (%)" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
+                            <TextField fx:id="minRateField" promptText="5" styleClass="custom-text-input" maxWidth="Infinity"/>
+                        </VBox>
+                    </HBox>
+
+                    <HBox spacing="16">
+                        <VBox spacing="8" HBox.hgrow="ALWAYS" prefWidth="250">
                             <Label text="Start Time (Required)" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
                             <HBox fx:id="wrapperStartDT" alignment="CENTER_LEFT" spacing="2" styleClass="custom-segmented-input" maxWidth="Infinity">
                                 <Button onAction="#handleShowStartCalendar" style="-fx-background-color: transparent; -fx-padding: 0; -fx-cursor: hand;">

@@ -4,49 +4,147 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class CreateAuctionRequest {
-    // Thông tin dành cho Item
+
     private String name;
     private String type;
+    private String description;
     private String imagePath;
-    private String description; // Thêm mô tả sản phẩm
 
-    // Thông tin dành cho AuctionSession
-    private Integer sellerId;         // Thêm ID người bán
-    private BigDecimal startingPrice; // Đổi chuẩn sang BigDecimal
-    private BigDecimal stepPrice;     // Thêm bước giá
+    private Integer sellerId;
+
+    private BigDecimal startingPrice;
+    private BigDecimal stepPrice;
+    private BigDecimal reservePrice;
+
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private String status;
+    private Boolean applyMinRate;
+    private BigDecimal minRate;
 
-    // --- Getters and Setters ---
+    public CreateAuctionRequest() {
+    }
+
+    public CreateAuctionRequest(
+            String name,
+            String type,
+            String description,
+            String imagePath,
+            Integer sellerId,
+            BigDecimal startingPrice,
+            BigDecimal stepPrice,
+            BigDecimal reservePrice,
+            LocalDateTime startTime,
+            LocalDateTime endTime
+    ) {
+        this.name = name;
+        this.type = type;
+        this.description = description;
+        this.imagePath = imagePath;
+        this.sellerId = sellerId;
+        this.startingPrice = startingPrice;
+        this.stepPrice = stepPrice;
+        this.reservePrice = reservePrice;
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getName() {
+        return name;
+    }
 
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public String getImagePath() { return imagePath; }
-    public void setImagePath(String imagePath) { this.imagePath = imagePath; }
+    public String getType() {
+        return type;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public void setType(String type) {
+        this.type = type;
+    }
 
-    public Integer getSellerId() { return sellerId; }
-    public void setSellerId(Integer sellerId) { this.sellerId = sellerId; }
+    public String getDescription() {
+        return description;
+    }
 
-    public BigDecimal getStartingPrice() { return startingPrice; }
-    public void setStartingPrice(BigDecimal startingPrice) { this.startingPrice = startingPrice; }
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-    public BigDecimal getStepPrice() { return stepPrice; }
-    public void setStepPrice(BigDecimal stepPrice) { this.stepPrice = stepPrice; }
+    public String getImagePath() {
+        return imagePath;
+    }
 
-    public LocalDateTime getStartTime() { return startTime; }
-    public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
+    }
 
-    public LocalDateTime getEndTime() { return endTime; }
-    public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
+    public Integer getSellerId() {
+        return sellerId;
+    }
+
+    public void setSellerId(Integer sellerId) {
+        this.sellerId = sellerId;
+    }
+
+    public BigDecimal getStartingPrice() {
+        return startingPrice;
+    }
+
+    public void setStartingPrice(BigDecimal startingPrice) {
+        this.startingPrice = startingPrice;
+    }
+
+    public BigDecimal getStepPrice() {
+        return stepPrice;
+    }
+
+    public void setStepPrice(BigDecimal stepPrice) {
+        this.stepPrice = stepPrice;
+    }
+
+    public BigDecimal getReservePrice() {
+        return reservePrice;
+    }
+
+    public void setReservePrice(BigDecimal reservePrice) {
+        this.reservePrice = reservePrice;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
+    public Boolean getApplyMinRate() {
+        return applyMinRate;
+    }
+
+    public void setApplyMinRate(Boolean applyMinRate) {
+        this.applyMinRate = applyMinRate;
+    }
+
+    public BigDecimal getMinRate() {
+        return minRate;
+    }
+
+    public void setMinRate(BigDecimal minRate) {
+        this.minRate = minRate;
+    }
 }

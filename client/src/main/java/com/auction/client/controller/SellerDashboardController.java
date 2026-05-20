@@ -87,7 +87,7 @@ public class SellerDashboardController {
     @FXML private Label lblTotalRevenue;
     @FXML private Label lblActiveAuctions;
     @FXML private Label lblTotalBids;
-    
+
     @FXML private TableView<SessionItem> sessionsTable;
     @FXML private TableColumn<SessionItem, SessionItem> colItem;
     @FXML private TableColumn<SessionItem, String> colStatus;
@@ -117,16 +117,16 @@ public class SellerDashboardController {
                 "Electronics", "Art", "Vehicle"
         ));
         productTypeCombo.setValue("Electronics");
-        
+
         setupTable();
         setupImageUpload();
         setupSplitDatetimePickers();
-        
+
         if (modalDialog != null && modalOverlay != null) {
             modalOverlay.heightProperty().addListener((obs, oldVal, newVal) -> updateModalMaxHeight());
             modalDialog.widthProperty().addListener((obs, oldVal, newVal) -> updateModalMaxHeight());
         }
-        
+
         loadMySessions();
     }
 
@@ -168,10 +168,10 @@ public class SellerDashboardController {
             }
         });
     }
-    
+
     private void setupImageUpload() {
         if (imageUploadArea == null) return;
-        
+
         imageUploadArea.setOnDragOver(event -> {
             if (event.getGestureSource() != imageUploadArea && event.getDragboard().hasFiles()) {
                 event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
@@ -198,12 +198,12 @@ public class SellerDashboardController {
             event.setDropCompleted(success);
             event.consume();
         });
-        
+
         imageUploadArea.setOnMouseClicked(event -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Select Product Image");
             fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
+                    new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
             );
             File selectedFile = fileChooser.showOpenDialog(imageUploadArea.getScene().getWindow());
             if (selectedFile != null) {
@@ -228,14 +228,14 @@ public class SellerDashboardController {
                 } else {
                     HBox hbox = new HBox(12);
                     hbox.setAlignment(Pos.CENTER_LEFT);
-                    
+
                     // Image placeholder
                     StackPane imgContainer = new StackPane();
                     imgContainer.setPrefSize(48, 48);
                     imgContainer.setMinSize(48, 48);
                     imgContainer.setMaxSize(48, 48);
                     imgContainer.setStyle("-fx-background-color: #f2e8f2; -fx-background-radius: 24px;");
-                    
+
                     if (item.imageUrl != null && !item.imageUrl.isEmpty()) {
                         try {
                             ImageView iv = new ImageView(new Image(item.imageUrl, 48, 48, true, true));
@@ -261,7 +261,7 @@ public class SellerDashboardController {
                     lblName.setStyle("-fx-font-weight: bold; -fx-text-fill: #2e1a28;");
                     Label lblId = new Label("ID: #AUC-" + item.id);
                     lblId.setStyle("-fx-font-size: 11px; -fx-text-fill: #604868;");
-                    
+
                     vbox.getChildren().addAll(lblName, lblId);
                     hbox.getChildren().addAll(imgContainer, vbox);
                     setGraphic(hbox);
@@ -279,7 +279,7 @@ public class SellerDashboardController {
                 } else {
                     Label lblStatus = new Label(status.toUpperCase());
                     lblStatus.getStyleClass().add("badge");
-                    
+
                     switch (status.toUpperCase()) {
                         case "ACTIVE", "LIVE" -> lblStatus.getStyleClass().add("badge-live");
                         case "DRAFT" -> lblStatus.getStyleClass().add("badge-draft");
@@ -354,7 +354,7 @@ public class SellerDashboardController {
                 } else {
                     HBox hbox = new HBox(8);
                     hbox.setAlignment(Pos.CENTER_LEFT);
-                    
+
                     Button btnView;
                     if ("DRAFT".equalsIgnoreCase(item.status)) {
                         btnView = createIconButton("mdi2p-publish", "#0096cc");
@@ -365,14 +365,14 @@ public class SellerDashboardController {
                     }
                     Button btnEdit = createIconButton("mdi2p-pencil", "#7c52aa");
                     Button btnDelete = createIconButton("mdi2d-delete", "#e53e3e");
-                    
+
                     btnView.setId("btnView_" + item.id);
                     btnEdit.setId("btnEdit_" + item.id);
                     btnDelete.setId("btnDelete_" + item.id);
-                    
+
                     btnDelete.setOnAction(e -> handleCancelSpecificSession(item));
                     btnEdit.setOnAction(e -> handleShowEditModal(item));
-                    
+
                     // Delete is allowed for ACTIVE, COMING or DRAFT sessions
                     boolean isDeletable = "ACTIVE".equalsIgnoreCase(item.status) || "COMING".equalsIgnoreCase(item.status) || "DRAFT".equalsIgnoreCase(item.status);
                     if (!isDeletable) {
@@ -427,7 +427,7 @@ public class SellerDashboardController {
     void handleShowEditModal(SessionItem item) {
         if (item == null) return;
         editingSession = item;
-        
+
         if (modalTitle != null) {
             modalTitle.setText("Edit Listing");
         }
@@ -448,14 +448,14 @@ public class SellerDashboardController {
                 btnDraftOrReset.setText("Save Changes");
             }
         }
-        
+
         if (startingPriceField != null) startingPriceField.setDisable(isActive);
         if (txtStartDay != null) txtStartDay.setDisable(isActive);
         if (txtStartMonth != null) txtStartMonth.setDisable(isActive);
         if (txtStartYear != null) txtStartYear.setDisable(isActive);
         if (txtStartHour != null) txtStartHour.setDisable(isActive);
         if (txtStartMin != null) txtStartMin.setDisable(isActive);
-        
+
         // Populate the form fields
         productNameField.setText(item.productName);
         productTypeCombo.setValue(item.productType);
@@ -479,11 +479,11 @@ public class SellerDashboardController {
         }
         descriptionArea.setText(item.description);
         startingPriceField.setText(item.startingPrice != null ? item.startingPrice.toString() : "0");
-        
+
         // Populate Date/Time fields
         populateSplitTimeFields(item.startTime, txtStartDay, txtStartMonth, txtStartYear, txtStartHour, txtStartMin);
         populateSplitTimeFields(item.endTime, txtEndDay, txtEndMonth, txtEndYear, txtEndHour, txtEndMin);
-        
+
         modalOverlay.setVisible(true);
     }
 
@@ -665,7 +665,7 @@ public class SellerDashboardController {
         // 4. Time Validation
         LocalDateTime startDT = getLocalDateTimeFromSplitFields(txtStartDay, txtStartMonth, txtStartYear, txtStartHour, txtStartMin);
         LocalDateTime endDT = getLocalDateTimeFromSplitFields(txtEndDay, txtEndMonth, txtEndYear, txtEndHour, txtEndMin);
-        
+
         // Validate Start Time
         if (startDT == null) {
             formIsValid = false;
@@ -911,7 +911,7 @@ public class SellerDashboardController {
         // 4. Time Validation
         LocalDateTime startDT = getLocalDateTimeFromSplitFields(txtStartDay, txtStartMonth, txtStartYear, txtStartHour, txtStartMin);
         LocalDateTime endDT = getLocalDateTimeFromSplitFields(txtEndDay, txtEndMonth, txtEndYear, txtEndHour, txtEndMin);
-        
+
         // Validate Start Time
         if (startDT == null) {
             formIsValid = false;
@@ -1157,7 +1157,7 @@ public class SellerDashboardController {
         // 3. Time Validation
         LocalDateTime startDT = getLocalDateTimeFromSplitFields(txtStartDay, txtStartMonth, txtStartYear, txtStartHour, txtStartMin);
         LocalDateTime endDT = getLocalDateTimeFromSplitFields(txtEndDay, txtEndMonth, txtEndYear, txtEndHour, txtEndMin);
-        
+
         // Validate Start Time
         if (startDT == null) {
             formIsValid = false;
@@ -1447,7 +1447,7 @@ public class SellerDashboardController {
         // 3. Time Validation
         LocalDateTime startDT = getLocalDateTimeFromSplitFields(txtStartDay, txtStartMonth, txtStartYear, txtStartHour, txtStartMin);
         LocalDateTime endDT = getLocalDateTimeFromSplitFields(txtEndDay, txtEndMonth, txtEndYear, txtEndHour, txtEndMin);
-        
+
         // Validate Start Time
         if (startDT == null) {
             formIsValid = false;
@@ -1890,21 +1890,21 @@ public class SellerDashboardController {
         descriptionArea.clear();
         startingPriceField.clear();
         if (lblImageFileName != null) lblImageFileName.setText("");
-        
+
         if (startingPriceField != null) startingPriceField.setDisable(false);
         if (txtStartDay != null) txtStartDay.setDisable(false);
         if (txtStartMonth != null) txtStartMonth.setDisable(false);
         if (txtStartYear != null) txtStartYear.setDisable(false);
         if (txtStartHour != null) txtStartHour.setDisable(false);
         if (txtStartMin != null) txtStartMin.setDisable(false);
-        
+
         LocalDateTime now = LocalDateTime.now();
         txtStartDay.setText(String.format("%02d", now.getDayOfMonth()));
         txtStartMonth.setText(String.format("%02d", now.getMonthValue()));
         txtStartYear.setText(String.valueOf(now.getYear()));
         txtStartHour.setText(String.format("%02d", now.getHour()));
         txtStartMin.setText(String.format("%02d", now.getMinute()));
-        
+
         LocalDateTime tomorrow = now.plusDays(1);
         txtEndDay.setText(String.format("%02d", tomorrow.getDayOfMonth()));
         txtEndMonth.setText(String.format("%02d", tomorrow.getMonthValue()));
@@ -2036,12 +2036,12 @@ public class SellerDashboardController {
                     if (currentText != null && !currentText.isEmpty()) {
                         sidebarButtonTextMap.put(btn, currentText);
                     }
-                    
+
                     String tooltipText = sidebarButtonTextMap.get(btn);
                     if (tooltipText != null) {
                         Tooltip tooltip = new Tooltip(tooltipText);
                         tooltip.setStyle("-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 6px 12px; -fx-font-size: 13px;");
-                        
+
                         javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.millis(300));
                         pause.setOnFinished(e -> {
                             if (btn.isHover()) {

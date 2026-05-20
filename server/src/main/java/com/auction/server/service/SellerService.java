@@ -1,20 +1,19 @@
 package com.auction.server.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.auction.server.dto.CreateAuctionRequest;
 import com.auction.server.dto.SellerStatsDTO;
 import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.factory.ItemFactory;
+import com.auction.server.mapper.SessionResponseMapper;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.model.Item;
 import com.auction.server.model.Seller;
-import com.auction.server.model.User;
 import com.auction.server.repository.AuctionSessionRepository;
 import com.auction.server.repository.ItemRepository;
-import com.auction.server.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.auction.server.util.SellerSessionGuard;
+import com.auction.server.util.SellerSessionUpdater;
+import com.auction.server.validator.SellerAuctionValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,111 +23,42 @@ import java.util.List;
 
 @Service
 public class SellerService {
-    private static final Logger logger = LoggerFactory.getLogger(SellerService.class);
+    private final ItemRepository itemRepository;
+    private final AuctionSessionRepository auctionSessionRepository;
+    private final SellerSessionGuard sellerSessionGuard;
 
-    @Autowired
-    private ItemRepository itemRepository;
-
-    @Autowired
-    private AuctionSessionRepository auctionSessionRepository; // Đã đổi tên Repo theo chuẩn
-
-    @Autowired
-    private UserRepository userRepository;
-
-    private Seller getSellerById(Integer sellerId) {
-        User user = userRepository.findById(sellerId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người bán"));
-
-        if (!(user instanceof Seller)) {
-            logger.error("Người dùng này không phải seller");
-            throw new RuntimeException("Người dùng này không phải seller");
-        }
-
-        return (Seller) user;
+    public SellerService(
+            ItemRepository itemRepository,
+            AuctionSessionRepository auctionSessionRepository,
+            SellerSessionGuard sellerSessionGuard
+    ) {
+        this.itemRepository = itemRepository;
+        this.auctionSessionRepository = auctionSessionRepository;
+        this.sellerSessionGuard = sellerSessionGuard;
     }
 
-    private void validateAuctionInput(CreateAuctionRequest request, boolean isUpdate) {
-        if (request.getName() == null || request.getName().trim().isEmpty()) {
-            logger.error("Tên sản phẩm không được để trống");
-            throw new IllegalArgumentException("Tên sản phẩm không được để trống");
-        }
-
-        if (request.getType() == null || request.getType().trim().isEmpty()) {
-            logger.error("Loại sản phẩm không được để trống");
-            throw new IllegalArgumentException("Loại sản phẩm không được để trống");
-        }
-
-        if (request.getDescription() != null && request.getDescription().length() > 1000) {
-            logger.error("Mô tả không được quá 1000 ký tự");
-            throw new IllegalArgumentException("Mô tả không được quá 1000 ký tự");
-        }
-
-        boolean isDraft = "DRAFT".equalsIgnoreCase(request.getStatus());
-        if (!isDraft) {
-            if (request.getStartingPrice() == null || request.getStartingPrice().compareTo(BigDecimal.ZERO) <= 0) {
-                logger.error("Giá khởi điểm phải lớn hơn 0");
-                throw new IllegalArgumentException("Giá khởi điểm phải lớn hơn 0");
-            }
-        } else {
-            if (request.getStartingPrice() == null) {
-                request.setStartingPrice(BigDecimal.ZERO);
-            }
-            if (request.getStartingPrice().compareTo(BigDecimal.ZERO) < 0) {
-                logger.error("Giá khởi điểm không được âm");
-                throw new IllegalArgumentException("Giá khởi điểm không được âm");
-            }
-        }
-
-        if (request.getStepPrice() != null && request.getStepPrice().compareTo(BigDecimal.ZERO) <= 0) {
-            logger.error("Bước giá phải lớn hơn 0");
-            throw new IllegalArgumentException("Bước giá phải lớn hơn 0");
-        }
-
-        if (!isDraft) {
-            LocalDateTime now = LocalDateTime.now();
-
-            // Xác định thời gian bắt đầu thực tế để làm mốc so sánh với thời gian kết thúc
-            LocalDateTime actualStart = (request.getStartTime() == null) ? now : request.getStartTime();
-
-            if (request.getEndTime() == null || !request.getEndTime().isAfter(actualStart)) {
-                logger.error("Thời gian kết thúc phải diễn ra sau thời gian bắt đầu.");
-                throw new IllegalArgumentException("Thời gian kết thúc phải diễn ra sau thời gian bắt đầu.");
-            }
-        }
-    }
-
-    /**
-     * Hàm tạo phiên đấu giá (Đã đồng bộ với SellerController của Khánh)
-     */
     @Transactional
-    public AuctionSession createAuctionSession(CreateAuctionRequest request) {
-        validateAuctionInput(request, false);
-        Seller seller = getSellerById(request.getSellerId());
+    public SessionResponseDTO createAuctionSession(CreateAuctionRequest request) {
+        SellerAuctionValidator.validate(request);
 
-        // Dùng ItemFactory của Khánh, map dữ liệu từ Request
-        Item item = ItemFactory.createItem(request.getType());
-        item.setName(request.getName());
-        item.setType(request.getType());
-        item.setImagePath(request.getImagePath()); // Dùng imagePath chuẩn
-        item.setDescription(request.getDescription());
+        Seller seller = sellerSessionGuard.getSellerById(request.getSellerId());
 
+        Item item = ItemFactory.createItem(request.getType(), request);
         Item savedItem = itemRepository.save(item);
 
         AuctionSession session = new AuctionSession();
         session.setItem(savedItem);
         session.setSeller(seller);
-        session.setStartingPrice(request.getStartingPrice());
-        session.setCurrentPrice(request.getStartingPrice());
-        session.setStepPrice(request.getStepPrice());
 
-        // Tối ưu Server-side Timing: Nếu Client để trống, Server tự gán giờ hiện hành
-        if (request.getStartTime() == null) {
+        SellerSessionUpdater.updateSessionFromRequest(session, request);
+
+        if (session.getStartTime() == null) {
             session.setStartTime(LocalDateTime.now());
-        } else {
-            session.setStartTime(request.getStartTime());
         }
 
-        session.setEndTime(request.getEndTime());
+        session.setApplyMinRate(request.getApplyMinRate() != null ? request.getApplyMinRate() : false);
+        session.setMinRate(request.getMinRate() != null ? request.getMinRate() : BigDecimal.ZERO);
+        SellerSessionUpdater.resetApprovalInfo(session);
 
         session.setApprovedAt(LocalDateTime.now());
         session.setRejectedAt(null);
@@ -148,76 +78,47 @@ public class SellerService {
             }
         }
 
-        return auctionSessionRepository.save(session);
+        AuctionSession savedSession = auctionSessionRepository.save(session);
+        return SessionResponseMapper.toDTO(savedSession);
     }
 
-    // Các tính năng mới của Minh (Đã chuẩn hóa Enum)
     public List<SessionResponseDTO> getMySessions(Integer sellerId, String status) {
-        getSellerById(sellerId);
+        sellerSessionGuard.getSellerById(sellerId);
 
-        List<AuctionSession> sessions = auctionSessionRepository.findBySeller_Id(sellerId);
-
-        if (status != null && !status.trim().isEmpty()) {
-            try {
-                // Chuyển String gửi lên thành Enum để lọc
-                AuctionStatus enumStatus = AuctionStatus.valueOf(status.trim().toUpperCase());
-                sessions = sessions.stream()
-                        .filter(session -> session.getStatus() == enumStatus)
-                        .toList();
-            } catch (IllegalArgumentException e) {
-                // Bỏ qua lọc nếu status gửi lên không khớp chuẩn Enum
-            }
-        }
-
-        return sessions.stream()
-                .map(this::mapToSessionResponseDTO)
+        return findSessionsBySellerAndStatus(sellerId, status)
+                .stream()
+                .map(SessionResponseMapper::toDTO)
                 .toList();
     }
 
     public SessionResponseDTO getSessionDetail(Integer sessionId, Integer sellerId) {
-        Seller seller = getSellerById(sellerId);
+        sellerSessionGuard.getSellerById(sellerId);
 
-        AuctionSession session = auctionSessionRepository.findById(sessionId)
-                .orElseThrow(() -> new RuntimeException("Phiên đấu giá không tồn tại"));
+        AuctionSession session = sellerSessionGuard.getSessionById(sessionId);
+        sellerSessionGuard.validateSessionOwner(session, sellerId, "Bạn không có quyền xem phiên này");
 
-        if (!session.getSeller().getId().equals(seller.getId())) {
-            logger.error("{} không có quyền xem phiên {}", sellerId, sessionId);
-            throw new RuntimeException("Bạn không có quyền xem phiên này");
-        }
-
-        return mapToSessionResponseDTO(session);
+        return SessionResponseMapper.toDTO(session);
     }
 
     @Transactional
-    public AuctionSession updateSession(Integer sessionId, Integer sellerId, CreateAuctionRequest request) {
-        validateAuctionInput(request, true);
-        Seller seller = getSellerById(sellerId);
+    public SessionResponseDTO updateSession(Integer sessionId, Integer sellerId, CreateAuctionRequest request) {
+        SellerAuctionValidator.validate(request);
+        sellerSessionGuard.getSellerById(sellerId);
 
-        AuctionSession session = auctionSessionRepository.findById(sessionId)
-                .orElseThrow(() -> new RuntimeException("Phiên đấu giá không tồn tại"));
-
-        if (!session.getSeller().getId().equals(seller.getId())) {
-            logger.error("{} không có quyền sửa phiên {}", sellerId, sessionId);
-            throw new RuntimeException("Bạn không có quyền sửa phiên này");
-        }
+        AuctionSession session = sellerSessionGuard.getSessionById(sessionId);
+        sellerSessionGuard.validateSessionOwner(session, sellerId, "Bạn không có quyền sửa phiên này");
 
         if (session.getStatus() != AuctionStatus.ACTIVE && session.getStatus() != AuctionStatus.COMING && session.getStatus() != AuctionStatus.DRAFT) {
-            logger.error("Chỉ được sửa phiên chưa kết thúc hoặc bản nháp");
-            throw new RuntimeException("Chỉ được sửa phiên chưa kết thúc hoặc bản nháp");
+            throw new IllegalArgumentException("Chỉ được sửa phiên chưa kết thúc hoặc bản nháp");
         }
 
         Item item = session.getItem();
-        item.setName(request.getName());
-        item.setType(request.getType());
-        item.setImagePath(request.getImagePath());
-        item.setDescription(request.getDescription());
+        SellerSessionUpdater.updateItemFromRequest(item, request);
         itemRepository.save(item);
 
-        session.setStartingPrice(request.getStartingPrice());
-        session.setCurrentPrice(request.getStartingPrice());
-        session.setStepPrice(request.getStepPrice());
-        session.setStartTime(request.getStartTime());
-        session.setEndTime(request.getEndTime());
+        SellerSessionUpdater.updateSessionFromRequest(session, request);
+        session.setApplyMinRate(request.getApplyMinRate() != null ? request.getApplyMinRate() : false);
+        session.setMinRate(request.getMinRate() != null ? request.getMinRate() : BigDecimal.ZERO);
 
         if ("DRAFT".equalsIgnoreCase(request.getStatus())) {
             session.setStatus(AuctionStatus.DRAFT);
@@ -231,86 +132,50 @@ public class SellerService {
             }
         }
 
-        return auctionSessionRepository.save(session);
+        AuctionSession savedSession = auctionSessionRepository.save(session);
+        return SessionResponseMapper.toDTO(savedSession);
     }
 
     @Transactional
     public void cancelSession(Integer sessionId, Integer sellerId) {
-        Seller seller = getSellerById(sellerId);
+        sellerSessionGuard.getSellerById(sellerId);
 
-        AuctionSession session = auctionSessionRepository.findById(sessionId)
-                .orElseThrow(() -> new RuntimeException("Phiên đấu giá không tồn tại"));
-
-        if (!session.getSeller().getId().equals(seller.getId())) {
-            logger.error("{} không có quyền hủy phiên này", sellerId);
-            throw new RuntimeException("Bạn không có quyền hủy phiên này");
-        }
-
+        AuctionSession session = sellerSessionGuard.getSessionById(sessionId);
+        sellerSessionGuard.validateSessionOwner(session, sellerId, "Bạn không có quyền hủy phiên này");
         if (session.getStatus() != AuctionStatus.ACTIVE && session.getStatus() != AuctionStatus.COMING && session.getStatus() != AuctionStatus.DRAFT) {
-            logger.error("Chỉ được hủy phiên đang hoạt động, chuẩn bị diễn ra hoặc bản nháp");
-            throw new RuntimeException("Chỉ được hủy phiên đang hoạt động, chuẩn bị diễn ra hoặc bản nháp");
+            throw new IllegalArgumentException("Chỉ được hủy phiên đang hoạt động, chuẩn bị diễn ra hoặc bản nháp");
         }
 
-        session.setStatus(AuctionStatus.CANCELED); // Ép dùng Enum CANCELED
+        session.setStatus(AuctionStatus.CANCELED);
         auctionSessionRepository.save(session);
     }
 
     public SellerStatsDTO getSellerStats(Integer sellerId) {
-        getSellerById(sellerId);
+        sellerSessionGuard.getSellerById(sellerId);
 
-        List<AuctionSession> myCompletedSessions = auctionSessionRepository.findBySeller_Id(sellerId)
-                .stream()
-                .filter(s -> s.getStatus() == AuctionStatus.ENDED) // Thay "COMPLETED" bằng ENDED chuẩn
-                .toList();
+        List<AuctionSession> endedSessions = auctionSessionRepository.findBySeller_IdAndStatus(
+                sellerId,
+                AuctionStatus.ENDED
+        );
 
-        long count = myCompletedSessions.size();
-
-        BigDecimal revenue = myCompletedSessions.stream()
+        BigDecimal revenue = endedSessions.stream()
                 .map(AuctionSession::getCurrentPrice)
                 .filter(price -> price != null)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        return new SellerStatsDTO(count, revenue);
+        return new SellerStatsDTO(endedSessions.size(), revenue);
     }
 
-    private SessionResponseDTO mapToSessionResponseDTO(AuctionSession session) {
-        SessionResponseDTO dto = new SessionResponseDTO();
-
-        dto.setId(session.getId());
-
-        if (session.getItem() != null) {
-            dto.setProductId(session.getItem().getId());
-            dto.setProductName(session.getItem().getName());
-            dto.setProductType(session.getItem().getType());
-            dto.setImageUrl(session.getItem().getImagePath()); // Fix thành getImagePath
-            dto.setDescription(session.getItem().getDescription());
+    private List<AuctionSession> findSessionsBySellerAndStatus(Integer sellerId, String status) {
+        if (status == null || status.trim().isEmpty()) {
+            return auctionSessionRepository.findBySeller_Id(sellerId);
         }
 
-        if (session.getSeller() != null) {
-            dto.setSellerId(session.getSeller().getId());
-            dto.setSellerUsername(session.getSeller().getUsername());
-            dto.setSellerFullname(session.getSeller().getFullname());
+        try {
+            AuctionStatus enumStatus = AuctionStatus.valueOf(status.trim().toUpperCase());
+            return auctionSessionRepository.findBySeller_IdAndStatus(sellerId, enumStatus);
+        } catch (IllegalArgumentException e) {
+            return List.of();
         }
-
-        dto.setStartingPrice(session.getStartingPrice());
-        dto.setCurrentPrice(session.getCurrentPrice());
-        dto.setStepPrice(session.getStepPrice());
-
-        dto.setCreatedAt(session.getCreatedAt());
-        dto.setStartTime(session.getStartTime());
-        dto.setEndTime(session.getEndTime());
-        dto.setApprovedAt(session.getApprovedAt());
-        dto.setRejectedAt(session.getRejectedAt());
-
-        if (session.getStatus() != null) {
-            dto.setStatus(session.getStatus().name());
-        }
-
-        dto.setRejectReason(session.getRejectReason());
-
-        dto.setApprovedByAdminId(session.getApprovedByAdminId());
-        dto.setRejectedByAdminId(session.getRejectedByAdminId());
-
-        return dto;
     }
 }

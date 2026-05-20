@@ -61,3 +61,381 @@
     -fx-pref-height: 0;
     -fx-padding: 0;
 }
+
+/* Ẩn tab header khi sidebar đã là nơi điều hướng chính. */
+.navigationless-tab-pane>.tab-header-area {
+    -fx-min-height: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+    -fx-padding: 0;
+    -fx-opacity: 0;
+}
+
+.navigationless-tab-pane>.tab-header-area>.headers-region,
+.navigationless-tab-pane>.tab-header-area>.tab-header-background {
+    -fx-min-height: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Bid Trajectory AreaChart — Premium Styling
+   ══════════════════════════════════════════════════════════════ */
+
+.chart {
+    -fx-padding: 0;
+}
+
+.chart-plot-background {
+    -fx-background-color: transparent;
+}
+
+.chart-content {
+    -fx-padding: 0;
+}
+
+/* Hide all chart chrome */
+.chart-horizontal-grid-lines,
+.chart-vertical-grid-lines,
+.chart-alternative-row-fill,
+.chart-alternative-column-fill {
+    -fx-stroke: transparent;
+    -fx-fill: transparent;
+}
+
+/* Axis styling — hidden but functional */
+.axis {
+    -fx-tick-mark-visible: false;
+    -fx-minor-tick-visible: false;
+    -fx-tick-labels-visible: false;
+    -fx-border-color: transparent;
+}
+
+.axis-tick-mark,
+.axis-minor-tick-mark {
+    -fx-stroke: transparent;
+}
+
+/* Area line — vibrant gradient stroke with glow */
+.default-color0.chart-series-area-line {
+    -fx-stroke: #e040a0;
+    -fx-stroke-width: 3px;
+    -fx-stroke-line-cap: round;
+    -fx-stroke-line-join: round;
+    -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.6), 8, 0.3, 0, 0);
+}
+
+/* Area fill — smooth gradient */
+.default-color0.chart-series-area-fill {
+    -fx-fill: linear-gradient(to bottom,
+            rgba(224, 64, 160, 0.25) 0%,
+            rgba(168, 85, 247, 0.12) 40%,
+            rgba(124, 82, 170, 0.04) 80%,
+            rgba(254, 247, 255, 0.0) 100%);
+}
+
+/* Data point symbols — glowing circles */
+.default-color0.chart-area-symbol {
+    -fx-background-color: white, #e040a0;
+    -fx-background-insets: 0, 2;
+    -fx-background-radius: 6px, 4px;
+    -fx-padding: 5px;
+    -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.7), 6, 0.4, 0, 0);
+}
+
+/* Legend — hide it */
+.chart-legend {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Bid History Row — Premium List Items
+   ══════════════════════════════════════════════════════════════ */
+
+.bid-history-row {
+    -fx-padding: 10 14;
+    -fx-background-radius: 14;
+    -fx-background-color: transparent;
+}
+
+.bid-history-row:hover {
+    -fx-background-color: rgba(238, 220, 255, 0.25);
+}
+
+.bid-history-row .bid-rank {
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 10px;
+    -fx-font-weight: 900;
+    -fx-text-fill: white;
+    -fx-min-width: 24;
+    -fx-min-height: 24;
+    -fx-max-width: 24;
+    -fx-max-height: 24;
+    -fx-alignment: center;
+    -fx-background-radius: 8;
+}
+
+.bid-history-row .bid-name {
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #2e1a28;
+}
+
+.bid-history-row .bid-amount {
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 14px;
+    -fx-font-weight: 900;
+    -fx-text-fill: #2e1a28;
+}
+
+.bid-history-row .bid-time {
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 10px;
+    -fx-text-fill: #a088a8;
+}
+
+.page-root {
+    -fx-background-color: linear-gradient(to bottom right, #fff9fd 0%, #fff6fa 55%, #fffaf3 100%);
+    -fx-font-family: "DM Sans", "Segoe UI", sans-serif;
+}
+
+.topbar {
+    -fx-padding: 18 28 18 28;
+    -fx-background-color: rgba(255, 251, 255, 0.92);
+    -fx-border-color: #f6ddea;
+    -fx-border-width: 0 0 1 0;
+}
+
+.brand-title {
+    -fx-font-size: 28px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #e23ea1;
+    -fx-cursor: hand;
+}
+
+.brand-subtitle {
+    -fx-font-size: 11px;
+    -fx-text-fill: #8c6f8f;
+}
+
+.material-icon {
+    -fx-font-family: "Material Symbols Outlined";
+    -fx-font-size: 20px;
+    -fx-text-fill: #654a67;
+}
+
+.accent-icon {
+    -fx-text-fill: #e23ea1;
+}
+
+.icon-btn {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 14px;
+    -fx-padding: 10 12 10 12;
+    -fx-cursor: hand;
+    -fx-border-color: #f3deea;
+    -fx-border-radius: 14px;
+    -fx-border-width: 1px;
+}
+
+.icon-btn:hover {
+    -fx-background-color: #fff3f9;
+}
+
+.search-shell {
+    -fx-pref-width: 450px;
+    -fx-min-width: 380px;
+    -fx-max-width: 520px;
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 18px;
+    -fx-border-color: #f3deea;
+    -fx-border-radius: 18px;
+    -fx-padding: 0 14 0 14;
+}
+
+.search-field {
+    -fx-background-color: transparent;
+    -fx-padding: 11 0 11 4;
+    -fx-font-size: 14px;
+    -fx-text-fill: #2e1a28;
+    -fx-prompt-text-fill: #ac92ab;
+}
+
+.profile-menu-btn {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 18px;
+    -fx-border-radius: 18px;
+    -fx-border-color: #f3deea;
+    -fx-padding: 6 10 6 8;
+}
+
+.avatar-shell {
+    -fx-min-width: 38px;
+    -fx-min-height: 38px;
+    -fx-max-width: 38px;
+    -fx-max-height: 38px;
+    -fx-background-color: linear-gradient(to bottom right, #2f1b54 0%, #4c2a77 100%);
+    -fx-background-radius: 19px;
+}
+
+.avatar-icon {
+    -fx-text-fill: white;
+    -fx-font-size: 19px;
+}
+
+.profile-title {
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #2e1a28;
+}
+
+.profile-subtitle {
+    -fx-font-size: 10px;
+    -fx-text-fill: #9b85a0;
+}
+
+.content-wrap {
+    -fx-background-color: transparent;
+}
+
+.hero-card {
+    -fx-background-color: linear-gradient(to right, rgba(255, 255, 255, 0.98) 0%, rgba(255, 247, 251, 0.98) 100%);
+    -fx-background-radius: 26px;
+    -fx-border-color: #f4dfeb;
+    -fx-border-radius: 26px;
+    -fx-padding: 22 24 22 24;
+}
+
+.page-title {
+    -fx-font-size: 38px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #28142d;
+}
+
+.page-subtitle {
+    -fx-font-size: 15px;
+    -fx-text-fill: #705a73;
+}
+
+.mini-stat-card {
+    -fx-min-width: 96px;
+    -fx-alignment: center-left;
+    -fx-padding: 14 16 14 16;
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 20px;
+    -fx-border-color: #f1e1ec;
+    -fx-border-radius: 20px;
+}
+
+.mini-stat-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #8f7a93;
+}
+
+.mini-stat-value {
+    -fx-font-size: 24px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #28142d;
+}
+
+.success-text {
+    -fx-text-fill: #18a957;
+}
+
+.danger-text {
+    -fx-text-fill: #ef5d54;
+}
+
+.purple-text {
+    -fx-text-fill: #8b5cf6;
+}
+
+.section-card {
+    -fx-background-color: rgba(255, 255, 255, 0.88);
+    -fx-background-radius: 28px;
+    -fx-border-color: #f4dfeb;
+    -fx-border-radius: 28px;
+    -fx-padding: 18 18 10 18;
+}
+
+.filter-pill {
+    -fx-background-color: #f7eef7;
+    -fx-background-radius: 999px;
+    -fx-padding: 12 18 12 18;
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #39213d;
+    -fx-cursor: hand;
+}
+
+.filter-pill:hover {
+    -fx-background-color: #f3e5f3;
+}
+
+.filter-pill-active {
+    -fx-background-color: linear-gradient(to right, #e23ea1 0%, #cc46d5 100%);
+    -fx-text-fill: white;
+}
+
+.pill-icon {
+    -fx-font-size: 17px;
+}
+
+.pill-icon-light {
+    -fx-text-fill: white;
+}
+
+.soft-chip {
+    -fx-background-color: #fff5fa;
+    -fx-border-color: #f7ddeb;
+    -fx-border-radius: 999px;
+    -fx-background-radius: 999px;
+    -fx-padding: 10 14 10 14;
+}
+
+.chip-icon {
+    -fx-text-fill: #e23ea1;
+    -fx-font-size: 16px;
+}
+
+.soft-chip-text {
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #7b617e;
+}
+
+.products-scroll,
+.products-scroll>.viewport {
+    -fx-background-color: transparent;
+}
+
+.products-flow {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane .scroll-bar:vertical {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane .thumb {
+    -fx-background-color: #e8c9db;
+    -fx-background-radius: 999px;
+}
+
+@font-face {
+    font-family: 'Material Symbols Outlined';
+    src: url('fonts/MaterialSymbolsOutlined.ttf');
+}
+
+/* 2. Định dạng cho class cái cúp của bạn */
+.award-trophy {
+    -fx-font-family: "Material Symbols Outlined";
+    -fx-font-size: 24px;
+    /* Điều chỉnh kích thước */
+    -fx-text-fill: #FFD700;
+    /* Màu vàng Gold */
+    -fx-padding: 0 8px 0 0;
+}

@@ -13,15 +13,16 @@ import java.util.Optional;
 @Service
 public class RqLoginSignup {
     private static final Logger logger = LoggerFactory.getLogger(RqLoginSignup.class);
-    @Autowired
-    private HandleLoginSignup LoginSignup;
 
-    public Optional<User> login(String username, String pass){
-        return LoginSignup.findByUsernameAndPassword(username, pass);
+    @Autowired
+    private HandleLoginSignup loginSignup;
+
+    public Optional<User> login(String username, String pass) {
+        return loginSignup.findByUsernameOrEmailAndPassword(username, pass);
     }
 
-    public boolean signup(User newUser){
-        if (!LoginSignup.existsByUsernameOrEmail(newUser.getUsername(), newUser.getEmail())){
+    public boolean signup(User newUser) {
+        if (!loginSignup.existsByUsernameOrEmail(newUser.getUsername(), newUser.getEmail())) {
             logger.info("Đang thêm user: {}", newUser.getUsername());
             if (newUser.getPassword() == null) {
                 logger.info("Lỗi password user {} bị null", newUser.getUsername());
@@ -38,7 +39,7 @@ public class RqLoginSignup {
             bidder.setPlace_of_birth(newUser.getPlace_of_birth());
             bidder.setBalance(newUser.getBalance() != null ? newUser.getBalance() : java.math.BigDecimal.ZERO);
 
-            LoginSignup.save(bidder);
+            loginSignup.save(bidder);
             logger.info("Đã thêm thành công user: {} vào DB với role BIDDER", newUser.getUsername());
             return false;
         }

@@ -39,7 +39,7 @@ public class SignUpControllerTest {
         SignUpController controller = loader.getController();
         controller.setHttpClient(mockHttpClient);
 
-        stage.setScene(new Scene(root, 400, 550));
+        stage.setScene(new Scene(root, 1000, 650));
         stage.show();
         stage.toFront();
     }
@@ -65,6 +65,7 @@ public class SignUpControllerTest {
         robot.clickOn("#txtPassword").write("123456");
         robot.clickOn("#txtConfirmPassword").write("Sai_Mat_Khau_Nek");
 
+        robot.clickOn("#chkTerms");
         robot.clickOn("#btnSignUp");
 
         verifyThat("Mật khẩu xác nhận không khớp!", NodeMatchers.isVisible());
@@ -89,9 +90,10 @@ public class SignUpControllerTest {
         robot.clickOn("#txtPassword").write("123456");
         robot.clickOn("#txtConfirmPassword").write("123456");
 
+        robot.clickOn("#chkTerms");
         robot.clickOn("#btnSignUp");
 
-        robot.sleep(1000);
+        robot.sleep(1500);
         WaitForAsyncUtils.waitForFxEvents();
 
         verifyThat("Email hoặc Username đã tồn tại", NodeMatchers.isVisible());
@@ -115,11 +117,11 @@ public class SignUpControllerTest {
         robot.clickOn("#txtPassword").write("123456");
         robot.clickOn("#txtConfirmPassword").write("123456");
 
+        robot.clickOn("#chkTerms");
         robot.clickOn("#btnSignUp");
 
-        robot.sleep(1000);
+        robot.sleep(1500);
         WaitForAsyncUtils.waitForFxEvents();
-
 
         verifyThat("Đăng ký tài khoản thành công!", NodeMatchers.isVisible());
         robot.clickOn("OK");

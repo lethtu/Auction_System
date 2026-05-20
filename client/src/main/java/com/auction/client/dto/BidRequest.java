@@ -1,6 +1,5 @@
 package com.auction.client.dto;
 
-import com.auction.client.model.AuctionSession;
 import com.auction.client.model.Bidder;
 import com.auction.client.model.User;
 

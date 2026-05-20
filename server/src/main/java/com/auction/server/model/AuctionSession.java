@@ -1,5 +1,6 @@
 package com.auction.server.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
@@ -10,6 +11,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "auction_sessions")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class AuctionSession implements Serializable{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,6 +26,10 @@ public class AuctionSession implements Serializable{
     @JoinColumn(name = "seller_id")
     private Seller seller;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "winner_id")
+    private User winner;
+
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal startingPrice;
 
@@ -33,6 +39,11 @@ public class AuctionSession implements Serializable{
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal stepPrice;
 
+    @Column(precision = 15, scale = 2)
+    private BigDecimal reservePrice;
+
+    private Integer highestBidderId;
+
     private LocalDateTime createdAt;
     private LocalDateTime startTime;
 
@@ -41,11 +52,20 @@ public class AuctionSession implements Serializable{
     private LocalDateTime approvedAt;
     private LocalDateTime rejectedAt;
 
+    @Transient
+    private Integer totalBids;
+
     @Column(columnDefinition = "TEXT")
     private String rejectReason;
 
     private Integer approvedByAdminId;
     private Integer rejectedByAdminId;
+
+    @Column(name = "apply_min_rate")
+    private Boolean applyMinRate;
+
+    @Column(name = "min_rate", precision = 15, scale = 2)
+    private BigDecimal minRate;
 
     @Enumerated(EnumType.STRING)
     private AuctionStatus status;
@@ -94,6 +114,14 @@ public class AuctionSession implements Serializable{
         this.seller = seller;
     }
 
+    public User getWinner() {
+        return winner;
+    }
+
+    public void setWinner(User winner) {
+        this.winner = winner;
+    }
+
     public BigDecimal getStartingPrice() {
         return startingPrice;
     }
@@ -116,6 +144,22 @@ public class AuctionSession implements Serializable{
 
     public void setStepPrice(BigDecimal stepPrice) {
         this.stepPrice = stepPrice;
+    }
+
+    public BigDecimal getReservePrice() {
+        return reservePrice;
+    }
+
+    public void setReservePrice(BigDecimal reservePrice) {
+        this.reservePrice = reservePrice;
+    }
+
+    public Integer getHighestBidderId() {
+        return highestBidderId;
+    }
+
+    public void setHighestBidderId(Integer highestBidderId) {
+        this.highestBidderId = highestBidderId;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -190,12 +234,36 @@ public class AuctionSession implements Serializable{
         this.rejectedAt = rejectedAt;
     }
 
+    public Integer getTotalBids() {
+        return totalBids;
+    }
+
+    public void setTotalBids(Integer totalBids) {
+        this.totalBids = totalBids;
+    }
+
     public List<Bid> getBids() {
         return bids;
     }
 
     public void setBids(List<Bid> bids) {
         this.bids = bids;
+    }
+
+    public Boolean getApplyMinRate() {
+        return applyMinRate;
+    }
+
+    public void setApplyMinRate(Boolean applyMinRate) {
+        this.applyMinRate = applyMinRate;
+    }
+
+    public BigDecimal getMinRate() {
+        return minRate;
+    }
+
+    public void setMinRate(BigDecimal minRate) {
+        this.minRate = minRate;
     }
     @Override
     public String toString() {
@@ -206,6 +274,8 @@ public class AuctionSession implements Serializable{
                 ", startingPrice=" + startingPrice +
                 ", currentPrice=" + currentPrice +
                 ", stepPrice=" + stepPrice +
+                ", reservePrice=" + reservePrice +
+                ", highestBidderId=" + highestBidderId +
                 ", status=" + status +
                 ", startTime=" + startTime +
                 ", endTime=" + endTime +

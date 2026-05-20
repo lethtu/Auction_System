@@ -21,7 +21,8 @@ public class ForgotPasswordController {
     @FXML private TextField txtEmail, txtOTP;
     @FXML private PasswordField txtNewPassword, txtConfirmNewPassword;
     @FXML private VBox stepEmail, stepReset;
-    @FXML private Button btnGetOTP;
+    @FXML private Button btnGetOTP, btnResetPassword;
+    @FXML private Label lblStep1, lblStep2;
 
     @FXML
     public void handleGetOTP(ActionEvent event) {
@@ -51,6 +52,12 @@ public class ForgotPasswordController {
                         stepEmail.setDisable(true);
                         stepReset.setVisible(true);
                         stepReset.setManaged(true);
+                        
+                        if (lblStep1 != null && lblStep2 != null) {
+                            lblStep1.setStyle("-fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-text-fill: #907898;");
+                            lblStep2.setStyle("-fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-text-fill: #e040a0;");
+                        }
+                        
                         showAlert(Alert.AlertType.INFORMATION, "Thành công", rq.getString("message"));
                         logger.info("Gửi yêu cầu gửi OTP thành công");
                     }
@@ -131,7 +138,7 @@ public class ForgotPasswordController {
 
     @FXML
     public void goToLogin(ActionEvent event) throws Exception {
-        SceneSwitcher.switchScene(event, "Login.fxml", Config.Width, Config.Height);
+        SceneSwitcher.switchScene(event, "Login.fxml", 1000, 650);
     }
 
     private void showAlert(Alert.AlertType type, String title, String content) {
