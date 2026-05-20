@@ -62,10 +62,7 @@ public class AdminService {
     }
 
     public List<SessionResponseDTO> getPendingSessions() {
-        return sessionRepository.findByStatus(AuctionStatus.PENDING)
-                .stream()
-                .map(SessionResponseMapper::toDTO)
-                .toList();
+        return List.of();
     }
 
     public List<SessionResponseDTO> getAllSessions(String status) {
@@ -88,42 +85,12 @@ public class AdminService {
 
     @Transactional
     public void approveSession(Integer sessionId, Integer adminId) {
-        Admin admin = checkAdminPermission(adminId);
-        AuctionSession session = getSessionById(sessionId);
-
-        validatePendingSession(session, "Phiên này đã được xử lý hoặc không ở trạng thái chờ duyệt");
-
-        LocalDateTime now = LocalDateTime.now();
-
-        session.setStatus(AuctionStatus.ACTIVE);
-        session.setStartTime(now);
-        session.setApprovedAt(now);
-        session.setApprovedByAdminId(admin.getId());
-
-        clearRejectionInfo(session);
-
-        sessionRepository.save(session);
+        throw new RuntimeException("Chức năng duyệt phiên đã bị bãi bỏ");
     }
 
     @Transactional
     public void rejectSession(Integer sessionId, Integer adminId, String reason) {
-        Admin admin = checkAdminPermission(adminId);
-        String cleanReason = normalizeRequiredReason(reason);
-
-        AuctionSession session = getSessionById(sessionId);
-
-        validatePendingSession(session, "Chỉ được từ chối các phiên đang ở trạng thái chờ duyệt");
-
-        LocalDateTime now = LocalDateTime.now();
-
-        session.setStatus(AuctionStatus.REJECTED);
-        session.setRejectedAt(now);
-        session.setRejectedByAdminId(admin.getId());
-        session.setRejectReason(cleanReason);
-
-        clearApprovalInfo(session);
-
-        sessionRepository.save(session);
+        throw new RuntimeException("Chức năng từ chối phiên đã bị bãi bỏ");
     }
 
     @Transactional
@@ -243,13 +210,6 @@ public class AdminService {
         }
 
         return admin;
-    }
-
-    private void validatePendingSession(AuctionSession session, String errorMessage) {
-        if (session.getStatus() != AuctionStatus.PENDING) {
-            logger.warn("Phiên {} không ở trạng thái chờ duyệt", session.getId());
-            throw new IllegalArgumentException(errorMessage);
-        }
     }
 
     private String normalizeRequiredReason(String reason) {

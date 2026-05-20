@@ -63,14 +63,14 @@ import java.util.concurrent.TimeUnit;
 
 public class MainController implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(MainController.class);
-    
+
     static {
         try {
             java.io.InputStream fontStream = MainController.class.getResourceAsStream("/com/auction/client/view/fonts/MaterialIcons-Regular.ttf");
             if (fontStream != null) {
                 javafx.scene.text.Font.loadFont(fontStream, 20);
             }
-            
+
             java.io.InputStream fontStream2 = MainController.class.getResourceAsStream("/com/auction/client/view/fonts/MaterialSymbolsOutlined.ttf");
             if (fontStream2 != null) {
                 javafx.scene.text.Font.loadFont(fontStream2, 20);
@@ -97,10 +97,14 @@ public class MainController implements Initializable {
 
     @FXML private Button btnNotificationBell;
     @FXML private Label notificationBadge;
-
     @FXML private SidebarController sidebarController;
-    @FXML private Button btnHamburger;
 
+    @FXML private ScrollPane sidebarContainer;
+    @FXML private VBox sidebarContent;
+    @FXML private Button btnHamburger;
+    @FXML private Button btnStartSelling;
+
+    private boolean isSidebarCollapsed = false;
     private boolean showingWatchlistOnly = false;
     private boolean showingMyBidsOnly = false;
     private boolean showingMySessionsOnly = false;
@@ -124,6 +128,8 @@ public class MainController implements Initializable {
     private final List<Integer> currentRenderedIds = new ArrayList<>();
     private final Map<Integer, JSONObject> lastSnapshot = new ConcurrentHashMap<>();
 
+    private final Map<Button, String> sidebarButtonTextMap = new java.util.HashMap<>();
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         btnHamburger.setId("btnHamburger");
@@ -144,7 +150,7 @@ public class MainController implements Initializable {
 
         // QUAN TRỌNG
         btnHamburger.setOnAction(this::handleToggleSidebar);
-        
+
         if (User.getFullname() != null) {
             createUserOption("Chào, " + User.getFullname());
         }
@@ -159,8 +165,8 @@ public class MainController implements Initializable {
         cbCategory.getItems().addAll("Tất cả", "Electronics", "Art", "Vehicle");
         cbCategory.setValue("Tất cả");
 
-        // ĐÃ SỬA: Xóa "PENDING" khỏi bộ lọc trên giao diện sàn chính
-        cbStatus.getItems().addAll("Tất cả", "ACTIVE", "ENDED");
+        // Khởi tạo các trạng thái hiển thị trên sàn chính, bao gồm cả COMING SOON
+        cbStatus.getItems().addAll("Tất cả", "ACTIVE", "COMING SOON", "ENDED");
         cbStatus.setValue("Tất cả");
 
         // Lắng nghe sự kiện để lọc Real-time
@@ -316,7 +322,7 @@ public class MainController implements Initializable {
                     for (int i = 0; i < jsonArray.length(); i++) {
                         newProducts.add(jsonArray.getJSONObject(i));
                     }
-                    
+
                     if (!lastSnapshot.isEmpty()) {
                         for (JSONObject newObj : newProducts) {
                             int auctionId = newObj.optInt("id", -1);
@@ -327,19 +333,19 @@ public class MainController implements Initializable {
                                 BigDecimal newPrice = newObj.optBigDecimal("currentPrice", BigDecimal.ZERO);
                                 String oldStatus = oldObj.optString("status", "");
                                 String newStatus = newObj.optString("status", "");
-                                
+
                                 if (User.watchlistIds.contains(auctionId)) {
                                     String name = getItemObject(newObj).optString("name", "");
                                     if (newPrice.compareTo(oldPrice) > 0) {
-                                        AppNotification notif = new AppNotification(NotificationType.NEW_BID, NotificationSeverity.INFO, 
-                                            "Có giá mới", "Sản phẩm " + name + " vừa có bid mới: ₫ " + formatPrice(newPrice));
+                                        AppNotification notif = new AppNotification(NotificationType.NEW_BID, NotificationSeverity.INFO,
+                                                "Có giá mới", "Sản phẩm " + name + " vừa có bid mới: ₫ " + formatPrice(newPrice));
                                         notif.setAuctionId(auctionId);
                                         notif.setItemName(name);
                                         NotificationCenterService.getInstance().addNotification(notif);
                                     }
                                     if (!"ENDED".equalsIgnoreCase(oldStatus) && !oldStatus.equals(newStatus) && ("ENDED".equalsIgnoreCase(newStatus) || "FINISHED".equalsIgnoreCase(newStatus))) {
-                                        AppNotification notif = new AppNotification(NotificationType.AUCTION_END_LOSE, NotificationSeverity.INFO, 
-                                            "Phiên đấu giá kết thúc", "Sản phẩm " + name + " đã kết thúc.");
+                                        AppNotification notif = new AppNotification(NotificationType.AUCTION_END_LOSE, NotificationSeverity.INFO,
+                                                "Phiên đấu giá kết thúc", "Sản phẩm " + name + " đã kết thúc.");
                                         notif.setAuctionId(auctionId);
                                         notif.setItemName(name);
                                         NotificationCenterService.getInstance().addNotification(notif);
@@ -430,7 +436,7 @@ public class MainController implements Initializable {
 
         Platform.runLater(() -> {
             List<Integer> newIdsToRender = new ArrayList<>();
-            
+
             // Bước 1: Tính toán danh sách ID sẽ hiển thị sau khi lọc
             for (JSONObject sessionObj : allProducts) {
                 JSONObject itemObj = getItemObject(sessionObj);
@@ -439,15 +445,44 @@ public class MainController implements Initializable {
                 String type = itemObj.optString("type", "");
                 String status = sessionObj.optString("status", "ACTIVE");
 
-                if ("PENDING".equalsIgnoreCase(status) || "REJECTED".equalsIgnoreCase(status) || "CANCELED".equalsIgnoreCase(status)) {
+                // Chỉ chặn đứng các phiên bị hủy
+                if ("CANCELED".equalsIgnoreCase(status)) {
                     continue;
                 }
 
+                // Xác định trạng thái "Coming Soon" (Chưa bắt đầu bán)
+                boolean isComingSoon = "COMING".equalsIgnoreCase(status);
+                String startTimeStr = sessionObj.optString("startTime", "");
+                if (!isComingSoon && !startTimeStr.isEmpty()) {
+                    try {
+                        java.time.LocalDateTime startTime = java.time.LocalDateTime.parse(startTimeStr);
+                        if (java.time.LocalDateTime.now().isBefore(startTime)) {
+                            isComingSoon = true;
+                        }
+                    } catch (Exception e) {
+                        // ignore parse error
+                    }
+                }
+
+                // Logic lọc 3 lớp
                 boolean matchKeyword = keyword.isEmpty() || name.toLowerCase().contains(keyword);
                 boolean matchCategory = "Tất cả".equals(selectedCategory) || type.equalsIgnoreCase(selectedCategory);
-                boolean matchStatus = "Tất cả".equals(selectedStatus) || status.equalsIgnoreCase(selectedStatus);
                 boolean matchWatchlist = !showingWatchlistOnly || User.watchlistIds.contains(sessionObj.optInt("id"));
                 boolean matchMySessions = !showingMySessionsOnly || isSessionOwnedByCurrentUser(sessionObj);
+
+                boolean matchStatus = false;
+                if ("Tất cả".equals(selectedStatus)) {
+                    matchStatus = true;
+                } else if ("COMING SOON".equals(selectedStatus)) {
+                    matchStatus = isComingSoon;
+                } else if ("ACTIVE".equals(selectedStatus)) {
+                    matchStatus = !isComingSoon && "ACTIVE".equalsIgnoreCase(status);
+                } else if ("ENDED".equals(selectedStatus)) {
+                    matchStatus = !isComingSoon && "ENDED".equalsIgnoreCase(status);
+                }
+                if ("PENDING".equalsIgnoreCase(status) || "REJECTED".equalsIgnoreCase(status) || "CANCELED".equalsIgnoreCase(status)) {
+                    continue;
+                }
 
                 if (matchKeyword && matchCategory && matchStatus && matchWatchlist && matchMySessions) {
                     newIdsToRender.add(sessionObj.optInt("id"));
@@ -468,7 +503,7 @@ public class MainController implements Initializable {
                     updateGridLayout();
                     return;
                 }
-              
+
                 sessionCardMap.clear();
 
                 for (JSONObject sessionObj : allProducts) {
@@ -492,7 +527,7 @@ public class MainController implements Initializable {
                         VBox card = createProductCard(sessionObj, itemObj);
                         productContainer.getChildren().add(card);
                         currentRenderedIds.add(sessionObj.optInt("id"));
-                      
+
                         sessionCardMap.put(sessionObj.optInt("id"), card);
                     }
                 }
@@ -758,8 +793,39 @@ public class MainController implements Initializable {
             imageWrapper.getChildren().add(imageStatusLabel);
         }
 
+        // Tính toán trạng thái Coming Soon cho Card hiển thị
+        boolean isComingSoon = "COMING".equalsIgnoreCase(status);
+        String startTimeStr = sessionObj.optString("startTime", "");
+        if (!isComingSoon && !startTimeStr.isEmpty()) {
+            try {
+                java.time.LocalDateTime startDT = java.time.LocalDateTime.parse(startTimeStr);
+                if (java.time.LocalDateTime.now().isBefore(startDT)) {
+                    isComingSoon = true;
+                }
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+
         String shortEnd = endTime.length() >= 16 ? endTime.substring(0, 16) : endTime;
-        if ("ACTIVE".equalsIgnoreCase(status)) {
+        if (isComingSoon) {
+            HBox timerBadge = new HBox(4.0);
+            timerBadge.setStyle("-fx-background-color: rgba(96, 72, 104, 0.9); -fx-background-radius: 15px; -fx-padding: 4px 8px;");
+            timerBadge.setAlignment(Pos.CENTER);
+            timerBadge.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+
+            Label timerIcon = new Label("\uE8B5");
+            timerIcon.getStyleClass().add("material-icon");
+            timerIcon.setStyle("-fx-text-fill: #ffffff; -fx-font-size: 14px;");
+
+            Label timerText = new Label("Coming Soon");
+            timerText.setStyle("-fx-font-weight: 900; -fx-font-size: 11px; -fx-text-fill: #ffffff;");
+
+            timerBadge.getChildren().addAll(timerIcon, timerText);
+            StackPane.setAlignment(timerBadge, Pos.TOP_RIGHT);
+            StackPane.setMargin(timerBadge, new Insets(8, 8, 0, 0));
+            imageWrapper.getChildren().add(timerBadge);
+        } else if ("ACTIVE".equalsIgnoreCase(status)) {
             HBox timerBadge = new HBox(4.0);
             timerBadge.setStyle("-fx-background-color: rgba(255, 255, 255, 0.9); -fx-background-radius: 15px; -fx-padding: 4px 8px;");
             timerBadge.setAlignment(Pos.CENTER);
@@ -868,8 +934,14 @@ public class MainController implements Initializable {
         btnWatch.setVisible(false); btnWatch.setManaged(false);
         btnBid.setVisible(false); btnBid.setManaged(false);
 
-        if ("ACTIVE".equalsIgnoreCase(status)) {
-            btnBid.setOnAction(event -> {
+        Button bidBtn = new Button();
+        Label addIcon = new Label("\uE145");
+        addIcon.getStyleClass().add("material-icon");
+        if (!isComingSoon && "ACTIVE".equalsIgnoreCase(status)) {
+            addIcon.setStyle("-fx-text-fill: #e040a0;");
+            bidBtn.setStyle("-fx-background-color: #ffd6ee; -fx-background-radius: 20px; -fx-min-width: 40px; -fx-min-height: 40px; -fx-cursor: hand;");
+            bidBtn.setGraphic(addIcon);
+            bidBtn.setOnAction(event -> {
                 ClientLogger.logViewHistory(User.getUsername(), name, id, currentPrice);
                 try {
                     FXMLLoader loader = SceneSwitcher.switchScene(event, "AuctionPage.fxml", 1280, 800);
@@ -966,6 +1038,109 @@ public class MainController implements Initializable {
         showingCompactListScreen = false;
         renderAccountScreen(false);
         loadLatestAccountProfileForScreen();
+    }
+
+    @FXML
+    public void handleResetDashboard(ActionEvent event) {
+        logger.info("Resetting dashboard filters and search text...");
+        if (txtSearch != null) {
+            txtSearch.clear();
+        }
+        if (cbCategory != null) {
+            cbCategory.setValue("Tất cả");
+        }
+        if (cbStatus != null) {
+            cbStatus.setValue("Tất cả");
+        }
+        filterAndRenderProducts();
+    }
+
+    @FXML
+    public void handleToggleSidebar(ActionEvent event) {
+        isSidebarCollapsed = !isSidebarCollapsed;
+
+        if (isSidebarCollapsed) {
+            // Collapse
+            sidebarContainer.setMinWidth(70);
+            sidebarContainer.setPrefWidth(70);
+            sidebarContainer.setMaxWidth(70);
+            sidebarContent.setPadding(new Insets(24, 0, 24, 0));
+            sidebarContent.setAlignment(Pos.TOP_CENTER);
+
+            for (javafx.scene.Node node : sidebarContent.getChildren()) {
+                if (node instanceof Button) {
+                    Button btn = (Button) node;
+                    String currentText = btn.getText();
+                    if (currentText != null && !currentText.isEmpty()) {
+                        sidebarButtonTextMap.put(btn, currentText);
+                    }
+
+                    String tooltipText = sidebarButtonTextMap.get(btn);
+                    if (tooltipText != null) {
+                        Tooltip tooltip = new Tooltip(tooltipText);
+                        // Deep pink background, white text, bold, rounded corners
+                        tooltip.setStyle("-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 6px 12px; -fx-font-size: 13px;");
+
+                        // Tạo hiệu ứng delay thủ công để có thể cố định vị trí
+                        PauseTransition pause = new PauseTransition(Duration.millis(300));
+                        pause.setOnFinished(e -> {
+                            if (btn.isHover()) {
+                                Bounds bounds = btn.localToScreen(btn.getBoundsInLocal());
+                                // Hiện Tooltip ở bên phải nút, căn giữa theo chiều dọc
+                                tooltip.show(btn, bounds.getMaxX() + 15, bounds.getMinY() + btn.getHeight() / 2 - 18);
+                            }
+                        });
+
+                        btn.setOnMouseEntered(e -> pause.playFromStart());
+                        btn.setOnMouseExited(e -> {
+                            pause.stop();
+                            tooltip.hide();
+                        });
+                    }
+
+                    btn.setTooltip(null); // Tắt Tooltip mặc định của JavaFX
+
+                    btn.setText("");
+                    btn.setPrefWidth(50);
+                    btn.setMinWidth(50);
+                    btn.setAlignment(Pos.CENTER);
+                    // Adjust graphic alignment
+                    if (btn.getGraphic() != null) {
+                        btn.getGraphic().setTranslateX(0);
+                    }
+                } else if (node instanceof Label) {
+                    node.setVisible(false);
+                    node.setManaged(false);
+                }
+            }
+        } else {
+            // Expand
+            sidebarContainer.setMinWidth(200);
+            sidebarContainer.setPrefWidth(200);
+            sidebarContainer.setMaxWidth(200);
+            sidebarContent.setPadding(new Insets(24, 8, 24, 8));
+            sidebarContent.setAlignment(Pos.TOP_LEFT);
+
+            for (javafx.scene.Node node : sidebarContent.getChildren()) {
+                if (node instanceof Button) {
+                    Button btn = (Button) node;
+                    btn.setTooltip(null);
+                    btn.setOnMouseEntered(null); // Gỡ bỏ listener thủ công
+                    btn.setOnMouseExited(null);
+                    String originalText = sidebarButtonTextMap.getOrDefault(btn, "");
+                    btn.setText(originalText);
+                    btn.setPrefWidth(165);
+                    btn.setMinWidth(165);
+                    btn.setAlignment(Pos.CENTER_LEFT);
+                } else if (node instanceof Label) {
+                    node.setVisible(true);
+                    node.setManaged(true);
+                }
+            }
+        }
+
+        // Cập nhật lại Grid Layout cho Center vì diện tích khả dụng đã thay đổi
+        Platform.runLater(this::updateGridLayout);
     }
 
     private void renderAccountScreen(boolean saving) {
@@ -1111,6 +1286,7 @@ public class MainController implements Initializable {
                         .uri(URI.create(Config.API_URL + "/api/users/" + User.getId()))
                         .GET()
                         .build();
+
 
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
                 JSONObject responseJson = new JSONObject(response.body());
@@ -1464,14 +1640,6 @@ public class MainController implements Initializable {
         alert.showAndWait();
     }
 
-    @FXML
-    public void handleToggleSidebar(ActionEvent event) {
-        if (sidebarController != null) {
-            sidebarController.toggleSidebar();
-            Platform.runLater(this::updateGridLayout);
-        }
-    }
-
     public void handleLogout(ActionEvent event) throws IOException {
         User.clearSession();
         SceneSwitcher.switchScene(event, "Login.fxml", 400, 500);
@@ -1525,14 +1693,14 @@ public class MainController implements Initializable {
 
             // Tìm Button trong Card và cập nhật
             card.getChildren().stream()
-                .filter(node -> node instanceof Button)
-                .map(node -> (Button) node)
-                .findFirst()
-                .ifPresent(btn -> {
-                    btn.setText("Hết giờ");
-                    btn.setDisable(true);
-                    btn.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white;");
-                });
+                    .filter(node -> node instanceof Button)
+                    .map(node -> (Button) node)
+                    .findFirst()
+                    .ifPresent(btn -> {
+                        btn.setText("Hết giờ");
+                        btn.setDisable(true);
+                        btn.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white;");
+                    });
         }
     }
 

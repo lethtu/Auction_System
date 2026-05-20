@@ -1,4 +1,4 @@
-package com.auction.client.controller;
+﻿package com.auction.client.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,7 +87,7 @@ public class SellerDashboardController {
     @FXML private Label lblTotalRevenue;
     @FXML private Label lblActiveAuctions;
     @FXML private Label lblTotalBids;
-
+    
     @FXML private TableView<SessionItem> sessionsTable;
     @FXML private TableColumn<SessionItem, SessionItem> colItem;
     @FXML private TableColumn<SessionItem, String> colStatus;
@@ -117,16 +117,16 @@ public class SellerDashboardController {
                 "Electronics", "Art", "Vehicle"
         ));
         productTypeCombo.setValue("Electronics");
-
+        
         setupTable();
         setupImageUpload();
         setupSplitDatetimePickers();
-
+        
         if (modalDialog != null && modalOverlay != null) {
             modalOverlay.heightProperty().addListener((obs, oldVal, newVal) -> updateModalMaxHeight());
             modalDialog.widthProperty().addListener((obs, oldVal, newVal) -> updateModalMaxHeight());
         }
-
+        
         loadMySessions();
     }
 
@@ -168,10 +168,10 @@ public class SellerDashboardController {
             }
         });
     }
-
+    
     private void setupImageUpload() {
         if (imageUploadArea == null) return;
-
+        
         imageUploadArea.setOnDragOver(event -> {
             if (event.getGestureSource() != imageUploadArea && event.getDragboard().hasFiles()) {
                 event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
@@ -198,12 +198,12 @@ public class SellerDashboardController {
             event.setDropCompleted(success);
             event.consume();
         });
-
+        
         imageUploadArea.setOnMouseClicked(event -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Select Product Image");
             fileChooser.getExtensionFilters().addAll(
-                    new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
             );
             File selectedFile = fileChooser.showOpenDialog(imageUploadArea.getScene().getWindow());
             if (selectedFile != null) {
@@ -228,14 +228,14 @@ public class SellerDashboardController {
                 } else {
                     HBox hbox = new HBox(12);
                     hbox.setAlignment(Pos.CENTER_LEFT);
-
+                    
                     // Image placeholder
                     StackPane imgContainer = new StackPane();
                     imgContainer.setPrefSize(48, 48);
                     imgContainer.setMinSize(48, 48);
                     imgContainer.setMaxSize(48, 48);
                     imgContainer.setStyle("-fx-background-color: #f2e8f2; -fx-background-radius: 24px;");
-
+                    
                     if (item.imageUrl != null && !item.imageUrl.isEmpty()) {
                         try {
                             ImageView iv = new ImageView(new Image(item.imageUrl, 48, 48, true, true));
@@ -261,7 +261,7 @@ public class SellerDashboardController {
                     lblName.setStyle("-fx-font-weight: bold; -fx-text-fill: #2e1a28;");
                     Label lblId = new Label("ID: #AUC-" + item.id);
                     lblId.setStyle("-fx-font-size: 11px; -fx-text-fill: #604868;");
-
+                    
                     vbox.getChildren().addAll(lblName, lblId);
                     hbox.getChildren().addAll(imgContainer, vbox);
                     setGraphic(hbox);
@@ -279,7 +279,7 @@ public class SellerDashboardController {
                 } else {
                     Label lblStatus = new Label(status.toUpperCase());
                     lblStatus.getStyleClass().add("badge");
-
+                    
                     switch (status.toUpperCase()) {
                         case "ACTIVE", "LIVE" -> lblStatus.getStyleClass().add("badge-live");
                         case "DRAFT" -> lblStatus.getStyleClass().add("badge-draft");
@@ -354,25 +354,25 @@ public class SellerDashboardController {
                 } else {
                     HBox hbox = new HBox(8);
                     hbox.setAlignment(Pos.CENTER_LEFT);
-
+                    
                     Button btnView;
                     if ("DRAFT".equalsIgnoreCase(item.status)) {
                         btnView = createIconButton("mdi2p-publish", "#0096cc");
-                        btnView.setTooltip(new javafx.scene.control.Tooltip("Đăng bán nhanh"));
+                        btnView.setTooltip(new javafx.scene.control.Tooltip("─É─âng b├ín nhanh"));
                         btnView.setOnAction(e -> handleQuickPublish(item));
                     } else {
                         btnView = createIconButton("mdi2e-eye", "#0096cc");
                     }
                     Button btnEdit = createIconButton("mdi2p-pencil", "#7c52aa");
                     Button btnDelete = createIconButton("mdi2d-delete", "#e53e3e");
-
+                    
                     btnView.setId("btnView_" + item.id);
                     btnEdit.setId("btnEdit_" + item.id);
                     btnDelete.setId("btnDelete_" + item.id);
-
+                    
                     btnDelete.setOnAction(e -> handleCancelSpecificSession(item));
                     btnEdit.setOnAction(e -> handleShowEditModal(item));
-
+                    
                     // Delete is allowed for ACTIVE, COMING or DRAFT sessions
                     boolean isDeletable = "ACTIVE".equalsIgnoreCase(item.status) || "COMING".equalsIgnoreCase(item.status) || "DRAFT".equalsIgnoreCase(item.status);
                     if (!isDeletable) {
@@ -427,7 +427,7 @@ public class SellerDashboardController {
     void handleShowEditModal(SessionItem item) {
         if (item == null) return;
         editingSession = item;
-
+        
         if (modalTitle != null) {
             modalTitle.setText("Edit Listing");
         }
@@ -448,14 +448,14 @@ public class SellerDashboardController {
                 btnDraftOrReset.setText("Save Changes");
             }
         }
-
+        
         if (startingPriceField != null) startingPriceField.setDisable(isActive);
         if (txtStartDay != null) txtStartDay.setDisable(isActive);
         if (txtStartMonth != null) txtStartMonth.setDisable(isActive);
         if (txtStartYear != null) txtStartYear.setDisable(isActive);
         if (txtStartHour != null) txtStartHour.setDisable(isActive);
         if (txtStartMin != null) txtStartMin.setDisable(isActive);
-
+        
         // Populate the form fields
         productNameField.setText(item.productName);
         productTypeCombo.setValue(item.productType);
@@ -479,11 +479,11 @@ public class SellerDashboardController {
         }
         descriptionArea.setText(item.description);
         startingPriceField.setText(item.startingPrice != null ? item.startingPrice.toString() : "0");
-
+        
         // Populate Date/Time fields
         populateSplitTimeFields(item.startTime, txtStartDay, txtStartMonth, txtStartYear, txtStartHour, txtStartMin);
         populateSplitTimeFields(item.endTime, txtEndDay, txtEndMonth, txtEndYear, txtEndHour, txtEndMin);
-
+        
         modalOverlay.setVisible(true);
     }
 
@@ -567,8 +567,8 @@ public class SellerDashboardController {
     private void handleCreateDraftSession() {
         Integer sellerId = User.getId();
         if (sellerId == null) {
-            logger.error("Không lấy được sellerId từ session");
-            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không lấy được sellerId từ session.");
+            logger.error("Kh├┤ng lß║Ñy ─æ╞░ß╗úc sellerId tß╗½ session");
+            showAlert(Alert.AlertType.ERROR, "Lß╗ùi", "Kh├┤ng lß║Ñy ─æ╞░ß╗úc sellerId tß╗½ session.");
             return;
         }
 
@@ -629,7 +629,7 @@ public class SellerDashboardController {
                 errorPrice.setManaged(true);
             }
             if (lblErrorPrice != null) {
-                lblErrorPrice.setText("Giá khởi điểm không được để trống");
+                lblErrorPrice.setText("Gi├í khß╗ƒi ─æiß╗âm kh├┤ng ─æ╞░ß╗úc ─æß╗â trß╗æng");
             }
             if (startingPriceField != null && !startingPriceField.getStyleClass().contains("error-text-input")) {
                 startingPriceField.getStyleClass().add("error-text-input");
@@ -654,7 +654,7 @@ public class SellerDashboardController {
                     errorPrice.setManaged(true);
                 }
                 if (lblErrorPrice != null) {
-                    lblErrorPrice.setText("Giá khởi điểm phải là một số dương");
+                    lblErrorPrice.setText("Gi├í khß╗ƒi ─æiß╗âm phß║úi l├á mß╗Öt sß╗æ d╞░╞íng");
                 }
                 if (startingPriceField != null && !startingPriceField.getStyleClass().contains("error-text-input")) {
                     startingPriceField.getStyleClass().add("error-text-input");
@@ -665,7 +665,7 @@ public class SellerDashboardController {
         // 4. Time Validation
         LocalDateTime startDT = getLocalDateTimeFromSplitFields(txtStartDay, txtStartMonth, txtStartYear, txtStartHour, txtStartMin);
         LocalDateTime endDT = getLocalDateTimeFromSplitFields(txtEndDay, txtEndMonth, txtEndYear, txtEndHour, txtEndMin);
-
+        
         // Validate Start Time
         if (startDT == null) {
             formIsValid = false;
@@ -677,7 +677,7 @@ public class SellerDashboardController {
                 wrapperStartDT.getStyleClass().add("error-segmented-input");
             }
             if (lblErrorStartDT != null) {
-                lblErrorStartDT.setText("Vui lòng nhập ngày giờ bắt đầu hợp lệ!");
+                lblErrorStartDT.setText("Vui l├▓ng nhß║¡p ng├áy giß╗¥ bß║»t ─æß║ºu hß╗úp lß╗ç!");
             }
         } else {
             if (errorStartDT != null) {
@@ -700,7 +700,7 @@ public class SellerDashboardController {
                 wrapperEndDT.getStyleClass().add("error-segmented-input");
             }
             if (lblErrorEndDT != null) {
-                lblErrorEndDT.setText("Vui lòng nhập ngày giờ kết thúc hợp lệ!");
+                lblErrorEndDT.setText("Vui l├▓ng nhß║¡p ng├áy giß╗¥ kß║┐t th├║c hß╗úp lß╗ç!");
             }
         } else {
             if (startDT != null) {
@@ -718,9 +718,9 @@ public class SellerDashboardController {
                     }
                     if (lblErrorEndDT != null) {
                         if (!isEndFuture) {
-                            lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
+                            lblErrorEndDT.setText("Thß╗¥i gian kß║┐t th├║c phß║úi ß╗ƒ t╞░╞íng lai");
                         } else {
-                            lblErrorEndDT.setText("Thời gian kết thúc phải sau thời gian bắt đầu");
+                            lblErrorEndDT.setText("Thß╗¥i gian kß║┐t th├║c phß║úi sau thß╗¥i gian bß║»t ─æß║ºu");
                         }
                     }
                 } else {
@@ -744,7 +744,7 @@ public class SellerDashboardController {
                         wrapperEndDT.getStyleClass().add("error-segmented-input");
                     }
                     if (lblErrorEndDT != null) {
-                        lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
+                        lblErrorEndDT.setText("Thß╗¥i gian kß║┐t th├║c phß║úi ß╗ƒ t╞░╞íng lai");
                     }
                 } else {
                     if (errorEndDT != null) {
@@ -792,29 +792,29 @@ public class SellerDashboardController {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "Lưu bản nháp thành công.");
+            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "L╞░u bß║ún nh├íp th├ánh c├┤ng.");
 
             if (api.success) {
                 clearForm();
                 handleCloseModal();
                 loadMySessions();
-                showAlert(Alert.AlertType.INFORMATION, "Thành công", api.message);
+                showAlert(Alert.AlertType.INFORMATION, "Th├ánh c├┤ng", api.message);
             } else {
-                logger.error("Lỗi api: {}", api.message);
-                showAlert(Alert.AlertType.ERROR, "Lỗi", api.message);
+                logger.error("Lß╗ùi api: {}", api.message);
+                showAlert(Alert.AlertType.ERROR, "Lß╗ùi", api.message);
             }
 
         } catch (Exception e) {
-            logger.error("Lỗi không thể kết nối đến máy chủ: {}", e.getMessage(), e);
-            showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
+            logger.error("Lß╗ùi kh├┤ng thß╗â kß║┐t nß╗æi ─æß║┐n m├íy chß╗º: {}", e.getMessage(), e);
+            showAlert(Alert.AlertType.ERROR, "Lß╗ùi mß║íng", "Kh├┤ng thß╗â kß║┐t nß╗æi ─æß║┐n m├íy chß╗º!");
         }
     }
 
     private void handleUpdateDraftSession() {
         Integer sellerId = User.getId();
         if (sellerId == null) {
-            logger.error("Không lấy được sellerId từ session");
-            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không lấy được sellerId từ session.");
+            logger.error("Kh├┤ng lß║Ñy ─æ╞░ß╗úc sellerId tß╗½ session");
+            showAlert(Alert.AlertType.ERROR, "Lß╗ùi", "Kh├┤ng lß║Ñy ─æ╞░ß╗úc sellerId tß╗½ session.");
             return;
         }
 
@@ -875,7 +875,7 @@ public class SellerDashboardController {
                 errorPrice.setManaged(true);
             }
             if (lblErrorPrice != null) {
-                lblErrorPrice.setText("Giá khởi điểm không được để trống");
+                lblErrorPrice.setText("Gi├í khß╗ƒi ─æiß╗âm kh├┤ng ─æ╞░ß╗úc ─æß╗â trß╗æng");
             }
             if (startingPriceField != null && !startingPriceField.getStyleClass().contains("error-text-input")) {
                 startingPriceField.getStyleClass().add("error-text-input");
@@ -900,7 +900,7 @@ public class SellerDashboardController {
                     errorPrice.setManaged(true);
                 }
                 if (lblErrorPrice != null) {
-                    lblErrorPrice.setText("Giá khởi điểm phải là một số dương");
+                    lblErrorPrice.setText("Gi├í khß╗ƒi ─æiß╗âm phß║úi l├á mß╗Öt sß╗æ d╞░╞íng");
                 }
                 if (startingPriceField != null && !startingPriceField.getStyleClass().contains("error-text-input")) {
                     startingPriceField.getStyleClass().add("error-text-input");
@@ -911,7 +911,7 @@ public class SellerDashboardController {
         // 4. Time Validation
         LocalDateTime startDT = getLocalDateTimeFromSplitFields(txtStartDay, txtStartMonth, txtStartYear, txtStartHour, txtStartMin);
         LocalDateTime endDT = getLocalDateTimeFromSplitFields(txtEndDay, txtEndMonth, txtEndYear, txtEndHour, txtEndMin);
-
+        
         // Validate Start Time
         if (startDT == null) {
             formIsValid = false;
@@ -923,7 +923,7 @@ public class SellerDashboardController {
                 wrapperStartDT.getStyleClass().add("error-segmented-input");
             }
             if (lblErrorStartDT != null) {
-                lblErrorStartDT.setText("Vui lòng nhập ngày giờ bắt đầu hợp lệ!");
+                lblErrorStartDT.setText("Vui l├▓ng nhß║¡p ng├áy giß╗¥ bß║»t ─æß║ºu hß╗úp lß╗ç!");
             }
         } else {
             if (errorStartDT != null) {
@@ -946,7 +946,7 @@ public class SellerDashboardController {
                 wrapperEndDT.getStyleClass().add("error-segmented-input");
             }
             if (lblErrorEndDT != null) {
-                lblErrorEndDT.setText("Vui lòng nhập ngày giờ kết thúc hợp lệ!");
+                lblErrorEndDT.setText("Vui l├▓ng nhß║¡p ng├áy giß╗¥ kß║┐t th├║c hß╗úp lß╗ç!");
             }
         } else {
             if (startDT != null) {
@@ -964,9 +964,9 @@ public class SellerDashboardController {
                     }
                     if (lblErrorEndDT != null) {
                         if (!isEndFuture) {
-                            lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
+                            lblErrorEndDT.setText("Thß╗¥i gian kß║┐t th├║c phß║úi ß╗ƒ t╞░╞íng lai");
                         } else {
-                            lblErrorEndDT.setText("Thời gian kết thúc phải sau thời gian bắt đầu");
+                            lblErrorEndDT.setText("Thß╗¥i gian kß║┐t th├║c phß║úi sau thß╗¥i gian bß║»t ─æß║ºu");
                         }
                     }
                 } else {
@@ -990,7 +990,7 @@ public class SellerDashboardController {
                         wrapperEndDT.getStyleClass().add("error-segmented-input");
                     }
                     if (lblErrorEndDT != null) {
-                        lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
+                        lblErrorEndDT.setText("Thß╗¥i gian kß║┐t th├║c phß║úi ß╗ƒ t╞░╞íng lai");
                     }
                 } else {
                     if (errorEndDT != null) {
@@ -1038,29 +1038,29 @@ public class SellerDashboardController {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "Cập nhật bản nháp thành công.");
+            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "Cß║¡p nhß║¡t bß║ún nh├íp th├ánh c├┤ng.");
 
             if (api.success) {
                 clearForm();
                 handleCloseModal();
                 loadMySessions();
-                showAlert(Alert.AlertType.INFORMATION, "Thành công", api.message);
+                showAlert(Alert.AlertType.INFORMATION, "Th├ánh c├┤ng", api.message);
             } else {
-                logger.error("Lỗi api: {}", api.message);
-                showAlert(Alert.AlertType.ERROR, "Lỗi", api.message);
+                logger.error("Lß╗ùi api: {}", api.message);
+                showAlert(Alert.AlertType.ERROR, "Lß╗ùi", api.message);
             }
 
         } catch (Exception e) {
-            logger.error("Lỗi không thể kết nối đến máy chủ: {}", e.getMessage(), e);
-            showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
+            logger.error("Lß╗ùi kh├┤ng thß╗â kß║┐t nß╗æi ─æß║┐n m├íy chß╗º: {}", e.getMessage(), e);
+            showAlert(Alert.AlertType.ERROR, "Lß╗ùi mß║íng", "Kh├┤ng thß╗â kß║┐t nß╗æi ─æß║┐n m├íy chß╗º!");
         }
     }
 
     private void handleUpdateSession() {
         Integer sellerId = User.getId();
         if (sellerId == null) {
-            logger.error("Không lấy được sellerId từ session");
-            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không lấy được sellerId từ session.");
+            logger.error("Kh├┤ng lß║Ñy ─æ╞░ß╗úc sellerId tß╗½ session");
+            showAlert(Alert.AlertType.ERROR, "Lß╗ùi", "Kh├┤ng lß║Ñy ─æ╞░ß╗úc sellerId tß╗½ session.");
             return;
         }
 
@@ -1121,7 +1121,7 @@ public class SellerDashboardController {
                 errorPrice.setManaged(true);
             }
             if (lblErrorPrice != null) {
-                lblErrorPrice.setText("Giá khởi điểm không được để trống");
+                lblErrorPrice.setText("Gi├í khß╗ƒi ─æiß╗âm kh├┤ng ─æ╞░ß╗úc ─æß╗â trß╗æng");
             }
             if (startingPriceField != null && !startingPriceField.getStyleClass().contains("error-text-input")) {
                 startingPriceField.getStyleClass().add("error-text-input");
@@ -1146,7 +1146,7 @@ public class SellerDashboardController {
                     errorPrice.setManaged(true);
                 }
                 if (lblErrorPrice != null) {
-                    lblErrorPrice.setText("Giá khởi điểm phải là một số dương");
+                    lblErrorPrice.setText("Gi├í khß╗ƒi ─æiß╗âm phß║úi l├á mß╗Öt sß╗æ d╞░╞íng");
                 }
                 if (startingPriceField != null && !startingPriceField.getStyleClass().contains("error-text-input")) {
                     startingPriceField.getStyleClass().add("error-text-input");
@@ -1157,7 +1157,7 @@ public class SellerDashboardController {
         // 3. Time Validation
         LocalDateTime startDT = getLocalDateTimeFromSplitFields(txtStartDay, txtStartMonth, txtStartYear, txtStartHour, txtStartMin);
         LocalDateTime endDT = getLocalDateTimeFromSplitFields(txtEndDay, txtEndMonth, txtEndYear, txtEndHour, txtEndMin);
-
+        
         // Validate Start Time
         if (startDT == null) {
             formIsValid = false;
@@ -1169,7 +1169,7 @@ public class SellerDashboardController {
                 wrapperStartDT.getStyleClass().add("error-segmented-input");
             }
             if (lblErrorStartDT != null) {
-                lblErrorStartDT.setText("Vui lòng nhập ngày giờ bắt đầu hợp lệ!");
+                lblErrorStartDT.setText("Vui l├▓ng nhß║¡p ng├áy giß╗¥ bß║»t ─æß║ºu hß╗úp lß╗ç!");
             }
         } else {
             if (errorStartDT != null) {
@@ -1192,7 +1192,7 @@ public class SellerDashboardController {
                 wrapperEndDT.getStyleClass().add("error-segmented-input");
             }
             if (lblErrorEndDT != null) {
-                lblErrorEndDT.setText("Vui lòng nhập ngày giờ kết thúc hợp lệ!");
+                lblErrorEndDT.setText("Vui l├▓ng nhß║¡p ng├áy giß╗¥ kß║┐t th├║c hß╗úp lß╗ç!");
             }
         } else {
             if (startDT != null) {
@@ -1210,9 +1210,9 @@ public class SellerDashboardController {
                     }
                     if (lblErrorEndDT != null) {
                         if (!isEndFuture) {
-                            lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
+                            lblErrorEndDT.setText("Thß╗¥i gian kß║┐t th├║c phß║úi ß╗ƒ t╞░╞íng lai");
                         } else {
-                            lblErrorEndDT.setText("Thời gian kết thúc phải sau thời gian bắt đầu");
+                            lblErrorEndDT.setText("Thß╗¥i gian kß║┐t th├║c phß║úi sau thß╗¥i gian bß║»t ─æß║ºu");
                         }
                     }
                 } else {
@@ -1236,7 +1236,7 @@ public class SellerDashboardController {
                         wrapperEndDT.getStyleClass().add("error-segmented-input");
                     }
                     if (lblErrorEndDT != null) {
-                        lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
+                        lblErrorEndDT.setText("Thß╗¥i gian kß║┐t th├║c phß║úi ß╗ƒ t╞░╞íng lai");
                     }
                 } else {
                     if (errorEndDT != null) {
@@ -1286,23 +1286,23 @@ public class SellerDashboardController {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "Cập nhật phiên đấu giá thành công.");
+            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "Cß║¡p nhß║¡t phi├¬n ─æß║Ñu gi├í th├ánh c├┤ng.");
 
             if (api.success) {
                 clearForm();
                 handleCloseModal();
                 loadMySessions();
-                showAlert(Alert.AlertType.INFORMATION, "Thành công", api.message);
+                showAlert(Alert.AlertType.INFORMATION, "Th├ánh c├┤ng", api.message);
             } else {
-                logger.error("Lỗi api: {}", api.message);
-                showAlert(Alert.AlertType.ERROR, "Lỗi", api.message);
+                logger.error("Lß╗ùi api: {}", api.message);
+                showAlert(Alert.AlertType.ERROR, "Lß╗ùi", api.message);
             }
 
         } catch (NumberFormatException e) {
-            showAlert(Alert.AlertType.ERROR, "Lỗi dữ liệu", "Giá khởi điểm phải là số.");
+            showAlert(Alert.AlertType.ERROR, "Lß╗ùi dß╗» liß╗çu", "Gi├í khß╗ƒi ─æiß╗âm phß║úi l├á sß╗æ.");
         } catch (Exception e) {
-            logger.error("Lỗi không thể kết nối đến máy chủ: {}", e.getMessage(), e);
-            showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
+            logger.error("Lß╗ùi kh├┤ng thß╗â kß║┐t nß╗æi ─æß║┐n m├íy chß╗º: {}", e.getMessage(), e);
+            showAlert(Alert.AlertType.ERROR, "Lß╗ùi mß║íng", "Kh├┤ng thß╗â kß║┐t nß╗æi ─æß║┐n m├íy chß╗º!");
         }
     }
 
@@ -1349,8 +1349,8 @@ public class SellerDashboardController {
     private void handleCreateSession() {
         Integer sellerId = User.getId();
         if (sellerId == null) {
-            logger.error("Không lấy được sellerId từ session");
-            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không lấy được sellerId từ session.");
+            logger.error("Kh├┤ng lß║Ñy ─æ╞░ß╗úc sellerId tß╗½ session");
+            showAlert(Alert.AlertType.ERROR, "Lß╗ùi", "Kh├┤ng lß║Ñy ─æ╞░ß╗úc sellerId tß╗½ session.");
             return;
         }
 
@@ -1411,7 +1411,7 @@ public class SellerDashboardController {
                 errorPrice.setManaged(true);
             }
             if (lblErrorPrice != null) {
-                lblErrorPrice.setText("Giá khởi điểm không được để trống");
+                lblErrorPrice.setText("Gi├í khß╗ƒi ─æiß╗âm kh├┤ng ─æ╞░ß╗úc ─æß╗â trß╗æng");
             }
             if (startingPriceField != null && !startingPriceField.getStyleClass().contains("error-text-input")) {
                 startingPriceField.getStyleClass().add("error-text-input");
@@ -1436,7 +1436,7 @@ public class SellerDashboardController {
                     errorPrice.setManaged(true);
                 }
                 if (lblErrorPrice != null) {
-                    lblErrorPrice.setText("Giá khởi điểm phải là một số dương");
+                    lblErrorPrice.setText("Gi├í khß╗ƒi ─æiß╗âm phß║úi l├á mß╗Öt sß╗æ d╞░╞íng");
                 }
                 if (startingPriceField != null && !startingPriceField.getStyleClass().contains("error-text-input")) {
                     startingPriceField.getStyleClass().add("error-text-input");
@@ -1447,7 +1447,7 @@ public class SellerDashboardController {
         // 3. Time Validation
         LocalDateTime startDT = getLocalDateTimeFromSplitFields(txtStartDay, txtStartMonth, txtStartYear, txtStartHour, txtStartMin);
         LocalDateTime endDT = getLocalDateTimeFromSplitFields(txtEndDay, txtEndMonth, txtEndYear, txtEndHour, txtEndMin);
-
+        
         // Validate Start Time
         if (startDT == null) {
             formIsValid = false;
@@ -1459,7 +1459,7 @@ public class SellerDashboardController {
                 wrapperStartDT.getStyleClass().add("error-segmented-input");
             }
             if (lblErrorStartDT != null) {
-                lblErrorStartDT.setText("Vui lòng nhập ngày giờ bắt đầu hợp lệ!");
+                lblErrorStartDT.setText("Vui l├▓ng nhß║¡p ng├áy giß╗¥ bß║»t ─æß║ºu hß╗úp lß╗ç!");
             }
         } else {
             if (errorStartDT != null) {
@@ -1482,7 +1482,7 @@ public class SellerDashboardController {
                 wrapperEndDT.getStyleClass().add("error-segmented-input");
             }
             if (lblErrorEndDT != null) {
-                lblErrorEndDT.setText("Vui lòng nhập ngày giờ kết thúc hợp lệ!");
+                lblErrorEndDT.setText("Vui l├▓ng nhß║¡p ng├áy giß╗¥ kß║┐t th├║c hß╗úp lß╗ç!");
             }
         } else {
             if (startDT != null) {
@@ -1500,9 +1500,9 @@ public class SellerDashboardController {
                     }
                     if (lblErrorEndDT != null) {
                         if (!isEndFuture) {
-                            lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
+                            lblErrorEndDT.setText("Thß╗¥i gian kß║┐t th├║c phß║úi ß╗ƒ t╞░╞íng lai");
                         } else {
-                            lblErrorEndDT.setText("Thời gian kết thúc phải sau thời gian bắt đầu");
+                            lblErrorEndDT.setText("Thß╗¥i gian kß║┐t th├║c phß║úi sau thß╗¥i gian bß║»t ─æß║ºu");
                         }
                     }
                 } else {
@@ -1526,7 +1526,7 @@ public class SellerDashboardController {
                         wrapperEndDT.getStyleClass().add("error-segmented-input");
                     }
                     if (lblErrorEndDT != null) {
-                        lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
+                        lblErrorEndDT.setText("Thß╗¥i gian kß║┐t th├║c phß║úi ß╗ƒ t╞░╞íng lai");
                     }
                 } else {
                     if (errorEndDT != null) {
@@ -1576,37 +1576,37 @@ public class SellerDashboardController {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "Tạo phiên đấu giá thành công.");
+            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "Tß║ío phi├¬n ─æß║Ñu gi├í th├ánh c├┤ng.");
 
             if (api.success) {
                 clearForm();
                 handleCloseModal();
                 loadMySessions();
-                showAlert(Alert.AlertType.INFORMATION, "Thành công", api.message);
+                showAlert(Alert.AlertType.INFORMATION, "Th├ánh c├┤ng", api.message);
             } else {
-                logger.error("Lỗi api: {}", api.message);
-                showAlert(Alert.AlertType.ERROR, "Lỗi", api.message);
+                logger.error("Lß╗ùi api: {}", api.message);
+                showAlert(Alert.AlertType.ERROR, "Lß╗ùi", api.message);
             }
 
         } catch (NumberFormatException e) {
-            showAlert(Alert.AlertType.ERROR, "Lỗi dữ liệu", "Giá khởi điểm phải là số.");
+            showAlert(Alert.AlertType.ERROR, "Lß╗ùi dß╗» liß╗çu", "Gi├í khß╗ƒi ─æiß╗âm phß║úi l├á sß╗æ.");
         } catch (Exception e) {
-            logger.error("Lỗi không thể kết nối đến máy chủ: {}", e.getMessage(), e);
-            showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
+            logger.error("Lß╗ùi kh├┤ng thß╗â kß║┐t nß╗æi ─æß║┐n m├íy chß╗º: {}", e.getMessage(), e);
+            showAlert(Alert.AlertType.ERROR, "Lß╗ùi mß║íng", "Kh├┤ng thß╗â kß║┐t nß╗æi ─æß║┐n m├íy chß╗º!");
         }
     }
 
     private void handleCancelSpecificSession(SessionItem selected) {
         Integer sellerId = User.getId();
         if (sellerId == null) {
-            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không lấy được sellerId từ session.");
+            showAlert(Alert.AlertType.ERROR, "Lß╗ùi", "Kh├┤ng lß║Ñy ─æ╞░ß╗úc sellerId tß╗½ session.");
             return;
         }
 
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("Xác nhận");
+        confirm.setTitle("X├íc nhß║¡n");
         confirm.setHeaderText(null);
-        confirm.setContentText("Bạn có chắc muốn hủy phiên #" + selected.id + " không?");
+        confirm.setContentText("Bß║ín c├│ chß║»c muß╗æn hß╗ºy phi├¬n #" + selected.id + " kh├┤ng?");
         if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) {
             return;
         }
@@ -1618,40 +1618,40 @@ public class SellerDashboardController {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "Đã hủy phiên thành công.");
+            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "─É├ú hß╗ºy phi├¬n th├ánh c├┤ng.");
 
             if (api.success) {
                 loadMySessions();
-                showAlert(Alert.AlertType.INFORMATION, "Thành công", api.message);
+                showAlert(Alert.AlertType.INFORMATION, "Th├ánh c├┤ng", api.message);
             } else {
-                showAlert(Alert.AlertType.ERROR, "Lỗi", api.message);
+                showAlert(Alert.AlertType.ERROR, "Lß╗ùi", api.message);
             }
         } catch (Exception e) {
-            logger.error("Lỗi không thể kết nối đến máy chủ: {}", e.getMessage(), e);
-            showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
+            logger.error("Lß╗ùi kh├┤ng thß╗â kß║┐t nß╗æi ─æß║┐n m├íy chß╗º: {}", e.getMessage(), e);
+            showAlert(Alert.AlertType.ERROR, "Lß╗ùi mß║íng", "Kh├┤ng thß╗â kß║┐t nß╗æi ─æß║┐n m├íy chß╗º!");
         }
     }
 
     private void handleQuickPublish(SessionItem selected) {
         Integer sellerId = User.getId();
         if (sellerId == null) {
-            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không lấy được sellerId từ session.");
+            showAlert(Alert.AlertType.ERROR, "Lß╗ùi", "Kh├┤ng lß║Ñy ─æ╞░ß╗úc sellerId tß╗½ session.");
             return;
         }
 
         // Validate basic fields (Title, Product Type, Starting Price)
-        if (selected.productName == null || selected.productName.trim().isEmpty() || "Không rõ".equals(selected.productName)) {
-            showAlert(Alert.AlertType.ERROR, "Lỗi đăng bán", "Tên sản phẩm của bản nháp không được để trống!");
+        if (selected.productName == null || selected.productName.trim().isEmpty() || "Kh├┤ng r├╡".equals(selected.productName)) {
+            showAlert(Alert.AlertType.ERROR, "Lß╗ùi ─æ─âng b├ín", "T├¬n sß║ún phß║⌐m cß╗ºa bß║ún nh├íp kh├┤ng ─æ╞░ß╗úc ─æß╗â trß╗æng!");
             return;
         }
 
         if (selected.productType == null || selected.productType.trim().isEmpty()) {
-            showAlert(Alert.AlertType.ERROR, "Lỗi đăng bán", "Loại sản phẩm của bản nháp không được để trống!");
+            showAlert(Alert.AlertType.ERROR, "Lß╗ùi ─æ─âng b├ín", "Loß║íi sß║ún phß║⌐m cß╗ºa bß║ún nh├íp kh├┤ng ─æ╞░ß╗úc ─æß╗â trß╗æng!");
             return;
         }
 
         if (selected.startingPrice == null || selected.startingPrice.compareTo(BigDecimal.ZERO) <= 0) {
-            showAlert(Alert.AlertType.ERROR, "Lỗi đăng bán", "Giá khởi điểm phải lớn hơn 0!");
+            showAlert(Alert.AlertType.ERROR, "Lß╗ùi ─æ─âng b├ín", "Gi├í khß╗ƒi ─æiß╗âm phß║úi lß╗¢n h╞ín 0!");
             return;
         }
 
@@ -1661,11 +1661,11 @@ public class SellerDashboardController {
             try {
                 startDT = LocalDateTime.parse(selected.startTime);
             } catch (Exception e) {
-                showAlert(Alert.AlertType.ERROR, "Lỗi thời gian", "Định dạng thời gian bắt đầu của bản nháp không hợp lệ!");
+                showAlert(Alert.AlertType.ERROR, "Lß╗ùi thß╗¥i gian", "─Éß╗ïnh dß║íng thß╗¥i gian bß║»t ─æß║ºu cß╗ºa bß║ún nh├íp kh├┤ng hß╗úp lß╗ç!");
                 return;
             }
         } else {
-            showAlert(Alert.AlertType.ERROR, "Lỗi thời gian", "Vui lòng nhập ngày giờ bắt đầu hợp lệ!");
+            showAlert(Alert.AlertType.ERROR, "Lß╗ùi thß╗¥i gian", "Vui l├▓ng nhß║¡p ng├áy giß╗¥ bß║»t ─æß║ºu hß╗úp lß╗ç!");
             return;
         }
 
@@ -1674,23 +1674,23 @@ public class SellerDashboardController {
             try {
                 endDT = LocalDateTime.parse(selected.endTime);
             } catch (Exception e) {
-                showAlert(Alert.AlertType.ERROR, "Lỗi thời gian", "Định dạng thời gian kết thúc của bản nháp không hợp lệ!");
+                showAlert(Alert.AlertType.ERROR, "Lß╗ùi thß╗¥i gian", "─Éß╗ïnh dß║íng thß╗¥i gian kß║┐t th├║c cß╗ºa bß║ún nh├íp kh├┤ng hß╗úp lß╗ç!");
                 return;
             }
         } else {
-            showAlert(Alert.AlertType.ERROR, "Lỗi thời gian", "Vui lòng nhập ngày giờ kết thúc hợp lệ!");
+            showAlert(Alert.AlertType.ERROR, "Lß╗ùi thß╗¥i gian", "Vui l├▓ng nhß║¡p ng├áy giß╗¥ kß║┐t th├║c hß╗úp lß╗ç!");
             return;
         }
 
         // End Time must be in the future
         if (!endDT.isAfter(LocalDateTime.now())) {
-            showAlert(Alert.AlertType.ERROR, "Lỗi thời gian", "Thời gian kết thúc phải ở tương lai!");
+            showAlert(Alert.AlertType.ERROR, "Lß╗ùi thß╗¥i gian", "Thß╗¥i gian kß║┐t th├║c phß║úi ß╗ƒ t╞░╞íng lai!");
             return;
         }
 
         // End Time must be after Start Time
         if (!endDT.isAfter(startDT)) {
-            showAlert(Alert.AlertType.ERROR, "Lỗi thời gian", "Thời gian kết thúc phải sau thời gian bắt đầu!");
+            showAlert(Alert.AlertType.ERROR, "Lß╗ùi thß╗¥i gian", "Thß╗¥i gian kß║┐t th├║c phß║úi sau thß╗¥i gian bß║»t ─æß║ºu!");
             return;
         }
 
@@ -1726,18 +1726,18 @@ public class SellerDashboardController {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "Đăng bán phiên đấu giá thành công.");
+            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "─É─âng b├ín phi├¬n ─æß║Ñu gi├í th├ánh c├┤ng.");
 
             if (api.success) {
                 loadMySessions();
-                showAlert(Alert.AlertType.INFORMATION, "Thành công", api.message);
+                showAlert(Alert.AlertType.INFORMATION, "Th├ánh c├┤ng", api.message);
             } else {
-                showAlert(Alert.AlertType.ERROR, "Lỗi", api.message);
+                showAlert(Alert.AlertType.ERROR, "Lß╗ùi", api.message);
             }
 
         } catch (Exception e) {
-            logger.error("Lỗi không thể kết nối đến máy chủ: {}", e.getMessage(), e);
-            showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
+            logger.error("Lß╗ùi kh├┤ng thß╗â kß║┐t nß╗æi ─æß║┐n m├íy chß╗º: {}", e.getMessage(), e);
+            showAlert(Alert.AlertType.ERROR, "Lß╗ùi mß║íng", "Kh├┤ng thß╗â kß║┐t nß╗æi ─æß║┐n m├íy chß╗º!");
         }
     }
 
@@ -1749,8 +1749,8 @@ public class SellerDashboardController {
     private void loadMySessions() {
         Integer sellerId = User.getId();
         if (sellerId == null) {
-            logger.error("Lỗi không lấy được sellerId từ session");
-            showAlert(Alert.AlertType.ERROR, "Lỗi", "Không lấy được sellerId từ session.");
+            logger.error("Lß╗ùi kh├┤ng lß║Ñy ─æ╞░ß╗úc sellerId tß╗½ session");
+            showAlert(Alert.AlertType.ERROR, "Lß╗ùi", "Kh├┤ng lß║Ñy ─æ╞░ß╗úc sellerId tß╗½ session.");
             return;
         }
 
@@ -1764,7 +1764,7 @@ public class SellerDashboardController {
 
             ApiArrayResult api = extractDataArray(response.body(), response.statusCode());
             if (!api.success) {
-                showAlert(Alert.AlertType.ERROR, "Lỗi", api.message);
+                showAlert(Alert.AlertType.ERROR, "Lß╗ùi", api.message);
                 return;
             }
 
@@ -1777,8 +1777,8 @@ public class SellerDashboardController {
             updateStats();
 
         } catch (Exception e) {
-            logger.error("Lỗi không thể kết nối đến server: {}", e.getMessage(), e);
-            showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể tải dữ liệu seller từ server.");
+            logger.error("Lß╗ùi kh├┤ng thß╗â kß║┐t nß╗æi ─æß║┐n server: {}", e.getMessage(), e);
+            showAlert(Alert.AlertType.ERROR, "Lß╗ùi mß║íng", "Kh├┤ng thß╗â tß║úi dß╗» liß╗çu seller tß╗½ server.");
         }
     }
 
@@ -1787,12 +1787,12 @@ public class SellerDashboardController {
         s.id = item.optInt("id", 0);
 
         if (item.has("productName")) {
-            s.productName = item.optString("productName", "Không rõ");
+            s.productName = item.optString("productName", "Kh├┤ng r├╡");
         } else if (item.has("product")) {
             JSONObject product = item.optJSONObject("product");
-            s.productName = product != null ? product.optString("name", "Không rõ") : "Không rõ";
+            s.productName = product != null ? product.optString("name", "Kh├┤ng r├╡") : "Kh├┤ng r├╡";
         } else {
-            s.productName = "Không rõ";
+            s.productName = "Kh├┤ng r├╡";
         }
 
         if (item.has("productType")) {
@@ -1890,21 +1890,21 @@ public class SellerDashboardController {
         descriptionArea.clear();
         startingPriceField.clear();
         if (lblImageFileName != null) lblImageFileName.setText("");
-
+        
         if (startingPriceField != null) startingPriceField.setDisable(false);
         if (txtStartDay != null) txtStartDay.setDisable(false);
         if (txtStartMonth != null) txtStartMonth.setDisable(false);
         if (txtStartYear != null) txtStartYear.setDisable(false);
         if (txtStartHour != null) txtStartHour.setDisable(false);
         if (txtStartMin != null) txtStartMin.setDisable(false);
-
+        
         LocalDateTime now = LocalDateTime.now();
         txtStartDay.setText(String.format("%02d", now.getDayOfMonth()));
         txtStartMonth.setText(String.format("%02d", now.getMonthValue()));
         txtStartYear.setText(String.valueOf(now.getYear()));
         txtStartHour.setText(String.format("%02d", now.getHour()));
         txtStartMin.setText(String.format("%02d", now.getMinute()));
-
+        
         LocalDateTime tomorrow = now.plusDays(1);
         txtEndDay.setText(String.format("%02d", tomorrow.getDayOfMonth()));
         txtEndMonth.setText(String.format("%02d", tomorrow.getMonthValue()));
@@ -2036,12 +2036,12 @@ public class SellerDashboardController {
                     if (currentText != null && !currentText.isEmpty()) {
                         sidebarButtonTextMap.put(btn, currentText);
                     }
-
+                    
                     String tooltipText = sidebarButtonTextMap.get(btn);
                     if (tooltipText != null) {
                         Tooltip tooltip = new Tooltip(tooltipText);
                         tooltip.setStyle("-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 6px 12px; -fx-font-size: 13px;");
-
+                        
                         javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.millis(300));
                         pause.setOnFinished(e -> {
                             if (btn.isHover()) {
@@ -2057,7 +2057,7 @@ public class SellerDashboardController {
                         });
                     }
 
-                    btn.setTooltip(null); // Tắt Tooltip mặc định của JavaFX
+                    btn.setTooltip(null); // Tß║»t Tooltip mß║╖c ─æß╗ïnh cß╗ºa JavaFX
 
                     btn.setText("");
                     btn.setPrefWidth(50);
@@ -2106,14 +2106,14 @@ public class SellerDashboardController {
     }
 
     private String safeMessage(String body) {
-        if (body == null || body.isBlank()) return "Có lỗi xảy ra từ server.";
+        if (body == null || body.isBlank()) return "C├│ lß╗ùi xß║úy ra tß╗½ server.";
         return body;
     }
 
     private ApiResult parseApiResponse(String body, int httpStatus, String defaultSuccessMessage) {
         if (body == null || body.isBlank()) {
             return new ApiResult(httpStatus >= 200 && httpStatus < 300,
-                    httpStatus >= 200 && httpStatus < 300 ? defaultSuccessMessage : "Có lỗi xảy ra từ server.");
+                    httpStatus >= 200 && httpStatus < 300 ? defaultSuccessMessage : "C├│ lß╗ùi xß║úy ra tß╗½ server.");
         }
 
         try {
@@ -2122,7 +2122,7 @@ public class SellerDashboardController {
                 JSONObject obj = new JSONObject(trimmed);
                 int status = obj.optInt("status", httpStatus);
                 String message = obj.optString("message",
-                        status >= 200 && status < 300 ? defaultSuccessMessage : "Có lỗi xảy ra từ server.");
+                        status >= 200 && status < 300 ? defaultSuccessMessage : "C├│ lß╗ùi xß║úy ra tß╗½ server.");
                 return new ApiResult(status >= 200 && status < 300, message);
             }
         } catch (Exception ignored) {
@@ -2134,7 +2134,7 @@ public class SellerDashboardController {
 
     private ApiArrayResult extractDataArray(String body, int httpStatus) {
         if (body == null || body.isBlank()) {
-            return new ApiArrayResult(false, "Không có dữ liệu từ server.", new JSONArray());
+            return new ApiArrayResult(false, "Kh├┤ng c├│ dß╗» liß╗çu tß╗½ server.", new JSONArray());
         }
 
         try {
@@ -2146,7 +2146,7 @@ public class SellerDashboardController {
 
             JSONObject obj = new JSONObject(trimmed);
             int status = obj.optInt("status", httpStatus);
-            String message = obj.optString("message", "Có lỗi xảy ra từ server.");
+            String message = obj.optString("message", "C├│ lß╗ùi xß║úy ra tß╗½ server.");
 
             if (status < 200 || status >= 300) {
                 return new ApiArrayResult(false, message, new JSONArray());
@@ -2159,7 +2159,7 @@ public class SellerDashboardController {
 
             return new ApiArrayResult(true, message, new JSONArray());
         } catch (Exception e) {
-            return new ApiArrayResult(false, "Không đọc được dữ liệu từ server.", new JSONArray());
+            return new ApiArrayResult(false, "Kh├┤ng ─æß╗ìc ─æ╞░ß╗úc dß╗» liß╗çu tß╗½ server.", new JSONArray());
         }
     }
 
@@ -2185,10 +2185,10 @@ public class SellerDashboardController {
         timerIcon.setIconColor(Color.valueOf("#e040a0"));
         iconCircle.getChildren().add(timerIcon);
 
-        Label titleLabel = new Label("Thời gian bắt đầu đã đến!");
+        Label titleLabel = new Label("Thß╗¥i gian bß║»t ─æß║ºu ─æ├ú ─æß║┐n!");
         titleLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
 
-        Label descLabel = new Label("Phiên đấu giá cho vật phẩm của bạn đã sẵn sàng.\nBạn có muốn bắt đầu ngay bây giờ không?");
+        Label descLabel = new Label("Phi├¬n ─æß║Ñu gi├í cho vß║¡t phß║⌐m cß╗ºa bß║ín ─æ├ú sß║╡n s├áng.\nBß║ín c├│ muß╗æn bß║»t ─æß║ºu ngay b├óy giß╗¥ kh├┤ng?");
         descLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;");
         descLabel.setWrapText(true);
 
@@ -2196,12 +2196,12 @@ public class SellerDashboardController {
         btnBox.setAlignment(Pos.CENTER);
         btnBox.setPrefWidth(300);
 
-        Button btnStartNow = new Button("Bắt đầu ngay");
+        Button btnStartNow = new Button("Bß║»t ─æß║ºu ngay");
         btnStartNow.setPrefHeight(44);
         btnStartNow.setMaxWidth(Double.MAX_VALUE);
         btnStartNow.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand;");
 
-        Button btnEdit = new Button("Sửa lại");
+        Button btnEdit = new Button("Sß╗¡a lß║íi");
         btnEdit.setPrefHeight(44);
         btnEdit.setMaxWidth(Double.MAX_VALUE);
         btnEdit.setStyle("-fx-background-color: transparent; -fx-border-color: #dcc8e0; -fx-border-width: 2px; -fx-border-radius: 22px; -fx-background-radius: 22px; -fx-text-fill: #604868; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
@@ -2250,10 +2250,10 @@ public class SellerDashboardController {
         publishIcon.setIconColor(Color.valueOf("#e040a0"));
         iconCircle.getChildren().add(publishIcon);
 
-        Label titleLabel = new Label("Đăng bán nhanh");
+        Label titleLabel = new Label("─É─âng b├ín nhanh");
         titleLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
 
-        Label descLabel = new Label("Bạn có chắc chắn muốn đăng bán nhanh phiên #" + id + "\n(" + productName + ") không?");
+        Label descLabel = new Label("Bß║ín c├│ chß║»c chß║»n muß╗æn ─æ─âng b├ín nhanh phi├¬n #" + id + "\n(" + productName + ") kh├┤ng?");
         descLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;");
         descLabel.setWrapText(true);
 
@@ -2261,12 +2261,12 @@ public class SellerDashboardController {
         btnBox.setAlignment(Pos.CENTER);
         btnBox.setPrefWidth(300);
 
-        Button btnConfirm = new Button("Đăng bán");
+        Button btnConfirm = new Button("─É─âng b├ín");
         btnConfirm.setPrefHeight(44);
         btnConfirm.setMaxWidth(Double.MAX_VALUE);
         btnConfirm.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand;");
 
-        Button btnCancel = new Button("Hủy");
+        Button btnCancel = new Button("Hß╗ºy");
         btnCancel.setPrefHeight(44);
         btnCancel.setMaxWidth(Double.MAX_VALUE);
         btnCancel.setStyle("-fx-background-color: transparent; -fx-border-color: #dcc8e0; -fx-border-width: 2px; -fx-border-radius: 22px; -fx-background-radius: 22px; -fx-text-fill: #604868; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
@@ -2316,14 +2316,14 @@ public class SellerDashboardController {
             checkIcon.setIconColor(Color.valueOf("#10b981"));
             iconCircle.getChildren().add(checkIcon);
 
-            Label titleLabel = new Label(title != null ? title : "Thành công");
+            Label titleLabel = new Label(title != null ? title : "Th├ánh c├┤ng");
             titleLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
 
             Label descLabel = new Label(content);
             descLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;");
             descLabel.setWrapText(true);
 
-            Button btnOk = new Button("Đồng ý");
+            Button btnOk = new Button("─Éß╗ông ├╜");
             btnOk.setPrefHeight(44);
             btnOk.setMaxWidth(Double.MAX_VALUE);
             btnOk.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand;");

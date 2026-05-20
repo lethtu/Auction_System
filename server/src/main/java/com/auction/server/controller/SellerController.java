@@ -73,8 +73,11 @@ public class SellerController {
         );
     }
 
+    /**
+     * API Sửa phiên đấu giá
+     */
     @PutMapping("/update-session/{sessionId}")
-    public ApiResponse<SessionResponseDTO> updatePendingSession(
+    public ApiResponse<SessionResponseDTO> updateSession(
             @PathVariable Integer sessionId,
             @RequestParam Integer sellerId,
             @RequestBody CreateAuctionRequest request
@@ -84,7 +87,7 @@ public class SellerController {
                 SUCCESS_UPDATE_PENDING_SESSION,
                 () -> {
                     request.setSellerId(sellerId);
-                    return sellerService.updatePendingSession(sessionId, sellerId, request);
+                    return sellerService.updateSession(sessionId, sellerId, request);
                 }
         );
     }

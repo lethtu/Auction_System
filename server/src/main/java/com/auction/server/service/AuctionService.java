@@ -142,6 +142,11 @@ public class AuctionService {
             minimumRequiredBid = calculateMinimumNextBid(currentPrice);
         }
 
+        if (item.getStartTime() != null && LocalDateTime.now().isBefore(item.getStartTime())) {
+            logger.error("Đặt giá thất bại: Phiên đấu giá {} chưa đến giờ bắt đầu.", ItemAuctionId);
+            return new BidResponse(false, "LỖI: Phiên đấu giá này chưa bắt đầu!", currentPrice, null);
+        }
+
         if (item.getStatus().equals(AuctionStatus.ACTIVE)){
             if (newBidAmount.compareTo(minimumRequiredBid) < 0) {
                 logger.error("Đặt giá thất bại từ UserId: {} với giá: {} nhưng hệ thống yêu cầu tối thiểu: {}", BidderId, newBidAmount, minimumRequiredBid);

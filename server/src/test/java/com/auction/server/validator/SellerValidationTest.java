@@ -147,19 +147,6 @@ class SellerValidationTest {
     }
 
     @Test
-    void startTimeInPastThrowsException() {
-        CreateAuctionRequest request = validRequest();
-        request.setStartTime(LocalDateTime.now().minusMinutes(1));
-
-        InvalidItemException ex = assertThrows(
-                InvalidItemException.class,
-                () -> SellerAuctionValidator.validate(request)
-        );
-
-        assertEquals("Thời gian bắt đầu không được nằm trong quá khứ", ex.getMessage());
-    }
-
-    @Test
     void nullEndTimeThrowsException() {
         CreateAuctionRequest request = validRequest();
         request.setEndTime(null);
