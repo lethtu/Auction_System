@@ -216,7 +216,6 @@ CREATE TABLE `users` (
   `tax_id` varchar(255) DEFAULT NULL,
   `employee_code` varchar(20) DEFAULT NULL,
   `admin_role` enum('SUPER_ADMIN','MODERATOR','SUPPORT') NOT NULL,
-  `dtype` varchar(31) NOT NULL,
   `banned` bit(1) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`),
@@ -230,7 +229,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (10,'chuvanan','123',NULL,0.00,NULL,NULL,NULL,'bodoiqua189@gmail.com','chu van an',NULL,'seller',NULL,NULL,NULL,'','SUPER_ADMIN','',_binary '\0'),(12,'lethanhtung','lethanhtung',NULL,0.00,NULL,NULL,NULL,'giaovien895@gmail.com','le thanh tung',NULL,'seller',NULL,NULL,NULL,'','SUPER_ADMIN','',_binary '\0'),(14,'ok','112233',NULL,0.00,NULL,NULL,NULL,'val261263@gmail.com','ok',NULL,'seller',_binary '\0','Shop Test','TAX001','','SUPER_ADMIN','',_binary '\0'),(15,'phanbuom','phanbuom1',NULL,0.00,NULL,NULL,NULL,'faverrices@gmail.com','Nguyễn Hà Phan',NULL,'admin',NULL,NULL,NULL,'ADM001','SUPER_ADMIN','',_binary '\0'),(16,'tung','tung',NULL,0.00,NULL,NULL,NULL,'tung@gmail.com','tung',NULL,'user',NULL,NULL,NULL,NULL,'SUPER_ADMIN','',_binary '\0'),(17,'okoo','ok',NULL,0.00,NULL,NULL,NULL,'ok@gmail.com','okoo',NULL,'user',NULL,NULL,NULL,NULL,'SUPER_ADMIN','',_binary '\0');
+INSERT INTO `users` VALUES (10,'chuvanan','123',NULL,0.00,NULL,NULL,NULL,'bodoiqua189@gmail.com','chu van an',NULL,'seller',NULL,NULL,NULL,'','SUPER_ADMIN',_binary '\0'),(12,'lethanhtung','lethanhtung',NULL,0.00,NULL,NULL,NULL,'giaovien895@gmail.com','le thanh tung',NULL,'seller',NULL,NULL,NULL,'','SUPER_ADMIN',_binary '\0'),(14,'ok','112233',NULL,0.00,NULL,NULL,NULL,'val261263@gmail.com','ok',NULL,'seller',_binary '\0','Shop Test','TAX001','','SUPER_ADMIN',_binary '\0'),(15,'phanbuom','phanbuom1',NULL,0.00,NULL,NULL,NULL,'faverrices@gmail.com','Nguyễn Hà Phan',NULL,'admin',NULL,NULL,NULL,'ADM001','SUPER_ADMIN',_binary '\0'),(16,'tung','tung',NULL,0.00,NULL,NULL,NULL,'tung@gmail.com','tung',NULL,'user',NULL,NULL,NULL,NULL,'SUPER_ADMIN',_binary '\0'),(17,'okoo','ok',NULL,0.00,NULL,NULL,NULL,'ok@gmail.com','okoo',NULL,'user',NULL,NULL,NULL,NULL,'SUPER_ADMIN',_binary '\0');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
