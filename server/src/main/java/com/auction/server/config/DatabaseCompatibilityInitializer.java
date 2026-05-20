@@ -19,10 +19,39 @@ public class DatabaseCompatibilityInitializer implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
+        relaxLegacyDtypeColumn();
         normalizeRoleValues();
         allowRejectedAuctionStatus();
         ensureItemHiddenColumn();
         repairBidSessionForeignKey();
+    }
+
+    private void relaxLegacyDtypeColumn() {
+        try {
+            Integer count = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) "
+                            + "FROM information_schema.COLUMNS "
+                            + "WHERE TABLE_SCHEMA = DATABASE() "
+                            + "AND TABLE_NAME = 'users' "
+                            + "AND COLUMN_NAME = 'dtype'",
+                    Integer.class
+            );
+
+            if (count == null || count == 0) {
+                return;
+            }
+
+            runStatement(
+                    "Cho phep bo trong cot users.dtype cu",
+                    "ALTER TABLE users MODIFY COLUMN dtype VARCHAR(31) NULL DEFAULT NULL"
+            );
+            runUpdate(
+                    "Dong bo dtype cu theo role",
+                    "UPDATE users SET dtype = role WHERE dtype IS NULL AND role IS NOT NULL"
+            );
+        } catch (Exception e) {
+            logger.warn("Sua cot users.dtype cu bi bo qua: {}", e.getMessage());
+        }
     }
 
     private void normalizeRoleValues() {
