@@ -43,11 +43,20 @@ public class SidebarController {
     private final Map<Button, String> sidebarButtonTextMap = new HashMap<>();
 
     public interface SidebarListener {
-void onFilterWatchlist();
-        void onFilterMyBids();
-        void onFilterMySessions();
-        void onResetFilter();
-        void onShowCategories();
+        default void onFilterWatchlist() {}
+        default void onFilterWatchlist(ActionEvent event) { onFilterWatchlist(); }
+
+        default void onFilterMyBids() {}
+        default void onFilterMyBids(ActionEvent event) { onFilterMyBids(); }
+
+        default void onFilterMySessions() {}
+        default void onFilterMySessions(ActionEvent event) { onFilterMySessions(); }
+
+        default void onResetFilter() {}
+        default void onResetFilter(ActionEvent event) { onResetFilter(); }
+
+        default void onShowCategories() {}
+        default void onShowCategories(ActionEvent event) { onShowCategories(); }
     }
 
     private SidebarListener listener;
@@ -237,7 +246,7 @@ void onFilterWatchlist();
         autoCollapse();
         setActiveDashboard();
         if (listener != null) {
-            listener.onResetFilter();
+            listener.onResetFilter(event);
         } else {
             try {
                 if (onBeforeNavigate != null) onBeforeNavigate.run();
@@ -253,7 +262,7 @@ void onFilterWatchlist();
         autoCollapse();
         setActiveWatchlist();
         if (listener != null) {
-            listener.onFilterWatchlist();
+            listener.onFilterWatchlist(event);
         } else {
             try {
                 if (onBeforeNavigate != null) onBeforeNavigate.run();
@@ -281,7 +290,7 @@ void onFilterWatchlist();
         autoCollapse();
         setActiveMyBids();
         if (listener != null) {
-            listener.onFilterMyBids();
+            listener.onFilterMyBids(event);
         } else {
             try {
                 if (onBeforeNavigate != null) onBeforeNavigate.run();
@@ -320,7 +329,7 @@ void onFilterWatchlist();
         autoCollapse();
         setActiveButton(btnCategories);
         if (listener != null) {
-            listener.onShowCategories();
+            listener.onShowCategories(event);
         } else {
             try {
                 if (onBeforeNavigate != null) onBeforeNavigate.run();
