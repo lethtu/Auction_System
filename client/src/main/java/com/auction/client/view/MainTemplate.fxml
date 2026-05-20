@@ -30,11 +30,14 @@
             <Region HBox.hgrow="ALWAYS" />
             
             <HBox spacing="15.0" alignment="CENTER_RIGHT">
-                <Button onAction="#handleNotifications" style="-fx-background-color: transparent; -fx-cursor: hand;">
-                    <graphic>
-                        <Label text="&#xe7f4;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" />
-                    </graphic>
-                </Button>
+                <StackPane alignment="TOP_RIGHT">
+                    <Button fx:id="btnNotificationBell" style="-fx-background-color: transparent; -fx-cursor: hand;">
+                        <graphic>
+                            <Label text="&#xe7f4;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" />
+                        </graphic>
+                    </Button>
+                    <Label fx:id="notificationBadge" text="0" visible="false" managed="false" style="-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 1 5; -fx-background-radius: 10; -fx-translate-x: -5; -fx-translate-y: 5;" />
+                </StackPane>
                 <Button onAction="#handleSettings" style="-fx-background-color: transparent; -fx-cursor: hand;">
                     <graphic>
                         <Label text="&#xe8b8;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" />

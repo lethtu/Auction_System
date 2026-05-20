@@ -1,0 +1,19 @@
+package com.auction.client.model.notification;
+
+public enum NotificationType {
+    OUTBID,
+    NEW_BID,
+    BID_SUCCESS,
+    BID_FAILED,
+    AUTO_BID_CONFIGURED,
+    AUTO_BID_PLACED,
+    AUTO_BID_LIMIT_REACHED,
+    AUCTION_EXTENDED,
+    AUCTION_END_WIN,
+    AUCTION_END_LOSE,
+    SELLER_NEW_BID,
+    SELLER_AUCTION_ENDED,
+    SELLER_ITEM_APPROVED,
+    SELLER_ITEM_REJECTED,
+    SYSTEM_ERROR
+}

@@ -41,8 +41,17 @@ public class SessionResponseDTO {
 
     private Boolean applyMinRate;
     private BigDecimal minRate;
+    private java.util.List<com.auction.server.model.Bid> bids;
 
     public SessionResponseDTO() {
+    }
+
+    public java.util.List<com.auction.server.model.Bid> getBids() {
+        return bids;
+    }
+
+    public void setBids(java.util.List<com.auction.server.model.Bid> bids) {
+        this.bids = bids;
     }
 
     public Integer getId() {

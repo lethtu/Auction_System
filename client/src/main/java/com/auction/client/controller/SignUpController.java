@@ -32,6 +32,45 @@ public class SignUpController {
     private PasswordField txtPassword;
     @FXML
     private PasswordField txtConfirmPassword;
+    @FXML private javafx.scene.layout.Region strength1;
+    @FXML private javafx.scene.layout.Region strength2;
+    @FXML private javafx.scene.layout.Region strength3;
+    @FXML private javafx.scene.control.Label lblStrength;
+    @FXML private javafx.scene.control.CheckBox chkTerms;
+
+    @FXML
+    public void initialize() {
+        if (txtPassword != null) {
+            txtPassword.textProperty().addListener((obs, oldV, newV) -> updatePasswordStrength(newV));
+        }
+    }
+
+    private void updatePasswordStrength(String password) {
+        if (strength1 == null) return;
+        strength1.getStyleClass().removeAll("strength-empty", "strength-weak", "strength-medium", "strength-strong");
+        strength2.getStyleClass().removeAll("strength-empty", "strength-weak", "strength-medium", "strength-strong");
+        strength3.getStyleClass().removeAll("strength-empty", "strength-weak", "strength-medium", "strength-strong");
+        
+        if (password == null || password.length() < 6) {
+            strength1.getStyleClass().add("strength-weak");
+            strength2.getStyleClass().add("strength-empty");
+            strength3.getStyleClass().add("strength-empty");
+            lblStrength.setText("Mật khẩu quá yếu (cần ít nhất 6 ký tự)");
+            lblStrength.setStyle("-fx-text-fill: #e53e3e; -fx-font-family: 'DM Sans'; -fx-font-size: 11px;");
+        } else if (password.length() < 10 || !password.matches(".*\\d.*") || !password.matches(".*[a-zA-Z].*")) {
+            strength1.getStyleClass().add("strength-medium");
+            strength2.getStyleClass().add("strength-medium");
+            strength3.getStyleClass().add("strength-empty");
+            lblStrength.setText("Mật khẩu trung bình (thêm số & ký tự)");
+            lblStrength.setStyle("-fx-text-fill: #eab308; -fx-font-family: 'DM Sans'; -fx-font-size: 11px;");
+        } else {
+            strength1.getStyleClass().add("strength-strong");
+            strength2.getStyleClass().add("strength-strong");
+            strength3.getStyleClass().add("strength-strong");
+            lblStrength.setText("Mật khẩu mạnh");
+            lblStrength.setStyle("-fx-text-fill: #22c55e; -fx-font-family: 'DM Sans'; -fx-font-size: 11px;");
+        }
+    }
 
     @FXML
     public void handleSignUp(ActionEvent event) {
@@ -43,6 +82,16 @@ public class SignUpController {
 
         if (fullname.isEmpty() || username.isEmpty() || email.isEmpty() || password.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Thông báo", "Vui lòng điền đầy đủ các trường!");
+            return;
+        }
+
+        if (chkTerms != null && !chkTerms.isSelected()) {
+            showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Bạn phải đồng ý với các điều khoản!");
+            return;
+        }
+
+        if (password.length() < 6) {
+            showAlert(Alert.AlertType.WARNING, "Lỗi", "Mật khẩu phải có ít nhất 6 ký tự!");
             return;
         }
 
@@ -112,7 +161,7 @@ public class SignUpController {
 
     @FXML
     public void goToLogin(ActionEvent event) throws IOException {
-        SceneSwitcher.switchScene(event, "Login.fxml", Config.Width, Config.Height);
+        SceneSwitcher.switchScene(event, "Login.fxml", 1000, 650);
     }
 
     private void showAlert(Alert.AlertType alertType, String title, String message) {

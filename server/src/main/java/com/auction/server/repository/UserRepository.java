@@ -22,6 +22,9 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Query(value = "SELECT * FROM users WHERE role = :role", nativeQuery = true)
     List<User> findAllByRole(@Param("role") String role);
 
+    @Query(value = "SELECT COUNT(*) FROM users WHERE role = :role", nativeQuery = true)
+    long countAllByRole(@Param("role") String role);
+
     /**
      * Cập nhật trực tiếp cột discriminator "role" trong DB.
      * Cần thiết vì Hibernate không cho phép thay đổi discriminator qua JPA entity thông thường.

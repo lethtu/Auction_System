@@ -22,7 +22,7 @@ public class BiddingController {
         return success;
     }
 
-    public void registerAutoBid(int auctionId, int bidderId, BigDecimal maxBid, BigDecimal increment) {
+    public void registerAutoBid(int auctionId, int bidderId, BigDecimal maxBid, BigDecimal increment) throws Exception {
         auctionService.registerAutoBid(auctionId, bidderId, maxBid, increment);
     }
 

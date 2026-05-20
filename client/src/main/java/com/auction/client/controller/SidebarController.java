@@ -20,6 +20,7 @@ import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.auction.client.model.User;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,7 +43,7 @@ public class SidebarController {
     private final Map<Button, String> sidebarButtonTextMap = new HashMap<>();
 
     public interface SidebarListener {
-        void onFilterWatchlist();
+void onFilterWatchlist();
         void onFilterMyBids();
         void onFilterMySessions();
         void onResetFilter();
@@ -69,6 +70,28 @@ public class SidebarController {
                 sidebarButtonTextMap.put(btn, btn.getText());
             }
         }
+
+        // Kiểm tra xem đã là seller chưa
+        if (User.getRole() != null && User.getRole().equalsIgnoreCase("seller")) {
+            if (btnStartSelling != null) {
+                btnStartSelling.setVisible(false);
+                btnStartSelling.setManaged(false);
+            }
+            if (btnSelling != null) {
+                btnSelling.setVisible(true);
+                btnSelling.setManaged(true);
+            }
+        } else {
+            if (btnStartSelling != null) {
+                btnStartSelling.setVisible(true);
+                btnStartSelling.setManaged(true);
+            }
+            if (btnSelling != null) {
+                btnSelling.setVisible(false);
+                btnSelling.setManaged(false);
+            }
+        }
+
         if (isSidebarCollapsed) {
             isSidebarCollapsed = false;
             toggleSidebar();
@@ -182,6 +205,10 @@ public class SidebarController {
 
     public void setActiveSelling() {
         setActiveButton(btnSelling);
+    }
+
+    public void setActiveSupport() {
+        setActiveButton(btnSupport);
     }
 
     private void setActiveButton(Button activeButton) {

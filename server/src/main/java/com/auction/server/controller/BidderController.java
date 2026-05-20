@@ -88,4 +88,17 @@ public class BidderController {
             return new ApiResponse<>(400, message, "FAILED");
         }
     }
+
+    @GetMapping("/my-bids")
+    public ApiResponse<java.util.List<com.auction.server.dto.SessionResponseDTO>> getMyBids(@RequestParam Integer bidderId) {
+        logger.info("Đang lấy danh sách các phiên đấu giá đã tham gia của bidderId: {}", bidderId);
+        java.util.List<AuctionSession> sessions = bidRepository.findSessionsByBidderId(bidderId);
+        java.util.List<com.auction.server.dto.SessionResponseDTO> dtos = sessions.stream()
+                .map(session -> {
+                    int bidCount = Math.toIntExact(bidRepository.countBySessionId(session.getId()));
+                    return com.auction.server.mapper.SessionResponseMapper.toDTO(session, bidCount);
+                })
+                .toList();
+        return new ApiResponse<>(200, "Lấy danh sách đấu giá đã tham gia thành công", dtos);
+    }
 }
