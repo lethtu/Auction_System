@@ -751,11 +751,11 @@ public class MainController implements Initializable {
         Region hSpacer = new Region();
         HBox.setHgrow(hSpacer, Priority.ALWAYS);
 
-        HBox actionBox = new HBox(8);
+        HBox actionBox = new HBox(10);
         actionBox.setAlignment(Pos.CENTER);
-        actionBox.setMinWidth(96.0);
-        actionBox.setPrefWidth(96.0);
-        actionBox.setMaxWidth(96.0);
+        actionBox.setMinWidth(102.0);
+        actionBox.setPrefWidth(102.0);
+        actionBox.setMaxWidth(102.0);
 
         Button mainBtn = new Button();
         Label mainPlusIcon = new Label("+");
@@ -782,6 +782,7 @@ public class MainController implements Initializable {
         watchIcon.setMinSize(44.0, 44.0);
         watchIcon.setPrefSize(44.0, 44.0);
         watchIcon.setMaxSize(44.0, 44.0);
+        watchIcon.setTranslateY(1.5);
         btnWatch.setGraphic(watchIcon);
         btnWatch.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         btnWatch.setMinSize(44.0, 44.0);
@@ -799,6 +800,8 @@ public class MainController implements Initializable {
         bidIcon.setMinSize(44.0, 44.0);
         bidIcon.setPrefSize(44.0, 44.0);
         bidIcon.setMaxSize(44.0, 44.0);
+        bidIcon.setTranslateY(1.5);
+        bidIcon.setTranslateX(0.5);
         btnBid.setGraphic(bidIcon);
         btnBid.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         btnBid.setMinSize(44.0, 44.0);
@@ -837,12 +840,14 @@ public class MainController implements Initializable {
                     User.watchlistIds.remove(id);
                     watchIcon.setText("\uE87E");
                     watchIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #604868;");
+                    watchIcon.setTranslateY(1.5);
                     Tooltip.install(btnWatch, new Tooltip("Thêm vào yêu thích"));
                     ClientLogger.logFavorite(User.getUsername(), name, id, false);
                 } else {
                     User.watchlistIds.add(id);
                     watchIcon.setText("\uE87D");
                     watchIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #e040a0;");
+                    watchIcon.setTranslateY(1.5);
                     Tooltip.install(btnWatch, new Tooltip("Đã yêu thích"));
                     ClientLogger.logFavorite(User.getUsername(), name, id, true);
                 }

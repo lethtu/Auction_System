@@ -12,7 +12,15 @@ import com.auction.client.util.SellerStatsCalculator;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import org.slf4j.Logger;
@@ -76,6 +84,7 @@ public class SellerDashboardController {
     @FXML private Label lblMinRate;
 
     @FXML private TextArea statsArea;
+    @FXML private VBox statsCardsBox;
     @FXML private Button btnCreateOrUpdate;
 
     private final SellerDashboardService sellerDashboardService = new SellerDashboardService();
@@ -89,6 +98,8 @@ public class SellerDashboardController {
     public void initialize() {
         setupProductTypeCombo();
         initializeDateInputs();
+        setupMySessionsListView();
+        setupStatsView();
 
         if (minRateField != null && applyMinRateCheck != null) {
             minRateField.setDisable(true);
@@ -461,7 +472,193 @@ public class SellerDashboardController {
     }
 
     private void updateStats() {
-        statsArea.setText(SellerStatsCalculator.buildStatsText(allSessions));
+        if (statsCardsBox == null) {
+            if (statsArea != null) {
+                statsArea.setText(SellerStatsCalculator.buildStatsText(allSessions));
+            }
+            return;
+        }
+
+        statsCardsBox.getChildren().clear();
+
+        int total = allSessions.size();
+        int pending = countSessions(AuctionStatus.PENDING);
+        int active = countSessions(AuctionStatus.ACTIVE);
+        int rejected = countSessions(AuctionStatus.REJECTED);
+        int ended = countSessions("ENDED");
+        int canceled = countSessions("CANCELED");
+        BigDecimal revenue = calculateEndedRevenue();
+
+        Label sectionTitle = new Label("Tổng quan hiệu quả bán hàng");
+        sectionTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
+
+        Label sectionSub = new Label("Theo dõi nhanh tình trạng các phiên đấu giá của bạn.");
+        sectionSub.setStyle("-fx-font-size: 13px; -fx-text-fill: #907898;");
+
+        GridPane grid = new GridPane();
+        grid.setHgap(14);
+        grid.setVgap(14);
+        grid.add(createStatCard("Tổng phiên", String.valueOf(total), "Tất cả phiên đã tạo", "#e040a0"), 0, 0);
+        grid.add(createStatCard("Chờ duyệt", String.valueOf(pending), "Đang đợi admin", "#f59e0b"), 1, 0);
+        grid.add(createStatCard("Đang hoạt động", String.valueOf(active), "Có thể nhận đấu giá", "#22c55e"), 2, 0);
+        grid.add(createStatCard("Đã kết thúc", String.valueOf(ended), "Phiên hoàn tất", "#6366f1"), 0, 1);
+        grid.add(createStatCard("Bị từ chối", String.valueOf(rejected), "Cần chỉnh sửa", "#ef4444"), 1, 1);
+        grid.add(createStatCard("Đã hủy", String.valueOf(canceled), "Phiên đã hủy", "#907898"), 2, 1);
+
+        VBox revenueCard = createRevenueCard(revenue);
+        statsCardsBox.getChildren().addAll(sectionTitle, sectionSub, grid, revenueCard);
+    }
+
+    private void setupMySessionsListView() {
+        if (mySessionsList == null) {
+            return;
+        }
+
+        mySessionsList.setFixedCellSize(94);
+        mySessionsList.setCellFactory(listView -> new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                    setStyle("-fx-background-color: transparent;");
+                    return;
+                }
+
+                int index = getIndex();
+                SessionItem session = index >= 0 && index < displayedSessions.size()
+                        ? displayedSessions.get(index)
+                        : null;
+
+                setText(null);
+                setGraphic(session == null ? new Label(item) : createSessionRow(session, index + 1));
+                setPadding(new Insets(4, 8, 4, 8));
+                setStyle("-fx-background-color: transparent;");
+            }
+        });
+    }
+
+    private void setupStatsView() {
+        if (statsCardsBox != null) {
+            statsCardsBox.setSpacing(14);
+            statsCardsBox.setPadding(new Insets(2, 4, 18, 4));
+        }
+    }
+
+    private Node createSessionRow(SessionItem session, int index) {
+        HBox row = new HBox(14);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(12, 14, 12, 14));
+        row.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 16; -fx-border-color: #f2e8f2; -fx-border-radius: 16; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.06), 10, 0, 0, 2);");
+
+        Label indexBadge = new Label(String.valueOf(index));
+        indexBadge.setMinSize(38, 38);
+        indexBadge.setPrefSize(38, 38);
+        indexBadge.setAlignment(Pos.CENTER);
+        indexBadge.setStyle("-fx-background-color: #fef7ff; -fx-background-radius: 19; -fx-text-fill: #e040a0; -fx-font-weight: 900; -fx-border-color: #f2e8f2; -fx-border-radius: 19;");
+
+        Label title = new Label("#" + session.id + "  " + safeText(session.productName));
+        title.setMaxWidth(Double.MAX_VALUE);
+        title.setStyle("-fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
+
+        Label detail = new Label("Giá hiện tại: " + formatMoney(session.currentPrice) + "  •  Bước giá: " + formatMoney(session.stepPrice) + "  •  Giá sàn: " + formatMoney(session.reservePrice));
+        detail.setStyle("-fx-font-size: 12px; -fx-text-fill: #604868;");
+
+        VBox textBox = new VBox(4, title, detail);
+        HBox.setHgrow(textBox, Priority.ALWAYS);
+
+        Label statusBadge = new Label(safeText(session.status).isBlank() ? "UNKNOWN" : session.status.toUpperCase());
+        statusBadge.setAlignment(Pos.CENTER);
+        statusBadge.setMinWidth(92);
+        statusBadge.setStyle(statusBadgeStyle(session.status));
+
+        row.getChildren().addAll(indexBadge, textBox, statusBadge);
+        return row;
+    }
+
+    private VBox createStatCard(String title, String value, String caption, String accentColor) {
+        VBox card = new VBox(6);
+        card.setMinWidth(185);
+        card.setPrefWidth(210);
+        card.setPadding(new Insets(16));
+        card.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 20; -fx-border-color: #f2e8f2; -fx-border-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.08), 14, 0, 0, 3);");
+
+        Label titleLabel = new Label(title);
+        titleLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #907898;");
+
+        Label valueLabel = new Label(value);
+        valueLabel.setStyle("-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: " + accentColor + ";");
+
+        Label captionLabel = new Label(caption);
+        captionLabel.setWrapText(true);
+        captionLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #604868;");
+
+        card.getChildren().addAll(titleLabel, valueLabel, captionLabel);
+        return card;
+    }
+
+    private VBox createRevenueCard(BigDecimal revenue) {
+        VBox card = new VBox(8);
+        card.setPadding(new Insets(18));
+        card.setStyle("-fx-background-color: linear-gradient(to right, #e040a0, #f472b6); -fx-background-radius: 22; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.22), 18, 0, 0, 5);");
+
+        Label title = new Label("Doanh thu phiên đã kết thúc");
+        title.setStyle("-fx-text-fill: rgba(255,255,255,0.88); -fx-font-size: 13px; -fx-font-weight: bold;");
+
+        Label value = new Label(formatMoney(revenue));
+        value.setStyle("-fx-text-fill: white; -fx-font-size: 30px; -fx-font-weight: 900;");
+
+        Label note = new Label("Tổng giá hiện tại của các phiên đã kết thúc.");
+        note.setStyle("-fx-text-fill: rgba(255,255,255,0.82); -fx-font-size: 12px;");
+
+        card.getChildren().addAll(title, value, note);
+        return card;
+    }
+
+    private int countSessions(String status) {
+        int count = 0;
+        for (SessionItem session : allSessions) {
+            if (session != null && status.equalsIgnoreCase(safeText(session.status))) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private BigDecimal calculateEndedRevenue() {
+        BigDecimal total = BigDecimal.ZERO;
+        for (SessionItem session : allSessions) {
+            if (session != null && "ENDED".equalsIgnoreCase(safeText(session.status)) && session.currentPrice != null) {
+                total = total.add(session.currentPrice);
+            }
+        }
+        return total;
+    }
+
+    private String formatMoney(BigDecimal value) {
+        String raw = toEditableMoneyText(value == null ? BigDecimal.ZERO : value);
+        return raw.isBlank() ? "0 VND" : raw + " VND";
+    }
+
+    private String statusBadgeStyle(String status) {
+        String normalized = safeText(status).toUpperCase();
+        String bg = switch (normalized) {
+            case "ACTIVE" -> "#dcfce7";
+            case "PENDING" -> "#fef3c7";
+            case "REJECTED", "CANCELED" -> "#fee2e2";
+            case "ENDED" -> "#e0e7ff";
+            default -> "#f2e8f2";
+        };
+        String fg = switch (normalized) {
+            case "ACTIVE" -> "#15803d";
+            case "PENDING" -> "#b45309";
+            case "REJECTED", "CANCELED" -> "#b91c1c";
+            case "ENDED" -> "#3730a3";
+            default -> "#604868";
+        };
+        return "-fx-background-color: " + bg + "; -fx-text-fill: " + fg + "; -fx-font-size: 11px; -fx-font-weight: 900; -fx-background-radius: 14; -fx-padding: 6 10;";
     }
 
     private void selectTab(Tab tab) {
