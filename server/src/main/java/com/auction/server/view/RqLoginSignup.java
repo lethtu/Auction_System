@@ -18,7 +18,7 @@ public class RqLoginSignup {
     private HandleLoginSignup loginSignup;
 
     public Optional<User> login(String username, String pass) {
-        return loginSignup.findByUsernameAndPassword(username, pass);
+        return loginSignup.findByUsernameOrEmailAndPassword(username, pass);
     }
 
     public boolean signup(User newUser) {
