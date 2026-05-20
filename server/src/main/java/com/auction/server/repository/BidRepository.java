@@ -14,5 +14,8 @@ public interface BidRepository extends JpaRepository<Bid, Integer> {
     int countBySessionId(Integer sessionId);
 
     @Query("SELECT DISTINCT b.session FROM Bid b WHERE b.bidder.id = :bidderId")
+    List<AuctionSession> findDistinctSessionsByBidderId(@Param("bidderId") Integer bidderId);
+
+    @Query("SELECT DISTINCT b.session FROM Bid b WHERE b.bidder.id = :bidderId")
     List<AuctionSession> findSessionsByBidderId(@Param("bidderId") Integer bidderId);
 }

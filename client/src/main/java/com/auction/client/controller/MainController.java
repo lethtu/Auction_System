@@ -22,6 +22,7 @@ import javafx.geometry.Bounds;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -54,6 +55,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -100,7 +102,13 @@ public class MainController implements Initializable {
     @FXML private Button btnHamburger;
 
     private boolean showingWatchlistOnly = false;
+    private boolean showingMyBidsOnly = false;
+    private boolean showingMySessionsOnly = false;
+    private boolean showingAccountScreen = false;
+    private boolean showingCompactListScreen = false;
+    private boolean forceRenderProducts = false;
     public static boolean initialShowWatchlist = false;
+    public static String initialHomeFilterMode = "ALL";
     private final Button fakeTestBtn = new Button();
 
     // Kho lưu trữ Caching cục bộ, giúp Real-time filter không bị trễ
@@ -141,9 +149,10 @@ public class MainController implements Initializable {
             createUserOption("Chào, " + User.getFullname());
         }
 
-        if (User.getRole() != null && User.getRole().equalsIgnoreCase("seller")) {
-            btnDashboard.setVisible(true);
-            btnDashboard.setManaged(true);
+        // Nút "Kênh Người Bán" trên thanh trên cùng được ẩn để tránh trùng chức năng với sidebar Selling.
+        if (btnDashboard != null) {
+            btnDashboard.setVisible(false);
+            btnDashboard.setManaged(false);
         }
 
         // Khởi tạo ComboBox
@@ -165,26 +174,49 @@ public class MainController implements Initializable {
         scrollPane.viewportBoundsProperty().addListener((obs, oldBounds, newBounds) -> {
             updateGridLayout();
         });
+        scheduleStableGridLayout();
 
         if (sidebarController != null) {
             sidebarController.setSidebarListener(new SidebarController.SidebarListener() {
                 @Override
-                public void onFilterWatchlist(ActionEvent event) {
-                    showingWatchlistOnly = true;
-                    filterAndRenderProducts();
+                public void onFilterWatchlist() {
+                    showWatchlistSessions();
                 }
 
                 @Override
-                public void onResetFilter(ActionEvent event) {
-                    showingWatchlistOnly = false;
-                    filterAndRenderProducts();
+                public void onFilterMyBids() {
+                    showMyBiddingSessions();
+                }
+
+                @Override
+                public void onFilterMySessions() {
+                    showMySessions();
+                }
+
+                @Override
+                public void onResetFilter() {
+                    showAllSessions();
+                }
+
+                @Override
+                public void onShowCategories() {
+                    showCategoryChooser();
                 }
             });
 
-            if (initialShowWatchlist) {
-                showingWatchlistOnly = true;
-                initialShowWatchlist = false;
+            String requestedMode = initialShowWatchlist ? "WATCHLIST" : initialHomeFilterMode;
+            initialShowWatchlist = false;
+            initialHomeFilterMode = "ALL";
+
+            if ("WATCHLIST".equalsIgnoreCase(requestedMode)) {
                 sidebarController.setActiveWatchlist();
+                showWatchlistSessions();
+            } else if ("MY_BIDS".equalsIgnoreCase(requestedMode)) {
+                sidebarController.setActiveMyBids();
+                showMyBiddingSessions();
+            } else if ("MY_SESSIONS".equalsIgnoreCase(requestedMode)) {
+                sidebarController.setActiveSelling();
+                showMySessions();
             } else {
                 sidebarController.setActiveDashboard();
             }
@@ -197,26 +229,30 @@ public class MainController implements Initializable {
 
     private void updateGridLayout() {
         if (scrollPane == null || productContainer == null) return;
-        
-        // Tăng buffer lên 8px để triệt tiêu hoàn toàn sai số từ Border hoặc Scrollbar
-        double width = scrollPane.getViewportBounds().getWidth() - 8.0;
-        if (width <= 0) return;
 
-        double w = 240.0; // Chiều rộng thẻ sản phẩm
-        double minGap = 12.0; // Ngưỡng tối thiểu
-        
-        // Tính số lượng thẻ tối đa có thể vừa 1 hàng (n)
-        int n = (int) ((width - minGap) / (w + minGap));
-        if (n < 1) n = 1;
-        
-        // Tính khoảng cách chuẩn g
-        double g = Math.floor((width - n * w) / (n + 1));
-        if (g < 0) g = 0;
-        
-        productContainer.setHgap(g);
+        // Layout ổn định: không tính lại khoảng cách động theo từng thay đổi rất nhỏ của viewport.
+        // JavaFX đôi lúc refresh viewport khi click nền / đổi focus app, khiến gap động đổi qua lại.
+        // Vì vậy ta giữ gap cố định và để FlowPane căn giữa hàng sản phẩm.
+        double viewportWidth = scrollPane.getViewportBounds().getWidth();
+        if (viewportWidth <= 0) return;
 
-        // Luôn căn trái: padding = g cho cả trường hợp đủ hàng hay ít sản phẩm
-        productContainer.setPadding(new javafx.geometry.Insets(10.0, g, 10.0, g));
+        double stableWidth = Math.max(0, Math.floor(viewportWidth) - 24.0);
+
+        productContainer.setAlignment(Pos.TOP_CENTER);
+        productContainer.setPrefWrapLength(stableWidth);
+        productContainer.setMinWidth(stableWidth);
+        productContainer.setPrefWidth(stableWidth);
+        productContainer.setMaxWidth(stableWidth);
+        productContainer.setHgap(44.0);
+        productContainer.setVgap(28.0);
+        productContainer.setPadding(new Insets(10.0, 18.0, 10.0, 18.0));
+    }
+
+    private void scheduleStableGridLayout() {
+        Platform.runLater(this::updateGridLayout);
+        PauseTransition delay = new PauseTransition(Duration.millis(150));
+        delay.setOnFinished(event -> updateGridLayout());
+        delay.play();
     }
 
     private void createUserOption(String text) {
@@ -225,6 +261,9 @@ public class MainController implements Initializable {
         MenuItem accountItem = new MenuItem("Tài Khoản Của Tôi");
         MenuItem depositMoney = new MenuItem("Nạp tiền");
         MenuItem logoutItem = new MenuItem("Đăng Xuất");
+
+        accountItem.setOnAction(e -> showAccountScreen());
+        depositMoney.setOnAction(e -> handleDepositMoney());
         logoutItem.setOnAction(e -> System.out.println("Thực hiện Đăng xuất..."));
 
         logoutItem.setOnAction(event -> {
@@ -381,6 +420,10 @@ public class MainController implements Initializable {
      * Hàm trung tâm xử lý Data-Driven UI: Lọc bộ đệm (RAM) và vẽ lại màn hình
      */
     private void filterAndRenderProducts() {
+        if (showingAccountScreen || showingCompactListScreen) {
+            return;
+        }
+
         String keyword = txtSearch.getText() != null ? txtSearch.getText().toLowerCase().trim() : "";
         String selectedCategory = cbCategory.getValue();
         String selectedStatus = cbStatus.getValue();
@@ -404,19 +447,27 @@ public class MainController implements Initializable {
                 boolean matchCategory = "Tất cả".equals(selectedCategory) || type.equalsIgnoreCase(selectedCategory);
                 boolean matchStatus = "Tất cả".equals(selectedStatus) || status.equalsIgnoreCase(selectedStatus);
                 boolean matchWatchlist = !showingWatchlistOnly || User.watchlistIds.contains(sessionObj.optInt("id"));
+                boolean matchMySessions = !showingMySessionsOnly || isSessionOwnedByCurrentUser(sessionObj);
 
-                if (matchKeyword && matchCategory && matchStatus && matchWatchlist) {
+                if (matchKeyword && matchCategory && matchStatus && matchWatchlist && matchMySessions) {
                     newIdsToRender.add(sessionObj.optInt("id"));
                 }
             }
 
             // Bước 2: So sánh xem danh sách hiển thị có bị đổi không (thêm/bớt/đổi bộ lọc)
-            if (!currentRenderedIds.equals(newIdsToRender)) {
+            if (forceRenderProducts || !currentRenderedIds.equals(newIdsToRender)) {
+                forceRenderProducts = false;
                 // Có sự thay đổi => Vẽ lại toàn bộ
                 productContainer.getChildren().clear();
                 currentRenderedIds.clear();
 
                 productContainer.getChildren().add(fakeTestBtn);
+
+                if (newIdsToRender.isEmpty()) {
+                    productContainer.getChildren().add(createEmptyStateBox());
+                    updateGridLayout();
+                    return;
+                }
               
                 sessionCardMap.clear();
 
@@ -435,8 +486,9 @@ public class MainController implements Initializable {
                     boolean matchCategory = "Tất cả".equals(selectedCategory) || type.equalsIgnoreCase(selectedCategory);
                     boolean matchStatus = "Tất cả".equals(selectedStatus) || status.equalsIgnoreCase(selectedStatus);
                     boolean matchWatchlist = !showingWatchlistOnly || User.watchlistIds.contains(sessionObj.optInt("id"));
+                    boolean matchMySessions = !showingMySessionsOnly || isSessionOwnedByCurrentUser(sessionObj);
 
-                    if (matchKeyword && matchCategory && matchStatus && matchWatchlist) {
+                    if (matchKeyword && matchCategory && matchStatus && matchWatchlist && matchMySessions) {
                         VBox card = createProductCard(sessionObj, itemObj);
                         productContainer.getChildren().add(card);
                         currentRenderedIds.add(sessionObj.optInt("id"));
@@ -462,6 +514,25 @@ public class MainController implements Initializable {
     }
 
 
+    private void showCategoryChooser() {
+        ChoiceDialog<String> dialog = new ChoiceDialog<>(
+                cbCategory.getValue() == null ? "Tất cả" : cbCategory.getValue(),
+                "Tất cả", "Electronics", "Art", "Vehicle"
+        );
+        dialog.setTitle("Danh mục");
+        dialog.setHeaderText("Chọn danh mục muốn xem");
+        dialog.setContentText("Danh mục:");
+
+        Optional<String> result = dialog.showAndWait();
+        if (result.isEmpty()) {
+            return;
+        }
+
+        showAllSessions();
+        cbCategory.setValue(result.get());
+        filterAndRenderProducts();
+    }
+
     @FXML
     private void handleApplyFilter(ActionEvent event) {
         filterAndRenderProducts();
@@ -469,10 +540,168 @@ public class MainController implements Initializable {
 
     @FXML
     private void handleResetFilter(ActionEvent event) {
-        txtSearch.clear();
-        cbCategory.setValue("Tất cả");
-        cbStatus.setValue("Tất cả");
+        resetFiltersAndShowAll();
+    }
+
+
+    private void showAllSessions() {
+        showingAccountScreen = false;
+        showingCompactListScreen = false;
+        showingWatchlistOnly = false;
+        showingMyBidsOnly = false;
+        showingMySessionsOnly = false;
+        forceRenderProducts = true;
+        loadProductsFromServer();
         filterAndRenderProducts();
+    }
+
+    private void showWatchlistSessions() {
+        showingAccountScreen = false;
+        showingCompactListScreen = false;
+        showingWatchlistOnly = true;
+        showingMyBidsOnly = false;
+        showingMySessionsOnly = false;
+        forceRenderProducts = true;
+        filterAndRenderProducts();
+    }
+
+    private void showMySessions() {
+        showingAccountScreen = false;
+        showingCompactListScreen = false;
+        if (User.getId() == null) {
+            showWarning("Yêu cầu đăng nhập", "Vui lòng đăng nhập để xem phiên đấu giá của bạn.");
+            return;
+        }
+        showingWatchlistOnly = false;
+        showingMyBidsOnly = false;
+        showingMySessionsOnly = true;
+        forceRenderProducts = true;
+        loadProductsFromServer();
+        filterAndRenderProducts();
+    }
+
+    private void showMyBiddingSessions() {
+        showingAccountScreen = false;
+        showingCompactListScreen = false;
+        if (User.getId() == null) {
+            showWarning("Yêu cầu đăng nhập", "Vui lòng đăng nhập để xem các phiên bạn đang đấu giá.");
+            return;
+        }
+
+        showingWatchlistOnly = false;
+        showingMyBidsOnly = true;
+        showingMySessionsOnly = false;
+        forceRenderProducts = true;
+        loadMyBiddingSessionsFromServer();
+    }
+
+    private void loadMyBiddingSessionsFromServer() {
+        Integer bidderId = User.getId();
+        if (bidderId == null) return;
+
+        new Thread(() -> {
+            try {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(Config.API_URL + "/api/bidder/my-bidding-sessions?bidderId=" + bidderId))
+                        .GET()
+                        .build();
+
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                if (response.statusCode() != 200) {
+                    Platform.runLater(() -> showError("Không thể tải My Bids", "Server phản hồi mã lỗi: " + response.statusCode()));
+                    return;
+                }
+
+                JSONObject responseJson = new JSONObject(response.body());
+                if (responseJson.optInt("status", 500) != 200) {
+                    Platform.runLater(() -> showError("Không thể tải My Bids", responseJson.optString("message", "Lỗi không xác định.")));
+                    return;
+                }
+
+                List<JSONObject> sessions = parseSessionList(responseJson.get("data"));
+                Platform.runLater(() -> {
+                    allProducts.clear();
+                    allProducts.addAll(sessions);
+                    forceRenderProducts = true;
+                    filterAndRenderProducts();
+                });
+            } catch (Exception e) {
+                logger.error("Lỗi khi tải phiên đang đấu giá của user {}: {}", bidderId, e.getMessage(), e);
+                Platform.runLater(() -> showError("Không thể tải My Bids", "Không thể kết nối đến máy chủ hoặc dữ liệu trả về không hợp lệ."));
+            }
+        }, "load-my-bidding-sessions").start();
+    }
+
+    private List<JSONObject> parseSessionList(Object dataObj) {
+        JSONArray jsonArray = new JSONArray();
+        if (dataObj instanceof JSONObject) {
+            JSONObject dataJson = (JSONObject) dataObj;
+            if (dataJson.has("content")) {
+                jsonArray = dataJson.getJSONArray("content");
+            }
+        } else if (dataObj instanceof JSONArray) {
+            jsonArray = (JSONArray) dataObj;
+        }
+
+        List<JSONObject> sessions = new ArrayList<>();
+        for (int i = 0; i < jsonArray.length(); i++) {
+            sessions.add(jsonArray.getJSONObject(i));
+        }
+        return sessions;
+    }
+
+    private boolean isSessionOwnedByCurrentUser(JSONObject sessionObj) {
+        Integer currentUserId = User.getId();
+        if (currentUserId == null) return false;
+        return getSellerId(sessionObj) == currentUserId;
+    }
+
+    private int getSellerId(JSONObject sessionObj) {
+        if (sessionObj == null) return -1;
+        if (sessionObj.has("sellerId") && !sessionObj.isNull("sellerId")) {
+            return sessionObj.optInt("sellerId", -1);
+        }
+        JSONObject sellerObj = sessionObj.optJSONObject("seller");
+        if (sellerObj != null) {
+            return sellerObj.optInt("id", -1);
+        }
+        return -1;
+    }
+
+    private VBox createEmptyStateBox() {
+        VBox emptyBox = new VBox(10);
+        emptyBox.setAlignment(Pos.CENTER);
+        emptyBox.setPadding(new Insets(50));
+        emptyBox.setPrefWidth(600);
+
+        Label iconLabel = new Label("\uE88B");
+        iconLabel.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 56px; -fx-text-fill: #c8b6cf;");
+
+        Label titleLabel = new Label(getEmptyStateTitle());
+        titleLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
+
+        Label msgLabel = new Label(getEmptyStateMessage());
+        msgLabel.setWrapText(true);
+        msgLabel.setMaxWidth(480);
+        msgLabel.setAlignment(Pos.CENTER);
+        msgLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;");
+
+        emptyBox.getChildren().addAll(iconLabel, titleLabel, msgLabel);
+        return emptyBox;
+    }
+
+    private String getEmptyStateTitle() {
+        if (showingMyBidsOnly) return "Chưa có phiên đang đấu giá";
+        if (showingMySessionsOnly) return "Chưa có phiên của bạn";
+        if (showingWatchlistOnly) return "Watchlist đang trống";
+        return "Không có phiên phù hợp";
+    }
+
+    private String getEmptyStateMessage() {
+        if (showingMyBidsOnly) return "Các phiên bạn đã từng đặt giá sẽ xuất hiện tại đây.";
+        if (showingMySessionsOnly) return "Các phiên đấu giá do bạn tạo sẽ xuất hiện tại đây.";
+        if (showingWatchlistOnly) return "Hãy bấm biểu tượng yêu thích trên phiên đấu giá để thêm vào Watchlist.";
+        return "Thử đổi từ khóa tìm kiếm, thể loại hoặc trạng thái lọc.";
     }
 
     private VBox createProductCard(JSONObject sessionObj, JSONObject itemObj) {
@@ -575,31 +804,65 @@ public class MainController implements Initializable {
         Region hSpacer = new Region();
         HBox.setHgrow(hSpacer, Priority.ALWAYS);
 
-        HBox actionBox = new HBox(8);
-        actionBox.setAlignment(Pos.CENTER_RIGHT);
+        HBox actionBox = new HBox(10);
+        actionBox.setAlignment(Pos.CENTER);
+        actionBox.setMinWidth(102.0);
+        actionBox.setPrefWidth(102.0);
+        actionBox.setMaxWidth(102.0);
 
         Button mainBtn = new Button();
-        Label addIcon = new Label("\uE145"); // + icon
-        addIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 22px; -fx-text-fill: #e040a0;");
-        addIcon.setAlignment(Pos.CENTER);
-        mainBtn.setGraphic(addIcon);
-        mainBtn.setStyle("-fx-background-color: #ffd6ee; -fx-background-radius: 20px; -fx-min-width: 40px; -fx-min-height: 40px; -fx-max-width: 40px; -fx-max-height: 40px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
+        Label mainPlusIcon = new Label("+");
+        mainPlusIcon.setFont(Font.font("System", FontWeight.NORMAL, 28));
+        mainPlusIcon.setTextFill(Color.web("#e040a0"));
+        mainPlusIcon.setAlignment(Pos.CENTER);
+        mainPlusIcon.setMinSize(44.0, 44.0);
+        mainPlusIcon.setPrefSize(44.0, 44.0);
+        mainPlusIcon.setMaxSize(44.0, 44.0);
+        mainBtn.setGraphic(mainPlusIcon);
+        mainBtn.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        mainBtn.setMinSize(44.0, 44.0);
+        mainBtn.setPrefSize(44.0, 44.0);
+        mainBtn.setMaxSize(44.0, 44.0);
+        mainBtn.setPadding(Insets.EMPTY);
+        mainBtn.setAlignment(Pos.CENTER);
+        mainBtn.setStyle("-fx-background-color: #ffd6ee; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
         Tooltip.install(mainBtn, new Tooltip("Tùy chọn"));
 
         Button btnWatch = new Button();
         Label watchIcon = new Label(User.watchlistIds.contains(id) ? "\uE87D" : "\uE87E"); // heart filled or outline
         watchIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: " + (User.watchlistIds.contains(id) ? "#e040a0" : "#604868") + ";");
         watchIcon.setAlignment(Pos.CENTER);
+        watchIcon.setMinSize(44.0, 44.0);
+        watchIcon.setPrefSize(44.0, 44.0);
+        watchIcon.setMaxSize(44.0, 44.0);
+        watchIcon.setTranslateY(1.5);
         btnWatch.setGraphic(watchIcon);
-        btnWatch.setStyle("-fx-background-color: #f2e8f2; -fx-background-radius: 20px; -fx-min-width: 40px; -fx-min-height: 40px; -fx-max-width: 40px; -fx-max-height: 40px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
+        btnWatch.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        btnWatch.setMinSize(44.0, 44.0);
+        btnWatch.setPrefSize(44.0, 44.0);
+        btnWatch.setMaxSize(44.0, 44.0);
+        btnWatch.setPadding(Insets.EMPTY);
+        btnWatch.setAlignment(Pos.CENTER);
+        btnWatch.setStyle("-fx-background-color: #f2e8f2; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
         Tooltip.install(btnWatch, new Tooltip(User.watchlistIds.contains(id) ? "Đã yêu thích" : "Thêm vào yêu thích"));
 
         Button btnBid = new Button();
         Label bidIcon = new Label("\uE8CC"); // shopping cart / bid
         bidIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: white;");
         bidIcon.setAlignment(Pos.CENTER);
+        bidIcon.setMinSize(44.0, 44.0);
+        bidIcon.setPrefSize(44.0, 44.0);
+        bidIcon.setMaxSize(44.0, 44.0);
+        bidIcon.setTranslateY(1.5);
+        bidIcon.setTranslateX(0.5);
         btnBid.setGraphic(bidIcon);
-        btnBid.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 20px; -fx-min-width: 40px; -fx-min-height: 40px; -fx-max-width: 40px; -fx-max-height: 40px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224,64,160,0.3), 8, 0, 0, 2);");
+        btnBid.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+        btnBid.setMinSize(44.0, 44.0);
+        btnBid.setPrefSize(44.0, 44.0);
+        btnBid.setMaxSize(44.0, 44.0);
+        btnBid.setPadding(Insets.EMPTY);
+        btnBid.setAlignment(Pos.CENTER);
+        btnBid.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224,64,160,0.3), 8, 0, 0, 2);");
         Tooltip.install(btnBid, new Tooltip("Đấu giá ngay"));
 
         btnWatch.setVisible(false); btnWatch.setManaged(false);
@@ -630,12 +893,14 @@ public class MainController implements Initializable {
                     User.watchlistIds.remove(id);
                     watchIcon.setText("\uE87E");
                     watchIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #604868;");
+                    watchIcon.setTranslateY(1.5);
                     Tooltip.install(btnWatch, new Tooltip("Thêm vào yêu thích"));
                     ClientLogger.logFavorite(User.getUsername(), name, id, false);
                 } else {
                     User.watchlistIds.add(id);
                     watchIcon.setText("\uE87D");
                     watchIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #e040a0;");
+                    watchIcon.setTranslateY(1.5);
                     Tooltip.install(btnWatch, new Tooltip("Đã yêu thích"));
                     ClientLogger.logFavorite(User.getUsername(), name, id, true);
                 }
@@ -663,9 +928,8 @@ public class MainController implements Initializable {
 
             actionBox.getChildren().addAll(btnWatch, btnBid, mainBtn);
         } else {
-            addIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 22px; -fx-text-fill: #907898;");
-            mainBtn.setStyle("-fx-background-color: #f2e8f2; -fx-background-radius: 20px; -fx-min-width: 40px; -fx-min-height: 40px; -fx-max-width: 40px; -fx-max-height: 40px;");
-            mainBtn.setGraphic(addIcon);
+            mainPlusIcon.setTextFill(Color.web("#907898"));
+            mainBtn.setStyle("-fx-background-color: #f2e8f2; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center;");
             mainBtn.setDisable(true);
             actionBox.getChildren().add(mainBtn);
         }
@@ -674,6 +938,530 @@ public class MainController implements Initializable {
         vbox.getChildren().addAll(imageWrapper, nameLabel, categoryLabel, spacer, bottomRow);
 
         return vbox;
+    }
+
+
+    @FXML
+    private void handleNotifications(ActionEvent event) {
+        showInfo("Thông báo", buildNotificationSummary());
+    }
+
+    @FXML
+    private void handleSettings(ActionEvent event) {
+        showSettingsDialog();
+    }
+
+    @FXML
+    private void handleListView(ActionEvent event) {
+        showCompactAuctionList();
+    }
+
+    private void showAccountScreen() {
+        if (User.getId() == null) {
+            showWarning("Yêu cầu đăng nhập", "Vui lòng đăng nhập để xem và sửa thông tin tài khoản.");
+            return;
+        }
+
+        showingAccountScreen = true;
+        showingCompactListScreen = false;
+        renderAccountScreen(false);
+        loadLatestAccountProfileForScreen();
+    }
+
+    private void renderAccountScreen(boolean saving) {
+        productContainer.getChildren().clear();
+        productContainer.getChildren().add(fakeTestBtn);
+        currentRenderedIds.clear();
+        productContainer.setAlignment(Pos.TOP_CENTER);
+
+        VBox wrapper = new VBox(20);
+        wrapper.setAlignment(Pos.TOP_CENTER);
+        wrapper.setPadding(new Insets(22, 24, 40, 24));
+        wrapper.setPrefWidth(Math.max(760, productContainer.getPrefWidth() > 0 ? productContainer.getPrefWidth() - 80 : 900));
+
+        HBox header = new HBox(14);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.setMaxWidth(820);
+
+        Button backButton = new Button("← Quay lại");
+        backButton.setStyle("-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 999; -fx-background-radius: 999; -fx-text-fill: #604868; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-padding: 8 18 8 18; -fx-cursor: hand;");
+        backButton.setOnAction(e -> returnToAuctionGrid());
+
+        VBox titleBox = new VBox(2);
+        Label title = new Label("Tài khoản của tôi");
+        title.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
+        Label subtitle = new Label("Xem số dư và cập nhật thông tin cá nhân của bạn.");
+        subtitle.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #907898;");
+        titleBox.getChildren().addAll(title, subtitle);
+
+        Region headerSpacer = new Region();
+        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
+        header.getChildren().addAll(backButton, titleBox, headerSpacer);
+
+        HBox summaryRow = new HBox(16);
+        summaryRow.setAlignment(Pos.CENTER);
+        summaryRow.setMaxWidth(820);
+        summaryRow.getChildren().addAll(
+                createProfileStatCard("Số dư tài khoản", "₫ " + formatPrice(User.getBalance()), "#e040a0"),
+                createProfileStatCard("Vai trò", safeText(User.getRole(), "Chưa rõ"), "#604868"),
+                createProfileStatCard("User ID", String.valueOf(User.getId()), "#604868")
+        );
+
+        VBox card = new VBox(18);
+        card.setMaxWidth(820);
+        card.setPadding(new Insets(26));
+        card.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 24px; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.08), 18, 0, 0, 4);");
+
+        GridPane form = new GridPane();
+        form.setHgap(16);
+        form.setVgap(14);
+
+        TextField usernameField = createProfileField(safeText(User.getUsername(), ""), "Tên đăng nhập");
+        TextField fullnameField = createProfileField(safeText(User.getFullname(), ""), "Họ tên hiển thị");
+        TextField emailField = createProfileField(safeText(User.getEmail(), ""), "email@example.com");
+        TextField dobField = createProfileField(safeText(User.getDob(), ""), "YYYY-MM-DD hoặc để trống");
+        TextField placeField = createProfileField(safeText(User.getPlace_of_birth(), ""), "Nơi sinh");
+
+        addProfileRow(form, 0, "Tên đăng nhập", usernameField);
+        addProfileRow(form, 1, "Họ tên", fullnameField);
+        addProfileRow(form, 2, "Email", emailField);
+        addProfileRow(form, 3, "Ngày sinh", dobField);
+        addProfileRow(form, 4, "Nơi sinh", placeField);
+
+        HBox actions = new HBox(12);
+        actions.setAlignment(Pos.CENTER_RIGHT);
+
+        Button reloadButton = new Button("Tải lại thông tin");
+        reloadButton.setDisable(saving);
+        reloadButton.setStyle("-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 999; -fx-background-radius: 999; -fx-text-fill: #604868; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-padding: 10 20 10 20; -fx-cursor: hand;");
+        reloadButton.setOnAction(e -> loadLatestAccountProfileForScreen());
+
+        Button saveButton = new Button(saving ? "Đang lưu..." : "Lưu thay đổi");
+        saveButton.setDisable(saving);
+        saveButton.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 999; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-padding: 10 24 10 24; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224,64,160,0.25), 10, 0, 0, 3);");
+        saveButton.setOnAction(e -> {
+            String username = readTrimmed(usernameField);
+            String fullname = readTrimmed(fullnameField);
+            String email = readTrimmed(emailField);
+            String dob = readTrimmed(dobField);
+            String placeOfBirth = readTrimmed(placeField);
+
+            if (username.isBlank()) {
+                showWarning("Thiếu tên đăng nhập", "Tên đăng nhập không được để trống.");
+                return;
+            }
+            if (fullname.isBlank()) {
+                showWarning("Thiếu họ tên", "Họ tên không được để trống.");
+                return;
+            }
+            if (email.isBlank() || !email.contains("@")) {
+                showWarning("Email không hợp lệ", "Vui lòng nhập email hợp lệ.");
+                return;
+            }
+
+            renderAccountScreen(true);
+            updateAccountProfile(username, fullname, email, dob, placeOfBirth);
+        });
+
+        actions.getChildren().addAll(reloadButton, saveButton);
+        card.getChildren().addAll(form, actions);
+
+        wrapper.getChildren().addAll(header, summaryRow, card);
+        productContainer.getChildren().add(wrapper);
+    }
+
+    private VBox createProfileStatCard(String title, String value, String valueColor) {
+        VBox box = new VBox(4);
+        box.setAlignment(Pos.CENTER_LEFT);
+        box.setPadding(new Insets(16, 18, 16, 18));
+        box.setPrefWidth(260);
+        box.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 20px; -fx-border-color: #ffe8e8; -fx-border-radius: 20px; -fx-border-width: 2px;");
+
+        Label titleLabel = new Label(title);
+        titleLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #907898;");
+        Label valueLabel = new Label(value);
+        valueLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: " + valueColor + ";");
+        valueLabel.setWrapText(true);
+        box.getChildren().addAll(titleLabel, valueLabel);
+        return box;
+    }
+
+    private TextField createProfileField(String value, String prompt) {
+        TextField field = new TextField(value);
+        field.setPromptText(prompt);
+        field.setPrefWidth(420);
+        field.setStyle("-fx-background-color: #fef7ff; -fx-border-color: #f2e8f2; -fx-border-radius: 14px; -fx-background-radius: 14px; -fx-padding: 10 12 10 12; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #2e1a28;");
+        return field;
+    }
+
+    private void addProfileRow(GridPane grid, int row, String label, TextField field) {
+        Label rowLabel = new Label(label);
+        rowLabel.setMinWidth(130);
+        rowLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #604868;");
+        grid.add(rowLabel, 0, row);
+        grid.add(field, 1, row);
+    }
+
+    private void loadLatestAccountProfileForScreen() {
+        if (User.getId() == null) return;
+
+        new Thread(() -> {
+            try {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(Config.API_URL + "/api/users/" + User.getId()))
+                        .GET()
+                        .build();
+
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                JSONObject responseJson = new JSONObject(response.body());
+                if (response.statusCode() == 200 && responseJson.optInt("status", 500) == 200) {
+                    JSONObject data = responseJson.optJSONObject("data");
+                    if (data != null) {
+                        applyUserProfileFromJson(data);
+                        Platform.runLater(() -> {
+                            if (showingAccountScreen) {
+                                renderAccountScreen(false);
+                            }
+                        });
+                    }
+                }
+            } catch (Exception e) {
+                logger.warn("Không thể tải lại thông tin tài khoản: {}", e.getMessage());
+            }
+        }, "load-account-profile").start();
+    }
+
+    private void applyUserProfileFromJson(JSONObject data) {
+        User.updateProfile(
+                data.optString("username", safeText(User.getUsername(), "")),
+                data.optString("fullname", safeText(User.getFullname(), "")),
+                data.optString("email", safeText(User.getEmail(), "")),
+                data.optString("dob", safeText(User.getDob(), "")),
+                data.optString("placeOfBirth", data.optString("place_of_birth", safeText(User.getPlace_of_birth(), ""))),
+                parseMoney(data.opt("balance"), User.getBalance())
+        );
+    }
+
+    private void updateAccountProfile(String username, String fullname, String email, String dob, String placeOfBirth) {
+        JSONObject payload = new JSONObject();
+        payload.put("username", username);
+        payload.put("fullname", fullname);
+        payload.put("email", email);
+        payload.put("dob", dob);
+        payload.put("placeOfBirth", placeOfBirth);
+
+        new Thread(() -> {
+            try {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(Config.API_URL + "/api/users/" + User.getId() + "/profile"))
+                        .header("Content-Type", "application/json")
+                        .PUT(HttpRequest.BodyPublishers.ofString(payload.toString()))
+                        .build();
+
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                JSONObject responseJson = new JSONObject(response.body());
+                int status = responseJson.optInt("status", response.statusCode());
+                String message = responseJson.optString("message", "Cập nhật thông tin hoàn tất.");
+
+                if (response.statusCode() == 200 && status == 200) {
+                    JSONObject data = responseJson.optJSONObject("data");
+                    if (data != null) {
+                        applyUserProfileFromJson(data);
+                    } else {
+                        User.updateProfile(username, fullname, email, dob, placeOfBirth);
+                    }
+                    Platform.runLater(() -> {
+                        renderAccountScreen(false);
+                        showInfo("Tài khoản", message);
+                    });
+                } else {
+                    Platform.runLater(() -> {
+                        renderAccountScreen(false);
+                        showError("Cập nhật thất bại", message);
+                    });
+                }
+            } catch (Exception e) {
+                logger.error("Lỗi khi cập nhật tài khoản: {}", e.getMessage(), e);
+                Platform.runLater(() -> {
+                    renderAccountScreen(false);
+                    showError("Cập nhật thất bại", "Không thể kết nối đến máy chủ hoặc dữ liệu trả về không hợp lệ.");
+                });
+            }
+        }, "update-account-profile").start();
+    }
+
+    private String buildNotificationSummary() {
+        int total = allProducts.size();
+        int active = 0;
+        int ended = 0;
+        int watchlist = 0;
+        int mySessions = 0;
+
+        for (JSONObject sessionObj : allProducts) {
+            String status = sessionObj.optString("status", "");
+            if ("ACTIVE".equalsIgnoreCase(status)) {
+                active++;
+            } else if ("ENDED".equalsIgnoreCase(status)) {
+                ended++;
+            }
+
+            int sessionId = sessionObj.optInt("id", -1);
+            if (User.watchlistIds.contains(sessionId)) {
+                watchlist++;
+            }
+            if (isSessionOwnedByCurrentUser(sessionObj)) {
+                mySessions++;
+            }
+        }
+
+        return "Tổng số phiên đang tải: " + total
+                + "\nPhiên đang hoạt động: " + active
+                + "\nPhiên đã kết thúc: " + ended
+                + "\nPhiên trong Watchlist: " + watchlist
+                + "\nPhiên của tôi: " + mySessions
+                + "\nSố dư hiện tại: ₫ " + formatPrice(User.getBalance());
+    }
+
+    private void showSettingsDialog() {
+        Alert dialog = new Alert(Alert.AlertType.CONFIRMATION);
+        dialog.setTitle("Cài đặt nhanh");
+        dialog.setHeaderText("Chọn thao tác");
+        dialog.setContentText("Bạn muốn làm gì với màn danh sách phiên?");
+
+        ButtonType resetFilters = new ButtonType("Đặt lại bộ lọc");
+        ButtonType reloadData = new ButtonType("Tải lại dữ liệu");
+        ButtonType close = new ButtonType("Đóng", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getButtonTypes().setAll(resetFilters, reloadData, close);
+
+        Optional<ButtonType> result = dialog.showAndWait();
+        if (result.isEmpty() || result.get() == close) {
+            return;
+        }
+
+        if (result.get() == resetFilters) {
+            resetFiltersAndShowAll();
+            showInfo("Cài đặt", "Đã đặt lại bộ lọc về mặc định.");
+        } else if (result.get() == reloadData) {
+            forceRenderProducts = true;
+            loadProductsFromServer();
+            showInfo("Cài đặt", "Đã yêu cầu tải lại dữ liệu từ máy chủ.");
+        }
+    }
+
+    private void showCompactAuctionList() {
+        showingCompactListScreen = true;
+        showingAccountScreen = false;
+
+        List<JSONObject> sessionsToShow = getCurrentlyDisplayedSessions();
+
+        productContainer.getChildren().clear();
+        productContainer.getChildren().add(fakeTestBtn);
+        productContainer.setAlignment(Pos.TOP_CENTER);
+
+        VBox wrapper = new VBox(16);
+        wrapper.setAlignment(Pos.TOP_CENTER);
+        wrapper.setPadding(new Insets(22, 24, 40, 24));
+        wrapper.setPrefWidth(Math.max(760, productContainer.getPrefWidth() > 0 ? productContainer.getPrefWidth() - 80 : 900));
+
+        HBox header = new HBox(14);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.setMaxWidth(900);
+
+        VBox titleBox = new VBox(2);
+        Label title = new Label("Danh sách phiên rút gọn");
+        title.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 26px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
+        Label subtitle = new Label("Các phiên đang hiển thị theo bộ lọc hiện tại.");
+        subtitle.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #907898;");
+        titleBox.getChildren().addAll(title, subtitle);
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Button backButton = new Button("Quay lại dạng lưới");
+        backButton.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 999; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-padding: 9 22 9 22; -fx-cursor: hand;");
+        backButton.setOnAction(e -> returnToAuctionGrid());
+        header.getChildren().addAll(titleBox, spacer, backButton);
+
+        VBox listBox = new VBox(10);
+        listBox.setMaxWidth(900);
+
+        if (sessionsToShow.isEmpty()) {
+            VBox empty = new VBox(8);
+            empty.setAlignment(Pos.CENTER);
+            empty.setPadding(new Insets(60));
+            empty.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 22px; -fx-border-color: #ffe8e8; -fx-border-radius: 22px; -fx-border-width: 2px;");
+            Label emptyTitle = new Label("Không có phiên nào trong bộ lọc hiện tại");
+            emptyTitle.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
+            Label emptyMsg = new Label("Hãy đổi bộ lọc hoặc quay lại dạng lưới.");
+            emptyMsg.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #907898;");
+            empty.getChildren().addAll(emptyTitle, emptyMsg);
+            listBox.getChildren().add(empty);
+        } else {
+            int index = 1;
+            for (JSONObject sessionObj : sessionsToShow) {
+                listBox.getChildren().add(createCompactAuctionRow(index++, sessionObj));
+            }
+        }
+
+        ScrollPane listScroll = new ScrollPane(listBox);
+        listScroll.setFitToWidth(true);
+        listScroll.setMaxWidth(920);
+        listScroll.setPrefHeight(460);
+        listScroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;");
+
+        wrapper.getChildren().addAll(header, listScroll);
+        productContainer.getChildren().add(wrapper);
+    }
+
+    private List<JSONObject> getCurrentlyDisplayedSessions() {
+        List<JSONObject> sessions = new ArrayList<>();
+        for (JSONObject sessionObj : allProducts) {
+            if (currentRenderedIds.contains(sessionObj.optInt("id"))) {
+                sessions.add(sessionObj);
+            }
+        }
+        return sessions;
+    }
+
+    private HBox createCompactAuctionRow(int index, JSONObject sessionObj) {
+        JSONObject itemObj = getItemObject(sessionObj);
+        BigDecimal currentPrice = getMoney(sessionObj, "currentPrice", getMoney(sessionObj, "startingPrice", BigDecimal.ZERO));
+        String status = sessionObj.optString("status", "UNKNOWN");
+
+        HBox row = new HBox(14);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(14, 18, 14, 18));
+        row.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 18px; -fx-border-color: #ffe8e8; -fx-border-width: 1.5px; -fx-border-radius: 18px;");
+
+        Label order = new Label(String.valueOf(index));
+        order.setAlignment(Pos.CENTER);
+        order.setMinSize(34, 34);
+        order.setPrefSize(34, 34);
+        order.setStyle("-fx-background-color: #ffd6ee; -fx-background-radius: 17px; -fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: 900; -fx-text-fill: #e040a0;");
+
+        VBox infoBox = new VBox(3);
+        Label name = new Label("#" + sessionObj.optInt("id") + " · " + itemObj.optString("name", "Không tên"));
+        name.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
+        Label type = new Label(itemObj.optString("type", "Không rõ danh mục"));
+        type.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-text-fill: #907898;");
+        infoBox.getChildren().addAll(name, type);
+
+        Region rowSpacer = new Region();
+        HBox.setHgrow(rowSpacer, Priority.ALWAYS);
+
+        Label statusBadge = new Label(status);
+        statusBadge.setStyle("-fx-background-color: #f2e8f2; -fx-background-radius: 999; -fx-padding: 5 12 5 12; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: #604868;");
+
+        Label price = new Label("₫ " + formatPrice(currentPrice));
+        price.setMinWidth(110);
+        price.setAlignment(Pos.CENTER_RIGHT);
+        price.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: #e040a0;");
+
+        row.getChildren().addAll(order, infoBox, rowSpacer, statusBadge, price);
+        return row;
+    }
+
+    private void returnToAuctionGrid() {
+        showingAccountScreen = false;
+        showingCompactListScreen = false;
+        forceRenderProducts = true;
+        filterAndRenderProducts();
+    }
+
+    private String readTrimmed(TextField field) {
+        return field.getText() == null ? "" : field.getText().trim();
+    }
+
+    private BigDecimal parseMoney(Object value, BigDecimal fallback) {
+        if (value == null || JSONObject.NULL.equals(value)) {
+            return fallback == null ? BigDecimal.ZERO : fallback;
+        }
+        try {
+            return new BigDecimal(value.toString());
+        } catch (Exception e) {
+            return fallback == null ? BigDecimal.ZERO : fallback;
+        }
+    }
+
+    private void resetFiltersAndShowAll() {
+        txtSearch.clear();
+        cbCategory.setValue("Tất cả");
+        cbStatus.setValue("Tất cả");
+        showAllSessions();
+        if (sidebarController != null) {
+            sidebarController.setActiveDashboard();
+        }
+    }
+
+    private String safeText(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value;
+    }
+
+    private void handleDepositMoney() {
+        if (User.getId() == null) {
+            showWarning("Yêu cầu đăng nhập", "Vui lòng đăng nhập trước khi nạp tiền.");
+            return;
+        }
+
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Nạp tiền");
+        dialog.setHeaderText(null);
+        dialog.setContentText("Nhập số tiền muốn nạp:");
+        Optional<String> result = dialog.showAndWait();
+        if (result.isEmpty()) return;
+
+        BigDecimal amount;
+        try {
+            amount = new BigDecimal(result.get().trim());
+            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+                showWarning("Số tiền không hợp lệ", "Số tiền nạp phải lớn hơn 0.");
+                return;
+            }
+        } catch (Exception e) {
+            showWarning("Số tiền không hợp lệ", "Vui lòng nhập số hợp lệ, ví dụ: 100000.");
+            return;
+        }
+
+        new Thread(() -> {
+            try {
+                String url = Config.API_URL + "/api/bidder/deposit?bidderId=" + User.getId() + "&amount=" + amount.toPlainString();
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .POST(HttpRequest.BodyPublishers.noBody())
+                        .build();
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                Platform.runLater(() -> {
+                    if (response.statusCode() == 200) {
+                        showInfo("Nạp tiền", "Nạp tiền thành công. " + response.body());
+                    } else {
+                        showError("Nạp tiền thất bại", "Server phản hồi mã lỗi: " + response.statusCode());
+                    }
+                });
+            } catch (Exception e) {
+                logger.error("Lỗi khi nạp tiền: {}", e.getMessage(), e);
+                Platform.runLater(() -> showError("Nạp tiền thất bại", "Không thể kết nối đến máy chủ."));
+            }
+        }, "deposit-money").start();
+    }
+
+    private void showInfo(String title, String message) {
+        showAlert(Alert.AlertType.INFORMATION, title, message);
+    }
+
+    private void showWarning(String title, String message) {
+        showAlert(Alert.AlertType.WARNING, title, message);
+    }
+
+    private void showError(String title, String message) {
+        showAlert(Alert.AlertType.ERROR, title, message);
+    }
+
+    private void showAlert(Alert.AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     @FXML
