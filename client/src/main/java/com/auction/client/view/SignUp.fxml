@@ -3,90 +3,140 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.image.ImageView?>
+
 
 <StackPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.SignUpController" styleClass="auth-root" stylesheets="@../css/auth-theme.css">
     <padding>
         <Insets bottom="30.0" left="30.0" right="30.0" top="30.0"/>
     </padding>
 
-    <HBox styleClass="auth-shell" maxWidth="1000.0" maxHeight="650.0">
+    <HBox styleClass="auth-shell" maxWidth="1050.0" maxHeight="680.0">
         <!-- Cột trái: Branding -->
-        <VBox styleClass="auth-brand-panel" HBox.hgrow="ALWAYS" prefWidth="400.0" alignment="CENTER" spacing="30.0">
-            <padding>
-                <Insets bottom="40.0" left="40.0" right="40.0" top="40.0"/>
-            </padding>
-            <VBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
-                <Label text="Join BidPop" styleClass="auth-brand-title"/>
-                <Label text="Create an account to start bidding on exclusive items today." styleClass="auth-brand-subtitle"/>
+        <StackPane styleClass="auth-brand-panel" HBox.hgrow="ALWAYS" prefWidth="500.0">
+            <!-- Background Decorative Circles -->
+            <AnchorPane mouseTransparent="true">
+                <!-- Circle 1: Top-Left -->
+                <Circle centerX="-20.0" centerY="-20.0" radius="160.0" fill="rgba(255, 255, 255, 0.1)" />
+                <!-- Circle 2: Middle-Right -->
+                <Circle centerX="380.0" centerY="280.0" radius="110.0" fill="rgba(255, 255, 255, 0.1)" />
+                <!-- Circle 3: Bottom-Left -->
+                <Circle centerX="100.0" centerY="500.0" radius="60.0" fill="rgba(255, 255, 255, 0.1)" />
+            </AnchorPane>
+
+            <!-- Brand Content Overlay -->
+            <VBox alignment="CENTER_LEFT" spacing="30.0" style="-fx-background-color: transparent;">
+                <padding>
+                    <Insets bottom="36.0" left="48.0" right="36.0" top="42.0"/>
+                </padding>
+                <VBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
+                    <Label text="Join BidPop" styleClass="auth-brand-title"/>
+                    <Label text="Create an account to start bidding on exclusive items today." styleClass="auth-brand-subtitle"/>
+                </VBox>
+
+                <VBox alignment="CENTER" spacing="30.0" maxWidth="Infinity" VBox.vgrow="NEVER">
+                    <StackPane fx:id="activeProductCarousel" prefWidth="400.0" prefHeight="350.0" maxWidth="400.0" maxHeight="350.0" styleClass="auth-product-carousel" VBox.vgrow="NEVER">
+                        <clip>
+                            <Rectangle width="400.0" height="350.0" arcWidth="32.0" arcHeight="32.0"/>
+                        </clip>
+                        <VBox alignment="TOP_CENTER" prefWidth="400.0" prefHeight="350.0">
+                            <!-- Image Viewport with Clip -->
+                            <Pane prefHeight="230.0" prefWidth="400.0" styleClass="auth-product-image-container" VBox.vgrow="NEVER">
+                                <clip>
+                                    <Rectangle width="400.0" height="230.0"/>
+                                </clip>
+                                <HBox fx:id="imageSliderHBox" alignment="CENTER_LEFT" prefHeight="230.0" prefWidth="400.0" maxHeight="230.0" maxWidth="400.0" spacing="0.0">
+                                    <!-- Fallback wrapper for the injected ImageView -->
+                                    <StackPane prefWidth="400.0" prefHeight="230.0" minWidth="400.0" maxWidth="400.0" minHeight="230.0" maxHeight="230.0">
+                                        <ImageView fx:id="activeProductImage" fitWidth="360.0" fitHeight="210.0" preserveRatio="true" smooth="true" StackPane.alignment="CENTER"/>
+                                    </StackPane>
+                                </HBox>
+                            </Pane>
+                            <!-- Text Details Container -->
+                            <VBox fx:id="activeProductDetailsContainer" alignment="BOTTOM_LEFT" spacing="8.0" styleClass="auth-product-details-container" VBox.vgrow="ALWAYS">
+                                <padding>
+                                    <Insets top="14.0" right="24.0" bottom="18.0" left="24.0"/>
+                                </padding>
+                                <HBox alignment="CENTER_LEFT" spacing="8.0">
+                                    <Label text="LIVE" styleClass="auth-live-badge"/>
+                                    <Label fx:id="activeProductType" text="Featured auction" styleClass="auth-product-type"/>
+                                </HBox>
+                                <Label fx:id="activeProductName" text="Loading active products..." styleClass="auth-product-name"/>
+                                <Label fx:id="activeProductPrice" text="Kết thúc: --/--/---- --:--" styleClass="auth-product-price"/>
+                            </VBox>
+                        </VBox>
+                    </StackPane>
+                </VBox>
             </VBox>
-        </VBox>
+        </StackPane>
 
         <!-- Cột phải: Form -->
-        <VBox alignment="CENTER" HBox.hgrow="ALWAYS" prefWidth="600.0">
+        <VBox alignment="CENTER" HBox.hgrow="ALWAYS" prefWidth="500.0">
             <padding>
                 <Insets bottom="30.0" left="50.0" right="50.0" top="30.0"/>
             </padding>
             
             <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
-            <VBox maxWidth="450.0" spacing="20.0" alignment="CENTER" VBox.vgrow="ALWAYS" style="-fx-padding: 10;">
-                
-                <VBox spacing="5.0" alignment="CENTER_LEFT" maxWidth="Infinity">
-                    <Label text="Tạo tài khoản" styleClass="auth-title"/>
-                    <Label text="Bắt đầu hành trình đấu giá của bạn" styleClass="auth-subtitle"/>
-                </VBox>
-
-                <GridPane hgap="15.0" vgap="15.0">
-                    <columnConstraints>
-                        <ColumnConstraints percentWidth="50" />
-                        <ColumnConstraints percentWidth="50" />
-                    </columnConstraints>
+                <VBox maxWidth="450.0" spacing="20.0" alignment="CENTER" VBox.vgrow="ALWAYS" style="-fx-padding: 10;">
                     
-                    <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
-                        <Label text="Họ và tên" styleClass="auth-input-label"/>
-                        <TextField fx:id="txtFullName" promptText="VD: Nguyen Van A" styleClass="auth-input"/>
+                    <VBox spacing="5.0" alignment="CENTER_LEFT" maxWidth="Infinity">
+                        <Label text="Tạo tài khoản" styleClass="auth-title"/>
+                        <Label text="Bắt đầu hành trình đấu giá của bạn" styleClass="auth-subtitle"/>
                     </VBox>
 
-                    <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                        <Label text="Tên đăng nhập" styleClass="auth-input-label"/>
-                        <TextField fx:id="txtUsername" promptText="VD: nguyenvana" styleClass="auth-input"/>
+                    <GridPane hgap="15.0" vgap="15.0">
+                        <columnConstraints>
+                            <ColumnConstraints percentWidth="50" />
+                            <ColumnConstraints percentWidth="50" />
+                        </columnConstraints>
+                        
+                        <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                            <Label text="Họ và tên" styleClass="auth-input-label"/>
+                            <TextField fx:id="txtFullName" promptText="VD: Nguyen Van A" styleClass="auth-input"/>
+                        </VBox>
+
+                        <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                            <Label text="Tên đăng nhập" styleClass="auth-input-label"/>
+                            <TextField fx:id="txtUsername" promptText="VD: nguyenvana" styleClass="auth-input"/>
+                        </VBox>
+
+                        <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="2">
+                            <Label text="Email" styleClass="auth-input-label"/>
+                            <TextField fx:id="txtEmail" promptText="email@example.com" styleClass="auth-input"/>
+                        </VBox>
+
+                        <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                            <Label text="Mật khẩu" styleClass="auth-input-label"/>
+                            <PasswordField fx:id="txtPassword" promptText="••••••••" styleClass="auth-input"/>
+                        </VBox>
+
+                        <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                            <Label text="Xác nhận mật khẩu" styleClass="auth-input-label"/>
+                            <PasswordField fx:id="txtConfirmPassword" promptText="••••••••" styleClass="auth-input"/>
+                        </VBox>
+                    </GridPane>
+
+                    <VBox spacing="5.0" maxWidth="Infinity">
+                        <HBox spacing="5.0" prefHeight="6.0" maxWidth="Infinity">
+                            <Region fx:id="strength1" HBox.hgrow="ALWAYS" styleClass="strength-empty" style="-fx-background-radius: 3;"/>
+                            <Region fx:id="strength2" HBox.hgrow="ALWAYS" styleClass="strength-empty" style="-fx-background-radius: 3;"/>
+                            <Region fx:id="strength3" HBox.hgrow="ALWAYS" styleClass="strength-empty" style="-fx-background-radius: 3;"/>
+                        </HBox>
+                        <Label fx:id="lblStrength" text="Mật khẩu cần ít nhất 6 ký tự" style="-fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-text-fill: #907898;"/>
                     </VBox>
 
-                    <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="2">
-                        <Label text="Email" styleClass="auth-input-label"/>
-                        <TextField fx:id="txtEmail" promptText="email@example.com" styleClass="auth-input"/>
-                    </VBox>
-
-                    <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="2">
-                        <Label text="Mật khẩu" styleClass="auth-input-label"/>
-                        <PasswordField fx:id="txtPassword" promptText="••••••••" styleClass="auth-input"/>
-                    </VBox>
-
-                    <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
-                        <Label text="Xác nhận mật khẩu" styleClass="auth-input-label"/>
-                        <PasswordField fx:id="txtConfirmPassword" promptText="••••••••" styleClass="auth-input"/>
-                    </VBox>
-                </GridPane>
-
-                <VBox spacing="5.0" maxWidth="Infinity">
-                    <HBox spacing="5.0" prefHeight="6.0" maxWidth="Infinity">
-                        <Region fx:id="strength1" HBox.hgrow="ALWAYS" styleClass="strength-empty" style="-fx-background-radius: 3;"/>
-                        <Region fx:id="strength2" HBox.hgrow="ALWAYS" styleClass="strength-empty" style="-fx-background-radius: 3;"/>
-                        <Region fx:id="strength3" HBox.hgrow="ALWAYS" styleClass="strength-empty" style="-fx-background-radius: 3;"/>
+                    <HBox alignment="CENTER_LEFT" spacing="10.0" maxWidth="Infinity">
+                        <CheckBox fx:id="chkTerms" text="Tôi đồng ý với các điều khoản &amp; điều kiện" style="-fx-font-family: 'DM Sans'; -fx-text-fill: #604868; -fx-font-size: 13px;"/>
                     </HBox>
-                    <Label fx:id="lblStrength" text="Mật khẩu cần ít nhất 6 ký tự" style="-fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-text-fill: #907898;"/>
+
+                    <Button fx:id="btnSignUp" text="Tạo tài khoản" onAction="#handleSignUp" maxWidth="Infinity" prefHeight="50.0" styleClass="auth-primary-button"/>
+
+                    <HBox alignment="CENTER" spacing="5.0" maxWidth="Infinity">
+                        <Label text="Đã có tài khoản?" style="-fx-font-family: 'DM Sans'; -fx-text-fill: #604868; -fx-font-weight: 500;"/>
+                        <Hyperlink text="Quay lại đăng nhập" onAction="#goToLogin" styleClass="auth-secondary-link"/>
+                    </HBox>
                 </VBox>
-
-                <HBox alignment="CENTER_LEFT" spacing="10.0" maxWidth="Infinity">
-                    <CheckBox fx:id="chkTerms" text="Tôi đồng ý với các điều khoản &amp; điều kiện" style="-fx-font-family: 'DM Sans'; -fx-text-fill: #604868; -fx-font-size: 13px;"/>
-                </HBox>
-
-                <Button fx:id="btnSignUp" text="Tạo tài khoản" onAction="#handleSignUp" maxWidth="Infinity" prefHeight="50.0" styleClass="auth-primary-button"/>
-
-                <HBox alignment="CENTER" spacing="5.0" maxWidth="Infinity">
-                    <Label text="Đã có tài khoản?" style="-fx-font-family: 'DM Sans'; -fx-text-fill: #604868; -fx-font-weight: 500;"/>
-                    <Hyperlink text="Quay lại đăng nhập" onAction="#goToLogin" styleClass="auth-secondary-link"/>
-                </HBox>
-            </VBox>
             </ScrollPane>
         </VBox>
     </HBox>
