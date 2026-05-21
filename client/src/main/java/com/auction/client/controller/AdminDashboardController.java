@@ -17,7 +17,6 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TabPane;
-import javafx.scene.control.TextInputDialog;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -137,18 +136,6 @@ public class AdminDashboardController {
             styleClasses.add(ACTIVE_NAV_CLASS);
         } else if (!active) {
             styleClasses.remove(ACTIVE_NAV_CLASS);
-        }
-    }
-
-    private void setupConstrainedTables() {
-        setConstrainedResize(tablePending);
-        setConstrainedResize(tableUsers);
-        setConstrainedResize(tableSessions);
-    }
-
-    private void setConstrainedResize(TableView<?> table) {
-        if (table != null) {
-            table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         }
     }
 
