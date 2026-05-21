@@ -272,8 +272,11 @@ public class MainController implements Initializable {
         // userMenuButton.setText(text); // Đã ẩn tên để chỉ hiện Avatar
 
         MenuItem accountItem = new MenuItem("Tài Khoản Của Tôi");
+        accountItem.setId("menuAccount");
         MenuItem depositMoney = new MenuItem("Nạp tiền");
+        depositMoney.setId("menuDeposit");
         MenuItem logoutItem = new MenuItem("Đăng Xuất");
+        logoutItem.setId("menuLogout");
 
         accountItem.setOnAction(e -> showAccountScreen());
         depositMoney.setOnAction(e -> handleDepositMoney(e));
