@@ -16,12 +16,14 @@
         
         <!-- TOP NAVBAR -->
         <top>
-            <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-background-color: rgba(254, 247, 255, 0.9); -fx-padding: 12px 30px; -fx-border-color: #ffe8e8; -fx-border-width: 0 0 2px 0; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.15), 20, 0, 0, 4);">
-                <Button fx:id="btnHamburger" onAction="#handleToggleSidebar" style="-fx-background-color: transparent; -fx-cursor: hand;">
-                    <graphic>
-                        <Label text="&#xe5d2;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" />
-                    </graphic>
-                </Button>
+            <HBox alignment="CENTER_LEFT" spacing="0.0" style="-fx-background-color: rgba(254, 247, 255, 0.9); -fx-padding: 12px 30px 12px 0px; -fx-border-color: #ffe8e8; -fx-border-width: 0 0 2px 0; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.15), 20, 0, 0, 4);">
+                <StackPane prefWidth="70.0" minWidth="70.0" maxWidth="70.0">
+                    <Button fx:id="btnHamburger" onAction="#handleToggleSidebar" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0;">
+                        <graphic>
+                            <Label text="&#xe5d2;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" />
+                        </graphic>
+                    </Button>
+                </StackPane>
                 <Button onAction="#goBack" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0; -fx-border-color: transparent; -fx-font-family: 'DM Sans'; -fx-font-size: 24px; -fx-font-weight: 900; -fx-text-fill: #e040a0;" text="BidPop" />
                 
                 <Region HBox.hgrow="ALWAYS" />
