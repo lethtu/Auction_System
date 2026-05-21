@@ -162,6 +162,15 @@ public class MyBidsController implements Initializable {
         MenuItem depositMoney = new MenuItem("Nạp tiền");
         MenuItem logoutItem = new MenuItem("Đăng Xuất");
 
+        accountItem.setOnAction(event -> {
+            try {
+                MainController.initialShowAccount = true;
+                SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
+            } catch (IOException e) {
+                logger.error("Lỗi khi chuyển sang trang tài khoản: ", e);
+            }
+        });
+
         depositMoney.setOnAction(event -> {
             try {
                 SceneSwitcher.switchScene(event, "Deposit.fxml", 1280, 800);
@@ -584,15 +593,16 @@ if (matchKeyword && matchTab) {
         Region spacer2 = new Region();
         HBox.setHgrow(spacer2, Priority.ALWAYS);
         
+        BigDecimal userMaxBid = getMoney(sessionObj, "userMaxBid", BigDecimal.ZERO);
         Label userPriceLabel = new Label();
         if (winningSession || (endedSession && highestBidderId == currentUserId)) {
             userPriceLabel.setText("₫ " + formatPrice(currentPrice));
             userPriceLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #10b981;");
         } else if (outbidSession) {
-            userPriceLabel.setText("Outbid");
+            userPriceLabel.setText("₫ " + formatPrice(userMaxBid));
             userPriceLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #ef4444;");
         } else {
-            userPriceLabel.setText("Ended");
+            userPriceLabel.setText("₫ " + formatPrice(userMaxBid));
             userPriceLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #6c757d;");
         }
         userBidRow.getChildren().addAll(lblYourBid, spacer2, userPriceLabel);

@@ -91,11 +91,7 @@
                                                                     <children>
                                                                         <VBox alignment="CENTER" spacing="0.0" style="-fx-background-color: #f8eef8; -fx-background-radius: 32; -fx-overflow: hidden;">
                                                                             <children>
-                                                                                <ImageView fx:id="productImageView" fitHeight="400.0" fitWidth="550.0" preserveRatio="true">
-                                                                                    <image>
-                                                                                        <Image url="https://lh3.googleusercontent.com/aida-public/AB6AXuCH0r9XSlSBYcXJbMzOHmK7DbWyrkTNxBFIFpUeuIwyZBQGupTlsIBFiF5WTFeqFnffxivr2RwgBdJEF9Pbq0taSL4L5resyM4Oc2esZYhK2f3Zk5nAoA8M1AvI-2XxswVn8OvyGXVSQnG3d5Tr4Qi2OzPq3BaMj7unP9Sj5qtAl4pax8W4icsfTTazysg-D4ojdnCdkkBVggwuiRQrZYJI-ec1J5tT2iPKPxpQsTrpCoWvyh1En_OgD6zrrVg7h_jEpADdq8FlT13C" />
-                                                                                    </image>
-                                                                                </ImageView>
+                                                                                <ImageView fx:id="productImageView" fitHeight="400.0" fitWidth="550.0" preserveRatio="true" />
                                                                             </children>
                                                                         </VBox>
                                                                         

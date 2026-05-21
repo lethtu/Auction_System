@@ -47,11 +47,25 @@ public class AuctionPageController {
 
     private static final String AUTOBID_PREFIX = "AUTOBID:";
 
-    private static final String ERROR_STYLE = "-fx-text-fill: red;";
-    private static final String SUCCESS_STYLE = "-fx-text-fill: green;";
-    private static final String INFO_STYLE = "-fx-text-fill: blue;";
-    private static final String WARNING_STYLE = "-fx-text-fill: orange;";
-    private static final String EXTENSION_STYLE = "-fx-text-fill: #ff8c00; -fx-font-weight: bold;";
+    private static final String BASE_ALERT_STYLE = 
+        "-fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: bold; " +
+        "-fx-padding: 10px 16px; -fx-background-radius: 12px; -fx-border-radius: 12px; -fx-border-width: 1px; " +
+        "-fx-alignment: center; -fx-text-alignment: center;";
+
+    private static final String ERROR_STYLE = BASE_ALERT_STYLE + 
+        "-fx-background-color: #fce8e6; -fx-border-color: #fad2cf; -fx-text-fill: #c5221f;";
+
+    private static final String SUCCESS_STYLE = BASE_ALERT_STYLE + 
+        "-fx-background-color: #e6f9ed; -fx-border-color: #b3ecc4; -fx-text-fill: #137333;";
+
+    private static final String INFO_STYLE = BASE_ALERT_STYLE + 
+        "-fx-background-color: #e8f0fe; -fx-border-color: #d2e3fc; -fx-text-fill: #1a73e8;";
+
+    private static final String WARNING_STYLE = BASE_ALERT_STYLE + 
+        "-fx-background-color: #fef7e0; -fx-border-color: #feebc8; -fx-text-fill: #b06000;";
+
+    private static final String EXTENSION_STYLE = BASE_ALERT_STYLE + 
+        "-fx-background-color: #fdf2e9; -fx-border-color: #fcd7b6; -fx-text-fill: #b25900;";
 
     @FXML private Label productNameLabel;
     @FXML private Label currentPriceLabel;
@@ -157,6 +171,47 @@ public class AuctionPageController {
             sidebarController.forceCollapse();
         }
         setupResponsiveFontListeners();
+
+        // Setup messageLabel to behave as a rich modern alert banner
+        if (messageLabel != null) {
+            messageLabel.setVisible(false);
+            messageLabel.setManaged(false);
+            messageLabel.textProperty().addListener((obs, oldVal, newVal) -> {
+                boolean hasText = newVal != null && !newVal.trim().isEmpty();
+                messageLabel.setVisible(hasText);
+                messageLabel.setManaged(hasText);
+                
+                if (hasText) {
+                    String style = messageLabel.getStyle();
+                    String iconCode = "";
+                    String iconColor = "";
+                    if (style != null) {
+                        if (style.contains("#137333")) {
+                            iconCode = "\uE86C"; // check_circle
+                            iconColor = "#137333";
+                        } else if (style.contains("#c5221f")) {
+                            iconCode = "\uE000"; // error
+                            iconColor = "#c5221f";
+                        } else if (style.contains("#1a73e8")) {
+                            iconCode = "\uE88E"; // info
+                            iconColor = "#1a73e8";
+                        } else if (style.contains("#b06000") || style.contains("#b25900")) {
+                            iconCode = "\uE002"; // warning
+                            iconColor = style.contains("#b25900") ? "#b25900" : "#b06000";
+                        }
+                    }
+                    if (!iconCode.isEmpty()) {
+                        Label iconLabel = new Label(iconCode);
+                        iconLabel.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 16px; -fx-text-fill: " + iconColor + "; -fx-padding: 0 6 0 0;");
+                        messageLabel.setGraphic(iconLabel);
+                    } else {
+                        messageLabel.setGraphic(null);
+                    }
+                } else {
+                    messageLabel.setGraphic(null);
+                }
+            });
+        }
     }
 
     public void setItem(JSONObject sessionObj, JSONObject itemObj) {
@@ -173,6 +228,15 @@ public class AuctionPageController {
         MenuItem accountItem = new MenuItem("Tài Khoản Của Tôi");
         MenuItem depositMoney = new MenuItem("Nạp tiền");
         MenuItem logoutItem = new MenuItem("Đăng Xuất");
+
+        accountItem.setOnAction(event -> {
+            try {
+                MainController.initialShowAccount = true;
+                SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
+            } catch (IOException e) {
+                logger.error("Lỗi khi chuyển sang trang tài khoản: ", e);
+            }
+        });
 
         depositMoney.setOnAction(event -> {
             try {
@@ -865,17 +929,23 @@ public class AuctionPageController {
 
             double initialWidth = currentPriceLabel.getScene().getWidth();
 
-            currentPriceLabel.getScene().widthProperty().addListener((obs, oldVal, newVal) ->
-                    updateResponsiveFonts(newVal.doubleValue())
-            );
+            currentPriceLabel.getScene().widthProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal != null) {
+                    updateResponsiveFonts(newVal.doubleValue());
+                }
+            });
 
-            currentPriceLabel.textProperty().addListener((obs, oldVal, newVal) ->
-                    updateResponsiveFonts(currentPriceLabel.getScene().getWidth())
-            );
+            currentPriceLabel.textProperty().addListener((obs, oldVal, newVal) -> {
+                if (currentPriceLabel.getScene() != null) {
+                    updateResponsiveFonts(currentPriceLabel.getScene().getWidth());
+                }
+            });
 
-            remainingTimeLabel.textProperty().addListener((obs, oldVal, newVal) ->
-                    updateResponsiveFonts(currentPriceLabel.getScene().getWidth())
-            );
+            remainingTimeLabel.textProperty().addListener((obs, oldVal, newVal) -> {
+                if (currentPriceLabel.getScene() != null) {
+                    updateResponsiveFonts(currentPriceLabel.getScene().getWidth());
+                }
+            });
 
             updateResponsiveFonts(initialWidth);
         });
@@ -1267,6 +1337,9 @@ public class AuctionPageController {
         out = null;
         in = null;
         socket = null;
+
+        stopTimeline();
+        stopBidTimeout();
     }
 
     private boolean isUserLoggedIn() {
