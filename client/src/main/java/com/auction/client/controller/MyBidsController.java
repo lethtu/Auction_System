@@ -265,30 +265,28 @@ public class MyBidsController implements Initializable {
             for (JSONObject sessionObj : allProducts) {
                 JSONObject itemObj = getItemObject(sessionObj);
                 String name = itemObj.optString("name", "");
-                String status = sessionObj.optString("status", "ACTIVE");
+                String status = normalizeSessionStatus(sessionObj);
                 int highestBidderId = sessionObj.optInt("highestBidderId", -1);
                 BigDecimal currentPrice = getMoney(sessionObj, "currentPrice", getMoney(sessionObj, "startingPrice", BigDecimal.ZERO));
 
                 boolean matchKeyword = keyword.isEmpty() || name.toLowerCase().contains(keyword);
-                
                 boolean matchTab = false;
                 switch (currentTab) {
                     case ACTIVE:
-                        matchTab = "ACTIVE".equalsIgnoreCase(status);
+                        matchTab = isActiveSession(sessionObj);
                         break;
                     case WINNING:
-                        matchTab = "ACTIVE".equalsIgnoreCase(status) && (highestBidderId == currentUserId);
+                        matchTab = isWinningSession(sessionObj, currentUserId);
                         break;
                     case OUTBID:
-                        matchTab = "ACTIVE".equalsIgnoreCase(status) && (highestBidderId != currentUserId);
+                        matchTab = isOutbidSession(sessionObj, currentUserId);
                         break;
                     case ENDED:
-                        matchTab = "ENDED".equalsIgnoreCase(status);
+                        matchTab = isEndedSession(sessionObj);
                         break;
                 }
-
-                if (matchKeyword && matchTab) {
-                    newStatesToRender.add(sessionObj.optInt("id") + "_" + currentPrice + "_" + highestBidderId + "_" + status);
+if (matchKeyword && matchTab) {
+                    newStatesToRender.add(getRenderedStateKey(sessionObj, currentPrice, highestBidderId));
                 }
             }
 
@@ -299,37 +297,109 @@ public class MyBidsController implements Initializable {
                 for (JSONObject sessionObj : allProducts) {
                     JSONObject itemObj = getItemObject(sessionObj);
                     String name = itemObj.optString("name", "");
-                    String status = sessionObj.optString("status", "ACTIVE");
+                    String status = normalizeSessionStatus(sessionObj);
                     int highestBidderId = sessionObj.optInt("highestBidderId", -1);
                     BigDecimal currentPrice = getMoney(sessionObj, "currentPrice", getMoney(sessionObj, "startingPrice", BigDecimal.ZERO));
 
                     boolean matchKeyword = keyword.isEmpty() || name.toLowerCase().contains(keyword);
-                    
-                    boolean matchTab = false;
-                    switch (currentTab) {
-                        case ACTIVE:
-                            matchTab = "ACTIVE".equalsIgnoreCase(status);
-                            break;
-                        case WINNING:
-                            matchTab = "ACTIVE".equalsIgnoreCase(status) && (highestBidderId == currentUserId);
-                            break;
-                        case OUTBID:
-                            matchTab = "ACTIVE".equalsIgnoreCase(status) && (highestBidderId != currentUserId);
-                            break;
-                        case ENDED:
-                            matchTab = "ENDED".equalsIgnoreCase(status);
-                            break;
-                    }
-
-                    if (matchKeyword && matchTab) {
+                boolean matchTab = false;
+                switch (currentTab) {
+                    case ACTIVE:
+                        matchTab = isActiveSession(sessionObj);
+                        break;
+                    case WINNING:
+                        matchTab = isWinningSession(sessionObj, currentUserId);
+                        break;
+                    case OUTBID:
+                        matchTab = isOutbidSession(sessionObj, currentUserId);
+                        break;
+                    case ENDED:
+                        matchTab = isEndedSession(sessionObj);
+                        break;
+                }
+if (matchKeyword && matchTab) {
                         VBox card = createProductCard(sessionObj, itemObj);
                         productContainer.getChildren().add(card);
-                        currentRenderedStates.add(sessionObj.optInt("id") + "_" + currentPrice + "_" + highestBidderId + "_" + status);
+                        currentRenderedStates.add(getRenderedStateKey(sessionObj, currentPrice, highestBidderId));
                     }
                 }
                 updateGridLayout();
             }
         });
+    }
+
+
+    private String normalizeSessionStatus(JSONObject sessionObj) {
+        if (sessionObj == null) {
+            return "ACTIVE";
+        }
+        String status = sessionObj.optString("status", "ACTIVE");
+        if (status == null || status.isBlank()) {
+            return "ACTIVE";
+        }
+        return status.trim().toUpperCase();
+    }
+
+    private boolean isActiveSession(JSONObject sessionObj) {
+        return "ACTIVE".equals(normalizeSessionStatus(sessionObj));
+    }
+
+    private boolean isEndedSession(JSONObject sessionObj) {
+        String status = normalizeSessionStatus(sessionObj);
+        if ("ACTIVE".equals(status)
+                || "COMING".equals(status)
+                || "UPCOMING".equals(status)
+                || "PENDING".equals(status)
+                || "DRAFT".equals(status)
+                || "APPROVED".equals(status)
+                || "WAITING".equals(status)) {
+            return false;
+        }
+        return "ENDED".equals(status)
+                || "CLOSED".equals(status)
+                || "COMPLETED".equals(status)
+                || "FINISHED".equals(status)
+                || "EXPIRED".equals(status)
+                || "CANCELED".equals(status)
+                || "CANCELLED".equals(status)
+                || !status.isBlank();
+    }
+
+    private boolean isWinningSession(JSONObject sessionObj, int currentUserId) {
+        return isActiveSession(sessionObj) && sessionObj.optInt("highestBidderId", -1) == currentUserId;
+    }
+
+    private boolean isOutbidSession(JSONObject sessionObj, int currentUserId) {
+        return isActiveSession(sessionObj) && sessionObj.optInt("highestBidderId", -1) != currentUserId;
+    }
+
+    private String getRenderedStateKey(JSONObject sessionObj, BigDecimal currentPrice, int highestBidderId) {
+        return sessionObj.optInt("id") + "_" + currentPrice + "_" + highestBidderId + "_" + normalizeSessionStatus(sessionObj);
+    }
+
+
+    private boolean isActiveStatus(String status) {
+        if (status == null) {
+            return false;
+        }
+        String normalized = status.trim();
+        return "ACTIVE".equalsIgnoreCase(normalized)
+                || "ONGOING".equalsIgnoreCase(normalized)
+                || "LIVE".equalsIgnoreCase(normalized)
+                || "OPEN".equalsIgnoreCase(normalized);
+    }
+
+    private boolean isEndedStatus(String status) {
+        if (status == null) {
+            return false;
+        }
+        String normalized = status.trim();
+        return "ENDED".equalsIgnoreCase(normalized)
+                || "CLOSED".equalsIgnoreCase(normalized)
+                || "COMPLETED".equalsIgnoreCase(normalized)
+                || "FINISHED".equalsIgnoreCase(normalized)
+                || "CANCELLED".equalsIgnoreCase(normalized)
+                || "CANCELED".equalsIgnoreCase(normalized);
     }
 
     private VBox createProductCard(JSONObject sessionObj, JSONObject itemObj) {
@@ -338,10 +408,14 @@ public class MyBidsController implements Initializable {
         String type = itemObj.optString("type", "");
         String name = itemObj.optString("name", "");
         BigDecimal currentPrice = getMoney(sessionObj, "currentPrice", getMoney(sessionObj, "startingPrice", BigDecimal.ZERO));
-        String status = sessionObj.optString("status", "ACTIVE");
+        String status = normalizeSessionStatus(sessionObj);
         String imagePath = itemObj.optString("imagePath", "default.png");
         int highestBidderId = sessionObj.optInt("highestBidderId", -1);
         int currentUserId = User.getId() != null ? User.getId() : -1;
+        boolean activeSession = isActiveSession(sessionObj);
+        boolean endedSession = isEndedSession(sessionObj);
+        boolean winningSession = isWinningSession(sessionObj, currentUserId);
+        boolean outbidSession = isOutbidSession(sessionObj, currentUserId);
 
         VBox vbox = new VBox();
         vbox.setSpacing(14.0);
@@ -384,6 +458,7 @@ public class MyBidsController implements Initializable {
         imageStatusLabel.setStyle("-fx-text-fill: #adb5bd;");
 
         String imageUrl = buildImageUrl(imagePath);
+        imageWrapper.getChildren().add(imageStatusLabel);
         if (!imageUrl.isBlank()) {
             Image cached = imageCache.get(imageUrl);
             if (cached == null || cached.isError()) {
@@ -393,12 +468,13 @@ public class MyBidsController implements Initializable {
             imageView.setImage(cached);
             imageWrapper.getChildren().add(imageView);
             cached.errorProperty().addListener((obs, oldValue, isError) -> {
-                if (isError && !imageWrapper.getChildren().contains(imageStatusLabel)) {
-                    imageWrapper.getChildren().setAll(imageStatusLabel);
+                if (isError) {
+                    imageWrapper.getChildren().remove(imageView);
+                    if (!imageWrapper.getChildren().contains(imageStatusLabel)) {
+                        imageWrapper.getChildren().add(0, imageStatusLabel);
+                    }
                 }
             });
-        } else {
-            imageWrapper.getChildren().add(imageStatusLabel);
         }
 
         // Clip the image wrapper to keep rounded corners
@@ -422,38 +498,42 @@ public class MyBidsController implements Initializable {
         Label badgeLabel = new Label();
         badgeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px;");
 
-        if ("ENDED".equalsIgnoreCase(status)) {
+        if (endedSession) {
             if (highestBidderId == currentUserId) {
                 statusBadge.setStyle("-fx-background-color: rgba(16, 185, 129, 0.15); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: rgba(16, 185, 129, 0.3); -fx-border-radius: 12px;");
                 badgeLabel.setText("Won");
                 badgeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #10b981;");
                 dot.setStyle("-fx-background-color: #10b981; -fx-background-radius: 4px;");
-                statusBadge.getChildren().addAll(dot, badgeLabel);
+                statusBadge.getChildren().setAll(dot, badgeLabel);
             } else {
                 statusBadge.setStyle("-fx-background-color: rgba(108, 117, 125, 0.15); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: rgba(108, 117, 125, 0.3); -fx-border-radius: 12px;");
                 badgeLabel.setText("Ended");
                 badgeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #6c757d;");
-                statusBadge.getChildren().addAll(badgeLabel);
+                statusBadge.getChildren().setAll(badgeLabel);
             }
+        } else if (winningSession) {
+            statusBadge.setStyle("-fx-background-color: rgba(16, 185, 129, 0.15); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: rgba(16, 185, 129, 0.3); -fx-border-radius: 12px;");
+            badgeLabel.setText("Winning");
+            badgeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #10b981;");
+            dot.setStyle("-fx-background-color: #10b981; -fx-background-radius: 4px;");
+            statusBadge.getChildren().setAll(dot, badgeLabel);
+        } else if (outbidSession) {
+            statusBadge.setStyle("-fx-background-color: rgba(239, 68, 68, 0.15); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: rgba(239, 68, 68, 0.3); -fx-border-radius: 12px;");
+            badgeLabel.setText("Outbid");
+            badgeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #ef4444;");
+            Label warningIcon = new Label("\uE002");
+            warningIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 14px; -fx-text-fill: #ef4444;");
+            statusBadge.getChildren().setAll(warningIcon, badgeLabel);
         } else {
-            if (highestBidderId == currentUserId) {
-                statusBadge.setStyle("-fx-background-color: rgba(16, 185, 129, 0.15); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: rgba(16, 185, 129, 0.3); -fx-border-radius: 12px;");
-                badgeLabel.setText("Highest Bidder");
-                badgeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #10b981;");
-                dot.setStyle("-fx-background-color: #10b981; -fx-background-radius: 4px;");
-                statusBadge.getChildren().addAll(dot, badgeLabel);
-            } else {
-                statusBadge.setStyle("-fx-background-color: rgba(239, 68, 68, 0.15); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: rgba(239, 68, 68, 0.3); -fx-border-radius: 12px;");
-                badgeLabel.setText("Outbid");
-                badgeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #ef4444;");
-                Label warningIcon = new Label("\uE002");
-                warningIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 14px; -fx-text-fill: #ef4444;");
-                statusBadge.getChildren().addAll(warningIcon, badgeLabel);
-            }
+            statusBadge.setStyle("-fx-background-color: rgba(224, 64, 160, 0.12); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: rgba(224, 64, 160, 0.25); -fx-border-radius: 12px;");
+            badgeLabel.setText(status);
+            badgeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #e040a0;");
+            statusBadge.getChildren().setAll(badgeLabel);
         }
+        imageWrapper.getChildren().remove(statusBadge);
         imageWrapper.getChildren().add(statusBadge);
 
-        if ("ACTIVE".equalsIgnoreCase(status)) {
+        if (activeSession) {
             HBox timeBadge = new HBox(4.0);
             timeBadge.setAlignment(Pos.CENTER);
             timeBadge.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
@@ -480,7 +560,7 @@ public class MyBidsController implements Initializable {
         categoryLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #7c52aa; -fx-font-weight: bold;");
 
         VBox bidDetailsBox = new VBox(6.0);
-        if ("ACTIVE".equalsIgnoreCase(status) && highestBidderId != currentUserId) {
+        if (outbidSession) {
             bidDetailsBox.setStyle("-fx-background-color: rgba(239, 68, 68, 0.05); -fx-background-radius: 12px; -fx-padding: 10px; -fx-border-color: rgba(239, 68, 68, 0.1); -fx-border-width: 1px; -fx-border-radius: 12px;");
         } else {
             bidDetailsBox.setStyle("-fx-background-color: #f8eef8; -fx-background-radius: 12px; -fx-padding: 10px;");
@@ -499,18 +579,21 @@ public class MyBidsController implements Initializable {
 
         HBox userBidRow = new HBox();
         userBidRow.setAlignment(Pos.CENTER_LEFT);
-        Label lblYourBid = new Label(highestBidderId != currentUserId ? "YOUR MAX BID" : "YOUR BID");
+        Label lblYourBid = new Label(outbidSession ? "YOUR MAX BID" : (endedSession ? "FINAL BID" : "YOUR BID"));
         lblYourBid.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #604868;");
         Region spacer2 = new Region();
         HBox.setHgrow(spacer2, Priority.ALWAYS);
         
         Label userPriceLabel = new Label();
-        if (highestBidderId == currentUserId) {
+        if (winningSession || (endedSession && highestBidderId == currentUserId)) {
             userPriceLabel.setText("₫ " + formatPrice(currentPrice));
             userPriceLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #10b981;");
-        } else {
+        } else if (outbidSession) {
             userPriceLabel.setText("Outbid");
             userPriceLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #ef4444;");
+        } else {
+            userPriceLabel.setText("Ended");
+            userPriceLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #6c757d;");
         }
         userBidRow.getChildren().addAll(lblYourBid, spacer2, userPriceLabel);
         bidDetailsBox.getChildren().addAll(currentBidRow, userBidRow);
@@ -519,7 +602,7 @@ public class MyBidsController implements Initializable {
         btnAction.setMaxWidth(Double.MAX_VALUE);
         btnAction.setPrefHeight(36.0);
 
-        if ("ACTIVE".equalsIgnoreCase(status) && highestBidderId != currentUserId) {
+        if (outbidSession) {
             btnAction.setText("Increase Bid");
             btnAction.setStyle("-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 6, 0, 0, 1);");
             Label arrowIcon = new Label("\uE5D8");

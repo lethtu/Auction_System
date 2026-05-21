@@ -12,7 +12,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tooltip;
-import javafx.scene.control.TextInputDialog;
 import javafx.scene.Node;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -24,7 +23,6 @@ import com.auction.client.model.User;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 public class SidebarController {
     private static final Logger logger = LoggerFactory.getLogger(SidebarController.class);
@@ -295,16 +293,21 @@ public class SidebarController {
     public void handleMyBids(ActionEvent event) {
         autoCollapse();
         setActiveMyBids();
-        if (listener != null) {
-            listener.onFilterMyBids(event);
-        } else {
-            try {
-                if (onBeforeNavigate != null) onBeforeNavigate.run();
-                MainController.initialHomeFilterMode = "MY_BIDS";
-                SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
-            } catch (IOException e) {
-                logger.error("Lỗi chuyển cảnh về MainTemplate để xem My Bids: ", e);
+        try {
+            Stage stage = resolveStage(event);
+            boolean wasMaximized = stage != null && stage.isMaximized();
+            int currentWidth = stage == null ? 1280 : Math.max(1280, (int) Math.round(stage.getWidth()));
+            int currentHeight = stage == null ? 800 : Math.max(800, (int) Math.round(stage.getHeight()));
+
+            if (onBeforeNavigate != null) onBeforeNavigate.run();
+            SceneSwitcher.switchScene(event, "MyBids.fxml", currentWidth, currentHeight);
+
+            if (stage != null && wasMaximized) {
+                Platform.runLater(() -> stage.setMaximized(true));
             }
+        } catch (IOException e) {
+            logger.error("Lỗi chuyển cảnh sang MyBids.fxml: ", e);
+            showInfo("My Bids", "Không thể mở màn My Bids. Vui lòng thử lại.");
         }
     }
 
@@ -346,28 +349,28 @@ public class SidebarController {
         }
     }
 
-    @FXML
+        @FXML
     public void handleSupport(ActionEvent event) {
         autoCollapse();
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Support");
-        dialog.setHeaderText("Gửi yêu cầu hỗ trợ");
-        dialog.setContentText("Mô tả vấn đề bạn cần hỗ trợ:");
+        setActiveSupport();
+        try {
+            Stage stage = resolveStage(event);
+            boolean wasMaximized = stage != null && stage.isMaximized();
+            int currentWidth = stage == null ? 1280 : Math.max(1280, (int) Math.round(stage.getWidth()));
+            int currentHeight = stage == null ? 800 : Math.max(800, (int) Math.round(stage.getHeight()));
 
-        Optional<String> result = dialog.showAndWait();
-        if (result.isEmpty()) {
-            return;
+            if (onBeforeNavigate != null) onBeforeNavigate.run();
+            SceneSwitcher.switchScene(event, "Support.fxml", currentWidth, currentHeight);
+
+            if (stage != null && wasMaximized) {
+                Platform.runLater(() -> stage.setMaximized(true));
+            }
+        } catch (IOException e) {
+            logger.error("Lỗi chuyển cảnh sang Support.fxml: ", e);
+            showInfo("Support", "Không thể mở màn hỗ trợ. Vui lòng thử lại.");
         }
-
-        String content = result.get() == null ? "" : result.get().trim();
-        if (content.isBlank()) {
-            showInfo("Support", "Bạn chưa nhập nội dung hỗ trợ.");
-            return;
-        }
-
-        logger.info("Support request from UI: {}", content);
-        showInfo("Support", "Yêu cầu hỗ trợ đã được ghi nhận trong bản demo.");
     }
+
 
     private Stage resolveStage(ActionEvent event) {
         if (event == null || !(event.getSource() instanceof Node)) {

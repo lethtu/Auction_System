@@ -62,11 +62,7 @@
             <VBox spacing="22" styleClass="admin-bidpop-content">
                 <HBox alignment="CENTER_LEFT" spacing="18">
                     <VBox spacing="4">
-                        <Label text="Admin Control Panel" textFill="#2e1a28">
-                            <font>
-                                <Font name="System Bold" size="30"/>
-                            </font>
-                        </Label>
+                        <Label text="Admin Control Panel" styleClass="admin-bidpop-page-title"/>
                         <Label text="Duyệt phiên đấu giá, quản lý người dùng và kiểm soát hoạt động hệ thống." styleClass="admin-bidpop-subtitle"/>
                     </VBox>
                     <Region HBox.hgrow="ALWAYS"/>
