@@ -434,8 +434,10 @@ public class LoginController {
         String dob = data.optString("dob", null);
         String placeOfBirth = data.optString("place_of_birth", null);
         String role = normalizeRole(data.optString("role", data.optString("accountType", DEFAULT_ROLE)));
+        String avatarUrl = data.optString("avatarUrl", data.optString("avatar_url", null));
+        if ("null".equals(avatarUrl)) avatarUrl = null;
 
-        User.setSession(id, username, fullname, email, dob, placeOfBirth, role);
+        User.setSession(id, username, fullname, email, dob, placeOfBirth, role, avatarUrl);
         return role;
     }
 

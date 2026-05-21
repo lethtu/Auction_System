@@ -43,6 +43,9 @@ public class User {
     @Column(nullable = false)
     private boolean banned = false;
 
+    @Column(name = "avatar_url", length = 500)
+    private String avatarUrl;
+
     public User() {
     }
 
@@ -148,6 +151,14 @@ public class User {
 
     public void setBanned(boolean banned) {
         this.banned = banned;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
 
     @Override
