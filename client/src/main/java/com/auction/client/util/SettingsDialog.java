@@ -1,0 +1,233 @@
+package com.auction.client.util;
+
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.stage.Window;
+
+import java.util.prefs.Preferences;
+
+public final class SettingsDialog {
+
+    private static final Preferences prefs = Preferences.userNodeForPackage(SettingsDialog.class);
+
+    // Settings Keys
+    public static final String KEY_SOUND = "sound_notifications";
+    public static final String KEY_OUTBID = "outbid_notifications";
+    public static final String KEY_AUTO_COLLAPSE = "auto_collapse_sidebar";
+    public static final String KEY_ACCENT_COLOR = "accent_color";
+    public static final String KEY_LANGUAGE = "app_language";
+
+    private SettingsDialog() {
+    }
+
+    public static void show(Window ownerWindow) {
+        show(ownerWindow, null, null);
+    }
+
+    public static void show(Window ownerWindow, Runnable onResetFilters, Runnable onReloadData) {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.initOwner(ownerWindow);
+        dialog.setTitle("Cấu hình hệ thống");
+        
+        DialogPane pane = dialog.getDialogPane();
+        pane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        
+        // Load Styles
+        pane.setStyle("-fx-background-color: #ffffff;"
+                + " -fx-border-color: #ffe8f2;"
+                + " -fx-border-width: 1.5px;"
+                + " -fx-border-radius: 20px;"
+                + " -fx-background-radius: 20px;"
+                + " -fx-padding: 0px;"
+                + " -fx-font-family: 'DM Sans';");
+
+        // Custom Titlebar/Header
+        VBox mainContainer = new VBox();
+        mainContainer.setSpacing(0);
+        mainContainer.setMinWidth(480);
+        mainContainer.setPrefWidth(480);
+
+        // Header Section
+        HBox header = new HBox(12);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.setPadding(new Insets(24, 28, 20, 28));
+        header.setStyle("-fx-background-color: linear-gradient(to right, rgba(224, 64, 160, 0.05), rgba(124, 82, 170, 0.05));"
+                + " -fx-border-color: #ffe8f2;"
+                + " -fx-border-width: 0 0 1px 0;");
+
+        Label gearIcon = new Label("\ue8b8");
+        gearIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 32px; -fx-text-fill: #e040a0;");
+
+        VBox titleBox = new VBox(2);
+        Label titleLabel = new Label("Cấu hình ứng dụng");
+        titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
+        Label descLabel = new Label("Tùy chỉnh trải nghiệm đấu giá và giao diện của bạn.");
+        descLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #907898;");
+        titleBox.getChildren().addAll(titleLabel, descLabel);
+
+        header.getChildren().addAll(gearIcon, titleBox);
+        mainContainer.getChildren().add(header);
+
+        // Content Section
+        VBox content = new VBox(20);
+        content.setPadding(new Insets(24, 28, 28, 28));
+
+        // Group 1: Notifications
+        VBox grpNotifications = new VBox(10);
+        Label lblGrpNotif = new Label("THÔNG BÁO & ÂM THANH");
+        lblGrpNotif.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #e040a0; -fx-padding: 0 0 4 0;");
+        
+        CheckBox chkOutbid = new CheckBox("Nhận thông báo khi bị vượt giá");
+        chkOutbid.setSelected(prefs.getBoolean(KEY_OUTBID, true));
+        chkOutbid.setStyle("-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-cursor: hand;");
+
+        CheckBox chkSound = new CheckBox("Phát âm thanh thông báo");
+        chkSound.setSelected(prefs.getBoolean(KEY_SOUND, true));
+        chkSound.setStyle("-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-cursor: hand;");
+
+        grpNotifications.getChildren().addAll(lblGrpNotif, chkOutbid, chkSound);
+        content.getChildren().add(grpNotifications);
+
+        // Group 2: UI Experience
+        VBox grpUi = new VBox(12);
+        Label lblGrpUi = new Label("GIAO DIỆN & TRẢI NGHIỆM");
+        lblGrpUi.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #e040a0; -fx-padding: 4 0 4 0;");
+
+        CheckBox chkCollapse = new CheckBox("Tự động thu gọn thanh bên (Sidebar)");
+        chkCollapse.setSelected(prefs.getBoolean(KEY_AUTO_COLLAPSE, false));
+        chkCollapse.setStyle("-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-cursor: hand;");
+
+        // Language Dropdown
+        HBox rowLang = new HBox(10);
+        rowLang.setAlignment(Pos.CENTER_LEFT);
+        Label lblLang = new Label("Ngôn ngữ ứng dụng:");
+        lblLang.setStyle("-fx-font-size: 14px; -fx-text-fill: #2e1a28;");
+        Region spacerLang = new Region();
+        HBox.setHgrow(spacerLang, Priority.ALWAYS);
+        
+        ComboBox<String> cbLang = new ComboBox<>();
+        cbLang.getItems().addAll("Tiếng Việt", "English");
+        cbLang.setValue(prefs.get(KEY_LANGUAGE, "Tiếng Việt"));
+        cbLang.setStyle("-fx-background-color: #fef7ff; -fx-border-color: #ffe8f2; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-cursor: hand;");
+
+        rowLang.getChildren().addAll(lblLang, spacerLang, cbLang);
+
+        // Accent Color Dropdown
+        HBox rowColor = new HBox(10);
+        rowColor.setAlignment(Pos.CENTER_LEFT);
+        Label lblColor = new Label("Tông màu chủ đạo:");
+        lblColor.setStyle("-fx-font-size: 14px; -fx-text-fill: #2e1a28;");
+        Region spacerColor = new Region();
+        HBox.setHgrow(spacerColor, Priority.ALWAYS);
+
+        ComboBox<String> cbColor = new ComboBox<>();
+        cbColor.getItems().addAll("Rose Pink (Mặc định)", "Royal Purple", "Emerald Green");
+        cbColor.setValue(prefs.get(KEY_ACCENT_COLOR, "Rose Pink (Mặc định)"));
+        cbColor.setStyle("-fx-background-color: #fef7ff; -fx-border-color: #ffe8f2; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-cursor: hand;");
+
+        rowColor.getChildren().addAll(lblColor, spacerColor, cbColor);
+
+        grpUi.getChildren().addAll(lblGrpUi, chkCollapse, rowLang, rowColor);
+        content.getChildren().add(grpUi);
+
+        // Group 3: Quick Actions (Optional)
+        if (onResetFilters != null || onReloadData != null) {
+            VBox grpActions = new VBox(10);
+            Label lblGrpActions = new Label("THAO TÁC NHANH");
+            lblGrpActions.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #e040a0; -fx-padding: 4 0 4 0;");
+            
+            HBox actionButtons = new HBox(12);
+            actionButtons.setAlignment(Pos.CENTER_LEFT);
+            
+            if (onResetFilters != null) {
+                Button btnReset = new Button("Đặt lại bộ lọc");
+                btnReset.setStyle("-fx-background-color: #fff1fa; -fx-text-fill: #8a2b66; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-color: #f6a6d7; -fx-border-radius: 8px; -fx-padding: 6px 14px; -fx-cursor: hand;");
+                btnReset.setOnAction(e -> {
+                    onResetFilters.run();
+                    dialog.setResult(ButtonType.CANCEL);
+                    dialog.close();
+                });
+                actionButtons.getChildren().add(btnReset);
+            }
+            
+            if (onReloadData != null) {
+                Button btnReload = new Button("Tải lại dữ liệu");
+                btnReload.setStyle("-fx-background-color: #fff1fa; -fx-text-fill: #8a2b66; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-color: #f6a6d7; -fx-border-radius: 8px; -fx-padding: 6px 14px; -fx-cursor: hand;");
+                btnReload.setOnAction(e -> {
+                    onReloadData.run();
+                    dialog.setResult(ButtonType.CANCEL);
+                    dialog.close();
+                });
+                actionButtons.getChildren().add(btnReload);
+            }
+            
+            grpActions.getChildren().addAll(lblGrpActions, actionButtons);
+            content.getChildren().add(grpActions);
+        }
+
+        mainContainer.getChildren().add(content);
+        pane.setContent(mainContainer);
+
+        // Style the buttons
+        Button btnOk = (Button) pane.lookupButton(ButtonType.OK);
+        btnOk.setText("Lưu cài đặt");
+        btnOk.setStyle("-fx-background-color: #e040a0;"
+                + " -fx-text-fill: white;"
+                + " -fx-font-weight: bold;"
+                + " -fx-background-radius: 12px;"
+                + " -fx-padding: 8px 20px;"
+                + " -fx-cursor: hand;"
+                + " -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.2), 8, 0, 0, 3);");
+
+        Button btnCancel = (Button) pane.lookupButton(ButtonType.CANCEL);
+        btnCancel.setText("Hủy bỏ");
+        btnCancel.setStyle("-fx-background-color: #fff1fa;"
+                + " -fx-text-fill: #8a2b66;"
+                + " -fx-font-weight: bold;"
+                + " -fx-background-radius: 12px;"
+                + " -fx-border-color: #f6a6d7;"
+                + " -fx-border-radius: 12px;"
+                + " -fx-padding: 8px 20px;"
+                + " -fx-cursor: hand;");
+
+        // Handle save on OK
+        dialog.setResultConverter(button -> {
+            if (button == ButtonType.OK) {
+                prefs.putBoolean(KEY_OUTBID, chkOutbid.isSelected());
+                prefs.putBoolean(KEY_SOUND, chkSound.isSelected());
+                
+                boolean oldAutoCollapse = prefs.getBoolean(KEY_AUTO_COLLAPSE, false);
+                boolean newAutoCollapse = chkCollapse.isSelected();
+                prefs.putBoolean(KEY_AUTO_COLLAPSE, newAutoCollapse);
+                
+                prefs.put(KEY_LANGUAGE, cbLang.getValue());
+                prefs.put(KEY_ACCENT_COLOR, cbColor.getValue());
+
+                // Update sidebar collapse globally in memory if it changed
+                if (oldAutoCollapse != newAutoCollapse) {
+                    com.auction.client.controller.SidebarController.isSidebarCollapsed = newAutoCollapse;
+                }
+            }
+            return button;
+        });
+
+        dialog.showAndWait();
+    }
+
+    public static boolean isSoundEnabled() {
+        return prefs.getBoolean(KEY_SOUND, true);
+    }
+
+    public static boolean isOutbidNotificationEnabled() {
+        return prefs.getBoolean(KEY_OUTBID, true);
+    }
+
+    public static boolean isAutoCollapseSidebarEnabled() {
+        return prefs.getBoolean(KEY_AUTO_COLLAPSE, false);
+    }
+}

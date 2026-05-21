@@ -32,6 +32,7 @@ public class DepositController implements Initializable {
 
     @FXML private Button btnNotificationBell;
     @FXML private Label notificationBadge;
+    @FXML private Button btnSettings;
     @FXML private MenuButton userMenuButton;
     @FXML private Button btnDashboard;
 
@@ -64,6 +65,16 @@ public class DepositController implements Initializable {
         
         if (btnNotificationBell != null && notificationBadge != null) {
             NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
+        }
+
+        if (btnSettings != null) {
+            btnSettings.setOnAction(e -> {
+                try {
+                    com.auction.client.controller.SceneSwitcher.switchScene(e, "Settings.fxml", 1280, 800);
+                } catch (IOException ex) {
+                    logger.error("Lỗi chuyển sang trang Settings.fxml: ", ex);
+                }
+            });
         }
 
         txtCustomAmount.textProperty().addListener((observable, oldValue, newValue) -> {

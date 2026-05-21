@@ -151,6 +151,8 @@ public class SellerDashboardController {
     private Button btnNotificationBell;
     @FXML
     private Label notificationBadge;
+    @FXML
+    private Button btnSettings;
 
     private HttpClient httpClient = HttpClientSingleton.getInstance().getHttpClient();
     final List<SessionItem> allSessions = new ArrayList<>();
@@ -175,6 +177,15 @@ public class SellerDashboardController {
         }
         if (btnNotificationBell != null && notificationBadge != null) {
             com.auction.client.util.NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
+        }
+        if (btnSettings != null) {
+            btnSettings.setOnAction(e -> {
+                try {
+                    com.auction.client.controller.SceneSwitcher.switchScene(e, "Settings.fxml", 1280, 800);
+                } catch (IOException ex) {
+                    logger.error("Lỗi chuyển sang trang Settings.fxml: ", ex);
+                }
+            });
         }
 
         if (modalDialog != null && modalOverlay != null) {
