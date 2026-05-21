@@ -162,6 +162,14 @@ public class MyBidsController implements Initializable {
         MenuItem depositMoney = new MenuItem("Nạp tiền");
         MenuItem logoutItem = new MenuItem("Đăng Xuất");
 
+        depositMoney.setOnAction(event -> {
+            try {
+                SceneSwitcher.switchScene(event, "Deposit.fxml", 1280, 800);
+            } catch (IOException e) {
+                logger.error("Lỗi khi chuyển sang trang nạp tiền: ", e);
+            }
+        });
+
         logoutItem.setOnAction(event -> {
             try {
                 handleLogout(event);
