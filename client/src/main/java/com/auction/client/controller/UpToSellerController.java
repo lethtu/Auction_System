@@ -93,7 +93,7 @@ public class UpToSellerController implements Initializable {
     @FXML
     public void handleGoToDashboard(ActionEvent event) {
         try {
-            SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1024, 768);
+            SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1280, 800);
         } catch (Exception e) {
             logger.error("Lỗi khi chuyển về trang Quản lý Seller: ", e);
         }

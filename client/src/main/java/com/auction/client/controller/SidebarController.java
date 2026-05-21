@@ -202,6 +202,12 @@ public class SidebarController {
                 ((Label) btnMyBids.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
             }
         }
+        if (btnSelling != null) {
+            btnSelling.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
+            if (btnSelling.getGraphic() instanceof Label) {
+                ((Label) btnSelling.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
+            }
+        }
         if (btnSupport != null) {
             btnSupport.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
             if (btnSupport.getGraphic() instanceof Label) {
@@ -229,6 +235,12 @@ public class SidebarController {
                 ((Label) btnMyBids.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
             }
         }
+        if (btnSelling != null) {
+            btnSelling.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
+            if (btnSelling.getGraphic() instanceof Label) {
+                ((Label) btnSelling.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
+            }
+        }
         if (btnSupport != null) {
             btnSupport.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
             if (btnSupport.getGraphic() instanceof Label) {
@@ -254,6 +266,12 @@ public class SidebarController {
             btnSidebarWatchlist.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
             if (btnSidebarWatchlist.getGraphic() instanceof Label) {
                 ((Label) btnSidebarWatchlist.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
+            }
+        }
+        if (btnSelling != null) {
+            btnSelling.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
+            if (btnSelling.getGraphic() instanceof Label) {
+                ((Label) btnSelling.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
             }
         }
         if (btnSupport != null) {
@@ -287,6 +305,45 @@ public class SidebarController {
             btnMyBids.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
             if (btnMyBids.getGraphic() instanceof Label) {
                 ((Label) btnMyBids.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
+            }
+        }
+        if (btnSelling != null) {
+            btnSelling.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
+            if (btnSelling.getGraphic() instanceof Label) {
+                ((Label) btnSelling.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
+            }
+        }
+    }
+
+    public void setActiveSelling() {
+        if (btnSelling != null) {
+            btnSelling.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: rgba(224, 64, 160, 0.15); -fx-text-fill: #e040a0; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
+            if (btnSelling.getGraphic() instanceof Label) {
+                ((Label) btnSelling.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #e040a0;");
+            }
+        }
+        if (btnSidebarDashboard != null) {
+            btnSidebarDashboard.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
+            if (btnSidebarDashboard.getGraphic() instanceof Label) {
+                ((Label) btnSidebarDashboard.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
+            }
+        }
+        if (btnSidebarWatchlist != null) {
+            btnSidebarWatchlist.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
+            if (btnSidebarWatchlist.getGraphic() instanceof Label) {
+                ((Label) btnSidebarWatchlist.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
+            }
+        }
+        if (btnMyBids != null) {
+            btnMyBids.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
+            if (btnMyBids.getGraphic() instanceof Label) {
+                ((Label) btnMyBids.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
+            }
+        }
+        if (btnSupport != null) {
+            btnSupport.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
+            if (btnSupport.getGraphic() instanceof Label) {
+                ((Label) btnSupport.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
             }
         }
     }
@@ -351,7 +408,7 @@ public class SidebarController {
         autoCollapse();
         try {
             if (onBeforeNavigate != null) onBeforeNavigate.run();
-            SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1024, 768);
+            SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1280, 800);
         } catch (IOException e) {
             logger.error("Lỗi chuyển cảnh sang SellerDashboard: ", e);
         }

@@ -443,7 +443,7 @@ public class LoginController {
         String normalizedRole = normalizeRole(role);
 
         if (SELLER_ROLE.equals(normalizedRole)) {
-            SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1000, 650);
+            SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1280, 800);
         } else if (ADMIN_ROLE.equals(normalizedRole)) {
             SceneSwitcher.switchScene(event, "AdminDashboard.fxml", 1000, 650);
         } else {
