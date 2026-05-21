@@ -191,6 +191,16 @@ public class SellerDashboardController {
                 }
 
                 @Override
+                public void onFilterMyBids(javafx.event.ActionEvent event) {
+                    try {
+                        MainController.initialHomeFilterMode = "MY_BIDS";
+                        SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
+                    } catch (IOException e) {
+                        logger.error("Lỗi điều hướng sang My Bids:", e);
+                    }
+                }
+
+                @Override
                 public void onResetFilter(javafx.event.ActionEvent event) {
                     try {
                         SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
