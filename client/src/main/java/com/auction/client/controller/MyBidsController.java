@@ -89,10 +89,11 @@ public class MyBidsController implements Initializable {
         // Search events
         txtSearch.textProperty().addListener((observable, oldValue, newValue) -> filterAndRenderProducts());
 
-        // Dynamic spacing
+        // Stable responsive spacing. Keep layout fixed across focus/click refreshes.
         scrollPane.viewportBoundsProperty().addListener((obs, oldBounds, newBounds) -> {
             updateGridLayout();
         });
+        scheduleStableGridLayout();
 
         // Initialize sidebar styling
         Platform.runLater(() -> {
@@ -133,17 +134,27 @@ public class MyBidsController implements Initializable {
 
     private void updateGridLayout() {
         if (scrollPane == null || productContainer == null) return;
-        double width = scrollPane.getViewportBounds().getWidth() - 8.0;
-        if (width <= 0) return;
 
-        double w = 320.0;
-        double minGap = 16.0;
-        int n = (int) ((width - minGap) / (w + minGap));
-        if (n < 1) n = 1;
-        double g = Math.floor((width - n * w) / (n + 1));
-        if (g < 0) g = 0;
-        productContainer.setHgap(g);
-        productContainer.setPadding(new Insets(16.0, g, 16.0, g));
+        double viewportWidth = scrollPane.getViewportBounds().getWidth();
+        if (viewportWidth <= 0) return;
+
+        double stableWidth = Math.max(0, Math.floor(viewportWidth) - 24.0);
+
+        productContainer.setAlignment(Pos.TOP_CENTER);
+        productContainer.setPrefWrapLength(stableWidth);
+        productContainer.setMinWidth(stableWidth);
+        productContainer.setPrefWidth(stableWidth);
+        productContainer.setMaxWidth(stableWidth);
+        productContainer.setHgap(44.0);
+        productContainer.setVgap(28.0);
+        productContainer.setPadding(new Insets(10.0, 18.0, 10.0, 18.0));
+    }
+
+    private void scheduleStableGridLayout() {
+        Platform.runLater(this::updateGridLayout);
+        PauseTransition delay = new PauseTransition(Duration.millis(150));
+        delay.setOnFinished(event -> updateGridLayout());
+        delay.play();
     }
 
     private void createUserOption() {

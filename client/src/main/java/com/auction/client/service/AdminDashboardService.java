@@ -17,6 +17,7 @@ public class AdminDashboardService {
     private static final String APPROVE_SUCCESS_MESSAGE = "Phê duyệt phiên thành công.";
     private static final String REJECT_SUCCESS_MESSAGE = "Đã từ chối phiên đấu giá.";
     private static final String BAN_USER_SUCCESS_MESSAGE = "Đã khóa tài khoản user.";
+    private static final String RESTORE_USER_SUCCESS_MESSAGE = "Đã khôi phục tài khoản user.";
     private static final String CANCEL_AUCTION_SUCCESS_MESSAGE = "Đã hủy phiên đấu giá.";
     private static final String HIDE_PRODUCT_SUCCESS_MESSAGE = "Đã ẩn sản phẩm.";
     private static final String SHOW_PRODUCT_SUCCESS_MESSAGE = "Đã hiện sản phẩm.";
@@ -72,6 +73,14 @@ public class AdminDashboardService {
                 BAN_USER_SUCCESS_MESSAGE
         );
     }
+
+    public ApiResult<Void> restoreUser(int userId, int adminId) throws Exception {
+        return executeAction(
+                () -> adminApiClient.restoreUser(userId, adminId),
+                RESTORE_USER_SUCCESS_MESSAGE
+        );
+    }
+
 
     public ApiResult<Void> cancelAuction(int sessionId, int adminId) throws Exception {
         return executeAction(

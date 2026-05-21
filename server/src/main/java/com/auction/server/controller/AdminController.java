@@ -23,6 +23,7 @@ public class AdminController {
     private static final String LOG_APPROVE_SESSION = "Đang phê duyệt phiên ";
     private static final String LOG_REJECT_SESSION = "Đang từ chối phiên đấu giá ";
     private static final String LOG_BAN_USER = "Đang khóa tài khoản user ";
+    private static final String LOG_RESTORE_USER = "Đang khôi phục tài khoản user ";
     private static final String LOG_CANCEL_AUCTION = "Đang hủy phiên đấu giá ";
     private static final String LOG_HIDE_PRODUCT = "Đang ẩn sản phẩm ";
     private static final String LOG_SHOW_PRODUCT = "Đang hiện sản phẩm ";
@@ -34,6 +35,7 @@ public class AdminController {
     private static final String SUCCESS_APPROVE_SESSION = "Phê duyệt thành công! Phiên đấu giá đã bắt đầu.";
     private static final String SUCCESS_REJECT_SESSION = "Đã từ chối phiên đấu giá.";
     private static final String SUCCESS_BAN_USER = "Đã khóa tài khoản user.";
+    private static final String SUCCESS_RESTORE_USER = "Đã khôi phục tài khoản user.";
     private static final String SUCCESS_CANCEL_AUCTION = "Đã hủy phiên đấu giá.";
     private static final String SUCCESS_HIDE_PRODUCT = "Đã ẩn sản phẩm.";
     private static final String SUCCESS_SHOW_PRODUCT = "Đã hiện sản phẩm.";
@@ -112,6 +114,19 @@ public class AdminController {
                 () -> adminService.banUser(userId, adminId)
         );
     }
+
+    @PostMapping({"/restore-user/{userId}", "/unban-user/{userId}", "/users/{userId}/restore"})
+    public ApiResponse<Void> restoreUser(
+            @PathVariable Integer userId,
+            @RequestParam Integer adminId
+    ) {
+        return handleCommand(
+                LOG_RESTORE_USER + userId,
+                SUCCESS_RESTORE_USER,
+                () -> adminService.restoreUser(userId, adminId)
+        );
+    }
+
 
     @PostMapping("/cancel-auction/{sessionId}")
     public ApiResponse<Void> cancelAuction(

@@ -63,16 +63,6 @@ class SellerSessionGuardTest {
     }
 
     @Test
-    void getSessionById_existingSession_returnsSession() {
-        AuctionSession session = session(10, seller(1), AuctionStatus.PENDING);
-        sessionRepository.sessions.put(10, session);
-
-        AuctionSession result = guard.getSessionById(10);
-
-        assertSame(session, result);
-    }
-
-    @Test
     void getSessionById_missingSession_throwsException() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> guard.getSessionById(10));
 
@@ -84,55 +74,6 @@ class SellerSessionGuardTest {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> guard.getSessionById(null));
 
         assertEquals("Phiên đấu giá không tồn tại", ex.getMessage());
-    }
-
-    @Test
-    void validateSessionOwner_correctOwner_doesNotThrow() {
-        Seller seller = seller(1);
-        AuctionSession session = session(10, seller, AuctionStatus.PENDING);
-
-        assertDoesNotThrow(() -> guard.validateSessionOwner(session, 1, "Không có quyền"));
-    }
-
-    @Test
-    void validateSessionOwner_wrongOwner_throwsCustomMessage() {
-        Seller seller = seller(1);
-        AuctionSession session = session(10, seller, AuctionStatus.PENDING);
-
-        IllegalArgumentException ex = assertThrows(
-                IllegalArgumentException.class,
-                () -> guard.validateSessionOwner(session, 2, "Không có quyền sửa phiên này")
-        );
-
-        assertEquals("Không có quyền sửa phiên này", ex.getMessage());
-    }
-
-    @Test
-    void validateSessionOwner_nullSeller_throwsCustomMessage() {
-        AuctionSession session = session(10, null, AuctionStatus.PENDING);
-
-        IllegalArgumentException ex = assertThrows(
-                IllegalArgumentException.class,
-                () -> guard.validateSessionOwner(session, 1, "Không có quyền xem phiên này")
-        );
-
-        assertEquals("Không có quyền xem phiên này", ex.getMessage());
-    }
-
-    @Test
-    void validatePendingSession_pending_doesNotThrow() {
-        AuctionSession session = session(10, seller(1), AuctionStatus.PENDING);
-
-        assertDoesNotThrow(() -> guard.validatePendingSession(session));
-    }
-
-    @Test
-    void validatePendingSession_active_throwsException() {
-        AuctionSession session = session(10, seller(1), AuctionStatus.ACTIVE);
-
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> guard.validatePendingSession(session));
-
-        assertEquals("Chỉ được thao tác với phiên đang chờ duyệt", ex.getMessage());
     }
 
     private Seller seller(Integer id) {

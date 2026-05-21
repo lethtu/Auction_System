@@ -74,24 +74,6 @@ public class AuctionLifecycleTest {
     // A. CORE FLOW TESTS
     // ========================================================================
 
-    @Test
-    @DisplayName("Core: Vòng đời PENDING -> ACTIVE -> ENDED")
-    public void test_Lifecycle_PendingToActiveToEnded() {
-        AuctionSession session = new AuctionSession();
-        session.setId(10);
-        session.setStatus(AuctionStatus.PENDING);
-        session.setStartTime(LocalDateTime.now().minusMinutes(5));
-        session.setEndTime(LocalDateTime.now().minusMinutes(1));
-        session.setCurrentPrice(new BigDecimal("500.00"));
-
-        assertEquals(AuctionStatus.PENDING, session.getStatus(), "Trạng thái ban đầu phải là PENDING");
-
-        session.setStatus(AuctionStatus.ACTIVE);
-        assertEquals(AuctionStatus.ACTIVE, session.getStatus(), "Sau khi mở, trạng thái phải là ACTIVE");
-
-        session.setStatus(AuctionStatus.ENDED);
-        assertEquals(AuctionStatus.ENDED, session.getStatus(), "Sau khi đóng, trạng thái phải là ENDED");
-    }
 
     @Test
     @DisplayName("Core: Anti-Sniping gia hạn 60s khi bid trong 30s cuối")

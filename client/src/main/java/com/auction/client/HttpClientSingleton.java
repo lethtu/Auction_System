@@ -21,6 +21,10 @@ public class HttpClientSingleton {
         return instance;
     }
 
+    public static void setInstance(HttpClientSingleton mockInstance) {
+        instance = mockInstance;
+    }
+
     public HttpClient getHttpClient() {
         return httpClient;
     }

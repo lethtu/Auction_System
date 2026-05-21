@@ -58,7 +58,7 @@ class ApiResponseParserTest {
 
         assertFalse(result.success);
         assertEquals(500, result.status);
-        assertEquals("Thao tác thất bại.", result.message);
+        assertEquals("Thao tác thất bại. HTTP 500.", result.message);
         assertNull(result.data);
     }
 

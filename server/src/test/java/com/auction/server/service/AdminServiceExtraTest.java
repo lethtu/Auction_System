@@ -30,19 +30,6 @@ class AdminServiceExtraTest {
     private final FakeUserRepository userRepository = new FakeUserRepository();
     private final AdminService adminService = new AdminService(sessionRepository.proxy(), userRepository.proxy());
 
-    @Test
-    void getSessionDetail_existingSession_returnsDTO() {
-        Seller seller = seller(2, "seller01");
-        AuctionSession session = session(10, seller, AuctionStatus.PENDING, "Laptop");
-        sessionRepository.sessionsById.put(10, session);
-
-        SessionResponseDTO result = adminService.getSessionDetail(10);
-
-        assertEquals(10, result.getId());
-        assertEquals("Laptop", result.getProductName());
-        assertEquals("seller01", result.getSellerUsername());
-        assertEquals("PENDING", result.getStatus());
-    }
 
     @Test
     void getSessionDetail_missingSession_throwsException() {

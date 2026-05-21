@@ -7,11 +7,15 @@ import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.Node;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +24,7 @@ import com.auction.client.model.User;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class SidebarController {
     private static final Logger logger = LoggerFactory.getLogger(SidebarController.class);
@@ -38,8 +43,20 @@ public class SidebarController {
     private final Map<Button, String> sidebarButtonTextMap = new HashMap<>();
 
     public interface SidebarListener {
-        void onFilterWatchlist(ActionEvent event);
-        void onResetFilter(ActionEvent event);
+        default void onFilterWatchlist() {}
+        default void onFilterWatchlist(ActionEvent event) { onFilterWatchlist(); }
+
+        default void onFilterMyBids() {}
+        default void onFilterMyBids(ActionEvent event) { onFilterMyBids(); }
+
+        default void onFilterMySessions() {}
+        default void onFilterMySessions(ActionEvent event) { onFilterMySessions(); }
+
+        default void onResetFilter() {}
+        default void onResetFilter(ActionEvent event) { onResetFilter(); }
+
+        default void onShowCategories() {}
+        default void onShowCategories(ActionEvent event) { onShowCategories(); }
     }
 
     private SidebarListener listener;
@@ -184,167 +201,49 @@ public class SidebarController {
     }
 
     public void setActiveWatchlist() {
-        if (btnSidebarWatchlist != null) {
-            btnSidebarWatchlist.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: rgba(224, 64, 160, 0.15); -fx-text-fill: #e040a0; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnSidebarWatchlist.getGraphic() instanceof Label) {
-                ((Label) btnSidebarWatchlist.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #e040a0;");
-            }
-        }
-        if (btnSidebarDashboard != null) {
-            btnSidebarDashboard.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnSidebarDashboard.getGraphic() instanceof Label) {
-                ((Label) btnSidebarDashboard.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
-            }
-        }
-        if (btnMyBids != null) {
-            btnMyBids.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnMyBids.getGraphic() instanceof Label) {
-                ((Label) btnMyBids.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
-            }
-        }
-        if (btnSelling != null) {
-            btnSelling.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnSelling.getGraphic() instanceof Label) {
-                ((Label) btnSelling.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
-            }
-        }
-        if (btnSupport != null) {
-            btnSupport.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnSupport.getGraphic() instanceof Label) {
-                ((Label) btnSupport.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
-            }
-        }
+        setActiveButton(btnSidebarWatchlist);
     }
 
     public void setActiveDashboard() {
-        if (btnSidebarDashboard != null) {
-            btnSidebarDashboard.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: rgba(224, 64, 160, 0.15); -fx-text-fill: #e040a0; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnSidebarDashboard.getGraphic() instanceof Label) {
-                ((Label) btnSidebarDashboard.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #e040a0;");
-            }
-        }
-        if (btnSidebarWatchlist != null) {
-            btnSidebarWatchlist.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnSidebarWatchlist.getGraphic() instanceof Label) {
-                ((Label) btnSidebarWatchlist.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
-            }
-        }
-        if (btnMyBids != null) {
-            btnMyBids.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnMyBids.getGraphic() instanceof Label) {
-                ((Label) btnMyBids.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
-            }
-        }
-        if (btnSelling != null) {
-            btnSelling.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnSelling.getGraphic() instanceof Label) {
-                ((Label) btnSelling.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
-            }
-        }
-        if (btnSupport != null) {
-            btnSupport.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnSupport.getGraphic() instanceof Label) {
-                ((Label) btnSupport.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
-            }
-        }
+        setActiveButton(btnSidebarDashboard);
     }
 
     public void setActiveMyBids() {
-        if (btnMyBids != null) {
-            btnMyBids.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: rgba(224, 64, 160, 0.15); -fx-text-fill: #e040a0; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnMyBids.getGraphic() instanceof Label) {
-                ((Label) btnMyBids.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #e040a0;");
-            }
-        }
-        if (btnSidebarDashboard != null) {
-            btnSidebarDashboard.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnSidebarDashboard.getGraphic() instanceof Label) {
-                ((Label) btnSidebarDashboard.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
-            }
-        }
-        if (btnSidebarWatchlist != null) {
-            btnSidebarWatchlist.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnSidebarWatchlist.getGraphic() instanceof Label) {
-                ((Label) btnSidebarWatchlist.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
-            }
-        }
-        if (btnSelling != null) {
-            btnSelling.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnSelling.getGraphic() instanceof Label) {
-                ((Label) btnSelling.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
-            }
-        }
-        if (btnSupport != null) {
-            btnSupport.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnSupport.getGraphic() instanceof Label) {
-                ((Label) btnSupport.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
-            }
-        }
-    }
-
-    public void setActiveSupport() {
-        if (btnSupport != null) {
-            btnSupport.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: rgba(224, 64, 160, 0.15); -fx-text-fill: #e040a0; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnSupport.getGraphic() instanceof Label) {
-                ((Label) btnSupport.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #e040a0;");
-            }
-        }
-        if (btnSidebarDashboard != null) {
-            btnSidebarDashboard.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnSidebarDashboard.getGraphic() instanceof Label) {
-                ((Label) btnSidebarDashboard.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
-            }
-        }
-        if (btnSidebarWatchlist != null) {
-            btnSidebarWatchlist.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnSidebarWatchlist.getGraphic() instanceof Label) {
-                ((Label) btnSidebarWatchlist.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
-            }
-        }
-        if (btnMyBids != null) {
-            btnMyBids.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnMyBids.getGraphic() instanceof Label) {
-                ((Label) btnMyBids.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
-            }
-        }
-        if (btnSelling != null) {
-            btnSelling.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnSelling.getGraphic() instanceof Label) {
-                ((Label) btnSelling.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
-            }
-        }
+        setActiveButton(btnMyBids);
     }
 
     public void setActiveSelling() {
-        if (btnSelling != null) {
-            btnSelling.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: rgba(224, 64, 160, 0.15); -fx-text-fill: #e040a0; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnSelling.getGraphic() instanceof Label) {
-                ((Label) btnSelling.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #e040a0;");
-            }
-        }
-        if (btnSidebarDashboard != null) {
-            btnSidebarDashboard.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnSidebarDashboard.getGraphic() instanceof Label) {
-                ((Label) btnSidebarDashboard.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
-            }
-        }
-        if (btnSidebarWatchlist != null) {
-            btnSidebarWatchlist.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnSidebarWatchlist.getGraphic() instanceof Label) {
-                ((Label) btnSidebarWatchlist.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
-            }
-        }
-        if (btnMyBids != null) {
-            btnMyBids.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnMyBids.getGraphic() instanceof Label) {
-                ((Label) btnMyBids.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
-            }
-        }
-        if (btnSupport != null) {
-            btnSupport.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
-            if (btnSupport.getGraphic() instanceof Label) {
-                ((Label) btnSupport.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;");
-            }
+        setActiveButton(btnSelling);
+    }
+
+    public void setActiveSupport() {
+        setActiveButton(btnSupport);
+    }
+
+    private void setActiveButton(Button activeButton) {
+        applySidebarButtonStyle(btnSidebarDashboard, btnSidebarDashboard == activeButton);
+        applySidebarButtonStyle(btnMyBids, btnMyBids == activeButton);
+        applySidebarButtonStyle(btnSelling, btnSelling == activeButton);
+        applySidebarButtonStyle(btnCategories, btnCategories == activeButton);
+        applySidebarButtonStyle(btnSidebarWatchlist, btnSidebarWatchlist == activeButton);
+        applySidebarButtonStyle(btnSupport, btnSupport == activeButton);
+    }
+
+    private void applySidebarButtonStyle(Button button, boolean active) {
+        if (button == null) return;
+
+        String textColor = active ? "#e040a0" : "#604868";
+        String backgroundColor = active ? "rgba(224, 64, 160, 0.15)" : "transparent";
+        button.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: "
+                + backgroundColor
+                + "; -fx-text-fill: "
+                + textColor
+                + "; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
+
+        if (button.getGraphic() instanceof Label) {
+            ((Label) button.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: "
+                    + textColor
+                    + ";");
         }
     }
 
@@ -395,39 +294,97 @@ public class SidebarController {
     @FXML
     public void handleMyBids(ActionEvent event) {
         autoCollapse();
-        try {
-            if (onBeforeNavigate != null) onBeforeNavigate.run();
-            SceneSwitcher.switchScene(event, "MyBids.fxml", 1280, 800);
-        } catch (IOException e) {
-            logger.error("Lỗi chuyển cảnh sang MyBids: ", e);
+        setActiveMyBids();
+        if (listener != null) {
+            listener.onFilterMyBids(event);
+        } else {
+            try {
+                if (onBeforeNavigate != null) onBeforeNavigate.run();
+                MainController.initialHomeFilterMode = "MY_BIDS";
+                SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
+            } catch (IOException e) {
+                logger.error("Lỗi chuyển cảnh về MainTemplate để xem My Bids: ", e);
+            }
         }
     }
 
     @FXML
     public void handleSelling(ActionEvent event) {
         autoCollapse();
+        setActiveSelling();
         try {
+            Stage stage = resolveStage(event);
+            boolean wasMaximized = stage != null && stage.isMaximized();
+            int currentWidth = stage == null ? 1280 : Math.max(1280, (int) Math.round(stage.getWidth()));
+            int currentHeight = stage == null ? 800 : Math.max(800, (int) Math.round(stage.getHeight()));
+
             if (onBeforeNavigate != null) onBeforeNavigate.run();
-            SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1280, 800);
+            SceneSwitcher.switchScene(event, "SellerDashboard.fxml", currentWidth, currentHeight);
+
+            if (stage != null && wasMaximized) {
+                Platform.runLater(() -> stage.setMaximized(true));
+            }
         } catch (IOException e) {
             logger.error("Lỗi chuyển cảnh sang SellerDashboard: ", e);
+            showInfo("Selling", "Không thể mở Seller Dashboard. Vui lòng thử lại.");
         }
     }
 
     @FXML
     public void handleCategories(ActionEvent event) {
         autoCollapse();
-        handleDashboard(event);
+        setActiveButton(btnCategories);
+        if (listener != null) {
+            listener.onShowCategories(event);
+        } else {
+            try {
+                if (onBeforeNavigate != null) onBeforeNavigate.run();
+                SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
+            } catch (IOException e) {
+                logger.error("Lỗi chuyển cảnh về MainTemplate để chọn danh mục: ", e);
+            }
+        }
     }
 
     @FXML
     public void handleSupport(ActionEvent event) {
         autoCollapse();
-        try {
-            if (onBeforeNavigate != null) onBeforeNavigate.run();
-            SceneSwitcher.switchScene(event, "Support.fxml", 1280, 800);
-        } catch (IOException e) {
-            logger.error("Lỗi chuyển cảnh sang Support: ", e);
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Support");
+        dialog.setHeaderText("Gửi yêu cầu hỗ trợ");
+        dialog.setContentText("Mô tả vấn đề bạn cần hỗ trợ:");
+
+        Optional<String> result = dialog.showAndWait();
+        if (result.isEmpty()) {
+            return;
         }
+
+        String content = result.get() == null ? "" : result.get().trim();
+        if (content.isBlank()) {
+            showInfo("Support", "Bạn chưa nhập nội dung hỗ trợ.");
+            return;
+        }
+
+        logger.info("Support request from UI: {}", content);
+        showInfo("Support", "Yêu cầu hỗ trợ đã được ghi nhận trong bản demo.");
+    }
+
+    private Stage resolveStage(ActionEvent event) {
+        if (event == null || !(event.getSource() instanceof Node)) {
+            return null;
+        }
+        Node source = (Node) event.getSource();
+        if (source.getScene() == null || source.getScene().getWindow() == null) {
+            return null;
+        }
+        return (Stage) source.getScene().getWindow();
+    }
+
+    private void showInfo(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

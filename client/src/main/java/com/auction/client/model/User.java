@@ -1,5 +1,7 @@
 package com.auction.client.model;
 
+import java.math.BigDecimal;
+
 public class User {
     private static Integer id;
 
@@ -15,6 +17,8 @@ public class User {
 
     private static String role;
 
+    private static BigDecimal balance = BigDecimal.ZERO;
+
     public static final java.util.Set<Integer> watchlistIds = new java.util.concurrent.ConcurrentSkipListSet<>();
 
     public static void setSession(Integer Id, String Username, String Fullname, String Email, String Dob, String Place_of_birth, String Role){
@@ -25,10 +29,28 @@ public class User {
         dob = Dob;
         place_of_birth = Place_of_birth;
         role = Role;
+        balance = BigDecimal.ZERO;
         watchlistIds.clear();
         if (username != null) {
             watchlistIds.addAll(com.auction.client.service.ClientLogger.loadUserFavorites(username));
         }
+    }
+
+    public static void updateProfile(String Username, String Fullname, String Email, String Dob, String Place_of_birth){
+        username = Username;
+        fullname = Fullname;
+        email = Email;
+        dob = Dob;
+        place_of_birth = Place_of_birth;
+    }
+
+    public static void updateProfile(String Username, String Fullname, String Email, String Dob, String Place_of_birth, BigDecimal Balance){
+        updateProfile(Username, Fullname, Email, Dob, Place_of_birth);
+        setBalance(Balance);
+    }
+
+    public static void setBalance(BigDecimal Balance) {
+        balance = Balance == null ? BigDecimal.ZERO : Balance;
     }
 
     public static void clearSession(){
@@ -39,6 +61,7 @@ public class User {
         dob = null;
         place_of_birth = null;
         role = null;
+        balance = BigDecimal.ZERO;
         watchlistIds.clear();
     }
 
@@ -68,5 +91,9 @@ public class User {
 
     public static String getUsername(){
         return username;
+    }
+
+    public static BigDecimal getBalance() {
+        return balance == null ? BigDecimal.ZERO : balance;
     }
 }

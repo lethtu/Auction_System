@@ -32,11 +32,14 @@ public class AdminService {
     private static final String ERROR_NOT_ADMIN = "Người này không phải là Quản trị viên";
     private static final String ERROR_SESSION_NOT_FOUND = "Không tìm thấy phiên đấu giá";
     private static final String ERROR_TARGET_USER_NOT_FOUND = "Không tìm thấy user cần khóa";
+    private static final String ERROR_RESTORE_USER_NOT_FOUND = "Không tìm thấy user cần khôi phục";
     private static final String ERROR_PRODUCT_NOT_FOUND = "Không tìm thấy sản phẩm";
     private static final String ERROR_ITEM_REPOSITORY_NOT_READY = "Chưa cấu hình kho dữ liệu sản phẩm";
     private static final String ERROR_SELF_BAN = "Không thể khóa chính tài khoản admin hiện tại";
     private static final String ERROR_BAN_ADMIN = "Không được khóa tài khoản Admin khác";
     private static final String ERROR_REJECT_REASON_REQUIRED = "Vui lòng nhập lý do từ chối";
+    private static final String ERROR_APPROVE_NOT_PENDING = "Phiên này đã được xử lý hoặc không ở trạng thái chờ duyệt";
+    private static final String ERROR_REJECT_NOT_PENDING = "Chỉ được từ chối các phiên đang ở trạng thái chờ duyệt";
     private static final String ERROR_CANCEL_FINISHED_SESSION = "Phiên này đã kết thúc hoặc đã bị hủy";
 
     private final AuctionSessionRepository sessionRepository;
@@ -62,7 +65,7 @@ public class AdminService {
     }
 
     public List<SessionResponseDTO> getPendingSessions() {
-        return sessionRepository.findByStatus(AuctionStatus.PENDING)
+        return sessionRepository.findByStatus(AuctionStatus.DRAFT)
                 .stream()
                 .map(SessionResponseMapper::toDTO)
                 .toList();
@@ -91,15 +94,18 @@ public class AdminService {
         Admin admin = checkAdminPermission(adminId);
         AuctionSession session = getSessionById(sessionId);
 
-        validatePendingSession(session, "Phiên này đã được xử lý hoặc không ở trạng thái chờ duyệt");
+        if (session.getStatus() != AuctionStatus.DRAFT) {
+            throw new IllegalArgumentException(ERROR_APPROVE_NOT_PENDING);
+        }
 
         LocalDateTime now = LocalDateTime.now();
+        if (session.getStartTime() == null) {
+            session.setStartTime(now);
+        }
 
-        session.setStatus(AuctionStatus.ACTIVE);
-        session.setStartTime(now);
+        session.setStatus(resolveApprovedStatus(session, now));
         session.setApprovedAt(now);
         session.setApprovedByAdminId(admin.getId());
-
         clearRejectionInfo(session);
 
         sessionRepository.save(session);
@@ -107,20 +113,18 @@ public class AdminService {
 
     @Transactional
     public void rejectSession(Integer sessionId, Integer adminId, String reason) {
+        String normalizedReason = normalizeRequiredReason(reason);
         Admin admin = checkAdminPermission(adminId);
-        String cleanReason = normalizeRequiredReason(reason);
-
         AuctionSession session = getSessionById(sessionId);
 
-        validatePendingSession(session, "Chỉ được từ chối các phiên đang ở trạng thái chờ duyệt");
+        if (session.getStatus() != AuctionStatus.DRAFT) {
+            throw new IllegalArgumentException(ERROR_REJECT_NOT_PENDING);
+        }
 
-        LocalDateTime now = LocalDateTime.now();
-
-        session.setStatus(AuctionStatus.REJECTED);
-        session.setRejectedAt(now);
+        session.setStatus(AuctionStatus.CANCELED);
+        session.setRejectedAt(LocalDateTime.now());
         session.setRejectedByAdminId(admin.getId());
-        session.setRejectReason(cleanReason);
-
+        session.setRejectReason(normalizedReason);
         clearApprovalInfo(session);
 
         sessionRepository.save(session);
@@ -143,6 +147,16 @@ public class AdminService {
         target.setBanned(true);
         userRepository.save(target);
     }
+
+    @Transactional
+    public void restoreUser(Integer targetUserId, Integer adminId) {
+        checkAdminPermission(adminId);
+
+        User target = getUserById(targetUserId, ERROR_RESTORE_USER_NOT_FOUND);
+        target.setBanned(false);
+        userRepository.save(target);
+    }
+
 
     @Transactional
     public void cancelAuction(Integer sessionId, Integer adminId) {
@@ -174,6 +188,16 @@ public class AdminService {
         Item item = getItemById(productId);
         item.setHidden(hidden);
         itemRepository.save(item);
+    }
+
+    private AuctionStatus resolveApprovedStatus(AuctionSession session, LocalDateTime now) {
+        LocalDateTime startTime = session.getStartTime();
+
+        if (startTime != null && startTime.isAfter(now)) {
+            return AuctionStatus.COMING;
+        }
+
+        return AuctionStatus.ACTIVE;
     }
 
     private List<AuctionSession> findSessionsByStatus(String status) {
@@ -243,13 +267,6 @@ public class AdminService {
         }
 
         return admin;
-    }
-
-    private void validatePendingSession(AuctionSession session, String errorMessage) {
-        if (session.getStatus() != AuctionStatus.PENDING) {
-            logger.warn("Phiên {} không ở trạng thái chờ duyệt", session.getId());
-            throw new IllegalArgumentException(errorMessage);
-        }
     }
 
     private String normalizeRequiredReason(String reason) {
