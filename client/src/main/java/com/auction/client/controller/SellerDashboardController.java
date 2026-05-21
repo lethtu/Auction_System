@@ -145,6 +145,12 @@ public class SellerDashboardController {
     private SidebarController sidebarController;
     @FXML
     private Button btnHamburger;
+    @FXML
+    private MenuButton userMenuButton;
+    @FXML
+    private Button btnNotificationBell;
+    @FXML
+    private Label notificationBadge;
 
     private HttpClient httpClient = HttpClientSingleton.getInstance().getHttpClient();
     final List<SessionItem> allSessions = new ArrayList<>();
@@ -163,6 +169,13 @@ public class SellerDashboardController {
         setupTable();
         setupImageUpload();
         setupSplitDatetimePickers();
+
+        if (User.getFullname() != null) {
+            createUserOption("Chào, " + User.getFullname());
+        }
+        if (btnNotificationBell != null && notificationBadge != null) {
+            com.auction.client.util.NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
+        }
 
         if (modalDialog != null && modalOverlay != null) {
             modalOverlay.heightProperty().addListener((obs, oldVal, newVal) -> updateModalMaxHeight());
@@ -2159,6 +2172,46 @@ public class SellerDashboardController {
         if (sidebarController != null) {
             sidebarController.toggleSidebar();
         }
+    }
+
+    private void createUserOption(String text) {
+        MenuItem accountItem = new MenuItem("Tài Khoản Của Tôi");
+        MenuItem depositMoney = new MenuItem("Nạp tiền");
+        MenuItem logoutItem = new MenuItem("Đăng Xuất");
+
+        accountItem.setOnAction(event -> {
+            try {
+                MainController.initialShowAccount = true;
+                SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
+            } catch (IOException e) {
+                logger.error("Lỗi khi chuyển sang trang tài khoản: ", e);
+            }
+        });
+
+        depositMoney.setOnAction(event -> {
+            try {
+                SceneSwitcher.switchScene(event, "Deposit.fxml", 1280, 800);
+            } catch (IOException e) {
+                logger.error("Lỗi khi chuyển sang trang nạp tiền: ", e);
+            }
+        });
+
+        logoutItem.setOnAction(event -> {
+            try {
+                handleLogout(event);
+            } catch (IOException e) {
+                logger.error("Lỗi khi chuyển sang màn hình Login!", e);
+            }
+        });
+
+        if (userMenuButton != null) {
+            userMenuButton.getItems().addAll(accountItem, depositMoney, logoutItem);
+        }
+    }
+
+    public void handleLogout(javafx.event.ActionEvent event) throws IOException {
+        User.clearSession();
+        SceneSwitcher.switchScene(event, "Login.fxml", 400, 500);
     }
 
     private String productNameOrEmpty(TextInputControl input) {

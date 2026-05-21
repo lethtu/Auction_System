@@ -96,7 +96,10 @@ public class BidderController {
         java.util.List<com.auction.server.dto.SessionResponseDTO> dtos = sessions.stream()
                 .map(session -> {
                     int bidCount = Math.toIntExact(bidRepository.countBySessionId(session.getId()));
-                    return com.auction.server.mapper.SessionResponseMapper.toDTO(session, bidCount);
+                    com.auction.server.dto.SessionResponseDTO dto = com.auction.server.mapper.SessionResponseMapper.toDTO(session, bidCount);
+                    java.math.BigDecimal maxBid = bidRepository.findMaxBidAmountBySessionIdAndBidderId(session.getId(), bidderId);
+                    dto.setUserMaxBid(maxBid);
+                    return dto;
                 })
                 .toList();
         return new ApiResponse<>(200, "Lấy danh sách đấu giá đã tham gia thành công", dtos);

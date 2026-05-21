@@ -112,6 +112,7 @@ public class MainController implements Initializable {
     private boolean showingCompactListScreen = false;
     private boolean forceRenderProducts = false;
     public static boolean initialShowWatchlist = false;
+    public static boolean initialShowAccount = false;
     public static String initialHomeFilterMode = "ALL";
     private final Button fakeTestBtn = new Button();
 
@@ -210,8 +211,9 @@ public class MainController implements Initializable {
                 }
             });
 
-            String requestedMode = initialShowWatchlist ? "WATCHLIST" : initialHomeFilterMode;
+            String requestedMode = initialShowWatchlist ? "WATCHLIST" : (initialShowAccount ? "ACCOUNT" : initialHomeFilterMode);
             initialShowWatchlist = false;
+            initialShowAccount = false;
             initialHomeFilterMode = "ALL";
 
             if ("WATCHLIST".equalsIgnoreCase(requestedMode)) {
@@ -223,6 +225,8 @@ public class MainController implements Initializable {
             } else if ("MY_SESSIONS".equalsIgnoreCase(requestedMode)) {
                 sidebarController.setActiveSelling();
                 showMySessions();
+            } else if ("ACCOUNT".equalsIgnoreCase(requestedMode)) {
+                showAccountScreen();
             } else {
                 sidebarController.setActiveDashboard();
             }
