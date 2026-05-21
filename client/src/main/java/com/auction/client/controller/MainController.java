@@ -1018,7 +1018,11 @@ public class MainController implements Initializable {
 
     @FXML
     private void handleSettings(ActionEvent event) {
-        showSettingsDialog();
+        try {
+            SceneSwitcher.switchScene(event, "Settings.fxml", 1280, 800);
+        } catch (IOException e) {
+            logger.error("Lỗi chuyển sang trang Settings.fxml: ", e);
+        }
     }
 
     @FXML

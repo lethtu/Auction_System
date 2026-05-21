@@ -45,6 +45,7 @@ public class UpToSellerController implements Initializable {
     
     @FXML private Button btnNotificationBell;
     @FXML private Label notificationBadge;
+    @FXML private Button btnSettings;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -59,6 +60,16 @@ public class UpToSellerController implements Initializable {
         
         if (btnNotificationBell != null && notificationBadge != null) {
             NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
+        }
+
+        if (btnSettings != null) {
+            btnSettings.setOnAction(e -> {
+                try {
+                    com.auction.client.controller.SceneSwitcher.switchScene(e, "Settings.fxml", 1280, 800);
+                } catch (IOException ex) {
+                    logger.error("Lỗi chuyển sang trang Settings.fxml: ", ex);
+                }
+            });
         }
     }
 

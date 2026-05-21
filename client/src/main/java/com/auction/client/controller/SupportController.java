@@ -24,6 +24,9 @@ public class SupportController implements Initializable {
     @FXML private Button btnSendSupport;
 
     @FXML private MenuButton userMenuButton;
+    @FXML private Button btnNotificationBell;
+    @FXML private Label notificationBadge;
+    @FXML private Button btnSettings;
     @FXML private TextField txtSearch;
     @FXML private Button btnDashboard;
 
@@ -34,6 +37,20 @@ public class SupportController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         if (User.getFullname() != null) {
             createUserOption("Chào, " + User.getFullname());
+        }
+
+        if (btnNotificationBell != null && notificationBadge != null) {
+            com.auction.client.util.NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
+        }
+
+        if (btnSettings != null) {
+            btnSettings.setOnAction(e -> {
+                try {
+                    com.auction.client.controller.SceneSwitcher.switchScene(e, "Settings.fxml", 1280, 800);
+                } catch (IOException ex) {
+                    logger.error("Lỗi chuyển sang trang Settings.fxml: ", ex);
+                }
+            });
         }
 
         if (User.getRole() != null && User.getRole().equalsIgnoreCase("seller")) {
