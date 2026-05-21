@@ -412,6 +412,7 @@ public class AdminDashboardController {
         dialog.setTitle("Từ chối phiên");
         dialog.setHeaderText(null);
         dialog.setContentText("Nhập lý do từ chối:");
+        AlertUtil.styleDialog(dialog);
 
         String reason = dialog.showAndWait().orElse("").trim();
 
