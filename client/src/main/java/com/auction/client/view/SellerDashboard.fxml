@@ -199,16 +199,15 @@
             <ScrollPane fitToWidth="true" styleClass="scroll-pane" vbarPolicy="AS_NEEDED" VBox.vgrow="ALWAYS" style="-fx-padding: 32px; -fx-background-color: transparent;">
                 <VBox spacing="24">
                     
-                    <VBox spacing="8">
-                        <Label text="Item Title" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
-                        <TextField fx:id="productNameField" promptText="What are you selling?" styleClass="custom-text-input"/>
-                        <HBox fx:id="errorTitle" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
-                            <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" iconColor="#e040a0"/>
-                            <Label text="Tên sản phẩm không được để trống" style="-fx-text-fill: #e040a0; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
-                        </HBox>
-                    </VBox>
-                    
                     <HBox spacing="16">
+                        <VBox spacing="8" HBox.hgrow="ALWAYS" prefWidth="250">
+                            <Label text="Item Title" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
+                            <TextField fx:id="productNameField" promptText="What are you selling?" styleClass="custom-text-input"/>
+                            <HBox fx:id="errorTitle" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
+                                <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" iconColor="#e040a0"/>
+                                <Label text="Tên sản phẩm không được để trống" style="-fx-text-fill: #e040a0; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                            </HBox>
+                        </VBox>
                         <VBox spacing="8" HBox.hgrow="ALWAYS" prefWidth="250">
                             <Label text="Category" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
                             <ComboBox fx:id="productTypeCombo" maxWidth="Infinity" styleClass="custom-combo-box" style="-fx-padding: 8px 16px;"/>
@@ -217,12 +216,23 @@
                                 <Label text="Vui lòng chọn loại sản phẩm" style="-fx-text-fill: #e040a0; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                             </HBox>
                         </VBox>
+                    </HBox>
+                    
+                    <HBox spacing="16">
                         <VBox spacing="8" HBox.hgrow="ALWAYS" prefWidth="250">
                             <Label text="Starting Price (VNĐ)" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
                             <TextField fx:id="startingPriceField" promptText="0" styleClass="custom-text-input" maxWidth="Infinity"/>
                             <HBox fx:id="errorPrice" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
                                 <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" iconColor="#e040a0"/>
                                 <Label fx:id="lblErrorPrice" text="Giá khởi điểm không hợp lệ" style="-fx-text-fill: #e040a0; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                            </HBox>
+                        </VBox>
+                        <VBox spacing="8" HBox.hgrow="ALWAYS" prefWidth="250">
+                            <Label text="Reserve Price (VNĐ)" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
+                            <TextField fx:id="reservePriceField" promptText="Any" styleClass="custom-text-input" maxWidth="Infinity"/>
+                            <HBox fx:id="errorReservePrice" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
+                                <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" iconColor="#e040a0"/>
+                                <Label fx:id="lblErrorReservePrice" text="Giá dự phòng không hợp lệ" style="-fx-text-fill: #e040a0; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                             </HBox>
                         </VBox>
                     </HBox>

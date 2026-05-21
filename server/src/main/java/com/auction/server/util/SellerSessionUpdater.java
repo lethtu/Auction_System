@@ -29,7 +29,7 @@ public final class SellerSessionUpdater {
     }
 
     private static BigDecimal resolveReservePrice(CreateAuctionRequest request) {
-        return request.getReservePrice() == null ? request.getStartingPrice() : request.getReservePrice();
+        return request.getReservePrice() == null ? BigDecimal.ZERO : request.getReservePrice();
     }
 
     public static void resetApprovalInfo(AuctionSession session) {
