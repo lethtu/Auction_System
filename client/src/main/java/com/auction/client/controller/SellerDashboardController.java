@@ -159,6 +159,7 @@ public class SellerDashboardController {
     private Label notificationBadge;
     @FXML
     private StackPane topBarAvatarPane;
+    @FXML
     private Button btnSettings;
 
     private HttpClient httpClient = HttpClientSingleton.getInstance().getHttpClient();

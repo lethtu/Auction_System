@@ -152,8 +152,6 @@ public class AuctionPageController {
     private Integer highestBidderId;
     private int bidCount;
     private int watchingCount;
-    private int currentUserId;
-    private BigDecimal sessionStepPrice;
     private BigDecimal myLastBidAmount = null;
 
     private Timeline timeline;

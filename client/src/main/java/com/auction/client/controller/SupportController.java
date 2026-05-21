@@ -37,8 +37,6 @@ public class SupportController implements Initializable {
 
     @FXML private SidebarController sidebarController;
     @FXML private Button btnHamburger;
-    @FXML private Button btnNotificationBell;
-    @FXML private Label notificationBadge;
     @FXML private StackPane topBarAvatarPane;
 
     @Override

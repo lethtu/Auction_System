@@ -25,7 +25,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class DepositController implements Initializable {

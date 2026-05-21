@@ -1,12 +1,10 @@
 package com.auction.client.controller;
 
 import javafx.scene.control.*;
-import javafx.scene.Cursor;
 import javafx.fxml.FXMLLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
-import com.auction.client.HttpClientSingleton;
 import javafx.application.Platform;
 import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
@@ -20,7 +18,6 @@ import com.auction.client.model.notification.NotificationType;
 import com.auction.client.model.notification.NotificationSeverity;
 import com.auction.client.service.NotificationCenterService;
 import javafx.geometry.Pos;
-import javafx.geometry.Bounds;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
@@ -62,7 +59,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.Comparator;
 import java.time.LocalDateTime;
 
 public class MainController implements Initializable {
@@ -111,7 +107,6 @@ public class MainController implements Initializable {
     @FXML private StackPane topBarAvatarPane;
     @FXML private VBox toastContainer;
 
-    private boolean isSidebarCollapsed = false;
     private boolean showingWatchlistOnly = false;
     private boolean showingMyBidsOnly = false;
     private boolean showingMySessionsOnly = false;
@@ -137,8 +132,6 @@ public class MainController implements Initializable {
     private ScheduledExecutorService pollingScheduler;
     private final List<Integer> currentRenderedIds = new ArrayList<>();
     private final Map<Integer, JSONObject> lastSnapshot = new ConcurrentHashMap<>();
-
-    private final Map<Button, String> sidebarButtonTextMap = new java.util.HashMap<>();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -770,11 +763,6 @@ public class MainController implements Initializable {
             default: return 5;
         }
     }
-
-    private LocalDateTime parseDT(String str) {
-        try { return str.isBlank() ? null : LocalDateTime.parse(str); } catch (Exception e) { return null; }
-    }
-
 
     private void showCategoryChooser() {
         ChoiceDialog<String> dialog = new ChoiceDialog<>(
@@ -1957,32 +1945,6 @@ public class MainController implements Initializable {
                 + "\nPhiên trong Watchlist: " + watchlist
                 + "\nPhiên của tôi: " + mySessions
                 + "\nSố dư hiện tại: ₫ " + formatPrice(User.getBalance());
-    }
-
-    private void showSettingsDialog() {
-        Alert dialog = new Alert(Alert.AlertType.CONFIRMATION);
-        dialog.setTitle("Cài đặt nhanh");
-        dialog.setHeaderText("Chọn thao tác");
-        dialog.setContentText("Bạn muốn làm gì với màn danh sách phiên?");
-
-        ButtonType resetFilters = new ButtonType("Đặt lại bộ lọc");
-        ButtonType reloadData = new ButtonType("Tải lại dữ liệu");
-        ButtonType close = new ButtonType("Đóng", ButtonBar.ButtonData.CANCEL_CLOSE);
-        dialog.getButtonTypes().setAll(resetFilters, reloadData, close);
-
-        Optional<ButtonType> result = dialog.showAndWait();
-        if (result.isEmpty() || result.get() == close) {
-            return;
-        }
-
-        if (result.get() == resetFilters) {
-            resetFiltersAndShowAll();
-            showInfo("Cài đặt", "Đã đặt lại bộ lọc về mặc định.");
-        } else if (result.get() == reloadData) {
-            forceRenderProducts = true;
-            loadProductsFromServer();
-            showInfo("Cài đặt", "Đã yêu cầu tải lại dữ liệu từ máy chủ.");
-        }
     }
 
     private void showCompactAuctionList() {
