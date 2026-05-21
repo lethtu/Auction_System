@@ -408,13 +408,9 @@ public class AdminDashboardController {
     }
 
     private String askRejectReason() {
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Từ chối phiên");
-        dialog.setHeaderText(null);
-        dialog.setContentText("Nhập lý do từ chối:");
-        AlertUtil.styleDialog(dialog);
-
-        String reason = dialog.showAndWait().orElse("").trim();
+        String reason = AlertUtil.promptText("Từ chối phiên", "Nhập lý do từ chối:")
+                .orElse("")
+                .trim();
 
         if (reason.isEmpty()) {
             AlertUtil.showWarning("Thiếu lý do", "Vui lòng nhập lý do từ chối.");
