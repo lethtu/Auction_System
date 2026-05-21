@@ -269,7 +269,7 @@ public class MainController implements Initializable {
         MenuItem logoutItem = new MenuItem("Đăng Xuất");
 
         accountItem.setOnAction(e -> showAccountScreen());
-        depositMoney.setOnAction(e -> handleDepositMoney());
+        depositMoney.setOnAction(e -> handleDepositMoney(e));
         logoutItem.setOnAction(e -> System.out.println("Thực hiện Đăng xuất..."));
 
         logoutItem.setOnAction(event -> {
@@ -1585,51 +1585,13 @@ public class MainController implements Initializable {
         return value == null || value.isBlank() ? fallback : value;
     }
 
-    private void handleDepositMoney() {
-        if (User.getId() == null) {
-            showWarning("Yêu cầu đăng nhập", "Vui lòng đăng nhập trước khi nạp tiền.");
-            return;
-        }
-
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Nạp tiền");
-        dialog.setHeaderText(null);
-        dialog.setContentText("Nhập số tiền muốn nạp:");
-        Optional<String> result = dialog.showAndWait();
-        if (result.isEmpty()) return;
-
-        BigDecimal amount;
+    private void handleDepositMoney(ActionEvent event) {
         try {
-            amount = new BigDecimal(result.get().trim());
-            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-                showWarning("Số tiền không hợp lệ", "Số tiền nạp phải lớn hơn 0.");
-                return;
-            }
-        } catch (Exception e) {
-            showWarning("Số tiền không hợp lệ", "Vui lòng nhập số hợp lệ, ví dụ: 100000.");
-            return;
+            SceneSwitcher.switchScene(event, "Deposit.fxml", 1280, 800);
+        } catch (IOException e) {
+            logger.error("Lỗi khi chuyển sang trang nạp tiền: ", e);
+            showError("Lỗi", "Không thể tải trang Nạp tiền.");
         }
-
-        new Thread(() -> {
-            try {
-                String url = Config.API_URL + "/api/bidder/deposit?bidderId=" + User.getId() + "&amount=" + amount.toPlainString();
-                HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(url))
-                        .POST(HttpRequest.BodyPublishers.noBody())
-                        .build();
-                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-                Platform.runLater(() -> {
-                    if (response.statusCode() == 200) {
-                        showInfo("Nạp tiền", "Nạp tiền thành công. " + response.body());
-                    } else {
-                        showError("Nạp tiền thất bại", "Server phản hồi mã lỗi: " + response.statusCode());
-                    }
-                });
-            } catch (Exception e) {
-                logger.error("Lỗi khi nạp tiền: {}", e.getMessage(), e);
-                Platform.runLater(() -> showError("Nạp tiền thất bại", "Không thể kết nối đến máy chủ."));
-            }
-        }, "deposit-money").start();
     }
 
     private void showInfo(String title, String message) {
