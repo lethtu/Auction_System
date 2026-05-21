@@ -18,4 +18,7 @@ public interface BidRepository extends JpaRepository<Bid, Integer> {
 
     @Query("SELECT DISTINCT b.session FROM Bid b WHERE b.bidder.id = :bidderId")
     List<AuctionSession> findSessionsByBidderId(@Param("bidderId") Integer bidderId);
+
+    @Query("SELECT MAX(b.amount) FROM Bid b WHERE b.session.id = :sessionId AND b.bidder.id = :bidderId")
+    java.math.BigDecimal findMaxBidAmountBySessionIdAndBidderId(@Param("sessionId") Integer sessionId, @Param("bidderId") java.lang.Integer bidderId);
 }

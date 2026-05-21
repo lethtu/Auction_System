@@ -42,6 +42,7 @@ public class SessionResponseDTO {
     private Boolean applyMinRate;
     private BigDecimal minRate;
     private java.util.List<com.auction.server.model.Bid> bids;
+    private BigDecimal userMaxBid;
 
     public SessionResponseDTO() {
     }
@@ -268,5 +269,13 @@ public class SessionResponseDTO {
 
     public void setRejectReason(String rejectReason) {
         this.rejectReason = rejectReason;
+    }
+
+    public BigDecimal getUserMaxBid() {
+        return userMaxBid;
+    }
+
+    public void setUserMaxBid(BigDecimal userMaxBid) {
+        this.userMaxBid = userMaxBid;
     }
 }

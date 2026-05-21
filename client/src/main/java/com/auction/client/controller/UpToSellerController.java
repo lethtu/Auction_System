@@ -67,6 +67,15 @@ public class UpToSellerController implements Initializable {
         MenuItem depositMoney = new MenuItem("Nạp tiền");
         MenuItem logoutItem = new MenuItem("Đăng Xuất");
 
+        accountItem.setOnAction(event -> {
+            try {
+                MainController.initialShowAccount = true;
+                SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
+            } catch (IOException e) {
+                logger.error("Lỗi khi chuyển sang trang tài khoản: ", e);
+            }
+        });
+
         depositMoney.setOnAction(event -> {
             try {
                 SceneSwitcher.switchScene(event, "Deposit.fxml", 1280, 800);
