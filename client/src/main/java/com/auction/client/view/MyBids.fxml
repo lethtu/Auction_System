@@ -7,12 +7,14 @@
 <BorderPane prefWidth="1280.0" prefHeight="800.0" stylesheets="@styles.css" style="-fx-background-color: #fef7ff; -fx-font-family: 'DM Sans';" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.MyBidsController">
 
     <top>
-        <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-background-color: rgba(254, 247, 255, 0.9); -fx-padding: 12px 30px; -fx-border-color: #ffe8e8; -fx-border-width: 0 0 2px 0; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.15), 20, 0, 0, 4);">
-            <Button fx:id="btnHamburger" onAction="#handleToggleSidebar" style="-fx-background-color: transparent; -fx-cursor: hand;">
-                <graphic>
-                    <Label text="&#xe5d2;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 22px; -fx-font-weight: normal; -fx-text-fill: #604868;" />
-                </graphic>
-            </Button>
+        <HBox alignment="CENTER_LEFT" spacing="0.0" style="-fx-background-color: rgba(254, 247, 255, 0.9); -fx-padding: 12px 30px 12px 0px; -fx-border-color: #ffe8e8; -fx-border-width: 0 0 2px 0; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.15), 20, 0, 0, 4);">
+            <StackPane prefWidth="70.0" minWidth="70.0" maxWidth="70.0">
+                <Button fx:id="btnHamburger" onAction="#handleToggleSidebar" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0;">
+                    <graphic>
+                        <Label text="&#xe5d2;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 22px; -fx-font-weight: normal; -fx-text-fill: #604868;" />
+                    </graphic>
+                </Button>
+            </StackPane>
             <Label text="BidPop" textFill="#e040a0" style="-fx-cursor: hand;" onMouseClicked="#handleGoToDashboard">
                 <font>
                     <Font name="System Bold" size="28.0" />
