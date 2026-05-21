@@ -65,6 +65,12 @@ public class SellerDashboardController {
     @FXML
     private TextArea descriptionArea;
     @FXML
+    private TextField reservePriceField;
+    @FXML
+    private HBox errorReservePrice;
+    @FXML
+    private Label lblErrorReservePrice;
+    @FXML
     private TextField startingPriceField;
     @FXML
     private VBox imageUploadArea;
@@ -153,6 +159,7 @@ public class SellerDashboardController {
     private Label notificationBadge;
     @FXML
     private StackPane topBarAvatarPane;
+    private Button btnSettings;
 
     private HttpClient httpClient = HttpClientSingleton.getInstance().getHttpClient();
     final List<SessionItem> allSessions = new ArrayList<>();
@@ -177,6 +184,15 @@ public class SellerDashboardController {
         }
         if (btnNotificationBell != null && notificationBadge != null) {
             com.auction.client.util.NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
+        }
+        if (btnSettings != null) {
+            btnSettings.setOnAction(e -> {
+                try {
+                    com.auction.client.controller.SceneSwitcher.switchScene(e, "Settings.fxml", 1280, 800);
+                } catch (IOException ex) {
+                    logger.error("Lỗi chuyển sang trang Settings.fxml: ", ex);
+                }
+            });
         }
 
         javafx.application.Platform.runLater(() -> updateTopBarAvatar(User.getAvatarUrl()));
@@ -595,6 +611,9 @@ public class SellerDashboardController {
         }
         descriptionArea.setText(item.description);
         startingPriceField.setText(item.startingPrice != null ? item.startingPrice.toString() : "0");
+        if (reservePriceField != null) {
+            reservePriceField.setText(item.reservePrice != null ? item.reservePrice.toString() : "");
+        }
 
         // Populate Date/Time fields
         populateSplitTimeFields(item.startTime, txtStartDay, txtStartMonth, txtStartYear, txtStartHour, txtStartMin);
@@ -892,6 +911,16 @@ public class SellerDashboardController {
             body.put("imagePath", imageUrl);
             body.put("description", description);
             body.put("startingPrice", startingPrice);
+            
+            BigDecimal reservePrice = BigDecimal.ZERO;
+            String reservePriceText = reservePriceField != null ? reservePriceField.getText() : "";
+            if (reservePriceText != null && !reservePriceText.trim().isEmpty()) {
+                try {
+                    reservePrice = new BigDecimal(reservePriceText.trim());
+                } catch(Exception e) {}
+            }
+            body.put("reservePrice", reservePrice);
+            
             body.put("sellerId", sellerId);
             body.put("stepPrice", 10000); // Default step price
             body.put("status", "DRAFT");
@@ -1140,6 +1169,16 @@ public class SellerDashboardController {
             body.put("imagePath", imageUrl);
             body.put("description", description);
             body.put("startingPrice", startingPrice);
+            
+            BigDecimal reservePrice = BigDecimal.ZERO;
+            String reservePriceText = reservePriceField != null ? reservePriceField.getText() : "";
+            if (reservePriceText != null && !reservePriceText.trim().isEmpty()) {
+                try {
+                    reservePrice = new BigDecimal(reservePriceText.trim());
+                } catch(Exception e) {}
+            }
+            body.put("reservePrice", reservePrice);
+            
             body.put("sellerId", sellerId);
             body.put("stepPrice", 10000); // Default step price
             body.put("status", "DRAFT");
@@ -1397,6 +1436,15 @@ public class SellerDashboardController {
             body.put("imagePath", imageUrl);
             body.put("description", description);
             body.put("startingPrice", startingPrice);
+            
+            BigDecimal reservePrice = BigDecimal.ZERO;
+            String reservePriceText = reservePriceField != null ? reservePriceField.getText() : "";
+            if (reservePriceText != null && !reservePriceText.trim().isEmpty()) {
+                try {
+                    reservePrice = new BigDecimal(reservePriceText.trim());
+                } catch(Exception e) {}
+            }
+            body.put("reservePrice", reservePrice);
             body.put("sellerId", sellerId);
             body.put("stepPrice", 10000); // Default step price to avoid database NOT NULL constraint
 
@@ -1693,6 +1741,15 @@ public class SellerDashboardController {
             body.put("imagePath", imageUrl);
             body.put("description", description);
             body.put("startingPrice", startingPrice);
+            
+            BigDecimal reservePrice = BigDecimal.ZERO;
+            String reservePriceText = reservePriceField != null ? reservePriceField.getText() : "";
+            if (reservePriceText != null && !reservePriceText.trim().isEmpty()) {
+                try {
+                    reservePrice = new BigDecimal(reservePriceText.trim());
+                } catch(Exception e) {}
+            }
+            body.put("reservePrice", reservePrice);
             body.put("sellerId", sellerId);
             body.put("stepPrice", 10000); // Default step price
 
@@ -1961,6 +2018,7 @@ public class SellerDashboardController {
         s.startingPrice = parseBigDecimal(item, "startingPrice");
         s.currentPrice = parseBigDecimal(item, "currentPrice");
         s.stepPrice = parseBigDecimal(item, "stepPrice");
+        s.reservePrice = parseBigDecimal(item, "reservePrice");
         s.startTime = item.optString("startTime", "");
         s.endTime = item.optString("endTime", "");
         s.status = item.optString("status", "UNKNOWN");
@@ -2032,6 +2090,7 @@ public class SellerDashboardController {
         productNameField.clear();
         imageUrlField.clear();
         descriptionArea.clear();
+        if (reservePriceField != null) reservePriceField.clear();
         startingPriceField.clear();
         if (lblImageFileName != null)
             lblImageFileName.setText("");
@@ -2209,7 +2268,7 @@ public class SellerDashboardController {
         });
 
         if (userMenuButton != null) {
-            userMenuButton.getItems().addAll(accountItem, depositMoney, logoutItem);
+            userMenuButton.getItems().addAll(accountItem, depositMoney, new SeparatorMenuItem(), logoutItem);
         }
     }
 
@@ -2497,6 +2556,7 @@ public class SellerDashboardController {
         BigDecimal startingPrice = BigDecimal.ZERO;
         BigDecimal currentPrice = BigDecimal.ZERO;
         BigDecimal stepPrice = BigDecimal.ZERO;
+        BigDecimal reservePrice = BigDecimal.ZERO;
         String startTime;
         String endTime;
         String status;

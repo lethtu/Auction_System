@@ -310,13 +310,14 @@
 }
 
 .strength-medium {
-    -fx-background-color: #eedcff;
+    -fx-background-color: #eab308;
 }
 
 .strength-strong {
-    -fx-background-color: #0096cc;
+    -fx-background-color: #22c55e;
 }
 
 .strength-empty {
     -fx-background-color: #f2e8f2;
 }
+

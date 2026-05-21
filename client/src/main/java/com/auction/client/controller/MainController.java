@@ -97,7 +97,6 @@ public class MainController implements Initializable {
     @FXML private TextField txtSearch;
     @FXML private ComboBox<String> cbCategory;
     @FXML private ComboBox<String> cbStatus;
-    @FXML private Button btnDashboard;
 
     @FXML private Button btnNotificationBell;
     @FXML private Label notificationBadge;
@@ -166,11 +165,7 @@ public class MainController implements Initializable {
             createUserOption("Chào, " + User.getFullname());
         }
 
-        // Nút "Kênh Người Bán" trên thanh trên cùng được ẩn để tránh trùng chức năng với sidebar Selling.
-        if (btnDashboard != null) {
-            btnDashboard.setVisible(false);
-            btnDashboard.setManaged(false);
-        }
+
 
         // Khởi tạo ComboBox
         cbCategory.getItems().addAll("Tất cả", "Electronics", "Art", "Vehicle");
@@ -308,7 +303,7 @@ public class MainController implements Initializable {
             }
         });
 
-        userMenuButton.getItems().addAll(accountItem, depositMoney, logoutItem);
+        userMenuButton.getItems().addAll(accountItem, depositMoney, new SeparatorMenuItem(), logoutItem);
 
     }
 
@@ -1341,7 +1336,11 @@ public class MainController implements Initializable {
 
     @FXML
     private void handleSettings(ActionEvent event) {
-        showSettingsDialog();
+        try {
+            SceneSwitcher.switchScene(event, "Settings.fxml", 1280, 800);
+        } catch (IOException e) {
+            logger.error("Lỗi chuyển sang trang Settings.fxml: ", e);
+        }
     }
 
     @FXML

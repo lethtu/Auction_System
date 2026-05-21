@@ -53,6 +53,9 @@ public class MyBidsController implements Initializable {
 
     @FXML private MenuButton userMenuButton;
     @FXML private StackPane topBarAvatarPane;
+    @FXML private Button btnNotificationBell;
+    @FXML private Label notificationBadge;
+    @FXML private Button btnSettings;
     @FXML private ScrollPane scrollPane;
     @FXML private FlowPane productContainer;
     @FXML private TextField txtSearch;
@@ -88,6 +91,19 @@ public class MyBidsController implements Initializable {
         }
 
         Platform.runLater(() -> updateTopBarAvatar(User.getAvatarUrl()));
+        if (btnNotificationBell != null && notificationBadge != null) {
+            com.auction.client.util.NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
+        }
+
+        if (btnSettings != null) {
+            btnSettings.setOnAction(e -> {
+                try {
+                    com.auction.client.controller.SceneSwitcher.switchScene(e, "Settings.fxml", 1280, 800);
+                } catch (IOException ex) {
+                    logger.error("Lỗi chuyển sang trang Settings.fxml: ", ex);
+                }
+            });
+        }
 
         // Search events
         txtSearch.textProperty().addListener((observable, oldValue, newValue) -> filterAndRenderProducts());
@@ -190,7 +206,7 @@ public class MyBidsController implements Initializable {
             }
         });
 
-        userMenuButton.getItems().addAll(accountItem, depositMoney, logoutItem);
+        userMenuButton.getItems().addAll(accountItem, depositMoney, new SeparatorMenuItem(), logoutItem);
     }
 
     private void startPolling() {

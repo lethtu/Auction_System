@@ -7,21 +7,19 @@
 <BorderPane prefWidth="1280.0" prefHeight="800.0" stylesheets="@styles.css" style="-fx-background-color: #fef7ff; -fx-font-family: 'DM Sans';" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.SupportController">
 
     <top>
-        <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-background-color: rgba(254, 247, 255, 0.9); -fx-padding: 12px 30px; -fx-border-color: #ffe8e8; -fx-border-width: 0 0 2px 0; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.15), 20, 0, 0, 4);">
-            <Button fx:id="btnHamburger" onAction="#handleToggleSidebar" style="-fx-background-color: transparent; -fx-cursor: hand;">
-                <graphic>
-                    <Label text="&#xe5d2;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" />
-                </graphic>
-            </Button>
+        <HBox alignment="CENTER_LEFT" spacing="0.0" style="-fx-background-color: rgba(254, 247, 255, 0.9); -fx-padding: 12px 30px 12px 0px; -fx-border-color: #ffe8e8; -fx-border-width: 0 0 2px 0; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.15), 20, 0, 0, 4);">
+            <StackPane prefWidth="70.0" minWidth="70.0" maxWidth="70.0">
+                <Button fx:id="btnHamburger" onAction="#handleToggleSidebar" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0;">
+                    <graphic>
+                        <Label text="&#xe5d2;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" />
+                    </graphic>
+                </Button>
+            </StackPane>
             <Label text="HY Auction" textFill="#e040a0" onMouseClicked="#handleGoToDashboard" style="-fx-cursor: hand; -fx-font-weight: bold;">
                 <font>
                     <Font name="System Bold" size="28.0" />
                 </font>
             </Label>
-            
-            <Region HBox.hgrow="ALWAYS" />
-            
-
             
             <Region HBox.hgrow="ALWAYS" />
             
@@ -39,7 +37,7 @@
                         <Label text="&#xe8b8;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" />
                     </graphic>
                 </Button>
-                <MenuButton fx:id="userMenuButton" id="profile-menu" style="-fx-background-color: transparent; -fx-cursor: hand;">
+                <MenuButton fx:id="userMenuButton" id="profile-menu" minWidth="58.0" prefWidth="58.0" maxWidth="58.0" minHeight="44.0" prefHeight="44.0" maxHeight="44.0" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0; -fx-alignment: center; -fx-background-insets: 0;">
                     <graphic>
                         <StackPane fx:id="topBarAvatarPane" minWidth="36" maxWidth="36" minHeight="36" maxHeight="36" prefWidth="36" prefHeight="36" style="-fx-background-color: #1a1a3a; -fx-background-radius: 18px;">
                             <Label text="&#xe7fd;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: white;" />

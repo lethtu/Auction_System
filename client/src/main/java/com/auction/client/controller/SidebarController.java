@@ -32,10 +32,11 @@ public class SidebarController {
     @FXML private Button btnSidebarDashboard;
     @FXML private Button btnMyBids;
     @FXML private Button btnSelling;
-    @FXML private Button btnCategories;
     @FXML private Button btnSidebarWatchlist;
     @FXML private Button btnSupport;
+    @FXML private Button btnSettings;
     @FXML private Button btnStartSelling;
+    private Button currentActiveButton;
 
     public static boolean isSidebarCollapsed = false;
     private final Map<Button, String> sidebarButtonTextMap = new HashMap<>();
@@ -99,7 +100,12 @@ public class SidebarController {
             }
         }
 
-        if (isSidebarCollapsed) {
+        boolean persistedCollapse = java.util.prefs.Preferences.userNodeForPackage(com.auction.client.util.SettingsDialog.class)
+                .getBoolean(com.auction.client.util.SettingsDialog.KEY_AUTO_COLLAPSE, false);
+        if (persistedCollapse) {
+            isSidebarCollapsed = false;
+            toggleSidebar();
+        } else if (isSidebarCollapsed) {
             isSidebarCollapsed = false;
             toggleSidebar();
         }
@@ -160,17 +166,25 @@ public class SidebarController {
 
                     btn.setTooltip(null);
                     btn.setText("");
-                    btn.setPrefWidth(50);
-                    btn.setMinWidth(50);
+                    btn.setPrefWidth(44);
+                    btn.setMinWidth(44);
+                    btn.setMaxWidth(44);
+                    btn.setPrefHeight(44);
+                    btn.setMinHeight(44);
+                    btn.setMaxHeight(44);
                     btn.setAlignment(Pos.CENTER);
                     if (btn.getGraphic() != null) {
                         btn.getGraphic().setTranslateX(0);
+                    }
+                    if (btn == btnStartSelling) {
+                        btn.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 22px; -fx-padding: 0px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.3), 16, 0, 0, 4);");
                     }
                 } else if (node instanceof Label) {
                     node.setVisible(false);
                     node.setManaged(false);
                 }
             }
+            setActiveButton(currentActiveButton);
         } else {
             // Expand
             sidebarContainer.setMinWidth(200);
@@ -189,12 +203,20 @@ public class SidebarController {
                     btn.setText(originalText);
                     btn.setPrefWidth(165);
                     btn.setMinWidth(165);
+                    btn.setMaxWidth(165);
+                    btn.setPrefHeight(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
+                    btn.setMinHeight(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
+                    btn.setMaxHeight(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
                     btn.setAlignment(Pos.CENTER_LEFT);
+                    if (btn == btnStartSelling) {
+                        btn.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 12px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.3), 16, 0, 0, 4);");
+                    }
                 } else if (node instanceof Label) {
                     node.setVisible(true);
                     node.setManaged(true);
                 }
             }
+            setActiveButton(currentActiveButton);
         }
     }
 
@@ -218,13 +240,18 @@ public class SidebarController {
         setActiveButton(btnSupport);
     }
 
+    public void setActiveSettings() {
+        setActiveButton(btnSettings);
+    }
+
     private void setActiveButton(Button activeButton) {
+        this.currentActiveButton = activeButton;
         applySidebarButtonStyle(btnSidebarDashboard, btnSidebarDashboard == activeButton);
         applySidebarButtonStyle(btnMyBids, btnMyBids == activeButton);
         applySidebarButtonStyle(btnSelling, btnSelling == activeButton);
-        applySidebarButtonStyle(btnCategories, btnCategories == activeButton);
         applySidebarButtonStyle(btnSidebarWatchlist, btnSidebarWatchlist == activeButton);
         applySidebarButtonStyle(btnSupport, btnSupport == activeButton);
+        applySidebarButtonStyle(btnSettings, btnSettings == activeButton);
     }
 
     private void applySidebarButtonStyle(Button button, boolean active) {
@@ -232,11 +259,14 @@ public class SidebarController {
 
         String textColor = active ? "#e040a0" : "#604868";
         String backgroundColor = active ? "rgba(224, 64, 160, 0.15)" : "transparent";
+        String padding = isSidebarCollapsed ? "0px" : "7px 16px";
+        String radius = isSidebarCollapsed ? "22px" : "20px";
+
         button.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: "
                 + backgroundColor
                 + "; -fx-text-fill: "
                 + textColor
-                + "; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
+                + "; -fx-font-weight: bold; -fx-background-radius: " + radius + "; -fx-padding: " + padding + "; -fx-cursor: hand;");
 
         if (button.getGraphic() instanceof Label) {
             ((Label) button.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: "
@@ -333,22 +363,6 @@ public class SidebarController {
         }
     }
 
-    @FXML
-    public void handleCategories(ActionEvent event) {
-        autoCollapse();
-        setActiveButton(btnCategories);
-        if (listener != null) {
-            listener.onShowCategories(event);
-        } else {
-            try {
-                if (onBeforeNavigate != null) onBeforeNavigate.run();
-                SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
-            } catch (IOException e) {
-                logger.error("Lỗi chuyển cảnh về MainTemplate để chọn danh mục: ", e);
-            }
-        }
-    }
-
         @FXML
     public void handleSupport(ActionEvent event) {
         autoCollapse();
@@ -368,6 +382,28 @@ public class SidebarController {
         } catch (IOException e) {
             logger.error("Lỗi chuyển cảnh sang Support.fxml: ", e);
             showInfo("Support", "Không thể mở màn hỗ trợ. Vui lòng thử lại.");
+        }
+    }
+
+    @FXML
+    public void handleSettings(ActionEvent event) {
+        autoCollapse();
+        setActiveSettings();
+        try {
+            Stage stage = resolveStage(event);
+            boolean wasMaximized = stage != null && stage.isMaximized();
+            int currentWidth = stage == null ? 1280 : Math.max(1280, (int) Math.round(stage.getWidth()));
+            int currentHeight = stage == null ? 800 : Math.max(800, (int) Math.round(stage.getHeight()));
+
+            if (onBeforeNavigate != null) onBeforeNavigate.run();
+            SceneSwitcher.switchScene(event, "Settings.fxml", currentWidth, currentHeight);
+
+            if (stage != null && wasMaximized) {
+                Platform.runLater(() -> stage.setMaximized(true));
+            }
+        } catch (IOException e) {
+            logger.error("Lỗi chuyển cảnh sang Settings.fxml: ", e);
+            showInfo("Settings", "Không thể mở màn cài đặt. Vui lòng thử lại.");
         }
     }
 
