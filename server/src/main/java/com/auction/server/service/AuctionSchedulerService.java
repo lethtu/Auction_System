@@ -29,15 +29,15 @@ public class AuctionSchedulerService {
     public void scanAndUpdateAuctionStatus() {
         LocalDateTime now = LocalDateTime.now();
 
-        // Bước 1: Mở phiên (COMING -> ACTIVE)
-        List<AuctionSession> comingSessions = auctionSessionRepository
-                .findByStatusAndStartTimeLessThanEqual(AuctionStatus.COMING, now);
+        // Bước 1: Mở phiên (PENDING -> ACTIVE)
+        List<AuctionSession> pendingSessions = auctionSessionRepository
+                .findByStatusAndStartTimeLessThanEqual(AuctionStatus.PENDING, now);
 
-        if (!comingSessions.isEmpty()) {
-            for (AuctionSession session : comingSessions) {
+        if (!pendingSessions.isEmpty()) {
+            for (AuctionSession session : pendingSessions) {
                 session.setStatus(AuctionStatus.ACTIVE);
             }
-            auctionSessionRepository.saveAll(comingSessions);
+            auctionSessionRepository.saveAll(pendingSessions);
         }
 
         // Bước 2: Đóng phiên (ACTIVE -> ENDED hoặc CANCELED nếu không đạt min rate)
@@ -77,9 +77,9 @@ public class AuctionSchedulerService {
         }
 
         // Logging (Chỉ in ra khi có sự thay đổi để tránh rác console)
-        if (!comingSessions.isEmpty() || !activeSessions.isEmpty()) {
+        if (!pendingSessions.isEmpty() || !activeSessions.isEmpty()) {
             logger.info("[SCHEDULER] Lúc " + now +
-                    " | Đã mở " + comingSessions.size() + " phiên COMING | Đã đóng " + activeSessions.size() + " phiên.");
+                    " | Đã mở " + pendingSessions.size() + " phiên | Đã đóng " + activeSessions.size() + " phiên.");
         }
     }
 }

@@ -56,4 +56,10 @@ public class SellerSessionGuard {
             throw new IllegalArgumentException(errorMessage);
         }
     }
+
+    public void validatePendingSession(AuctionSession session) {
+        if (session.getStatus() != AuctionStatus.PENDING) {
+            throw new IllegalArgumentException("Chỉ được thao tác với phiên đang chờ duyệt");
+        }
+    }
 }

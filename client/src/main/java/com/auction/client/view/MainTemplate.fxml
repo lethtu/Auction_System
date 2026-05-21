@@ -14,7 +14,11 @@
                     <Label text="&#xe5d2;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" />
                 </graphic>
             </Button>
-            <Button onAction="#handleResetDashboard" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0; -fx-border-color: transparent; -fx-font-family: 'System'; -fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #e040a0;" text="HY Auction" />
+            <Label text="HY Auction" textFill="#e040a0" style="-fx-cursor: hand;">
+                <font>
+                    <Font name="System Bold" size="28.0" />
+                </font>
+            </Label>
             
             <Region HBox.hgrow="ALWAYS" />
             
@@ -46,7 +50,7 @@
                         </StackPane>
                     </graphic>
                 </MenuButton>
-                
+                <Button fx:id="btnDashboard" onAction="#handleGoToDashboard" text="Kênh Người Bán" visible="false" managed="false" />
             </HBox>
         </HBox>
     </top>

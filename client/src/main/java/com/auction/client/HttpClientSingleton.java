@@ -4,7 +4,7 @@ import java.net.http.HttpClient;
 
 public class HttpClientSingleton {
     private static volatile HttpClientSingleton instance;
-    private HttpClient httpClient;
+    private final HttpClient httpClient;
 
     private HttpClientSingleton() {
         httpClient = HttpClient.newHttpClient();
@@ -19,14 +19,6 @@ public class HttpClientSingleton {
             }
         }
         return instance;
-    }
-
-    public static void setInstance(HttpClientSingleton mockInstance) {
-        instance = mockInstance;
-    }
-
-    public void setHttpClient(HttpClient client) {
-        this.httpClient = client;
     }
 
     public HttpClient getHttpClient() {

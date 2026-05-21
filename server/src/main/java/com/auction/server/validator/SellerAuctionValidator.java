@@ -22,27 +22,10 @@ public final class SellerAuctionValidator {
         validateRequiredText(request.getName(), "Tên sản phẩm không được để trống");
         validateItemType(request.getType());
         validateDescription(request.getDescription());
-
-        boolean isDraft = "DRAFT".equalsIgnoreCase(request.getStatus());
-        if (isDraft) {
-            if (request.getStartingPrice() == null) {
-                request.setStartingPrice(BigDecimal.ZERO);
-            }
-            if (request.getStartingPrice().compareTo(BigDecimal.ZERO) < 0) {
-                throw new InvalidItemException("Giá khởi điểm không được âm");
-            }
-            if (request.getStepPrice() != null && request.getStepPrice().compareTo(BigDecimal.ZERO) <= 0) {
-                throw new InvalidItemException("Bước giá phải lớn hơn 0");
-            }
-            if (request.getReservePrice() != null) {
-                validateReservePrice(request.getReservePrice(), request.getStartingPrice());
-            }
-        } else {
-            validatePositivePrice(request.getStartingPrice(), "Giá khởi điểm phải lớn hơn 0");
-            validatePositivePrice(request.getStepPrice(), "Bước giá phải lớn hơn 0");
-            validateReservePrice(request.getReservePrice(), request.getStartingPrice());
-            validateAuctionTime(request.getStartTime(), request.getEndTime());
-        }
+        validatePositivePrice(request.getStartingPrice(), "Giá khởi điểm phải lớn hơn 0");
+        validatePositivePrice(request.getStepPrice(), "Bước giá phải lớn hơn 0");
+        validateReservePrice(request.getReservePrice(), request.getStartingPrice());
+        validateAuctionTime(request.getStartTime(), request.getEndTime());
     }
 
     private static void validateRequiredText(String value, String message) {
@@ -87,6 +70,10 @@ public final class SellerAuctionValidator {
 
     private static void validateAuctionTime(LocalDateTime startTime, LocalDateTime endTime) {
         LocalDateTime now = LocalDateTime.now();
+
+        if (startTime != null && startTime.isBefore(now)) {
+            throw new InvalidItemException("Thời gian bắt đầu không được nằm trong quá khứ");
+        }
 
         if (endTime == null || !endTime.isAfter(now)) {
             throw new InvalidItemException("Thời gian kết thúc phải ở tương lai");

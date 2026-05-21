@@ -33,13 +33,82 @@ class AdminServiceTest {
             userRepository.proxy()
     );
 
+    @Test
+    void getPendingSessions_returnsPendingSessionDTOs() {
+        Seller seller = seller(2, "seller01");
+        AuctionSession session = session(10, seller, AuctionStatus.PENDING, "Laptop");
 
+        sessionRepository.allSessions = List.of(session);
+
+        List<SessionResponseDTO> result = adminService.getPendingSessions();
+
+        assertEquals(1, result.size());
+        assertEquals(10, result.get(0).getId());
+        assertEquals("Laptop", result.get(0).getProductName());
+        assertEquals("PENDING", result.get(0).getStatus());
+        assertEquals(new BigDecimal("1500"), result.get(0).getReservePrice());
+        assertEquals(9, result.get(0).getHighestBidderId());
+        assertEquals(0, result.get(0).getBidCount());
+    }
+
+    @Test
+    void getAllSessions_withoutStatus_returnsAllSessions() {
+        Seller seller = seller(2, "seller01");
+
+        sessionRepository.allSessions = List.of(
+                session(10, seller, AuctionStatus.PENDING, "Laptop"),
+                session(11, seller, AuctionStatus.ACTIVE, "Phone")
+        );
+
+        List<SessionResponseDTO> result = adminService.getAllSessions(null);
+
+        assertEquals(2, result.size());
+        assertTrue(sessionRepository.findAllCalled);
+    }
+
+    @Test
+    void getAllSessions_withValidStatus_returnsFilteredSessions() {
+        Seller seller = seller(2, "seller01");
+        AuctionSession activeSession = session(11, seller, AuctionStatus.ACTIVE, "Phone");
+
+        sessionRepository.allSessions = List.of(
+                session(10, seller, AuctionStatus.PENDING, "Laptop"),
+                activeSession
+        );
+
+        List<SessionResponseDTO> result = adminService.getAllSessions("active");
+
+        assertEquals(1, result.size());
+        assertEquals(11, result.get(0).getId());
+        assertEquals("ACTIVE", result.get(0).getStatus());
+    }
 
     @Test
     void getAllSessions_invalidStatus_returnsEmptyList() {
         List<SessionResponseDTO> result = adminService.getAllSessions("abc");
 
         assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void approveSession_pendingSession_setsActiveAndApprovalInfo() {
+        Admin admin = admin(1, "admin01");
+        Seller seller = seller(2, "seller01");
+        AuctionSession session = session(10, seller, AuctionStatus.PENDING, "Laptop");
+
+        userRepository.usersById.put(1, admin);
+        sessionRepository.sessionsById.put(10, session);
+
+        adminService.approveSession(10, 1);
+
+        assertEquals(AuctionStatus.ACTIVE, session.getStatus());
+        assertNotNull(session.getStartTime());
+        assertNotNull(session.getApprovedAt());
+        assertEquals(1, session.getApprovedByAdminId());
+        assertNull(session.getRejectedAt());
+        assertNull(session.getRejectedByAdminId());
+        assertNull(session.getRejectReason());
+        assertSame(session, sessionRepository.savedSession);
     }
 
     @Test
@@ -68,6 +137,27 @@ class AdminServiceTest {
         );
 
         assertEquals("Vui lòng nhập lý do từ chối", ex.getMessage());
+    }
+
+    @Test
+    void rejectSession_pendingSession_setsRejectedInfo() {
+        Admin admin = admin(1, "admin01");
+        Seller seller = seller(2, "seller01");
+        AuctionSession session = session(10, seller, AuctionStatus.PENDING, "Laptop");
+
+        userRepository.usersById.put(1, admin);
+        sessionRepository.sessionsById.put(10, session);
+
+        adminService.rejectSession(10, 1, "Sai thông tin");
+
+        assertEquals(AuctionStatus.REJECTED, session.getStatus());
+        assertNotNull(session.getRejectedAt());
+        assertEquals(1, session.getRejectedByAdminId());
+        assertEquals("Sai thông tin", session.getRejectReason());
+        assertNull(session.getApprovedAt());
+        assertNull(session.getApprovedByAdminId());
+        assertNull(session.getStartTime());
+        assertSame(session, sessionRepository.savedSession);
     }
 
     @Test

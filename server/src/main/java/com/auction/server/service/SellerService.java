@@ -59,24 +59,7 @@ public class SellerService {
         session.setApplyMinRate(request.getApplyMinRate() != null ? request.getApplyMinRate() : false);
         session.setMinRate(request.getMinRate() != null ? request.getMinRate() : BigDecimal.ZERO);
         SellerSessionUpdater.resetApprovalInfo(session);
-
-        session.setApprovedAt(LocalDateTime.now());
-        session.setRejectedAt(null);
-        session.setRejectReason(null);
-        session.setApprovedByAdminId(null);
-        session.setRejectedByAdminId(null);
-
-        if ("DRAFT".equalsIgnoreCase(request.getStatus())) {
-            session.setStatus(AuctionStatus.DRAFT);
-        } else {
-            LocalDateTime now = LocalDateTime.now();
-            LocalDateTime startTime = session.getStartTime();
-            if (startTime != null && startTime.isAfter(now)) {
-                session.setStatus(AuctionStatus.COMING);
-            } else {
-                session.setStatus(AuctionStatus.ACTIVE);
-            }
-        }
+        session.setStatus(AuctionStatus.PENDING);
 
         AuctionSession savedSession = auctionSessionRepository.save(session);
         return SessionResponseMapper.toDTO(savedSession);
@@ -101,16 +84,13 @@ public class SellerService {
     }
 
     @Transactional
-    public SessionResponseDTO updateSession(Integer sessionId, Integer sellerId, CreateAuctionRequest request) {
+    public SessionResponseDTO updatePendingSession(Integer sessionId, Integer sellerId, CreateAuctionRequest request) {
         SellerAuctionValidator.validate(request);
         sellerSessionGuard.getSellerById(sellerId);
 
         AuctionSession session = sellerSessionGuard.getSessionById(sessionId);
         sellerSessionGuard.validateSessionOwner(session, sellerId, "Bạn không có quyền sửa phiên này");
-
-        if (session.getStatus() != AuctionStatus.ACTIVE && session.getStatus() != AuctionStatus.COMING && session.getStatus() != AuctionStatus.DRAFT) {
-            throw new IllegalArgumentException("Chỉ được sửa phiên chưa kết thúc hoặc bản nháp");
-        }
+        sellerSessionGuard.validatePendingSession(session);
 
         Item item = session.getItem();
         SellerSessionUpdater.updateItemFromRequest(item, request);
@@ -119,18 +99,6 @@ public class SellerService {
         SellerSessionUpdater.updateSessionFromRequest(session, request);
         session.setApplyMinRate(request.getApplyMinRate() != null ? request.getApplyMinRate() : false);
         session.setMinRate(request.getMinRate() != null ? request.getMinRate() : BigDecimal.ZERO);
-
-        if ("DRAFT".equalsIgnoreCase(request.getStatus())) {
-            session.setStatus(AuctionStatus.DRAFT);
-        } else {
-            LocalDateTime now = LocalDateTime.now();
-            LocalDateTime startTime = session.getStartTime();
-            if (startTime != null && startTime.isAfter(now)) {
-                session.setStatus(AuctionStatus.COMING);
-            } else {
-                session.setStatus(AuctionStatus.ACTIVE);
-            }
-        }
 
         AuctionSession savedSession = auctionSessionRepository.save(session);
         return SessionResponseMapper.toDTO(savedSession);
@@ -142,9 +110,7 @@ public class SellerService {
 
         AuctionSession session = sellerSessionGuard.getSessionById(sessionId);
         sellerSessionGuard.validateSessionOwner(session, sellerId, "Bạn không có quyền hủy phiên này");
-        if (session.getStatus() != AuctionStatus.ACTIVE && session.getStatus() != AuctionStatus.COMING && session.getStatus() != AuctionStatus.DRAFT) {
-            throw new IllegalArgumentException("Chỉ được hủy phiên đang hoạt động, chuẩn bị diễn ra hoặc bản nháp");
-        }
+        sellerSessionGuard.validatePendingSession(session);
 
         session.setStatus(AuctionStatus.CANCELED);
         auctionSessionRepository.save(session);

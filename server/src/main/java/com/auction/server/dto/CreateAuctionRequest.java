@@ -18,7 +18,6 @@ public class CreateAuctionRequest {
 
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    private String status;
     private Boolean applyMinRate;
     private BigDecimal minRate;
 
@@ -48,9 +47,6 @@ public class CreateAuctionRequest {
         this.startTime = startTime;
         this.endTime = endTime;
     }
-
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
 
     public String getName() {
         return name;

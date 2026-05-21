@@ -86,6 +86,28 @@ class SellerControllerTest {
     }
 
     @Test
+    void updatePendingSession_success_setsSellerIdAndReturnsSession() {
+        FakeSellerService service = new FakeSellerService();
+        SellerController controller = new SellerController(service);
+
+        CreateAuctionRequest request = new CreateAuctionRequest();
+
+        SessionResponseDTO dto = new SessionResponseDTO();
+        dto.setId(7);
+        service.updateResult = dto;
+
+        ApiResponse<SessionResponseDTO> response = controller.updatePendingSession(7, 10, request);
+
+        assertEquals(200, response.getStatus());
+        assertEquals("Đã cập nhật phiên chờ duyệt thành công.", response.getMessage());
+        assertSame(dto, response.getData());
+        assertEquals(10, request.getSellerId());
+        assertEquals(7, service.lastSessionId);
+        assertEquals(10, service.lastSellerId);
+        assertSame(request, service.updatedRequest);
+    }
+
+    @Test
     void cancelAuction_success_returnsSuccessResponse() {
         FakeSellerService service = new FakeSellerService();
         SellerController controller = new SellerController(service);
@@ -171,6 +193,18 @@ class SellerControllerTest {
             this.lastSessionId = sessionId;
             this.lastSellerId = sellerId;
             return detailResult;
+        }
+
+        @Override
+        public SessionResponseDTO updatePendingSession(
+                Integer sessionId,
+                Integer sellerId,
+                CreateAuctionRequest request
+        ) {
+            this.lastSessionId = sessionId;
+            this.lastSellerId = sellerId;
+            this.updatedRequest = request;
+            return updateResult;
         }
 
         @Override
