@@ -21,32 +21,31 @@
             
             <Region HBox.hgrow="ALWAYS" />
             
-            <HBox alignment="CENTER_LEFT" prefWidth="500.0" prefHeight="40.0" style="-fx-background-color: #ffffff; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 999; -fx-background-radius: 999; -fx-padding: 0 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.05), 10, 0, 0, 2);">
-                <Label text="&#xe8b6;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #e040a0;" translateY="3.0" />
-                <TextField fx:id="txtSearch" promptText="Search items, categories, or auctions..." HBox.hgrow="ALWAYS" style="-fx-background-color: transparent; -fx-padding: 0 0 0 8px; -fx-prompt-text-fill: #907898; -fx-text-fill: #2e1a28; -fx-font-size: 14px;" />
-            </HBox>
+
             
             <Region HBox.hgrow="ALWAYS" />
             
             <HBox spacing="15.0" alignment="CENTER_RIGHT">
-                <Button style="-fx-background-color: transparent; -fx-cursor: hand;">
-                    <graphic>
-                        <Label text="&#xe7f4;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" />
-                    </graphic>
-                </Button>
-                <Button style="-fx-background-color: transparent; -fx-cursor: hand;">
+                <StackPane alignment="TOP_RIGHT">
+                    <Button fx:id="btnNotificationBell" style="-fx-background-color: transparent; -fx-cursor: hand;">
+                        <graphic>
+                            <Label text="&#xe7f4;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" />
+                        </graphic>
+                    </Button>
+                    <Label fx:id="notificationBadge" text="0" visible="false" managed="false" style="-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 1 5; -fx-background-radius: 10; -fx-translate-x: -5; -fx-translate-y: 5;" />
+                </StackPane>
+                <Button onAction="#handleSettings" style="-fx-background-color: transparent; -fx-cursor: hand;">
                     <graphic>
                         <Label text="&#xe8b8;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" />
                     </graphic>
                 </Button>
                 <MenuButton fx:id="userMenuButton" id="profile-menu" style="-fx-background-color: transparent; -fx-cursor: hand;">
                     <graphic>
-                        <StackPane minWidth="36" maxWidth="36" minHeight="36" maxHeight="36" prefWidth="36" prefHeight="36" style="-fx-background-color: #1a1a3a; -fx-background-radius: 18px;">
+                        <StackPane fx:id="topBarAvatarPane" minWidth="36" maxWidth="36" minHeight="36" maxHeight="36" prefWidth="36" prefHeight="36" style="-fx-background-color: #1a1a3a; -fx-background-radius: 18px;">
                             <Label text="&#xe7fd;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: white;" />
                         </StackPane>
                     </graphic>
                 </MenuButton>
-                <Button fx:id="btnDashboard" onAction="#handleGoToDashboard" text="Kênh Người Bán" visible="false" managed="false" />
             </HBox>
         </HBox>
     </top>

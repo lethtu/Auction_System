@@ -3,7 +3,7 @@ package com.auction.client.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -21,7 +21,7 @@ public class SceneSwitcher {
     public static final double MIN_WIDTH = 900;
     public static final double MIN_HEIGHT = 600;
 
-    public static FXMLLoader Switch(ActionEvent event, String fxmlFile, Integer targetWidth, Integer targetHeight) throws IOException {
+    public static FXMLLoader Switch(Event event, String fxmlFile, Integer targetWidth, Integer targetHeight) throws IOException {
         String path = "/com/auction/client/view/" + fxmlFile;
         URL xmlResource = SceneSwitcher.class.getResource(path);
 
@@ -87,11 +87,11 @@ public class SceneSwitcher {
         return loader;
     }
 
-    public static FXMLLoader switchScene(ActionEvent event, String fxmlFile) throws IOException {
+    public static FXMLLoader switchScene(Event event, String fxmlFile) throws IOException {
         return Switch(event, fxmlFile, null, null);
     }
 
-    public static FXMLLoader switchScene(ActionEvent event, String fxmlFile, Integer width, Integer height) throws IOException {
+    public static FXMLLoader switchScene(Event event, String fxmlFile, Integer width, Integer height) throws IOException {
         return Switch(event, fxmlFile, width, height);
     }
 }

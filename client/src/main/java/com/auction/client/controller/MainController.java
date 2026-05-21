@@ -9,6 +9,8 @@ import com.auction.client.Config;
 import com.auction.client.HttpClientSingleton;
 import javafx.application.Platform;
 import javafx.animation.PauseTransition;
+import javafx.animation.Timeline;
+import javafx.animation.KeyFrame;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -60,6 +62,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.Comparator;
+import java.time.LocalDateTime;
 
 public class MainController implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(MainController.class);
@@ -112,9 +116,11 @@ public class MainController implements Initializable {
     private boolean showingWatchlistOnly = false;
     private boolean showingMyBidsOnly = false;
     private boolean showingMySessionsOnly = false;
+    private boolean forceRenderProducts = true;
+    
+    private Timeline countdownTimeline;
     private boolean showingAccountScreen = false;
     private boolean showingCompactListScreen = false;
-    private boolean forceRenderProducts = false;
     public static boolean initialShowWatchlist = false;
     public static boolean initialShowAccount = false;
     public static String initialHomeFilterMode = "ALL";
@@ -170,8 +176,8 @@ public class MainController implements Initializable {
         cbCategory.getItems().addAll("Tất cả", "Electronics", "Art", "Vehicle");
         cbCategory.setValue("Tất cả");
 
-        // Khởi tạo các trạng thái hiển thị trên sàn chính, bao gồm cả COMING SOON
-        cbStatus.getItems().addAll("Tất cả", "ACTIVE", "COMING SOON", "ENDED");
+        // Khởi tạo các trạng thái hiển thị trên sàn chính
+        cbStatus.getItems().addAll("Tất cả", "Đang diễn ra", "Sắp bắt đầu", "Đã kết thúc");
         cbStatus.setValue("Tất cả");
 
         // Lắng nghe sự kiện để lọc Real-time
@@ -239,13 +245,20 @@ public class MainController implements Initializable {
         // Load avatar into top bar if available from login session
         Platform.runLater(() -> updateTopBarAvatar(User.getAvatarUrl()));
 
-//         if (System.getProperty("surefire.test.class.path") == null) {
-//             startPolling();
-//         }
+        Platform.runLater(() -> updateTopBarAvatar(User.getAvatarUrl()));
+
+        if (System.getProperty("surefire.test.class.path") == null) {
+            startPolling();
+        }
     }
 
     private void updateGridLayout() {
         if (scrollPane == null || productContainer == null) return;
+
+        if (showingAccountScreen || showingCompactListScreen) {
+            productContainer.setAlignment(Pos.TOP_CENTER);
+            return;
+        }
 
         // Layout ổn định: không tính lại khoảng cách động theo từng thay đổi rất nhỏ của viewport.
         // JavaFX đôi lúc refresh viewport khi click nền / đổi focus app, khiến gap động đổi qua lại.
@@ -255,7 +268,7 @@ public class MainController implements Initializable {
 
         double stableWidth = Math.max(0, Math.floor(viewportWidth) - 24.0);
 
-        productContainer.setAlignment(Pos.TOP_CENTER);
+        productContainer.setAlignment(Pos.TOP_LEFT);
         productContainer.setPrefWrapLength(stableWidth);
         productContainer.setMinWidth(stableWidth);
         productContainer.setPrefWidth(stableWidth);
@@ -449,6 +462,8 @@ public class MainController implements Initializable {
         String selectedStatus = cbStatus.getValue();
 
         Platform.runLater(() -> {
+            sortProducts(allProducts);
+
             List<Integer> newIdsToRender = new ArrayList<>();
 
             // Bước 1: Tính toán danh sách ID sẽ hiển thị sau khi lọc
@@ -457,25 +472,11 @@ public class MainController implements Initializable {
 
                 String name = itemObj.optString("name", "");
                 String type = itemObj.optString("type", "");
-                String status = sessionObj.optString("status", "ACTIVE");
+                String status = normalizeSession(sessionObj);
 
-                // Chỉ chặn đứng các phiên bị hủy
-                if ("CANCELED".equalsIgnoreCase(status)) {
+                // Chỉ chặn đứng các phiên bị hủy hoặc đã thanh toán
+                if ("CLOSED".equalsIgnoreCase(status)) {
                     continue;
-                }
-
-                // Xác định trạng thái "Coming Soon" (Chưa bắt đầu bán)
-                boolean isComingSoon = "COMING".equalsIgnoreCase(status);
-                String startTimeStr = sessionObj.optString("startTime", "");
-                if (!isComingSoon && !startTimeStr.isEmpty()) {
-                    try {
-                        java.time.LocalDateTime startTime = java.time.LocalDateTime.parse(startTimeStr);
-                        if (java.time.LocalDateTime.now().isBefore(startTime)) {
-                            isComingSoon = true;
-                        }
-                    } catch (Exception e) {
-                        // ignore parse error
-                    }
                 }
 
                 // Logic lọc 3 lớp
@@ -485,17 +486,14 @@ public class MainController implements Initializable {
                 boolean matchMySessions = !showingMySessionsOnly || isSessionOwnedByCurrentUser(sessionObj);
 
                 boolean matchStatus = false;
-                if ("Tất cả".equals(selectedStatus)) {
+                if ("Tất cả".equals(selectedStatus) || selectedStatus == null) {
                     matchStatus = true;
-                } else if ("COMING SOON".equals(selectedStatus)) {
-                    matchStatus = isComingSoon;
-                } else if ("ACTIVE".equals(selectedStatus)) {
-                    matchStatus = !isComingSoon && "ACTIVE".equalsIgnoreCase(status);
-                } else if ("ENDED".equals(selectedStatus)) {
-                    matchStatus = !isComingSoon && "ENDED".equalsIgnoreCase(status);
-                }
-                if ("PENDING".equalsIgnoreCase(status) || "REJECTED".equalsIgnoreCase(status) || "CANCELED".equalsIgnoreCase(status)) {
-                    continue;
+                } else if ("Đang diễn ra".equals(selectedStatus)) {
+                    matchStatus = "RUNNING".equalsIgnoreCase(status);
+                } else if ("Sắp bắt đầu".equals(selectedStatus)) {
+                    matchStatus = "UPCOMING".equalsIgnoreCase(status);
+                } else if ("Đã kết thúc".equals(selectedStatus)) {
+                    matchStatus = "ENDED".equalsIgnoreCase(status);
                 }
 
                 if (matchKeyword && matchCategory && matchStatus && matchWatchlist && matchMySessions) {
@@ -525,15 +523,26 @@ public class MainController implements Initializable {
 
                     String name = itemObj.optString("name", "");
                     String type = itemObj.optString("type", "");
-                    String status = sessionObj.optString("status", "ACTIVE");
+                    String status = normalizeSession(sessionObj);
 
-                    if ("PENDING".equalsIgnoreCase(status) || "REJECTED".equalsIgnoreCase(status) || "CANCELED".equalsIgnoreCase(status)) {
+                    if ("CLOSED".equalsIgnoreCase(status)) {
                         continue;
                     }
 
                     boolean matchKeyword = keyword.isEmpty() || name.toLowerCase().contains(keyword);
                     boolean matchCategory = "Tất cả".equals(selectedCategory) || type.equalsIgnoreCase(selectedCategory);
-                    boolean matchStatus = "Tất cả".equals(selectedStatus) || status.equalsIgnoreCase(selectedStatus);
+                    
+                    boolean matchStatus = false;
+                    if ("Tất cả".equals(selectedStatus) || selectedStatus == null) {
+                        matchStatus = true;
+                    } else if ("Đang diễn ra".equals(selectedStatus)) {
+                        matchStatus = "RUNNING".equalsIgnoreCase(status);
+                    } else if ("Sắp bắt đầu".equals(selectedStatus)) {
+                        matchStatus = "UPCOMING".equalsIgnoreCase(status);
+                    } else if ("Đã kết thúc".equals(selectedStatus)) {
+                        matchStatus = "ENDED".equalsIgnoreCase(status);
+                    }
+                    
                     boolean matchWatchlist = !showingWatchlistOnly || User.watchlistIds.contains(sessionObj.optInt("id"));
                     boolean matchMySessions = !showingMySessionsOnly || isSessionOwnedByCurrentUser(sessionObj);
 
@@ -559,7 +568,216 @@ public class MainController implements Initializable {
                     }
                 }
             }
+            startCountdownTimeline();
         });
+    }
+
+    private String getRawTimeField(JSONObject sessionObj, JSONObject itemObj, String... keys) {
+        if (sessionObj == null) return null;
+        for (String key : keys) {
+            if (sessionObj.has(key) && !sessionObj.isNull(key)) {
+                return sessionObj.optString(key);
+            }
+        }
+        String[] nestedKeys = {"auctionSession", "session", "auction"};
+        for (String nKey : nestedKeys) {
+            if (sessionObj.has(nKey) && !sessionObj.isNull(nKey)) {
+                JSONObject nestedObj = sessionObj.optJSONObject(nKey);
+                if (nestedObj != null) {
+                    for (String key : keys) {
+                        if (nestedObj.has(key) && !nestedObj.isNull(key)) {
+                            return nestedObj.optString(key);
+                        }
+                    }
+                }
+            }
+        }
+        if (itemObj != null) {
+            for (String key : keys) {
+                if (itemObj.has(key) && !itemObj.isNull(key)) {
+                    return itemObj.optString(key);
+                }
+            }
+            for (String nKey : nestedKeys) {
+                if (itemObj.has(nKey) && !itemObj.isNull(nKey)) {
+                    JSONObject nestedObj = itemObj.optJSONObject(nKey);
+                    if (nestedObj != null) {
+                        for (String key : keys) {
+                            if (nestedObj.has(key) && !nestedObj.isNull(key)) {
+                                return nestedObj.optString(key);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private LocalDateTime parseDateTime(String rawVal, int id, String name, String rawStatus, String fieldName) {
+        if (rawVal == null || rawVal.isBlank()) {
+            return null;
+        }
+        rawVal = rawVal.trim();
+        try {
+            return LocalDateTime.parse(rawVal);
+        } catch (Exception e) {
+            try {
+                if (rawVal.contains(" ") && rawVal.indexOf(" ") == 10) {
+                    return LocalDateTime.parse(rawVal.replace(" ", "T"));
+                }
+            } catch (Exception ex) {}
+        }
+        
+        try {
+            long millis = Long.parseLong(rawVal);
+            return LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(millis), java.time.ZoneId.systemDefault());
+        } catch (NumberFormatException e) {
+        }
+        
+        String[] formats = {
+            "yyyy-MM-dd HH:mm:ss",
+            "yyyy-MM-dd HH:mm",
+            "dd/MM/yyyy HH:mm:ss",
+            "dd/MM/yyyy HH:mm",
+            "yyyy/MM/dd HH:mm:ss",
+            "yyyy/MM/dd HH:mm"
+        };
+        for (String format : formats) {
+            try {
+                java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern(format);
+                return LocalDateTime.parse(rawVal, formatter);
+            } catch (Exception e) {
+            }
+        }
+        
+        logger.warn("parseDateTime failed for product id={}, name='{}', rawStatus='{}', field='{}', raw value='{}'",
+                id, name, rawStatus, fieldName, rawVal);
+        return null;
+    }
+
+    private String normalizeSession(JSONObject sessionObj) {
+        if (sessionObj == null) return "UNKNOWN_TIME";
+        JSONObject itemObj = getItemObject(sessionObj);
+        int id = sessionObj.optInt("id");
+        String name = itemObj.optString("name");
+        String rawStatus = sessionObj.optString("status", "");
+        
+        String startTimeRaw = getRawTimeField(sessionObj, itemObj, "startTime", "start_time", "auctionStartTime");
+        String endTimeRaw = getRawTimeField(sessionObj, itemObj, "endTime", "end_time", "auctionEndTime", "endDate", "endDateTime");
+        
+        LocalDateTime startDT = parseDateTime(startTimeRaw, id, name, rawStatus, "startTime");
+        LocalDateTime endDT = parseDateTime(endTimeRaw, id, name, rawStatus, "endTime");
+        
+        return normalizeStatus(rawStatus, startDT, endDT);
+    }
+
+    private String normalizeStatus(String rawStatus, LocalDateTime startDT, LocalDateTime endDT) {
+        if (rawStatus == null) rawStatus = "";
+        rawStatus = rawStatus.toUpperCase().trim();
+
+        if (rawStatus.equals("FINISHED") || rawStatus.equals("ENDED") || 
+            rawStatus.equals("CANCELED") || rawStatus.equals("PAID") || 
+            rawStatus.equals("CLOSED")) {
+            return "ENDED";
+        }
+
+        if (startDT != null && endDT != null) {
+            LocalDateTime now = LocalDateTime.now();
+            if (now.isBefore(startDT)) {
+                return "UPCOMING";
+            } else if (!now.isBefore(startDT) && now.isBefore(endDT)) {
+                return "RUNNING";
+            } else {
+                return "ENDED";
+            }
+        }
+
+        if ((rawStatus.equals("RUNNING") || rawStatus.equals("ACTIVE")) && endDT == null) {
+            return "UNKNOWN_TIME";
+        }
+
+        if (rawStatus.equals("OPEN")) {
+            LocalDateTime now = LocalDateTime.now();
+            if (startDT != null && endDT != null) {
+                if (!now.isBefore(startDT) && now.isBefore(endDT)) {
+                    return "RUNNING";
+                }
+            }
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        if (endDT != null && (now.isAfter(endDT) || now.isEqual(endDT))) {
+            return "ENDED";
+        }
+        if (startDT != null && now.isBefore(startDT)) {
+            return "UPCOMING";
+        }
+        if (rawStatus.equals("RUNNING") || rawStatus.equals("ACTIVE") || rawStatus.equals("OPEN")) {
+            if (endDT != null) {
+                return "RUNNING";
+            } else {
+                return "UNKNOWN_TIME";
+            }
+        }
+
+        return "UNKNOWN_TIME";
+    }
+
+    private void sortProducts(List<JSONObject> list) {
+        list.sort((o1, o2) -> {
+            String status1 = normalizeSession(o1);
+            String status2 = normalizeSession(o2);
+
+            int p1 = getStatusPriority(status1);
+            int p2 = getStatusPriority(status2);
+            if (p1 != p2) return Integer.compare(p1, p2);
+
+            JSONObject item1 = getItemObject(o1);
+            JSONObject item2 = getItemObject(o2);
+            
+            String st1Raw = getRawTimeField(o1, item1, "startTime", "start_time", "auctionStartTime");
+            String et1Raw = getRawTimeField(o1, item1, "endTime", "end_time", "auctionEndTime", "endDate", "endDateTime");
+            String st2Raw = getRawTimeField(o2, item2, "startTime", "start_time", "auctionStartTime");
+            String et2Raw = getRawTimeField(o2, item2, "endTime", "end_time", "auctionEndTime", "endDate", "endDateTime");
+
+            LocalDateTime st1 = parseDateTime(st1Raw, o1.optInt("id"), item1.optString("name"), o1.optString("status", ""), "startTime");
+            LocalDateTime et1 = parseDateTime(et1Raw, o1.optInt("id"), item1.optString("name"), o1.optString("status", ""), "endTime");
+            LocalDateTime st2 = parseDateTime(st2Raw, o2.optInt("id"), item2.optString("name"), o2.optString("status", ""), "startTime");
+            LocalDateTime et2 = parseDateTime(et2Raw, o2.optInt("id"), item2.optString("name"), o2.optString("status", ""), "endTime");
+
+            if (p1 == 1) { // RUNNING: sort by endTime asc
+                if (et1 == null && et2 == null) return 0;
+                if (et1 == null) return 1;
+                if (et2 == null) return -1;
+                return et1.compareTo(et2);
+            } else if (p1 == 2) { // UPCOMING: sort by startTime asc
+                if (st1 == null && st2 == null) return 0;
+                if (st1 == null) return 1;
+                if (st2 == null) return -1;
+                return st1.compareTo(st2);
+            } else if (p1 == 3) { // ENDED: sort by endTime desc
+                if (et1 == null && et2 == null) return 0;
+                if (et1 == null) return 1;
+                if (et2 == null) return -1;
+                return et2.compareTo(et1);
+            }
+            return 0;
+        });
+    }
+
+    private int getStatusPriority(String status) {
+        switch (status) {
+            case "RUNNING": return 1;
+            case "UPCOMING": return 2;
+            case "ENDED": return 3;
+            case "CLOSED": return 4;
+            default: return 5;
+        }
+    }
+
+    private LocalDateTime parseDT(String str) {
+        try { return str.isBlank() ? null : LocalDateTime.parse(str); } catch (Exception e) { return null; }
     }
 
 
@@ -764,10 +982,18 @@ public class MainController implements Initializable {
         String name = itemObj.optString("name", "");
         BigDecimal currentPrice = getMoney(sessionObj, "currentPrice", getMoney(sessionObj, "startingPrice", BigDecimal.ZERO));
 
-        String status = sessionObj.optString("status", "ACTIVE");
+        String rawStatus = sessionObj.optString("status", "");
+        String startTimeRaw = getRawTimeField(sessionObj, itemObj, "startTime", "start_time", "auctionStartTime");
+        String endTimeRaw = getRawTimeField(sessionObj, itemObj, "endTime", "end_time", "auctionEndTime", "endDate", "endDateTime");
+        LocalDateTime startDT = parseDateTime(startTimeRaw, id, name, rawStatus, "startTime");
+        LocalDateTime endDT = parseDateTime(endTimeRaw, id, name, rawStatus, "endTime");
+        String normalizedStatus = normalizeStatus(rawStatus, startDT, endDT);
 
-        String startTime = sessionObj.isNull("startTime") ? "Chưa bắt đầu" : sessionObj.getString("startTime").replace("T", " ");
-        String endTime = sessionObj.isNull("endTime") ? "Chưa rõ" : sessionObj.getString("endTime").replace("T", " ");
+        boolean bidEnabled = "RUNNING".equals(normalizedStatus) && endDT != null;
+
+        logger.info("ProductCard id={}, name={}, rawStatus={}, startTimeRaw={}, endTimeRaw={}, normalizedStatus={}, bidEnabled={}",
+                id, name, rawStatus, startTimeRaw, endTimeRaw, normalizedStatus, bidEnabled);
+
         String imagePath = itemObj.optString("imagePath", "default.png");
 
         VBox vbox = new VBox();
@@ -803,59 +1029,111 @@ public class MainController implements Initializable {
             imageView.setImage(cached);
             imageWrapper.getChildren().add(imageView);
             cached.errorProperty().addListener((obs, oldValue, isError) -> {
-                if (isError && !imageWrapper.getChildren().contains(imageStatusLabel)) {
-                    imageWrapper.getChildren().setAll(imageStatusLabel);
+                if (isError) {
+                    Platform.runLater(() -> {
+                        imageWrapper.getChildren().remove(imageView);
+                        if (!imageWrapper.getChildren().contains(imageStatusLabel)) {
+                            imageWrapper.getChildren().add(0, imageStatusLabel);
+                        }
+                    });
                 }
             });
         } else {
             imageWrapper.getChildren().add(imageStatusLabel);
         }
 
-        // Tính toán trạng thái Coming Soon cho Card hiển thị
-        boolean isComingSoon = "COMING".equalsIgnoreCase(status);
-        String startTimeStr = sessionObj.optString("startTime", "");
-        if (!isComingSoon && !startTimeStr.isEmpty()) {
-            try {
-                java.time.LocalDateTime startDT = java.time.LocalDateTime.parse(startTimeStr);
-                if (java.time.LocalDateTime.now().isBefore(startDT)) {
-                    isComingSoon = true;
-                }
-            } catch (Exception e) {
-                // ignore
-            }
+        if ("ENDED".equals(normalizedStatus) || "CLOSED".equals(normalizedStatus)) {
+            // Chỉ làm mờ ảnh để dễ nhận biết, chữ giá và tên vẫn sáng rõ
+            imageWrapper.setOpacity(0.5);
         }
 
-        String shortEnd = endTime.length() >= 16 ? endTime.substring(0, 16) : endTime;
-        if (isComingSoon) {
-            HBox timerBadge = new HBox(4.0);
+        Label timerIcon = new Label("\uE8B5");
+        timerIcon.getStyleClass().add("material-icon");
+        timerIcon.setStyle("-fx-font-size: 14px;");
+
+        Label timerText = new Label("");
+        timerText.setId("timerLabel_" + id);
+        timerText.setStyle("-fx-font-weight: 900; -fx-font-size: 11px;");
+
+        HBox timerBadge = new HBox(4.0);
+        timerBadge.setId("timerBadge_" + id);
+        timerBadge.setAlignment(Pos.CENTER);
+        timerBadge.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+
+        if ("UPCOMING".equals(normalizedStatus)) {
             timerBadge.setStyle("-fx-background-color: rgba(96, 72, 104, 0.9); -fx-background-radius: 15px; -fx-padding: 4px 8px;");
-            timerBadge.setAlignment(Pos.CENTER);
-            timerBadge.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
-
-            Label timerIcon = new Label("\uE8B5");
-            timerIcon.getStyleClass().add("material-icon");
             timerIcon.setStyle("-fx-text-fill: #ffffff; -fx-font-size: 14px;");
-
-            Label timerText = new Label("Coming Soon");
-            timerText.setStyle("-fx-font-weight: 900; -fx-font-size: 11px; -fx-text-fill: #ffffff;");
+            timerText.setStyle("-fx-font-weight: 900; -fx-font-size: 11px; -fx-text-fill: #ffffff; -fx-text-alignment: center;");
+            
+            String displayStart = "Sắp mở";
+            if (startDT != null) {
+                LocalDateTime now = LocalDateTime.now();
+                if (startDT.toLocalDate().equals(now.toLocalDate())) {
+                    displayStart = "Sắp mở\nBắt đầu: " + startDT.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
+                } else {
+                    displayStart = "Sắp mở\nBắt đầu: " + startDT.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM HH:mm"));
+                }
+            }
+            timerText.setText(displayStart);
 
             timerBadge.getChildren().addAll(timerIcon, timerText);
             StackPane.setAlignment(timerBadge, Pos.TOP_RIGHT);
             StackPane.setMargin(timerBadge, new Insets(8, 8, 0, 0));
             imageWrapper.getChildren().add(timerBadge);
-        } else if ("ACTIVE".equalsIgnoreCase(status)) {
-            HBox timerBadge = new HBox(4.0);
+        } else if ("RUNNING".equals(normalizedStatus)) {
             timerBadge.setStyle("-fx-background-color: rgba(255, 255, 255, 0.9); -fx-background-radius: 15px; -fx-padding: 4px 8px;");
-            timerBadge.setAlignment(Pos.CENTER);
-            timerBadge.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
-
-            Label timerIcon = new Label("\uE8B5");
-            timerIcon.getStyleClass().add("material-icon");
             timerIcon.setStyle("-fx-text-fill: #e040a0; -fx-font-size: 14px;");
-
-            Label timerText = new Label(shortEnd.length() > 11 ? shortEnd.substring(11) : shortEnd);
             timerText.setStyle("-fx-font-weight: 900; -fx-font-size: 11px; -fx-text-fill: #e040a0;");
+            
+            // Calculate remaining time immediately on creation
+            String displayRemaining = "Đang diễn ra";
+            if (endDT != null) {
+                LocalDateTime now = LocalDateTime.now();
+                java.time.Duration dur = java.time.Duration.between(now, endDT);
+                long days = dur.toDays();
+                long hours = dur.toHoursPart();
+                long minutes = dur.toMinutesPart();
+                long seconds = dur.toSecondsPart();
+                if (days > 0) {
+                    displayRemaining = "Còn " + days + "d " + hours + "h";
+                } else if (hours > 0) {
+                    displayRemaining = "Còn " + hours + "h " + minutes + "m";
+                } else if (minutes > 0 || seconds > 0) {
+                    displayRemaining = "Còn " + minutes + "m " + seconds + "s";
+                } else {
+                    displayRemaining = "Đã kết thúc";
+                }
+            }
+            timerText.setText(displayRemaining);
 
+            timerBadge.getChildren().addAll(timerIcon, timerText);
+            StackPane.setAlignment(timerBadge, Pos.TOP_RIGHT);
+            StackPane.setMargin(timerBadge, new Insets(8, 8, 0, 0));
+            imageWrapper.getChildren().add(timerBadge);
+        } else if ("ENDED".equals(normalizedStatus)) {
+            timerBadge.setStyle("-fx-background-color: rgba(100, 100, 100, 0.8); -fx-background-radius: 15px; -fx-padding: 4px 8px;");
+            timerIcon.setStyle("-fx-text-fill: #ffffff; -fx-font-size: 14px;");
+            timerText.setStyle("-fx-font-weight: 900; -fx-font-size: 11px; -fx-text-fill: #ffffff;");
+            
+            String endLabel = "Đã kết thúc";
+            if ("CANCELED".equalsIgnoreCase(rawStatus)) {
+                endLabel = "Đã hủy";
+            } else if ("PAID".equalsIgnoreCase(rawStatus)) {
+                endLabel = "Đã thanh toán";
+            }
+            timerText.setText(endLabel);
+            
+            timerBadge.getChildren().addAll(timerIcon, timerText);
+            StackPane.setAlignment(timerBadge, Pos.TOP_RIGHT);
+            StackPane.setMargin(timerBadge, new Insets(8, 8, 0, 0));
+            imageWrapper.getChildren().add(timerBadge);
+        } else {
+            // UNKNOWN_TIME
+            timerBadge.setStyle("-fx-background-color: rgba(220, 53, 69, 0.9); -fx-background-radius: 15px; -fx-padding: 4px 8px;");
+            timerIcon.setStyle("-fx-text-fill: #ffffff; -fx-font-size: 14px;");
+            timerText.setStyle("-fx-font-weight: 900; -fx-font-size: 11px; -fx-text-fill: #ffffff;");
+            timerText.setText("Không rõ thời gian");
+            
             timerBadge.getChildren().addAll(timerIcon, timerText);
             StackPane.setAlignment(timerBadge, Pos.TOP_RIGHT);
             StackPane.setMargin(timerBadge, new Insets(8, 8, 0, 0));
@@ -896,8 +1174,8 @@ public class MainController implements Initializable {
 
         Button mainBtn = new Button();
         Label mainPlusIcon = new Label("+");
-        mainPlusIcon.setFont(Font.font("System", FontWeight.NORMAL, 28));
-        mainPlusIcon.setTextFill(Color.web("#e040a0"));
+        mainPlusIcon.setFont(Font.font("System", FontWeight.BOLD, 28));
+        mainPlusIcon.setTextFill(Color.web("#ffffff"));
         mainPlusIcon.setAlignment(Pos.CENTER);
         mainPlusIcon.setMinSize(44.0, 44.0);
         mainPlusIcon.setPrefSize(44.0, 44.0);
@@ -909,7 +1187,7 @@ public class MainController implements Initializable {
         mainBtn.setMaxSize(44.0, 44.0);
         mainBtn.setPadding(Insets.EMPTY);
         mainBtn.setAlignment(Pos.CENTER);
-        mainBtn.setStyle("-fx-background-color: #ffd6ee; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
+        mainBtn.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
         Tooltip.install(mainBtn, new Tooltip("Tùy chọn"));
 
         Button btnWatch = new Button();
@@ -952,19 +1230,19 @@ public class MainController implements Initializable {
         btnWatch.setVisible(false); btnWatch.setManaged(false);
         btnBid.setVisible(false); btnBid.setManaged(false);
 
-        if (!isComingSoon && "ACTIVE".equalsIgnoreCase(status)) {
+        // Click on the whole card to open details (especially good for ENDED cards)
+        vbox.setOnMouseClicked(event -> {
+            openAuctionPage(event, sessionObj, itemObj, name, id, currentPrice);
+        });
+
+        if (bidEnabled) {
             btnBid.setOnAction(event -> {
-                ClientLogger.logViewHistory(User.getUsername(), name, id, currentPrice);
-                try {
-                    FXMLLoader loader = SceneSwitcher.switchScene(event, "AuctionPage.fxml", 1280, 800);
-                    AuctionPageController controller = loader.getController();
-                    controller.setItem(sessionObj, itemObj);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                event.consume(); // prevent triggering the vbox click
+                openAuctionPage(event, sessionObj, itemObj, name, id, currentPrice);
             });
 
             btnWatch.setOnAction(event -> {
+                event.consume();
                 if (User.getId() == null) {
                     Alert alert = new Alert(Alert.AlertType.WARNING);
                     alert.setTitle("Yêu cầu đăng nhập");
@@ -1005,6 +1283,7 @@ public class MainController implements Initializable {
             });
 
             mainBtn.setOnAction(e -> {
+                e.consume();
                 mainBtn.setVisible(false); mainBtn.setManaged(false);
                 btnWatch.setVisible(true); btnWatch.setManaged(true);
                 btnBid.setVisible(true); btnBid.setManaged(true);
@@ -1012,9 +1291,39 @@ public class MainController implements Initializable {
 
             actionBox.getChildren().addAll(btnWatch, btnBid, mainBtn);
         } else {
-            mainPlusIcon.setTextFill(Color.web("#907898"));
-            mainBtn.setStyle("-fx-background-color: #f2e8f2; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center;");
-            mainBtn.setDisable(true);
+            // Non-running / invalid cards show a single action button
+            mainPlusIcon.setText("\uE8F4"); // Eye icon
+            mainPlusIcon.setFont(Font.font("Material Symbols Outlined", FontWeight.NORMAL, 24));
+            
+            if ("UPCOMING".equals(normalizedStatus)) {
+                mainPlusIcon.setTextFill(Color.web("#ffffff"));
+                mainBtn.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
+                Tooltip.install(mainBtn, new Tooltip("Xem chi tiết"));
+                mainBtn.setDisable(false);
+                mainBtn.setOnAction(e -> {
+                    e.consume();
+                    openAuctionPage(e, sessionObj, itemObj, name, id, currentPrice);
+                });
+            } else if ("ENDED".equals(normalizedStatus)) {
+                mainPlusIcon.setTextFill(Color.web("#ffffff"));
+                mainBtn.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
+                Tooltip.install(mainBtn, new Tooltip("Xem kết quả"));
+                mainBtn.setDisable(false);
+                mainBtn.setOnAction(e -> {
+                    e.consume();
+                    openAuctionPage(e, sessionObj, itemObj, name, id, currentPrice);
+                });
+            } else {
+                // UNKNOWN_TIME
+                mainPlusIcon.setTextFill(Color.web("#888888"));
+                mainBtn.setStyle("-fx-background-color: #cccccc; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: default;");
+                Tooltip.install(mainBtn, new Tooltip("Không rõ thời gian đấu giá"));
+                mainBtn.setDisable(true);
+                mainBtn.setOnAction(e -> {
+                    e.consume(); // prevent click from propagating
+                });
+            }
+            
             actionBox.getChildren().add(mainBtn);
         }
 
@@ -1076,6 +1385,7 @@ public class MainController implements Initializable {
     }
 
     private void renderAccountScreen(boolean saving) {
+        stopCountdownTimeline();
         productContainer.getChildren().clear();
         productContainer.getChildren().add(fakeTestBtn);
         currentRenderedIds.clear();
@@ -1677,6 +1987,7 @@ public class MainController implements Initializable {
     }
 
     private void showCompactAuctionList() {
+        stopCountdownTimeline();
         showingCompactListScreen = true;
         showingAccountScreen = false;
 
@@ -2064,5 +2375,93 @@ public class MainController implements Initializable {
         symbols.setGroupingSeparator('.');
         DecimalFormat df = new DecimalFormat("###,###", symbols);
         return df.format(price);
+    }
+
+    private void stopCountdownTimeline() {
+        if (countdownTimeline != null) {
+            countdownTimeline.stop();
+            countdownTimeline = null;
+        }
+    }
+    
+    private void openAuctionPage(javafx.event.Event event, JSONObject sessionObj, JSONObject itemObj, String name, int id, BigDecimal currentPrice) {
+        ClientLogger.logViewHistory(User.getUsername(), name, id, currentPrice);
+        stopCountdownTimeline();
+        try {
+            FXMLLoader loader = SceneSwitcher.switchScene(event, "AuctionPage.fxml", 1280, 800);
+            AuctionPageController controller = loader.getController();
+            controller.setItem(sessionObj, itemObj);
+        } catch (IOException ex) {
+            logger.error("Cannot open Auction Page", ex);
+        }
+    }
+
+    private void startCountdownTimeline() {
+        stopCountdownTimeline();
+        
+        countdownTimeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
+            if (allProducts == null || allProducts.isEmpty()) return;
+            
+            LocalDateTime now = LocalDateTime.now();
+            boolean needRender = false;
+            
+            for (JSONObject sessionObj : allProducts) {
+                int id = sessionObj.optInt("id");
+                if (!currentRenderedIds.contains(id)) continue;
+                
+                JSONObject itemObj = getItemObject(sessionObj);
+                String rawStatus = sessionObj.optString("status", "");
+                String startTimeRaw = getRawTimeField(sessionObj, itemObj, "startTime", "start_time", "auctionStartTime");
+                String endTimeRaw = getRawTimeField(sessionObj, itemObj, "endTime", "end_time", "auctionEndTime", "endDate", "endDateTime");
+                
+                LocalDateTime startDT = parseDateTime(startTimeRaw, id, itemObj != null ? itemObj.optString("name") : "", rawStatus, "startTime");
+                LocalDateTime endDT = parseDateTime(endTimeRaw, id, itemObj != null ? itemObj.optString("name") : "", rawStatus, "endTime");
+                String currentNormalized = normalizeStatus(rawStatus, startDT, endDT);
+                
+                if ("RUNNING".equals(currentNormalized)) {
+                    if (endDT != null) {
+                        if (now.isAfter(endDT) || now.isEqual(endDT)) {
+                            // Ended during timeline
+                            needRender = true;
+                        } else {
+                            // Update label
+                            javafx.scene.Node node = productContainer.lookup("#timerLabel_" + id);
+                            if (node instanceof Label) {
+                                java.time.Duration dur = java.time.Duration.between(now, endDT);
+                                long days = dur.toDays();
+                                long hours = dur.toHoursPart();
+                                long minutes = dur.toMinutesPart();
+                                long seconds = dur.toSecondsPart();
+                                
+                                String text;
+                                if (days > 0) {
+                                    text = "Còn " + days + "d " + hours + "h";
+                                } else if (hours > 0) {
+                                    text = "Còn " + hours + "h " + minutes + "m";
+                                } else {
+                                    text = "Còn " + minutes + "m " + seconds + "s";
+                                }
+                                ((Label) node).setText(text);
+                            }
+                        }
+                    }
+                } else if ("UPCOMING".equals(currentNormalized)) {
+                    if (startDT != null && (now.isAfter(startDT) || now.isEqual(startDT))) {
+                        // Started during timeline
+                        needRender = true;
+                    }
+                }
+            }
+            
+            if (needRender) {
+                // To avoid multiple consecutive renders, stop and call it once.
+                stopCountdownTimeline();
+                forceRenderProducts = true;
+                filterAndRenderProducts();
+            }
+        }));
+        
+        countdownTimeline.setCycleCount(Timeline.INDEFINITE);
+        countdownTimeline.play();
     }
 }

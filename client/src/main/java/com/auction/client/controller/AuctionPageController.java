@@ -15,6 +15,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.StackPane;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,7 @@ public class AuctionPageController {
     private static final Logger logger = LoggerFactory.getLogger(AuctionPageController.class);
 
     @FXML private MenuButton userMenuButton;
+    @FXML private StackPane topBarAvatarPane;
 
     private static final String AUTOBID_PREFIX = "AUTOBID:";
 
@@ -165,6 +167,8 @@ public class AuctionPageController {
         if (btnNotificationBell != null && notificationBadge != null) {
             NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
         }
+        
+        Platform.runLater(() -> updateTopBarAvatar(User.getAvatarUrl()));
         
         if (sidebarController != null) {
             sidebarController.setOnBeforeNavigate(this::disconnectSocket);
@@ -1676,6 +1680,29 @@ public class AuctionPageController {
             }
         } catch (IOException e) {
             logger.warn("Cannot close socket", e);
+        }
+    }
+
+    private void updateTopBarAvatar(String avatarUrl) {
+        if (topBarAvatarPane == null) return;
+        try {
+            topBarAvatarPane.getChildren().clear();
+            if (avatarUrl != null && !avatarUrl.isBlank()) {
+                String fullUrl = avatarUrl.startsWith("http") ? avatarUrl : Config.API_URL + avatarUrl;
+                ImageView imgView = new ImageView(new Image(fullUrl, 36, 36, false, true, true));
+                imgView.setFitWidth(36);
+                imgView.setFitHeight(36);
+                imgView.setSmooth(true);
+                javafx.scene.shape.Circle clip = new javafx.scene.shape.Circle(18, 18, 18);
+                imgView.setClip(clip);
+                topBarAvatarPane.getChildren().add(imgView);
+            } else {
+                Label icon = new Label("\uE7FD");
+                icon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: white;");
+                topBarAvatarPane.getChildren().add(icon);
+            }
+        } catch (Exception e) {
+            logger.warn("Không thể cập nhật avatar trên top bar: {}", e.getMessage());
         }
     }
 }

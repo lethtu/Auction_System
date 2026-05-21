@@ -41,7 +41,7 @@
                 </Button>
                 <MenuButton fx:id="userMenuButton" id="profile-menu" minWidth="54.0" prefWidth="54.0" maxWidth="54.0" minHeight="44.0" prefHeight="44.0" maxHeight="44.0" style="-fx-background-color: transparent; -fx-padding: 0; -fx-alignment: CENTER; -fx-cursor: hand;">
                     <graphic>
-                        <StackPane minWidth="36" maxWidth="36" minHeight="36" maxHeight="36" prefWidth="36" prefHeight="36" style="-fx-background-color: #1a1a3a; -fx-background-radius: 18px;">
+                        <StackPane fx:id="topBarAvatarPane" minWidth="36" maxWidth="36" minHeight="36" maxHeight="36" prefWidth="36" prefHeight="36" style="-fx-background-color: #1a1a3a; -fx-background-radius: 18px;">
                             <Label text="&#xe7fd;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: white;" />
                         </StackPane>
                     </graphic>

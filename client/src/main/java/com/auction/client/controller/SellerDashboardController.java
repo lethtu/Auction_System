@@ -151,6 +151,8 @@ public class SellerDashboardController {
     private Button btnNotificationBell;
     @FXML
     private Label notificationBadge;
+    @FXML
+    private StackPane topBarAvatarPane;
 
     private HttpClient httpClient = HttpClientSingleton.getInstance().getHttpClient();
     final List<SessionItem> allSessions = new ArrayList<>();
@@ -176,6 +178,8 @@ public class SellerDashboardController {
         if (btnNotificationBell != null && notificationBadge != null) {
             com.auction.client.util.NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
         }
+
+        javafx.application.Platform.runLater(() -> updateTopBarAvatar(User.getAvatarUrl()));
 
         if (modalDialog != null && modalOverlay != null) {
             modalOverlay.heightProperty().addListener((obs, oldVal, newVal) -> updateModalMaxHeight());
@@ -2517,6 +2521,29 @@ public class SellerDashboardController {
             this.success = success;
             this.message = message;
             this.data = data;
+        }
+    }
+
+    private void updateTopBarAvatar(String avatarUrl) {
+        if (topBarAvatarPane == null) return;
+        try {
+            topBarAvatarPane.getChildren().clear();
+            if (avatarUrl != null && !avatarUrl.isBlank()) {
+                String fullUrl = avatarUrl.startsWith("http") ? avatarUrl : Config.API_URL + avatarUrl;
+                ImageView imgView = new ImageView(new Image(fullUrl, 36, 36, false, true, true));
+                imgView.setFitWidth(36);
+                imgView.setFitHeight(36);
+                imgView.setSmooth(true);
+                javafx.scene.shape.Circle clip = new javafx.scene.shape.Circle(18, 18, 18);
+                imgView.setClip(clip);
+                topBarAvatarPane.getChildren().add(imgView);
+            } else {
+                Label icon = new Label("\uE7FD");
+                icon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: white;");
+                topBarAvatarPane.getChildren().add(icon);
+            }
+        } catch (Exception e) {
+            logger.warn("Không thể cập nhật avatar trên top bar: {}", e.getMessage());
         }
     }
 }
