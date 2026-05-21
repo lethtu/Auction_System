@@ -18,6 +18,8 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.input.MouseEvent;
 import javafx.animation.PauseTransition;
 import javafx.util.Duration;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -44,6 +46,7 @@ public class UpToSellerController implements Initializable {
     
     @FXML private Button btnNotificationBell;
     @FXML private Label notificationBadge;
+    @FXML private StackPane topBarAvatarPane;
     @FXML private Button btnSettings;
 
     @Override
@@ -57,6 +60,7 @@ public class UpToSellerController implements Initializable {
             NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
         }
 
+        Platform.runLater(() -> updateTopBarAvatar(User.getAvatarUrl()));
         if (btnSettings != null) {
             btnSettings.setOnAction(e -> {
                 try {
@@ -205,5 +209,28 @@ public class UpToSellerController implements Initializable {
         lblMessage.setStyle("-fx-text-fill: #ef4444; -fx-font-weight: bold;");
         lblMessage.setVisible(true);
         lblMessage.setManaged(true);
+    }
+
+    private void updateTopBarAvatar(String avatarUrl) {
+        if (topBarAvatarPane == null) return;
+        try {
+            topBarAvatarPane.getChildren().clear();
+            if (avatarUrl != null && !avatarUrl.isBlank()) {
+                String fullUrl = avatarUrl.startsWith("http") ? avatarUrl : Config.API_URL + avatarUrl;
+                ImageView imgView = new ImageView(new Image(fullUrl, 36, 36, false, true, true));
+                imgView.setFitWidth(36);
+                imgView.setFitHeight(36);
+                imgView.setSmooth(true);
+                javafx.scene.shape.Circle clip = new javafx.scene.shape.Circle(18, 18, 18);
+                imgView.setClip(clip);
+                topBarAvatarPane.getChildren().add(imgView);
+            } else {
+                Label icon = new Label("\uE7FD");
+                icon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: white;");
+                topBarAvatarPane.getChildren().add(icon);
+            }
+        } catch (Exception e) {
+            logger.warn("Không thể cập nhật avatar trên top bar: {}", e.getMessage());
+        }
     }
 }
