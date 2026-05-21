@@ -945,14 +945,8 @@ public class MainController implements Initializable {
         btnWatch.setVisible(false); btnWatch.setManaged(false);
         btnBid.setVisible(false); btnBid.setManaged(false);
 
-        Button bidBtn = new Button();
-        Label addIcon = new Label("\uE145");
-        addIcon.getStyleClass().add("material-icon");
         if (!isComingSoon && "ACTIVE".equalsIgnoreCase(status)) {
-            addIcon.setStyle("-fx-text-fill: #e040a0;");
-            bidBtn.setStyle("-fx-background-color: #ffd6ee; -fx-background-radius: 20px; -fx-min-width: 40px; -fx-min-height: 40px; -fx-cursor: hand;");
-            bidBtn.setGraphic(addIcon);
-            bidBtn.setOnAction(event -> {
+            btnBid.setOnAction(event -> {
                 ClientLogger.logViewHistory(User.getUsername(), name, id, currentPrice);
                 try {
                     FXMLLoader loader = SceneSwitcher.switchScene(event, "AuctionPage.fxml", 1280, 800);
@@ -1068,102 +1062,10 @@ public class MainController implements Initializable {
 
     @FXML
     public void handleToggleSidebar(ActionEvent event) {
-        if (sidebarContainer == null || sidebarContent == null) {
-            return;
+        if (sidebarController != null) {
+            sidebarController.toggleSidebar();
+            Platform.runLater(this::updateGridLayout);
         }
-
-        isSidebarCollapsed = !isSidebarCollapsed;
-
-        if (isSidebarCollapsed) {
-            // Collapse
-            if (sidebarContainer != null) {
-                if (sidebarContainer != null) {
-                    sidebarContainer.setMinWidth(70);
-                    sidebarContainer.setPrefWidth(70);
-                    sidebarContainer.setMaxWidth(70);
-                }
-            }
-            sidebarContent.setPadding(new Insets(24, 0, 24, 0));
-            sidebarContent.setAlignment(Pos.TOP_CENTER);
-
-            for (javafx.scene.Node node : sidebarContent.getChildren()) {
-                if (node instanceof Button) {
-                    Button btn = (Button) node;
-                    String currentText = btn.getText();
-                    if (currentText != null && !currentText.isEmpty()) {
-                        sidebarButtonTextMap.put(btn, currentText);
-                    }
-
-                    String tooltipText = sidebarButtonTextMap.get(btn);
-                    if (tooltipText != null) {
-                        Tooltip tooltip = new Tooltip(tooltipText);
-                        // Deep pink background, white text, bold, rounded corners
-                        tooltip.setStyle("-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 6px 12px; -fx-font-size: 13px;");
-
-                        // Tạo hiệu ứng delay thủ công để có thể cố định vị trí
-                        PauseTransition pause = new PauseTransition(Duration.millis(300));
-                        pause.setOnFinished(e -> {
-                            if (btn.isHover()) {
-                                Bounds bounds = btn.localToScreen(btn.getBoundsInLocal());
-                                // Hiện Tooltip ở bên phải nút, căn giữa theo chiều dọc
-                                tooltip.show(btn, bounds.getMaxX() + 15, bounds.getMinY() + btn.getHeight() / 2 - 18);
-                            }
-                        });
-
-                        btn.setOnMouseEntered(e -> pause.playFromStart());
-                        btn.setOnMouseExited(e -> {
-                            pause.stop();
-                            tooltip.hide();
-                        });
-                    }
-
-                    btn.setTooltip(null); // Tắt Tooltip mặc định của JavaFX
-
-                    btn.setText("");
-                    btn.setPrefWidth(50);
-                    btn.setMinWidth(50);
-                    btn.setAlignment(Pos.CENTER);
-                    // Adjust graphic alignment
-                    if (btn.getGraphic() != null) {
-                        btn.getGraphic().setTranslateX(0);
-                    }
-                } else if (node instanceof Label) {
-                    node.setVisible(false);
-                    node.setManaged(false);
-                }
-            }
-        } else {
-            // Expand
-            if (sidebarContainer != null) {
-                if (sidebarContainer != null) {
-                    sidebarContainer.setMinWidth(200);
-                    sidebarContainer.setPrefWidth(200);
-                    sidebarContainer.setMaxWidth(200);
-                }
-            }
-            sidebarContent.setPadding(new Insets(24, 8, 24, 8));
-            sidebarContent.setAlignment(Pos.TOP_LEFT);
-
-            for (javafx.scene.Node node : sidebarContent.getChildren()) {
-                if (node instanceof Button) {
-                    Button btn = (Button) node;
-                    btn.setTooltip(null);
-                    btn.setOnMouseEntered(null); // Gỡ bỏ listener thủ công
-                    btn.setOnMouseExited(null);
-                    String originalText = sidebarButtonTextMap.getOrDefault(btn, "");
-                    btn.setText(originalText);
-                    btn.setPrefWidth(165);
-                    btn.setMinWidth(165);
-                    btn.setAlignment(Pos.CENTER_LEFT);
-                } else if (node instanceof Label) {
-                    node.setVisible(true);
-                    node.setManaged(true);
-                }
-            }
-        }
-
-        // Cập nhật lại Grid Layout cho Center vì diện tích khả dụng đã thay đổi
-        Platform.runLater(this::updateGridLayout);
     }
 
     private void renderAccountScreen(boolean saving) {
