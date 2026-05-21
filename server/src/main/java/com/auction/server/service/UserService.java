@@ -61,6 +61,18 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    public User updateAvatarUrl(Integer userId, String avatarUrl) {
+        if (userId == null || userId <= 0) {
+            throw new IllegalArgumentException("userId không hợp lệ");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng"));
+
+        user.setAvatarUrl(avatarUrl);
+        return userRepository.save(user);
+    }
+
     private String normalizeRequired(String value, String errorMessage) {
         String normalized = normalizeOptional(value);
         if (normalized == null) {
