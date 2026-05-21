@@ -10,6 +10,8 @@ import com.auction.client.util.AlertUtil;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -18,6 +20,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TextInputDialog;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
@@ -32,6 +35,7 @@ public class AdminDashboardController {
     private static final String USER_ACTIVE_TEXT = "Hoạt động";
     private static final String PRODUCT_VISIBLE_TEXT = "Đang hiện";
     private static final String PRODUCT_HIDDEN_TEXT = "Đang ẩn";
+    private static final String ACTIVE_NAV_CLASS = "active-admin-nav";
 
     private static final String NO_SESSION_SELECTED_TITLE = "Chưa chọn phiên";
     private static final String NO_USER_SELECTED_TITLE = "Chưa chọn user";
@@ -46,6 +50,15 @@ public class AdminDashboardController {
     @FXML private Tab tabPending;
     @FXML private Tab tabUsers;
     @FXML private Tab tabSessions;
+
+    @FXML private Button btnPendingTab;
+    @FXML private Button btnUsersTab;
+    @FXML private Button btnSessionsTab;
+
+    @FXML private Label lblPendingCount;
+    @FXML private Label lblUserCount;
+    @FXML private Label lblSessionCount;
+    @FXML private Label lblTotalStartingPrice;
 
     @FXML private TableView<PendingSessionRow> tablePending;
     @FXML private TableColumn<PendingSessionRow, Integer> colId;
@@ -73,7 +86,70 @@ public class AdminDashboardController {
         setupPendingColumns();
         setupUserColumns();
         setupSessionColumns();
+        setupAdminTablePolish();
+        setupAdminNavigationState();
         loadAllData();
+    }
+
+
+    private void setupAdminTablePolish() {
+        polishTable(tablePending, "Chưa có phiên nào đang chờ duyệt.");
+        polishTable(tableUsers, "Chưa có người dùng nào để hiển thị.");
+        polishTable(tableSessions, "Chưa có phiên đấu giá nào để hiển thị.");
+    }
+
+    private void polishTable(TableView<?> table, String emptyMessage) {
+        if (table == null) {
+            return;
+        }
+
+        Label placeholder = new Label(emptyMessage);
+        placeholder.getStyleClass().add("admin-table-placeholder");
+        table.setPlaceholder(placeholder);
+        table.setFixedCellSize(36);
+    }
+
+    private void setupAdminNavigationState() {
+        if (adminTabPane == null) {
+            return;
+        }
+
+        adminTabPane.getSelectionModel().selectedItemProperty().addListener(
+                (observable, oldTab, selectedTab) -> updateAdminNavigationState(selectedTab)
+        );
+        updateAdminNavigationState(adminTabPane.getSelectionModel().getSelectedItem());
+    }
+
+    private void updateAdminNavigationState(Tab selectedTab) {
+        setNavButtonActive(btnPendingTab, selectedTab == tabPending);
+        setNavButtonActive(btnUsersTab, selectedTab == tabUsers);
+        setNavButtonActive(btnSessionsTab, selectedTab == tabSessions);
+    }
+
+    private void setNavButtonActive(Button button, boolean active) {
+        if (button == null) {
+            return;
+        }
+
+        List<String> styleClasses = button.getStyleClass();
+
+        if (active && !styleClasses.contains(ACTIVE_NAV_CLASS)) {
+            styleClasses.add(ACTIVE_NAV_CLASS);
+        } else if (!active) {
+            styleClasses.remove(ACTIVE_NAV_CLASS);
+        }
+    }
+
+    private void setupConstrainedTables() {
+        setConstrainedResize(tablePending);
+        setConstrainedResize(tableUsers);
+        setConstrainedResize(tableSessions);
+    }
+
+    private void setConstrainedResize(TableView<?> table) {
+        if (table != null) {
+            table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        }
     }
 
     private void setupPendingColumns() {
@@ -195,6 +271,33 @@ public class AdminDashboardController {
                 (selected, adminId) -> adminDashboardService.banUser(selected.getId(), adminId)
         );
     }
+
+    @FXML
+    public void handleRestoreUser() {
+        AdminUserRow selected = getSelectedItem(
+                tableUsers,
+                NO_USER_SELECTED_TITLE,
+                "Hãy chọn user cần khôi phục."
+        );
+
+        if (selected == null) {
+            return;
+        }
+
+        if (!selected.isBanned()) {
+            AlertUtil.showInfo("Tài khoản này đang hoạt động, không cần khôi phục.");
+            return;
+        }
+
+        Integer adminId = getValidAdminId();
+
+        if (adminId == null) {
+            return;
+        }
+
+        runAction(() -> adminDashboardService.restoreUser(selected.getId(), adminId));
+    }
+
 
     @FXML
     public void handleCancelAuction() {
@@ -350,6 +453,54 @@ public class AdminDashboardController {
         loadPendingSessions();
         loadUsers();
         loadSessions();
+        updateDashboardMetrics();
+    }
+
+    private void updateDashboardMetrics() {
+        setMetricText(lblPendingCount, String.valueOf(itemCount(tablePending)));
+        setMetricText(lblUserCount, String.valueOf(itemCount(tableUsers)));
+        setMetricText(lblSessionCount, String.valueOf(itemCount(tableSessions)));
+        setMetricText(lblTotalStartingPrice, formatMetricCurrency(calculateTotalStartingPrice()));
+    }
+
+    private void setMetricText(Label label, String value) {
+        if (label != null) {
+            label.setText(value);
+        }
+    }
+
+    private int itemCount(TableView<?> table) {
+        if (table == null || table.getItems() == null) {
+            return 0;
+        }
+
+        return table.getItems().size();
+    }
+
+    private BigDecimal calculateTotalStartingPrice() {
+        if (tableSessions == null || tableSessions.getItems() == null) {
+            return BigDecimal.ZERO;
+        }
+
+        return tableSessions.getItems()
+                .stream()
+                .map(AdminSessionRow::getStartingPrice)
+                .filter(price -> price != null)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private String formatMetricCurrency(BigDecimal price) {
+        if (price == null) {
+            return "0 VND";
+        }
+
+        BigDecimal million = BigDecimal.valueOf(1_000_000L);
+        if (price.abs().compareTo(million) >= 0) {
+            BigDecimal compact = price.divide(million, 1, RoundingMode.HALF_UP).stripTrailingZeros();
+            return compact.toPlainString().replace('.', ',') + " triệu VND";
+        }
+
+        return formatCurrency(price);
     }
 
     private void loadPendingSessions() {

@@ -111,6 +111,18 @@ public final class ApiResponseParser {
     }
 
     private static String defaultMessage(int status, String defaultSuccessMessage) {
-        return isSuccess(status) ? defaultSuccessMessage : DEFAULT_FAILURE_MESSAGE;
+        if (isSuccess(status)) {
+            return defaultSuccessMessage;
+        }
+
+        if (status == 404) {
+            return "Thao tác thất bại: server chưa có API này hoặc server chưa được restart sau khi apply patch. HTTP 404.";
+        }
+
+        if (status >= 400) {
+            return DEFAULT_FAILURE_MESSAGE + " HTTP " + status + ".";
+        }
+
+        return DEFAULT_FAILURE_MESSAGE;
     }
 }

@@ -32,6 +32,7 @@ public class AdminService {
     private static final String ERROR_NOT_ADMIN = "Người này không phải là Quản trị viên";
     private static final String ERROR_SESSION_NOT_FOUND = "Không tìm thấy phiên đấu giá";
     private static final String ERROR_TARGET_USER_NOT_FOUND = "Không tìm thấy user cần khóa";
+    private static final String ERROR_RESTORE_USER_NOT_FOUND = "Không tìm thấy user cần khôi phục";
     private static final String ERROR_PRODUCT_NOT_FOUND = "Không tìm thấy sản phẩm";
     private static final String ERROR_ITEM_REPOSITORY_NOT_READY = "Chưa cấu hình kho dữ liệu sản phẩm";
     private static final String ERROR_SELF_BAN = "Không thể khóa chính tài khoản admin hiện tại";
@@ -146,6 +147,16 @@ public class AdminService {
         target.setBanned(true);
         userRepository.save(target);
     }
+
+    @Transactional
+    public void restoreUser(Integer targetUserId, Integer adminId) {
+        checkAdminPermission(adminId);
+
+        User target = getUserById(targetUserId, ERROR_RESTORE_USER_NOT_FOUND);
+        target.setBanned(false);
+        userRepository.save(target);
+    }
+
 
     @Transactional
     public void cancelAuction(Integer sessionId, Integer adminId) {
