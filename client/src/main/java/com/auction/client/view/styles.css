@@ -1469,3 +1469,57 @@
     -fx-text-fill: #e040a0;
     -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.18), 14, 0, 0, 4);
 }
+
+/* === PREMIUM CONTEXT MENU & MENU ITEM STYLING === */
+.context-menu {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 16px;
+    -fx-border-radius: 16px;
+    -fx-border-color: #ffe8e8;
+    -fx-border-width: 1.5px;
+    -fx-padding: 8px 6px;
+    -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.12), 15, 0.1, 0, 4);
+}
+
+.menu-item {
+    -fx-background-color: transparent;
+    -fx-padding: 8px 18px;
+    -fx-background-radius: 10px;
+    -fx-border-radius: 10px;
+    -fx-cursor: hand;
+}
+
+.menu-item .label {
+    -fx-text-fill: #2e1a28;
+    -fx-font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    -fx-font-size: 13.5px;
+    -fx-font-weight: bold;
+}
+
+.menu-item:focused, .menu-item:hover {
+    -fx-background-color: #fef7ff;
+}
+
+.menu-item:focused .label, .menu-item:hover .label {
+    -fx-text-fill: #e040a0;
+}
+
+.context-menu .separator {
+    -fx-padding: 4px 6px;
+}
+
+.context-menu .separator .line {
+    -fx-border-color: #ffe8f6;
+    -fx-border-width: 0.5px;
+}
+
+/* Hide arrow on profile menu button */
+#profile-menu > .arrow-button {
+    -fx-padding: 0;
+}
+#profile-menu > .arrow-button > .arrow {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-shape: null;
+}
+

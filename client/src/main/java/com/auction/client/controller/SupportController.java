@@ -24,8 +24,10 @@ public class SupportController implements Initializable {
     @FXML private Button btnSendSupport;
 
     @FXML private MenuButton userMenuButton;
+    @FXML private Button btnNotificationBell;
+    @FXML private Label notificationBadge;
+    @FXML private Button btnSettings;
     @FXML private TextField txtSearch;
-    @FXML private Button btnDashboard;
 
     @FXML private SidebarController sidebarController;
     @FXML private Button btnHamburger;
@@ -36,9 +38,18 @@ public class SupportController implements Initializable {
             createUserOption("Chào, " + User.getFullname());
         }
 
-        if (User.getRole() != null && User.getRole().equalsIgnoreCase("seller")) {
-            btnDashboard.setVisible(true);
-            btnDashboard.setManaged(true);
+        if (btnNotificationBell != null && notificationBadge != null) {
+            com.auction.client.util.NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
+        }
+
+        if (btnSettings != null) {
+            btnSettings.setOnAction(e -> {
+                try {
+                    com.auction.client.controller.SceneSwitcher.switchScene(e, "Settings.fxml", 1280, 800);
+                } catch (IOException ex) {
+                    logger.error("Lỗi chuyển sang trang Settings.fxml: ", ex);
+                }
+            });
         }
 
         if (User.getEmail() != null) {
@@ -107,7 +118,7 @@ public class SupportController implements Initializable {
             }
         });
 
-        userMenuButton.getItems().addAll(accountItem, depositMoney, logoutItem);
+        userMenuButton.getItems().addAll(accountItem, depositMoney, new SeparatorMenuItem(), logoutItem);
     }
 
     public void handleLogout(ActionEvent event) throws IOException {
@@ -132,14 +143,7 @@ public class SupportController implements Initializable {
         }
     }
 
-    @FXML
-    public void handleGoToDashboard(ActionEvent event) {
-        try {
-            SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
-        } catch (Exception e) {
-            logger.error("Lỗi khi chuyển về trang chính: ", e);
-        }
-    }
+
 
     @FXML
     public void handleSendSupport(ActionEvent event) {

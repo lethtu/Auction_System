@@ -10,6 +10,7 @@ module com.auction.client {
     requires transitive org.kordamp.ikonli.core;
     requires transitive org.kordamp.ikonli.javafx;
     requires transitive org.kordamp.ikonli.materialdesign2;
+    requires java.prefs;
 
     opens com.auction.client.model to javafx.base;
     opens com.auction.client.controller to javafx.fxml;

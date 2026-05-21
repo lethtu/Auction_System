@@ -183,9 +183,6 @@ public class MainController implements Initializable {
 
 
     @FXML private MenuButton userMenuButton;
-    @FXML
-    private Button btnViewToggle;
-
     @FXML private ScrollPane scrollPane;
 
     @FXML private FlowPane productContainer;
@@ -196,7 +193,6 @@ public class MainController implements Initializable {
 
     @FXML private ComboBox<String> cbStatus;
 
-    @FXML private Button btnDashboard;
 
 
 
@@ -330,15 +326,6 @@ public class MainController implements Initializable {
 
 
 
-        // Nút "Kênh Người Bán" trên thanh trên cùng được ẩn để tránh trùng chức năng với sidebar Selling.
-
-        if (btnDashboard != null) {
-
-            btnDashboard.setVisible(false);
-
-            btnDashboard.setManaged(false);
-
-        }
 
 
 
@@ -598,9 +585,7 @@ public class MainController implements Initializable {
 
         });
 
-
-
-        userMenuButton.getItems().addAll(accountItem, depositMoney, logoutItem);
+        userMenuButton.getItems().addAll(accountItem, depositMoney, new SeparatorMenuItem(), logoutItem);
 
 
 
@@ -2073,9 +2058,11 @@ public class MainController implements Initializable {
     @FXML
 
     private void handleSettings(ActionEvent event) {
-
-        showSettingsDialog();
-
+        try {
+            SceneSwitcher.switchScene(event, "Settings.fxml", 1280, 800);
+        } catch (IOException e) {
+            logger.error("Lỗi chuyển sang trang Settings.fxml: ", e);
+        }
     }
 
 
@@ -4135,7 +4122,9 @@ public class MainController implements Initializable {
         }
 
         updateViewToggleButton(compactProductListMode);
-    }private void updateViewToggleButton(boolean compactMode) {
+    }
+
+    private void updateViewToggleButton(boolean compactMode) {
         if (btnToggleProductView == null) {
             return;
         }

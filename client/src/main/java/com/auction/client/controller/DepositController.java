@@ -32,8 +32,8 @@ public class DepositController implements Initializable {
 
     @FXML private Button btnNotificationBell;
     @FXML private Label notificationBadge;
+    @FXML private Button btnSettings;
     @FXML private MenuButton userMenuButton;
-    @FXML private Button btnDashboard;
 
     @FXML private Label lblWalletBalance;
     @FXML private Button btnAmount50;
@@ -57,13 +57,19 @@ public class DepositController implements Initializable {
             createUserOption("Chào, " + User.getFullname());
         }
 
-        if (User.getRole() != null && User.getRole().equalsIgnoreCase("seller")) {
-            btnDashboard.setVisible(true);
-            btnDashboard.setManaged(true);
-        }
         
         if (btnNotificationBell != null && notificationBadge != null) {
             NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
+        }
+
+        if (btnSettings != null) {
+            btnSettings.setOnAction(e -> {
+                try {
+                    com.auction.client.controller.SceneSwitcher.switchScene(e, "Settings.fxml", 1280, 800);
+                } catch (IOException ex) {
+                    logger.error("Lỗi chuyển sang trang Settings.fxml: ", ex);
+                }
+            });
         }
 
         txtCustomAmount.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -109,7 +115,7 @@ public class DepositController implements Initializable {
             // Do nothing as we are already here
         });
 
-        userMenuButton.getItems().addAll(accountItem, depositMoney, logoutItem);
+        userMenuButton.getItems().addAll(accountItem, depositMoney, new SeparatorMenuItem(), logoutItem);
     }
 
     public void handleLogout(ActionEvent event) throws IOException {
@@ -124,14 +130,7 @@ public class DepositController implements Initializable {
         }
     }
 
-    @FXML
-    public void handleGoToDashboard(ActionEvent event) {
-        try {
-            SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1280, 800);
-        } catch (Exception e) {
-            logger.error("Lỗi khi chuyển về trang Quản lý Seller: ", e);
-        }
-    }
+
 
     @FXML
     public void handleGoBack(MouseEvent event) {

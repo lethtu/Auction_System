@@ -12,6 +12,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
@@ -81,6 +82,7 @@ public class AuctionPageController {
 
     @FXML private Button btnNotificationBell;
     @FXML private Label notificationBadge;
+    @FXML private Button btnSettings;
 
     @FXML private Label mainMenuLabel;
     @FXML private Label dashboardText;
@@ -164,6 +166,17 @@ public class AuctionPageController {
         
         if (btnNotificationBell != null && notificationBadge != null) {
             NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
+        }
+
+        if (btnSettings != null) {
+            btnSettings.setOnAction(e -> {
+                try {
+                    disconnectSocket();
+                    com.auction.client.controller.SceneSwitcher.switchScene(e, "Settings.fxml", 1280, 800);
+                } catch (IOException ex) {
+                    logger.error("Lỗi chuyển sang trang Settings.fxml: ", ex);
+                }
+            });
         }
         
         if (sidebarController != null) {
@@ -256,7 +269,7 @@ public class AuctionPageController {
         });
 
         if (userMenuButton != null) {
-            userMenuButton.getItems().addAll(accountItem, depositMoney, logoutItem);
+            userMenuButton.getItems().addAll(accountItem, depositMoney, new SeparatorMenuItem(), logoutItem);
         }
     }
 
