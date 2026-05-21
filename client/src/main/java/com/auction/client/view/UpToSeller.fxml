@@ -38,11 +38,7 @@
                     </Button>
                     <Label fx:id="notificationBadge" text="0" visible="false" managed="false" style="-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 1 5; -fx-background-radius: 10; -fx-translate-x: 12; -fx-translate-y: -12;" />
                 </StackPane>
-<<<<<<< HEAD
-                <Button fx:id="btnSettings" style="-fx-background-color: transparent; -fx-cursor: hand;">
-=======
-                <Button minWidth="44.0" prefWidth="44.0" maxWidth="44.0" minHeight="44.0" prefHeight="44.0" maxHeight="44.0" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0; -fx-alignment: center;">
->>>>>>> 19d0faadf3395fd9ce94c941edbe5f6123f70618
+                <Button fx:id="btnSettings" minWidth="44.0" prefWidth="44.0" maxWidth="44.0" minHeight="44.0" prefHeight="44.0" maxHeight="44.0" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0; -fx-alignment: center;">
                     <graphic>
                         <Label text="&#xe8b8;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" />
                     </graphic>
@@ -54,7 +50,6 @@
                         </StackPane>
                     </graphic>
                 </MenuButton>
-                <Button fx:id="btnDashboard" onAction="#handleGoToDashboard" text="Kênh Người Bán" visible="false" managed="false" />
             </HBox>
         </HBox>
     </top>

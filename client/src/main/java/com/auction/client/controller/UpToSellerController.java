@@ -38,7 +38,6 @@ public class UpToSellerController implements Initializable {
 
     @FXML private MenuButton userMenuButton;
     @FXML private TextField txtSearch;
-    @FXML private Button btnDashboard;
 
     @FXML private SidebarController sidebarController;
     @FXML private Button btnHamburger;
@@ -53,10 +52,6 @@ public class UpToSellerController implements Initializable {
             createUserOption("Chào, " + User.getFullname());
         }
 
-        if (User.getRole() != null && User.getRole().equalsIgnoreCase("seller")) {
-            btnDashboard.setVisible(true);
-            btnDashboard.setManaged(true);
-        }
         
         if (btnNotificationBell != null && notificationBadge != null) {
             NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
@@ -103,7 +98,7 @@ public class UpToSellerController implements Initializable {
             }
         });
 
-        userMenuButton.getItems().addAll(accountItem, depositMoney, logoutItem);
+        userMenuButton.getItems().addAll(accountItem, depositMoney, new SeparatorMenuItem(), logoutItem);
     }
 
     public void handleLogout(ActionEvent event) throws IOException {
@@ -118,14 +113,7 @@ public class UpToSellerController implements Initializable {
         }
     }
 
-    @FXML
-    public void handleGoToDashboard(ActionEvent event) {
-        try {
-            SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1280, 800);
-        } catch (Exception e) {
-            logger.error("Lỗi khi chuyển về trang Quản lý Seller: ", e);
-        }
-    }
+
 
     @FXML
     public void handleUpgrade(ActionEvent event) {

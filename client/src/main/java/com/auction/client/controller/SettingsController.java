@@ -30,7 +30,6 @@ public class SettingsController implements Initializable {
     @FXML private Label notificationBadge;
     @FXML private Button btnSettings;
     @FXML private MenuButton userMenuButton;
-    @FXML private Button btnDashboard;
     @FXML private TextField txtSearch;
 
     @FXML private CheckBox chkOutbid;
@@ -53,11 +52,7 @@ public class SettingsController implements Initializable {
             createUserOption("Chào, " + User.getFullname());
         }
 
-        if (User.getRole() != null && User.getRole().equalsIgnoreCase("seller")) {
-            btnDashboard.setVisible(true);
-            btnDashboard.setManaged(true);
-        }
-
+        
         // Bind Bell
         if (btnNotificationBell != null && notificationBadge != null) {
             NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
@@ -124,14 +119,7 @@ public class SettingsController implements Initializable {
         }
     }
 
-    @FXML
-    private void handleGoToDashboard(ActionEvent event) {
-        try {
-            SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1280, 800);
-        } catch (IOException e) {
-            logger.error("Lỗi chuyển về SellerDashboard: ", e);
-        }
-    }
+
 
     @FXML
     private void handleSaveSettings(ActionEvent event) {

@@ -204,7 +204,7 @@ public class MyBidsController implements Initializable {
             }
         });
 
-        userMenuButton.getItems().addAll(accountItem, depositMoney, logoutItem);
+        userMenuButton.getItems().addAll(accountItem, depositMoney, new SeparatorMenuItem(), logoutItem);
     }
 
     private void startPolling() {
