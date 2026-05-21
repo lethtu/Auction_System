@@ -44,7 +44,7 @@ public class SellerDashboardControllerTest {
     @Start
     public void start(Stage stage) throws Exception {
         // 1. Giả lập phiên đăng nhập của Seller
-        User.setSession(2, "seller_test", "Lê Thanh Tùng", "seller@gmail.com", "2000-01-01", "Hà Nội", "SELLER");
+        User.setSession(2, "seller_test", "Lê Thanh Tùng", "seller@gmail.com", "2000-01-01", "Hà Nội", "SELLER", null);
 
         // 2. Mock HttpClient
         mockHttpClient = Mockito.mock(HttpClient.class);

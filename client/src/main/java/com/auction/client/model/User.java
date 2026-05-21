@@ -19,9 +19,11 @@ public class User {
 
     private static BigDecimal balance = BigDecimal.ZERO;
 
+    private static String avatarUrl;
+
     public static final java.util.Set<Integer> watchlistIds = new java.util.concurrent.ConcurrentSkipListSet<>();
 
-    public static void setSession(Integer Id, String Username, String Fullname, String Email, String Dob, String Place_of_birth, String Role){
+    public static void setSession(Integer Id, String Username, String Fullname, String Email, String Dob, String Place_of_birth, String Role, String AvatarUrl){
         id = Id;
         username = Username;
         fullname = Fullname;
@@ -29,6 +31,7 @@ public class User {
         dob = Dob;
         place_of_birth = Place_of_birth;
         role = Role;
+        avatarUrl = AvatarUrl;
         balance = BigDecimal.ZERO;
         watchlistIds.clear();
         if (username != null) {
@@ -49,8 +52,17 @@ public class User {
         setBalance(Balance);
     }
 
+    public static void updateProfile(String Username, String Fullname, String Email, String Dob, String Place_of_birth, BigDecimal Balance, String AvatarUrl){
+        updateProfile(Username, Fullname, Email, Dob, Place_of_birth, Balance);
+        avatarUrl = AvatarUrl;
+    }
+
     public static void setBalance(BigDecimal Balance) {
         balance = Balance == null ? BigDecimal.ZERO : Balance;
+    }
+
+    public static void setAvatarUrl(String AvatarUrl) {
+        avatarUrl = AvatarUrl;
     }
 
     public static void clearSession(){
@@ -62,6 +74,7 @@ public class User {
         place_of_birth = null;
         role = null;
         balance = BigDecimal.ZERO;
+        avatarUrl = null;
         watchlistIds.clear();
     }
 
@@ -95,5 +108,9 @@ public class User {
 
     public static BigDecimal getBalance() {
         return balance == null ? BigDecimal.ZERO : balance;
+    }
+
+    public static String getAvatarUrl() {
+        return avatarUrl;
     }
 }

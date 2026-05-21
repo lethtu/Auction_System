@@ -103,6 +103,10 @@ public class MainController implements Initializable {
     @FXML private VBox sidebarContent;
     @FXML private Button btnHamburger;
     @FXML private Button btnStartSelling;
+    @FXML private Label lblPageTitle;
+    @FXML private HBox filterControlsBox;
+    @FXML private StackPane topBarAvatarPane;
+    @FXML private VBox toastContainer;
 
     private boolean isSidebarCollapsed = false;
     private boolean showingWatchlistOnly = false;
@@ -227,6 +231,9 @@ public class MainController implements Initializable {
                 sidebarController.setActiveDashboard();
             }
         }
+
+        // Load avatar into top bar if available from login session
+        Platform.runLater(() -> updateTopBarAvatar(User.getAvatarUrl()));
 
 //         if (System.getProperty("surefire.test.class.path") == null) {
 //             startPolling();
@@ -585,6 +592,7 @@ public class MainController implements Initializable {
         showingWatchlistOnly = false;
         showingMyBidsOnly = false;
         showingMySessionsOnly = false;
+        hideFilterControlsForAccountPage(false);
         forceRenderProducts = true;
         loadProductsFromServer();
         filterAndRenderProducts();
@@ -596,6 +604,7 @@ public class MainController implements Initializable {
         showingWatchlistOnly = true;
         showingMyBidsOnly = false;
         showingMySessionsOnly = false;
+        hideFilterControlsForAccountPage(false);
         forceRenderProducts = true;
         filterAndRenderProducts();
     }
@@ -603,6 +612,7 @@ public class MainController implements Initializable {
     private void showMySessions() {
         showingAccountScreen = false;
         showingCompactListScreen = false;
+        hideFilterControlsForAccountPage(false);
         if (User.getId() == null) {
             showWarning("Yêu cầu đăng nhập", "Vui lòng đăng nhập để xem phiên đấu giá của bạn.");
             return;
@@ -618,6 +628,7 @@ public class MainController implements Initializable {
     private void showMyBiddingSessions() {
         showingAccountScreen = false;
         showingCompactListScreen = false;
+        hideFilterControlsForAccountPage(false);
         if (User.getId() == null) {
             showWarning("Yêu cầu đăng nhập", "Vui lòng đăng nhập để xem các phiên bạn đang đấu giá.");
             return;
@@ -1161,71 +1172,389 @@ public class MainController implements Initializable {
         currentRenderedIds.clear();
         productContainer.setAlignment(Pos.TOP_CENTER);
 
-        VBox wrapper = new VBox(20);
-        wrapper.setAlignment(Pos.TOP_CENTER);
-        wrapper.setPadding(new Insets(22, 24, 40, 24));
-        wrapper.setPrefWidth(Math.max(760, productContainer.getPrefWidth() > 0 ? productContainer.getPrefWidth() - 80 : 900));
+        // Selective hiding: only hide page title and filter controls
+        hideFilterControlsForAccountPage(true);
 
-        HBox header = new HBox(14);
-        header.setAlignment(Pos.CENTER_LEFT);
-        header.setMaxWidth(820);
+        VBox wrapper = new VBox(22);
+        wrapper.getStyleClass().add("account-page-wrapper");
+        wrapper.setAlignment(Pos.TOP_CENTER);
+        wrapper.setMaxWidth(1250);
+
+        VBox headerSection = buildAccountHeader();
+        HBox topSection = buildAccountTopSection(saving);
+        VBox formCard = buildPersonalInfoForm(saving);
+
+        wrapper.getChildren().addAll(headerSection, topSection, formCard);
+        productContainer.getChildren().add(wrapper);
+
+        // Responsive layout listener
+        Platform.runLater(() -> {
+            if (scrollPane.getScene() != null) {
+                applyResponsiveAccountLayout(scrollPane.getWidth(), topSection);
+                scrollPane.widthProperty().addListener((obs, oldW, newW) -> {
+                    if (showingAccountScreen) {
+                        applyResponsiveAccountLayout(newW.doubleValue(), topSection);
+                    }
+                });
+            }
+        });
+    }
+
+    private void hideFilterControlsForAccountPage(boolean hide) {
+        try {
+            if (lblPageTitle != null) {
+                lblPageTitle.setVisible(!hide);
+                lblPageTitle.setManaged(!hide);
+            }
+            if (filterControlsBox != null) {
+                filterControlsBox.setVisible(!hide);
+                filterControlsBox.setManaged(!hide);
+            }
+        } catch (Exception e) {
+            logger.warn("Không thể ẩn/hiện filter controls: {}", e.getMessage());
+        }
+    }
+
+    private VBox buildAccountHeader() {
+        VBox headerBox = new VBox(4);
+        headerBox.setMaxWidth(1250);
+        headerBox.setAlignment(Pos.TOP_LEFT);
+
+        HBox row = new HBox(14);
+        row.setAlignment(Pos.CENTER_LEFT);
 
         Button backButton = new Button("← Quay lại");
-        backButton.setStyle("-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 999; -fx-background-radius: 999; -fx-text-fill: #604868; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-padding: 8 18 8 18; -fx-cursor: hand;");
+        backButton.getStyleClass().add("account-back-btn");
         backButton.setOnAction(e -> returnToAuctionGrid());
 
         VBox titleBox = new VBox(2);
         Label title = new Label("Tài khoản của tôi");
-        title.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
-        Label subtitle = new Label("Xem số dư và cập nhật thông tin cá nhân của bạn.");
-        subtitle.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #907898;");
+        title.getStyleClass().add("account-page-title");
+        Label subtitle = new Label("Quản lý hồ sơ, ảnh đại diện và thông tin cá nhân.");
+        subtitle.getStyleClass().add("account-page-subtitle");
         titleBox.getChildren().addAll(title, subtitle);
 
-        Region headerSpacer = new Region();
-        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
-        header.getChildren().addAll(backButton, titleBox, headerSpacer);
+        row.getChildren().addAll(backButton, titleBox);
+        headerBox.getChildren().add(row);
+        return headerBox;
+    }
 
-        HBox summaryRow = new HBox(16);
-        summaryRow.setAlignment(Pos.CENTER);
-        summaryRow.setMaxWidth(820);
-        summaryRow.getChildren().addAll(
-                createProfileStatCard("Số dư tài khoản", "₫ " + formatPrice(User.getBalance()), "#e040a0"),
-                createProfileStatCard("Vai trò", safeText(User.getRole(), "Chưa rõ"), "#604868"),
-                createProfileStatCard("User ID", String.valueOf(User.getId()), "#604868")
+    private HBox buildAccountTopSection(boolean saving) {
+        HBox topSection = new HBox(22);
+        topSection.setMaxWidth(1250);
+        topSection.setAlignment(Pos.TOP_CENTER);
+
+        VBox profileCard = buildProfileSummaryCard();
+        HBox.setHgrow(profileCard, Priority.ALWAYS);
+
+        VBox statsColumn = buildAccountStats();
+        HBox.setHgrow(statsColumn, Priority.ALWAYS);
+
+        topSection.getChildren().addAll(profileCard, statsColumn);
+        return topSection;
+    }
+
+    private VBox buildProfileSummaryCard() {
+        VBox card = new VBox(16);
+        card.getStyleClass().add("profile-summary-card");
+        card.setAlignment(Pos.CENTER);
+        card.setMinWidth(280);
+
+        StackPane avatarPane = createAvatarView();
+
+        Label nameLabel = new Label(safeText(User.getFullname(), "Người dùng"));
+        nameLabel.getStyleClass().add("profile-name");
+
+        Label emailLabel = new Label(safeText(User.getEmail(), ""));
+        emailLabel.getStyleClass().add("profile-email");
+
+        Label roleBadge = new Label(safeText(User.getRole(), "user").toUpperCase());
+        roleBadge.getStyleClass().add("profile-role-badge");
+
+        Button btnChangeAvatar = new Button("Đổi ảnh đại diện");
+        btnChangeAvatar.getStyleClass().add("btn-avatar-change");
+        btnChangeAvatar.setOnAction(e -> handleAvatarUpload(btnChangeAvatar));
+
+        card.getChildren().addAll(avatarPane, nameLabel, emailLabel, roleBadge, btnChangeAvatar);
+        return card;
+    }
+
+    private StackPane createAvatarView() {
+        double size = 120;
+        StackPane container = new StackPane();
+        container.setMinSize(size, size);
+        container.setMaxSize(size, size);
+        container.setPrefSize(size, size);
+
+        String avatarUrl = User.getAvatarUrl();
+        boolean hasAvatar = avatarUrl != null && !avatarUrl.isBlank();
+
+        if (hasAvatar) {
+            try {
+                String fullUrl = avatarUrl.startsWith("http") ? avatarUrl
+                        : Config.API_URL + avatarUrl;
+                ImageView imgView = new ImageView();
+                imgView.setFitWidth(size);
+                imgView.setFitHeight(size);
+                imgView.setPreserveRatio(false);
+                imgView.setSmooth(true);
+
+                javafx.scene.shape.Circle clip = new javafx.scene.shape.Circle(size / 2, size / 2, size / 2);
+                imgView.setClip(clip);
+
+                Image img = new Image(fullUrl, size, size, false, true, true);
+                img.errorProperty().addListener((obs, wasError, isError) -> {
+                    if (isError) {
+                        Platform.runLater(() -> {
+                            container.getChildren().clear();
+                            container.getChildren().add(buildInitialsAvatar(size));
+                        });
+                    }
+                });
+                imgView.setImage(img);
+                container.getChildren().add(imgView);
+            } catch (Exception e) {
+                container.getChildren().add(buildInitialsAvatar(size));
+            }
+        } else {
+            container.getChildren().add(buildInitialsAvatar(size));
+        }
+
+        // Hover overlay with camera icon
+        StackPane overlay = new StackPane();
+        overlay.setMinSize(size, size);
+        overlay.setMaxSize(size, size);
+        overlay.getStyleClass().add("profile-avatar-overlay");
+        Label cameraIcon = new Label("\uE3B0");
+        cameraIcon.getStyleClass().add("profile-avatar-overlay-icon");
+        overlay.getChildren().add(cameraIcon);
+        overlay.setOnMouseClicked(e -> {
+            // Find the change avatar button and trigger it
+            handleAvatarUpload(null);
+        });
+        container.getChildren().add(overlay);
+
+        return container;
+    }
+
+    private StackPane buildInitialsAvatar(double size) {
+        StackPane placeholder = new StackPane();
+        placeholder.setMinSize(size, size);
+        placeholder.setMaxSize(size, size);
+        placeholder.setStyle("-fx-background-color: linear-gradient(to bottom right, #e040a0, #c83090);"
+                + " -fx-background-radius: " + (size / 2) + ";");
+
+        String initials = getInitials(User.getFullname());
+        Label initialsLabel = new Label(initials);
+        initialsLabel.getStyleClass().add("profile-avatar-initials");
+        placeholder.getChildren().add(initialsLabel);
+        return placeholder;
+    }
+
+    private String getInitials(String name) {
+        if (name == null || name.isBlank()) return "?";
+        String[] parts = name.trim().split("\\s+");
+        if (parts.length >= 2) {
+            return (parts[0].substring(0, 1) + parts[parts.length - 1].substring(0, 1)).toUpperCase();
+        }
+        return parts[0].substring(0, Math.min(2, parts[0].length())).toUpperCase();
+    }
+
+    private void handleAvatarUpload(Button btnChangeAvatar) {
+        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+        chooser.setTitle("Chọn ảnh đại diện");
+        chooser.getExtensionFilters().add(
+                new javafx.stage.FileChooser.ExtensionFilter("Ảnh", "*.jpg", "*.jpeg", "*.png", "*.webp"));
+
+        javafx.stage.Window window = scrollPane.getScene().getWindow();
+        java.io.File file = chooser.showOpenDialog(window);
+        if (file == null) return;
+
+        // Client-side size validation
+        if (file.length() > 5 * 1024 * 1024) {
+            showWarning("File quá lớn", "Ảnh đại diện không được vượt quá 5MB.");
+            return;
+        }
+
+        // Disable button + loading state
+        if (btnChangeAvatar != null) {
+            btnChangeAvatar.setDisable(true);
+            btnChangeAvatar.setText("Đang tải lên...");
+        }
+
+        // Upload on background thread
+        new Thread(() -> {
+            try {
+                String boundary = java.util.UUID.randomUUID().toString();
+                String fileName = file.getName();
+                byte[] fileBytes = java.nio.file.Files.readAllBytes(file.toPath());
+
+                String contentType = "application/octet-stream";
+                String lName = fileName.toLowerCase();
+                if (lName.endsWith(".png")) contentType = "image/png";
+                else if (lName.endsWith(".jpg") || lName.endsWith(".jpeg")) contentType = "image/jpeg";
+                else if (lName.endsWith(".webp")) contentType = "image/webp";
+
+                // Build multipart body
+                String lineEnd = "\r\n";
+                String twoHyphens = "--";
+                java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+                bos.write((twoHyphens + boundary + lineEnd).getBytes());
+                bos.write(("Content-Disposition: form-data; name=\"avatar\"; filename=\"" + fileName + "\"" + lineEnd).getBytes());
+                bos.write(("Content-Type: " + contentType + lineEnd).getBytes());
+                bos.write(lineEnd.getBytes());
+                bos.write(fileBytes);
+                bos.write(lineEnd.getBytes());
+                bos.write((twoHyphens + boundary + twoHyphens + lineEnd).getBytes());
+
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(Config.API_URL + "/api/users/" + User.getId() + "/avatar"))
+                        .header("Content-Type", "multipart/form-data; boundary=" + boundary)
+                        .POST(HttpRequest.BodyPublishers.ofByteArray(bos.toByteArray()))
+                        .build();
+
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                JSONObject responseJson = new JSONObject(response.body());
+
+                Platform.runLater(() -> {
+                    if (response.statusCode() == 200 && responseJson.optInt("status", 500) == 200) {
+                        JSONObject data = responseJson.optJSONObject("data");
+                        String newAvatarUrl = data != null ? data.optString("avatarUrl", null) : null;
+                        if (newAvatarUrl != null) {
+                            User.setAvatarUrl(newAvatarUrl);
+                            updateTopBarAvatar(newAvatarUrl);
+                        }
+                        renderAccountScreen(false);
+                        showInfo("Thành công", "Ảnh đại diện đã được cập nhật.");
+                    } else {
+                        String msg = responseJson.optString("message", "Upload thất bại.");
+                        showError("Upload thất bại", msg);
+                        resetAvatarButton(btnChangeAvatar);
+                    }
+                });
+            } catch (Exception e) {
+                logger.error("Lỗi upload avatar: {}", e.getMessage(), e);
+                Platform.runLater(() -> {
+                    showError("Upload thất bại", "Không thể kết nối đến máy chủ.");
+                    resetAvatarButton(btnChangeAvatar);
+                });
+            }
+        }, "upload-avatar").start();
+    }
+
+    private void resetAvatarButton(Button btn) {
+        if (btn != null) {
+            btn.setDisable(false);
+            btn.setText("Đổi ảnh đại diện");
+        }
+    }
+
+    private void updateTopBarAvatar(String avatarUrl) {
+        if (topBarAvatarPane == null) return;
+        try {
+            topBarAvatarPane.getChildren().clear();
+            if (avatarUrl != null && !avatarUrl.isBlank()) {
+                String fullUrl = avatarUrl.startsWith("http") ? avatarUrl
+                        : Config.API_URL + avatarUrl;
+                ImageView imgView = new ImageView(new Image(fullUrl, 36, 36, false, true, true));
+                imgView.setFitWidth(36);
+                imgView.setFitHeight(36);
+                imgView.setSmooth(true);
+                javafx.scene.shape.Circle clip = new javafx.scene.shape.Circle(18, 18, 18);
+                imgView.setClip(clip);
+                topBarAvatarPane.getChildren().add(imgView);
+            } else {
+                Label icon = new Label("\uE7FD");
+                icon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: white;");
+                topBarAvatarPane.getChildren().add(icon);
+            }
+        } catch (Exception e) {
+            logger.warn("Không thể cập nhật avatar trên top bar: {}", e.getMessage());
+        }
+    }
+
+    private VBox buildAccountStats() {
+        VBox statsColumn = new VBox(14);
+        statsColumn.setAlignment(Pos.TOP_LEFT);
+        statsColumn.setMinWidth(200);
+
+        statsColumn.getChildren().addAll(
+                createProfileStatCard("Số dư tài khoản", "₫ " + formatPrice(User.getBalance()), "\uE227"),
+                createProfileStatCard("Vai trò", safeText(User.getRole(), "Chưa rõ"), "\uE7FD"),
+                createProfileStatCard("User ID", String.valueOf(User.getId()), "\uE838")
         );
+        return statsColumn;
+    }
 
+    private VBox createProfileStatCard(String title, String value, String iconCode) {
+        VBox box = new VBox(6);
+        box.getStyleClass().add("account-stat-card");
+        box.setAlignment(Pos.CENTER_LEFT);
+
+        HBox row = new HBox(12);
+        row.setAlignment(Pos.CENTER_LEFT);
+
+        Label icon = new Label(iconCode);
+        icon.getStyleClass().add("account-stat-icon");
+
+        VBox textBox = new VBox(2);
+        Label titleLabel = new Label(title);
+        titleLabel.getStyleClass().add("account-stat-label");
+        Label valueLabel = new Label(value);
+        valueLabel.getStyleClass().add("account-stat-value");
+        valueLabel.setWrapText(true);
+        textBox.getChildren().addAll(titleLabel, valueLabel);
+
+        row.getChildren().addAll(icon, textBox);
+        box.getChildren().add(row);
+        return box;
+    }
+
+    private VBox buildPersonalInfoForm(boolean saving) {
         VBox card = new VBox(18);
-        card.setMaxWidth(820);
-        card.setPadding(new Insets(26));
-        card.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 24px; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.08), 18, 0, 0, 4);");
+        card.getStyleClass().add("account-form-card");
+        card.setMaxWidth(1250);
+
+        Label formTitle = new Label("Thông tin cá nhân");
+        formTitle.getStyleClass().add("account-form-title");
 
         GridPane form = new GridPane();
-        form.setHgap(16);
-        form.setVgap(14);
+        form.setHgap(20);
+        form.setVgap(16);
 
-        TextField usernameField = createProfileField(safeText(User.getUsername(), ""), "Tên đăng nhập");
-        TextField fullnameField = createProfileField(safeText(User.getFullname(), ""), "Họ tên hiển thị");
-        TextField emailField = createProfileField(safeText(User.getEmail(), ""), "email@example.com");
-        TextField dobField = createProfileField(safeText(User.getDob(), ""), "YYYY-MM-DD hoặc để trống");
-        TextField placeField = createProfileField(safeText(User.getPlace_of_birth(), ""), "Nơi sinh");
+        TextField usernameField = createAccountField(safeText(User.getUsername(), ""), "Tên đăng nhập");
+        TextField fullnameField = createAccountField(safeText(User.getFullname(), ""), "Họ tên hiển thị");
+        TextField emailField = createAccountField(safeText(User.getEmail(), ""), "email@example.com");
+        TextField dobField = createAccountField(safeText(User.getDob(), ""), "YYYY-MM-DD hoặc để trống");
+        TextField placeField = createAccountField(safeText(User.getPlace_of_birth(), ""), "Nơi sinh");
 
-        addProfileRow(form, 0, "Tên đăng nhập", usernameField);
-        addProfileRow(form, 1, "Họ tên", fullnameField);
-        addProfileRow(form, 2, "Email", emailField);
-        addProfileRow(form, 3, "Ngày sinh", dobField);
-        addProfileRow(form, 4, "Nơi sinh", placeField);
+        addAccountFormRow(form, 0, "Tên đăng nhập", usernameField);
+        addAccountFormRow(form, 1, "Họ tên", fullnameField);
+        addAccountFormRow(form, 2, "Email", emailField);
+        addAccountFormRow(form, 3, "Ngày sinh", dobField);
+        addAccountFormRow(form, 4, "Nơi sinh", placeField);
 
-        HBox actions = new HBox(12);
+        // Make fields stretch
+        javafx.scene.layout.ColumnConstraints col0 = new javafx.scene.layout.ColumnConstraints();
+        col0.setMinWidth(100);
+        col0.setPrefWidth(130);
+        javafx.scene.layout.ColumnConstraints col1 = new javafx.scene.layout.ColumnConstraints();
+        col1.setHgrow(Priority.ALWAYS);
+        col1.setMinWidth(200);
+        form.getColumnConstraints().addAll(col0, col1);
+
+        HBox actions = new HBox(14);
         actions.setAlignment(Pos.CENTER_RIGHT);
+        actions.setPadding(new Insets(8, 0, 0, 0));
 
         Button reloadButton = new Button("Tải lại thông tin");
         reloadButton.setDisable(saving);
-        reloadButton.setStyle("-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 999; -fx-background-radius: 999; -fx-text-fill: #604868; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-padding: 10 20 10 20; -fx-cursor: hand;");
+        reloadButton.getStyleClass().add("btn-account-secondary");
         reloadButton.setOnAction(e -> loadLatestAccountProfileForScreen());
 
         Button saveButton = new Button(saving ? "Đang lưu..." : "Lưu thay đổi");
         saveButton.setDisable(saving);
-        saveButton.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 999; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-padding: 10 24 10 24; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224,64,160,0.25), 10, 0, 0, 3);");
+        saveButton.getStyleClass().add("btn-account-primary");
         saveButton.setOnAction(e -> {
             String username = readTrimmed(usernameField);
             String fullname = readTrimmed(fullnameField);
@@ -1251,42 +1580,40 @@ public class MainController implements Initializable {
         });
 
         actions.getChildren().addAll(reloadButton, saveButton);
-        card.getChildren().addAll(form, actions);
-
-        wrapper.getChildren().addAll(header, summaryRow, card);
-        productContainer.getChildren().add(wrapper);
+        card.getChildren().addAll(formTitle, form, actions);
+        return card;
     }
 
-    private VBox createProfileStatCard(String title, String value, String valueColor) {
-        VBox box = new VBox(4);
-        box.setAlignment(Pos.CENTER_LEFT);
-        box.setPadding(new Insets(16, 18, 16, 18));
-        box.setPrefWidth(260);
-        box.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 20px; -fx-border-color: #ffe8e8; -fx-border-radius: 20px; -fx-border-width: 2px;");
-
-        Label titleLabel = new Label(title);
-        titleLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #907898;");
-        Label valueLabel = new Label(value);
-        valueLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: " + valueColor + ";");
-        valueLabel.setWrapText(true);
-        box.getChildren().addAll(titleLabel, valueLabel);
-        return box;
-    }
-
-    private TextField createProfileField(String value, String prompt) {
+    private TextField createAccountField(String value, String prompt) {
         TextField field = new TextField(value);
         field.setPromptText(prompt);
-        field.setPrefWidth(420);
-        field.setStyle("-fx-background-color: #fef7ff; -fx-border-color: #f2e8f2; -fx-border-radius: 14px; -fx-background-radius: 14px; -fx-padding: 10 12 10 12; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #2e1a28;");
+        field.getStyleClass().add("account-input");
+        field.setMaxWidth(Double.MAX_VALUE);
         return field;
     }
 
-    private void addProfileRow(GridPane grid, int row, String label, TextField field) {
+    private void addAccountFormRow(GridPane grid, int row, String label, TextField field) {
         Label rowLabel = new Label(label);
-        rowLabel.setMinWidth(130);
-        rowLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #604868;");
+        rowLabel.getStyleClass().add("account-form-label");
+        rowLabel.setMinWidth(100);
         grid.add(rowLabel, 0, row);
         grid.add(field, 1, row);
+        GridPane.setHgrow(field, Priority.ALWAYS);
+    }
+
+    private void applyResponsiveAccountLayout(double width, HBox topSection) {
+        if (topSection == null) return;
+        // Make use of horizontal space better
+        if (width < 900) {
+            topSection.setSpacing(14);
+            if (topSection.getChildren().size() == 2) {
+                topSection.setPrefWidth(Math.min(width - 40, 850));
+            }
+        } else {
+            topSection.setSpacing(22);
+            topSection.setPrefWidth(1250);
+            topSection.setMaxWidth(1250);
+        }
     }
 
     private void loadLatestAccountProfileForScreen() {
@@ -1299,7 +1626,6 @@ public class MainController implements Initializable {
                         .GET()
                         .build();
 
-
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
                 JSONObject responseJson = new JSONObject(response.body());
                 if (response.statusCode() == 200 && responseJson.optInt("status", 500) == 200) {
@@ -1309,6 +1635,7 @@ public class MainController implements Initializable {
                         Platform.runLater(() -> {
                             if (showingAccountScreen) {
                                 renderAccountScreen(false);
+                                updateTopBarAvatar(User.getAvatarUrl());
                             }
                         });
                     }
@@ -1320,13 +1647,17 @@ public class MainController implements Initializable {
     }
 
     private void applyUserProfileFromJson(JSONObject data) {
+        String avatarUrl = data.optString("avatarUrl", data.optString("avatar_url", null));
+        if ("null".equals(avatarUrl)) avatarUrl = null;
+
         User.updateProfile(
                 data.optString("username", safeText(User.getUsername(), "")),
                 data.optString("fullname", safeText(User.getFullname(), "")),
                 data.optString("email", safeText(User.getEmail(), "")),
                 data.optString("dob", safeText(User.getDob(), "")),
                 data.optString("placeOfBirth", data.optString("place_of_birth", safeText(User.getPlace_of_birth(), ""))),
-                parseMoney(data.opt("balance"), User.getBalance())
+                parseMoney(data.opt("balance"), User.getBalance()),
+                avatarUrl
         );
     }
 
@@ -1594,16 +1925,95 @@ public class MainController implements Initializable {
         }
     }
 
+    public enum ToastType {
+        SUCCESS, ERROR, WARNING, INFO
+    }
+
+    private void showToast(String title, String message, ToastType type) {
+        if (!Platform.isFxApplicationThread()) {
+            Platform.runLater(() -> showToast(title, message, type));
+            return;
+        }
+        if (toastContainer == null) {
+            Alert.AlertType alertType = Alert.AlertType.INFORMATION;
+            if (type == ToastType.ERROR) alertType = Alert.AlertType.ERROR;
+            if (type == ToastType.WARNING) alertType = Alert.AlertType.WARNING;
+            showAlert(alertType, title, message);
+            return;
+        }
+
+        HBox toast = new HBox(14);
+        toast.getStyleClass().addAll("app-toast", "app-toast-" + type.name().toLowerCase());
+        toast.setAlignment(Pos.CENTER_LEFT);
+        toast.setMaxWidth(400);
+
+        Label icon = new Label();
+        icon.getStyleClass().addAll("app-toast-icon", "app-toast-icon-" + type.name().toLowerCase());
+        switch (type) {
+            case SUCCESS: icon.setText("\ue86c"); break; // check_circle
+            case ERROR: icon.setText("\ue000"); break; // error
+            case WARNING: icon.setText("\ue002"); break; // warning
+            case INFO: icon.setText("\ue88e"); break; // info
+        }
+
+        VBox textBox = new VBox(4);
+        Label titleLabel = new Label(title);
+        titleLabel.getStyleClass().add("app-toast-title");
+        Label msgLabel = new Label(message);
+        msgLabel.getStyleClass().add("app-toast-message");
+        msgLabel.setWrapText(true);
+        textBox.getChildren().addAll(titleLabel, msgLabel);
+        HBox.setHgrow(textBox, Priority.ALWAYS);
+
+        Button closeBtn = new Button("\ue5cd"); // close
+        closeBtn.getStyleClass().add("app-toast-close");
+
+        toast.getChildren().addAll(icon, textBox, closeBtn);
+
+        toast.setOpacity(0);
+        toast.setTranslateY(20);
+        toastContainer.getChildren().add(toast);
+
+        javafx.animation.ParallelTransition fadeIn = new javafx.animation.ParallelTransition();
+        javafx.animation.FadeTransition fade = new javafx.animation.FadeTransition(javafx.util.Duration.millis(300), toast);
+        fade.setFromValue(0);
+        fade.setToValue(1);
+        javafx.animation.TranslateTransition slide = new javafx.animation.TranslateTransition(javafx.util.Duration.millis(300), toast);
+        slide.setFromY(20);
+        slide.setToY(0);
+        fadeIn.getChildren().addAll(fade, slide);
+        fadeIn.play();
+
+        javafx.animation.PauseTransition delay = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(3.5));
+        delay.setOnFinished(e -> {
+            javafx.animation.FadeTransition fadeOut = new javafx.animation.FadeTransition(javafx.util.Duration.millis(300), toast);
+            fadeOut.setFromValue(1);
+            fadeOut.setToValue(0);
+            fadeOut.setOnFinished(e2 -> toastContainer.getChildren().remove(toast));
+            fadeOut.play();
+        });
+        delay.play();
+
+        closeBtn.setOnAction(e -> {
+            delay.stop();
+            toastContainer.getChildren().remove(toast);
+        });
+    }
+
     private void showInfo(String title, String message) {
-        showAlert(Alert.AlertType.INFORMATION, title, message);
+        if (title.toLowerCase().contains("thành công")) {
+            showToast(title, message, ToastType.SUCCESS);
+        } else {
+            showToast(title, message, ToastType.INFO);
+        }
     }
 
     private void showWarning(String title, String message) {
-        showAlert(Alert.AlertType.WARNING, title, message);
+        showToast(title, message, ToastType.WARNING);
     }
 
     private void showError(String title, String message) {
-        showAlert(Alert.AlertType.ERROR, title, message);
+        showToast(title, message, ToastType.ERROR);
     }
 
     private void showAlert(Alert.AlertType type, String title, String message) {

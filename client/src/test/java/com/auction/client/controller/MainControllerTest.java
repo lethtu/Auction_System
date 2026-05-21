@@ -27,7 +27,7 @@ public class MainControllerTest {
     @Start
     public void start(Stage stage) throws Exception {
         SidebarController.isSidebarCollapsed = false;
-        User.setSession(1, "testuser", "Nguyen Van A", "test@example.com", "2000-01-01", "Hanoi", "USER");
+        User.setSession(1, "testuser", "Nguyen Van A", "test@example.com", "2000-01-01", "Hanoi", "USER", null);
         
         Parent root = FXMLLoader.load(getClass().getResource("/com/auction/client/view/MainTemplate.fxml"));
         stage.setScene(new Scene(root, 1024, 768));
