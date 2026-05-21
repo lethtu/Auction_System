@@ -844,7 +844,7 @@ public class SellerDashboardControllerTest {
         activeSession.productType = "Electronics";
         activeSession.startingPrice = new BigDecimal("6000000");
         activeSession.startTime = "2026-05-19T10:30:00"; // Quá khứ
-        activeSession.endTime = "2026-05-20T10:30:00"; // Tương lai
+        activeSession.endTime = "2029-05-20T10:30:00"; // Tương lai
         activeSession.status = "ACTIVE";
 
         // 2. Thêm sản phẩm vào TableView và click vào nút Sửa (biểu tượng cây bút
