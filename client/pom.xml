@@ -59,7 +59,12 @@
             <version>${logback.version}</version>
         </dependency>
 
-        <!-- Ikonli for Icons -->
+        <!-- Ikonli Icon Library -->
+        <dependency>
+            <groupId>org.kordamp.ikonli</groupId>
+            <artifactId>ikonli-core</artifactId>
+            <version>12.3.1</version>
+        </dependency>
         <dependency>
             <groupId>org.kordamp.ikonli</groupId>
             <artifactId>ikonli-javafx</artifactId>

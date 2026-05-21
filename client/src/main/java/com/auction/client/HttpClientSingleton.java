@@ -25,11 +25,11 @@ public class HttpClientSingleton {
         instance = mockInstance;
     }
 
-    public void setHttpClient(HttpClient client) {
-        this.httpClient = client;
-    }
-
     public HttpClient getHttpClient() {
         return httpClient;
+    }
+
+    public void setHttpClient(HttpClient httpClient) {
+        this.httpClient = httpClient;
     }
 }

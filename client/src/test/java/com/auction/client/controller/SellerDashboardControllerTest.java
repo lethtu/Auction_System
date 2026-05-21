@@ -53,7 +53,8 @@ public class SellerDashboardControllerTest {
         // Đăng ký Mock HttpClient vào Singleton
         HttpClientSingleton.getInstance().setHttpClient(mockHttpClient);
 
-        // Giả lập API lấy danh sách phiên ban đầu trả về rỗng để khởi tạo Dashboard mượt mà
+        // Giả lập API lấy danh sách phiên ban đầu trả về rỗng để khởi tạo Dashboard
+        // mượt mà
         when(mockHttpClient.<String>send(any(HttpRequest.class), any())).thenReturn(mockHttpResponse);
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn("[]"); // Mảng JSON rỗng
@@ -122,7 +123,7 @@ public class SellerDashboardControllerTest {
 
         // 2. Nhập các thông tin hợp lệ
         robot.clickOn("#productNameField").write("Sản Phẩm Đấu Giá Coming");
-        
+
         Platform.runLater(() -> {
             ComboBox<String> combo = (ComboBox<String>) robot.lookup("#productTypeCombo").query();
             combo.setValue("Electronics");
@@ -185,7 +186,7 @@ public class SellerDashboardControllerTest {
 
         // 2. Nhập các thông tin hợp lệ
         robot.clickOn("#productNameField").write("Sản Phẩm Đấu Giá Active");
-        
+
         Platform.runLater(() -> {
             ComboBox<String> combo = (ComboBox<String>) robot.lookup("#productTypeCombo").query();
             combo.setValue("Electronics");
@@ -233,9 +234,10 @@ public class SellerDashboardControllerTest {
         robot.clickOn("#btnSubmit");
         robot.sleep(500);
 
-        // 5. Xác minh hộp thoại xác nhận thời gian bắt đầu quá khứ "Thời gian bắt đầu đã đến!" xuất hiện
+        // 5. Xác minh hộp thoại xác nhận thời gian bắt đầu quá khứ "Thời gian bắt đầu
+        // đã đến!" xuất hiện
         verifyThat("Thời gian bắt đầu đã đến!", NodeMatchers.isVisible());
-        
+
         // Giả lập click vào nút "Bắt đầu ngay" trên hộp thoại xác nhận
         robot.clickOn("Bắt đầu ngay");
         robot.sleep(1000);
@@ -255,7 +257,7 @@ public class SellerDashboardControllerTest {
 
         // 2. Nhập các thông tin hợp lệ
         robot.clickOn("#productNameField").write("Sản Phẩm Thời Gian Lỗi 1");
-        
+
         Platform.runLater(() -> {
             ComboBox<String> combo = (ComboBox<String>) robot.lookup("#productTypeCombo").query();
             combo.setValue("Electronics");
@@ -303,7 +305,8 @@ public class SellerDashboardControllerTest {
         Label lblErrorEndDT = (Label) robot.lookup("#lblErrorEndDT").query();
 
         assertTrue(errorEndDT.isVisible(), "Thông báo lỗi End Time phải hiển thị");
-        assertEquals("Thời gian kết thúc phải ở tương lai", lblErrorEndDT.getText(), "Nội dung thông báo lỗi phải chính xác");
+        assertEquals("Thời gian kết thúc phải ở tương lai", lblErrorEndDT.getText(),
+                "Nội dung thông báo lỗi phải chính xác");
         Platform.runLater(() -> controller.handleCloseModal());
         WaitForAsyncUtils.waitForFxEvents();
     }
@@ -317,7 +320,7 @@ public class SellerDashboardControllerTest {
 
         // 2. Nhập các thông tin hợp lệ
         robot.clickOn("#productNameField").write("Sản Phẩm Thời Gian Lỗi 2");
-        
+
         Platform.runLater(() -> {
             ComboBox<String> combo = (ComboBox<String>) robot.lookup("#productTypeCombo").query();
             combo.setValue("Electronics");
@@ -365,7 +368,8 @@ public class SellerDashboardControllerTest {
         Label lblErrorEndDT = (Label) robot.lookup("#lblErrorEndDT").query();
 
         assertTrue(errorEndDT.isVisible(), "Thông báo lỗi End Time phải hiển thị");
-        assertEquals("Thời gian kết thúc phải sau thời gian bắt đầu", lblErrorEndDT.getText(), "Nội dung thông báo lỗi phải chính xác");
+        assertEquals("Thời gian kết thúc phải sau thời gian bắt đầu", lblErrorEndDT.getText(),
+                "Nội dung thông báo lỗi phải chính xác");
         Platform.runLater(() -> controller.handleCloseModal());
         WaitForAsyncUtils.waitForFxEvents();
     }
@@ -379,7 +383,7 @@ public class SellerDashboardControllerTest {
 
         // 2. Nhập các thông tin hợp lệ
         robot.clickOn("#productNameField").write("Bản Nháp Sản Phẩm Mới");
-        
+
         Platform.runLater(() -> {
             ComboBox<String> combo = (ComboBox<String>) robot.lookup("#productTypeCombo").query();
             combo.setValue("Electronics");
@@ -486,7 +490,7 @@ public class SellerDashboardControllerTest {
 
         // 2. Nhập các thông tin hợp lệ
         robot.clickOn("#productNameField").write("Bản Nháp Thời Gian Lỗi 1");
-        
+
         Platform.runLater(() -> {
             ComboBox<String> combo = (ComboBox<String>) robot.lookup("#productTypeCombo").query();
             combo.setValue("Electronics");
@@ -534,7 +538,8 @@ public class SellerDashboardControllerTest {
         Label lblErrorEndDT = (Label) robot.lookup("#lblErrorEndDT").query();
 
         assertTrue(errorEndDT.isVisible(), "Thông báo lỗi End Time phải hiển thị");
-        assertEquals("Thời gian kết thúc phải ở tương lai", lblErrorEndDT.getText(), "Nội dung thông báo lỗi phải chính xác");
+        assertEquals("Thời gian kết thúc phải ở tương lai", lblErrorEndDT.getText(),
+                "Nội dung thông báo lỗi phải chính xác");
         Platform.runLater(() -> controller.handleCloseModal());
         WaitForAsyncUtils.waitForFxEvents();
     }
@@ -548,7 +553,7 @@ public class SellerDashboardControllerTest {
 
         // 2. Nhập các thông tin hợp lệ
         robot.clickOn("#productNameField").write("Bản Nháp Thời Gian Lỗi 2");
-        
+
         Platform.runLater(() -> {
             ComboBox<String> combo = (ComboBox<String>) robot.lookup("#productTypeCombo").query();
             combo.setValue("Electronics");
@@ -596,7 +601,8 @@ public class SellerDashboardControllerTest {
         Label lblErrorEndDT = (Label) robot.lookup("#lblErrorEndDT").query();
 
         assertTrue(errorEndDT.isVisible(), "Thông báo lỗi End Time phải hiển thị");
-        assertEquals("Thời gian kết thúc phải sau thời gian bắt đầu", lblErrorEndDT.getText(), "Nội dung thông báo lỗi phải chính xác");
+        assertEquals("Thời gian kết thúc phải sau thời gian bắt đầu", lblErrorEndDT.getText(),
+                "Nội dung thông báo lỗi phải chính xác");
         Platform.runLater(() -> controller.handleCloseModal());
         WaitForAsyncUtils.waitForFxEvents();
     }
@@ -614,7 +620,8 @@ public class SellerDashboardControllerTest {
         activeSession.endTime = "2026-05-20T10:30:00";
         activeSession.status = "ACTIVE";
 
-        // 2. Thêm sản phẩm ACTIVE vào TableView và click vào nút Sửa (biểu tượng cây bút #btnEdit_99)
+        // 2. Thêm sản phẩm ACTIVE vào TableView và click vào nút Sửa (biểu tượng cây
+        // bút #btnEdit_99)
         Platform.runLater(() -> {
             controller.displayedSessions.clear();
             controller.displayedSessions.add(activeSession);
@@ -628,7 +635,8 @@ public class SellerDashboardControllerTest {
         TextField nameField = (TextField) robot.lookup("#productNameField").query();
         assertEquals("Sản phẩm Active Test", nameField.getText(), "Tên sản phẩm phải khớp");
 
-        // Xác minh trường giá bắt đầu và các ô nhập thời gian bắt đầu bị VÔ HIỆU HÓA (disable)
+        // Xác minh trường giá bắt đầu và các ô nhập thời gian bắt đầu bị VÔ HIỆU HÓA
+        // (disable)
         TextField startingPriceField = (TextField) robot.lookup("#startingPriceField").query();
         TextField txtStartDay = (TextField) robot.lookup("#txtStartDay").query();
         TextField txtStartMonth = (TextField) robot.lookup("#txtStartMonth").query();
@@ -643,7 +651,8 @@ public class SellerDashboardControllerTest {
         assertTrue(txtStartHour.isDisable(), "Start Hour phải bị vô hiệu hóa khi sản phẩm active");
         assertTrue(txtStartMin.isDisable(), "Start Min phải bị vô hiệu hóa khi sản phẩm active");
 
-        // Test thử click và nhập vào các trường bị vô hiệu hóa -> đảm bảo giá trị gốc không đổi
+        // Test thử click và nhập vào các trường bị vô hiệu hóa -> đảm bảo giá trị gốc
+        // không đổi
         try {
             robot.clickOn("#startingPriceField").write("9999999");
         } catch (Exception e) {
@@ -690,7 +699,8 @@ public class SellerDashboardControllerTest {
         draftSession.endTime = "2029-05-20T10:30:00";
         draftSession.status = "DRAFT";
 
-        // 2. Thêm sản phẩm vào TableView và click vào nút Sửa (biểu tượng cây bút #btnEdit_123)
+        // 2. Thêm sản phẩm vào TableView và click vào nút Sửa (biểu tượng cây bút
+        // #btnEdit_123)
         Platform.runLater(() -> {
             controller.displayedSessions.clear();
             controller.displayedSessions.add(draftSession);
@@ -700,7 +710,8 @@ public class SellerDashboardControllerTest {
         robot.sleep(500);
         WaitForAsyncUtils.waitForFxEvents();
 
-        // Xác minh tên nút ở chế độ edit Draft: nút chính là "Publish", nút nháp là "Save Changes"
+        // Xác minh tên nút ở chế độ edit Draft: nút chính là "Publish", nút nháp là
+        // "Save Changes"
         Button btnSubmit = (Button) robot.lookup("#btnSubmit").query();
         Button btnDraftOrReset = (Button) robot.lookup("#btnDraftOrReset").query();
         assertEquals("Publish", btnSubmit.getText(), "Nút submit phải đổi thành Publish");
@@ -784,7 +795,8 @@ public class SellerDashboardControllerTest {
         comingSession.endTime = "2029-05-20T10:30:00";
         comingSession.status = "COMING";
 
-        // 2. Thêm sản phẩm vào TableView và click vào nút Sửa (biểu tượng cây bút #btnEdit_101)
+        // 2. Thêm sản phẩm vào TableView và click vào nút Sửa (biểu tượng cây bút
+        // #btnEdit_101)
         Platform.runLater(() -> {
             controller.displayedSessions.clear();
             controller.displayedSessions.add(comingSession);
@@ -824,17 +836,19 @@ public class SellerDashboardControllerTest {
     @Test
     @DisplayName("Test 14: Kiểm tra lưu thay đổi thành công cho phiên ACTIVE khi nhấn Save Changes")
     public void testSaveChanges_Active_Success(FxRobot robot) throws Exception {
-        // 1. Chuẩn bị dữ liệu Mock cho phiên đấu giá ACTIVE (thời gian bắt đầu ở quá khứ)
+        // 1. Chuẩn bị dữ liệu Mock cho phiên đấu giá ACTIVE (thời gian bắt đầu ở quá
+        // khứ)
         SellerDashboardController.SessionItem activeSession = new SellerDashboardController.SessionItem();
         activeSession.id = 102;
         activeSession.productName = "Sản phẩm Active Ban Đầu";
         activeSession.productType = "Electronics";
         activeSession.startingPrice = new BigDecimal("6000000");
         activeSession.startTime = "2026-05-19T10:30:00"; // Quá khứ
-        activeSession.endTime = "2026-05-20T10:30:00"; // Tương lai
+        activeSession.endTime = "2029-05-20T10:30:00"; // Tương lai
         activeSession.status = "ACTIVE";
 
-        // 2. Thêm sản phẩm vào TableView và click vào nút Sửa (biểu tượng cây bút #btnEdit_102)
+        // 2. Thêm sản phẩm vào TableView và click vào nút Sửa (biểu tượng cây bút
+        // #btnEdit_102)
         Platform.runLater(() -> {
             controller.displayedSessions.clear();
             controller.displayedSessions.add(activeSession);
@@ -866,7 +880,8 @@ public class SellerDashboardControllerTest {
         robot.sleep(1000);
         WaitForAsyncUtils.waitForFxEvents();
 
-        // Vì start time ở quá khứ, cảnh báo bắt đầu ngay sẽ hiển thị -> click "Bắt đầu ngay"
+        // Vì start time ở quá khứ, cảnh báo bắt đầu ngay sẽ hiển thị -> click "Bắt đầu
+        // ngay"
         verifyThat("Thời gian bắt đầu đã đến!", NodeMatchers.isVisible());
         robot.clickOn("Bắt đầu ngay");
         robot.sleep(1000);
@@ -919,7 +934,8 @@ public class SellerDashboardControllerTest {
         WaitForAsyncUtils.waitForFxEvents();
 
         // 6. Xác minh giá trị được hoàn tác về dữ liệu gốc COMING
-        assertEquals("Sản phẩm Coming Reset Test", nameField.getText(), "Giá trị phải được reset hoàn tác khi click Reset");
+        assertEquals("Sản phẩm Coming Reset Test", nameField.getText(),
+                "Giá trị phải được reset hoàn tác khi click Reset");
         Platform.runLater(() -> controller.handleCloseModal());
         WaitForAsyncUtils.waitForFxEvents();
     }
@@ -1008,7 +1024,8 @@ public class SellerDashboardControllerTest {
         robot.sleep(500);
         WaitForAsyncUtils.waitForFxEvents();
 
-        // 5. Vì start time ở quá khứ, xác nhận bắt đầu ngay hiển thị -> click "Bắt đầu ngay"
+        // 5. Vì start time ở quá khứ, xác nhận bắt đầu ngay hiển thị -> click "Bắt đầu
+        // ngay"
         verifyThat("Thời gian bắt đầu đã đến!", NodeMatchers.isVisible());
         robot.clickOn("Bắt đầu ngay");
         robot.sleep(1000);

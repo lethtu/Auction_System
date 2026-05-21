@@ -47,61 +47,104 @@ import javafx.util.StringConverter;
 public class SellerDashboardController {
     private static final Logger logger = LoggerFactory.getLogger(SellerDashboardController.class);
 
-    @FXML private StackPane modalOverlay;
-    @FXML private VBox modalDialog;
-    @FXML private Label modalTitle;
-    @FXML private Button btnSubmit;
+    @FXML
+    private StackPane modalOverlay;
+    @FXML
+    private VBox modalDialog;
+    @FXML
+    private Label modalTitle;
+    @FXML
+    private Button btnSubmit;
     private SessionItem editingSession = null;
-    @FXML private ComboBox<String> productTypeCombo;
-    @FXML private TextField productNameField;
-    @FXML private TextField imageUrlField;
-    @FXML private TextArea descriptionArea;
-    @FXML private TextField startingPriceField;
-    @FXML private VBox imageUploadArea;
-    @FXML private Label lblImageFileName;
-    @FXML private DatePicker datePickerStart;
-    @FXML private TextField txtStartDay;
-    @FXML private TextField txtStartMonth;
-    @FXML private TextField txtStartYear;
-    @FXML private TextField txtStartHour;
-    @FXML private TextField txtStartMin;
+    @FXML
+    private ComboBox<String> productTypeCombo;
+    @FXML
+    private TextField productNameField;
+    @FXML
+    private TextField imageUrlField;
+    @FXML
+    private TextArea descriptionArea;
+    @FXML
+    private TextField startingPriceField;
+    @FXML
+    private VBox imageUploadArea;
+    @FXML
+    private Label lblImageFileName;
+    @FXML
+    private DatePicker datePickerStart;
+    @FXML
+    private TextField txtStartDay;
+    @FXML
+    private TextField txtStartMonth;
+    @FXML
+    private TextField txtStartYear;
+    @FXML
+    private TextField txtStartHour;
+    @FXML
+    private TextField txtStartMin;
 
-    @FXML private DatePicker datePickerEnd;
-    @FXML private TextField txtEndDay;
-    @FXML private TextField txtEndMonth;
-    @FXML private TextField txtEndYear;
-    @FXML private TextField txtEndHour;
-    @FXML private TextField txtEndMin;
-    @FXML private HBox wrapperEndDT;
-    @FXML private HBox errorEndDT;
-    @FXML private Label lblErrorEndDT;
-    @FXML private HBox wrapperStartDT;
-    @FXML private HBox errorStartDT;
-    @FXML private Label lblErrorStartDT;
-    @FXML private HBox errorTitle;
-    @FXML private HBox errorCategory;
-    @FXML private HBox errorPrice;
-    @FXML private Label lblErrorPrice;
-    @FXML private Button btnDraftOrReset;
+    @FXML
+    private DatePicker datePickerEnd;
+    @FXML
+    private TextField txtEndDay;
+    @FXML
+    private TextField txtEndMonth;
+    @FXML
+    private TextField txtEndYear;
+    @FXML
+    private TextField txtEndHour;
+    @FXML
+    private TextField txtEndMin;
+    @FXML
+    private HBox wrapperEndDT;
+    @FXML
+    private HBox errorEndDT;
+    @FXML
+    private Label lblErrorEndDT;
+    @FXML
+    private HBox wrapperStartDT;
+    @FXML
+    private HBox errorStartDT;
+    @FXML
+    private Label lblErrorStartDT;
+    @FXML
+    private HBox errorTitle;
+    @FXML
+    private HBox errorCategory;
+    @FXML
+    private HBox errorPrice;
+    @FXML
+    private Label lblErrorPrice;
+    @FXML
+    private Button btnDraftOrReset;
 
-    @FXML private Label lblTotalRevenue;
-    @FXML private Label lblActiveAuctions;
-    @FXML private Label lblTotalBids;
+    @FXML
+    private Label lblTotalRevenue;
+    @FXML
+    private Label lblActiveAuctions;
+    @FXML
+    private Label lblTotalBids;
 
-    @FXML private TableView<SessionItem> sessionsTable;
-    @FXML private TableColumn<SessionItem, SessionItem> colItem;
-    @FXML private TableColumn<SessionItem, String> colStatus;
-    @FXML private TableColumn<SessionItem, BigDecimal> colBid;
-    @FXML private TableColumn<SessionItem, String> colTimeLeft;
-    @FXML private TableColumn<SessionItem, SessionItem> colActions;
+    @FXML
+    private TableView<SessionItem> sessionsTable;
+    @FXML
+    private TableColumn<SessionItem, SessionItem> colItem;
+    @FXML
+    private TableColumn<SessionItem, String> colStatus;
+    @FXML
+    private TableColumn<SessionItem, BigDecimal> colBid;
+    @FXML
+    private TableColumn<SessionItem, String> colTimeLeft;
+    @FXML
+    private TableColumn<SessionItem, SessionItem> colActions;
 
-    @FXML private TextField txtSearch;
+    @FXML
+    private TextField txtSearch;
 
-    @FXML private ScrollPane sidebarContainer;
-    @FXML private VBox sidebarContent;
-    @FXML private Button btnHamburger;
-    private boolean isSidebarCollapsed = false;
-    private final java.util.Map<Button, String> sidebarButtonTextMap = new java.util.HashMap<>();
+    @FXML
+    private SidebarController sidebarController;
+    @FXML
+    private Button btnHamburger;
 
     private HttpClient httpClient = HttpClientSingleton.getInstance().getHttpClient();
     final List<SessionItem> allSessions = new ArrayList<>();
@@ -114,8 +157,7 @@ public class SellerDashboardController {
     @FXML
     public void initialize() {
         productTypeCombo.setItems(FXCollections.observableArrayList(
-                "Electronics", "Art", "Vehicle"
-        ));
+                "Electronics", "Art", "Vehicle"));
         productTypeCombo.setValue("Electronics");
 
         setupTable();
@@ -125,6 +167,38 @@ public class SellerDashboardController {
         if (modalDialog != null && modalOverlay != null) {
             modalOverlay.heightProperty().addListener((obs, oldVal, newVal) -> updateModalMaxHeight());
             modalDialog.widthProperty().addListener((obs, oldVal, newVal) -> updateModalMaxHeight());
+        }
+
+        btnHamburger.setId("btnHamburger");
+        btnHamburger.setOnAction(this::handleToggleSidebar);
+
+        javafx.application.Platform.runLater(() -> {
+            if (sidebarController != null) {
+                sidebarController.setActiveSelling();
+            }
+        });
+
+        if (sidebarController != null) {
+            sidebarController.setSidebarListener(new SidebarController.SidebarListener() {
+                @Override
+                public void onFilterWatchlist(javafx.event.ActionEvent event) {
+                    try {
+                        MainController.initialShowWatchlist = true;
+                        SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
+                    } catch (IOException e) {
+                        logger.error("Lỗi điều hướng:", e);
+                    }
+                }
+
+                @Override
+                public void onResetFilter(javafx.event.ActionEvent event) {
+                    try {
+                        SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
+                    } catch (IOException e) {
+                        logger.error("Lỗi điều hướng:", e);
+                    }
+                }
+            });
         }
 
         loadMySessions();
@@ -161,7 +235,8 @@ public class SellerDashboardController {
     }
 
     private void setupAutoJump(TextField source, TextField target, int length) {
-        if (source == null || target == null) return;
+        if (source == null || target == null)
+            return;
         source.textProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null && newVal.length() >= length) {
                 target.requestFocus();
@@ -170,18 +245,21 @@ public class SellerDashboardController {
     }
 
     private void setupImageUpload() {
-        if (imageUploadArea == null) return;
+        if (imageUploadArea == null)
+            return;
 
         imageUploadArea.setOnDragOver(event -> {
             if (event.getGestureSource() != imageUploadArea && event.getDragboard().hasFiles()) {
                 event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
-                imageUploadArea.setStyle("-fx-border-color: #e040a0; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 32px; -fx-cursor: hand; -fx-background-color: #ffd6ee;");
+                imageUploadArea.setStyle(
+                        "-fx-border-color: #e040a0; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 32px; -fx-cursor: hand; -fx-background-color: #ffd6ee;");
             }
             event.consume();
         });
 
         imageUploadArea.setOnDragExited(event -> {
-            imageUploadArea.setStyle("-fx-border-color: #dcc8e0; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 32px; -fx-cursor: hand; -fx-background-color: transparent;");
+            imageUploadArea.setStyle(
+                    "-fx-border-color: #dcc8e0; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 32px; -fx-cursor: hand; -fx-background-color: transparent;");
             event.consume();
         });
 
@@ -203,8 +281,7 @@ public class SellerDashboardController {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Select Product Image");
             fileChooser.getExtensionFilters().addAll(
-                    new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
-            );
+                    new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif"));
             File selectedFile = fileChooser.showOpenDialog(imageUploadArea.getScene().getWindow());
             if (selectedFile != null) {
                 String path = selectedFile.toURI().toString();
@@ -285,7 +362,8 @@ public class SellerDashboardController {
                         case "DRAFT" -> lblStatus.getStyleClass().add("badge-draft");
                         case "COMPLETED", "ENDED" -> lblStatus.getStyleClass().add("badge-ended");
                         case "COMING" -> {
-                            lblStatus.setStyle("-fx-background-color: #f3e8ff; -fx-text-fill: #7c52aa; -fx-border-color: #dcc8e0; -fx-border-radius: 12px; -fx-background-radius: 12px;");
+                            lblStatus.setStyle(
+                                    "-fx-background-color: #f3e8ff; -fx-text-fill: #7c52aa; -fx-border-color: #dcc8e0; -fx-border-radius: 12px; -fx-background-radius: 12px;");
                         }
                         case "CANCELED" -> {
                             lblStatus.setStyle("-fx-background-color: #ffe8e8; -fx-text-fill: #e53e3e;");
@@ -300,6 +378,7 @@ public class SellerDashboardController {
         colBid.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().currentPrice));
         colBid.setCellFactory(col -> new TableCell<>() {
             private final DecimalFormat df = new DecimalFormat("#,##0.##");
+
             @Override
             protected void updateItem(BigDecimal price, boolean empty) {
                 super.updateItem(price, empty);
@@ -374,13 +453,15 @@ public class SellerDashboardController {
                     btnEdit.setOnAction(e -> handleShowEditModal(item));
 
                     // Delete is allowed for ACTIVE, COMING or DRAFT sessions
-                    boolean isDeletable = "ACTIVE".equalsIgnoreCase(item.status) || "COMING".equalsIgnoreCase(item.status) || "DRAFT".equalsIgnoreCase(item.status);
+                    boolean isDeletable = "ACTIVE".equalsIgnoreCase(item.status)
+                            || "COMING".equalsIgnoreCase(item.status) || "DRAFT".equalsIgnoreCase(item.status);
                     if (!isDeletable) {
                         btnDelete.setDisable(true);
                         btnDelete.setOpacity(0.3);
                     }
                     // Edit is allowed for ACTIVE, COMING or DRAFT sessions
-                    boolean isEditable = "ACTIVE".equalsIgnoreCase(item.status) || "COMING".equalsIgnoreCase(item.status) || "DRAFT".equalsIgnoreCase(item.status);
+                    boolean isEditable = "ACTIVE".equalsIgnoreCase(item.status)
+                            || "COMING".equalsIgnoreCase(item.status) || "DRAFT".equalsIgnoreCase(item.status);
                     if (!isEditable) {
                         btnEdit.setDisable(true);
                         btnEdit.setOpacity(0.3);
@@ -425,13 +506,15 @@ public class SellerDashboardController {
     }
 
     void handleShowEditModal(SessionItem item) {
-        if (item == null) return;
+        if (item == null)
+            return;
         editingSession = item;
 
         if (modalTitle != null) {
             modalTitle.setText("Edit Listing");
         }
-        boolean isActive = item.status != null && ("ACTIVE".equalsIgnoreCase(item.status) || "LIVE".equalsIgnoreCase(item.status));
+        boolean isActive = item.status != null
+                && ("ACTIVE".equalsIgnoreCase(item.status) || "LIVE".equalsIgnoreCase(item.status));
         boolean isActiveOrComing = isActive || "COMING".equalsIgnoreCase(item.status);
         if (isActiveOrComing) {
             if (btnSubmit != null) {
@@ -449,12 +532,18 @@ public class SellerDashboardController {
             }
         }
 
-        if (startingPriceField != null) startingPriceField.setDisable(isActive);
-        if (txtStartDay != null) txtStartDay.setDisable(isActive);
-        if (txtStartMonth != null) txtStartMonth.setDisable(isActive);
-        if (txtStartYear != null) txtStartYear.setDisable(isActive);
-        if (txtStartHour != null) txtStartHour.setDisable(isActive);
-        if (txtStartMin != null) txtStartMin.setDisable(isActive);
+        if (startingPriceField != null)
+            startingPriceField.setDisable(isActive);
+        if (txtStartDay != null)
+            txtStartDay.setDisable(isActive);
+        if (txtStartMonth != null)
+            txtStartMonth.setDisable(isActive);
+        if (txtStartYear != null)
+            txtStartYear.setDisable(isActive);
+        if (txtStartHour != null)
+            txtStartHour.setDisable(isActive);
+        if (txtStartMin != null)
+            txtStartMin.setDisable(isActive);
 
         // Populate the form fields
         productNameField.setText(item.productName);
@@ -487,8 +576,10 @@ public class SellerDashboardController {
         modalOverlay.setVisible(true);
     }
 
-    private void populateSplitTimeFields(String timeStr, TextField day, TextField month, TextField year, TextField hour, TextField min) {
-        if (day == null || month == null || year == null || hour == null || min == null) return;
+    private void populateSplitTimeFields(String timeStr, TextField day, TextField month, TextField year, TextField hour,
+            TextField min) {
+        if (day == null || month == null || year == null || hour == null || min == null)
+            return;
         if (timeStr == null || timeStr.trim().isEmpty() || "null".equalsIgnoreCase(timeStr.trim())) {
             day.clear();
             month.clear();
@@ -526,7 +617,10 @@ public class SellerDashboardController {
     @FXML
     private void handleSaveDraftAction() {
         if (editingSession != null) {
-            boolean isActiveOrComing = editingSession.status != null && ("ACTIVE".equalsIgnoreCase(editingSession.status) || "LIVE".equalsIgnoreCase(editingSession.status) || "COMING".equalsIgnoreCase(editingSession.status));
+            boolean isActiveOrComing = editingSession.status != null
+                    && ("ACTIVE".equalsIgnoreCase(editingSession.status)
+                            || "LIVE".equalsIgnoreCase(editingSession.status)
+                            || "COMING".equalsIgnoreCase(editingSession.status));
             if (isActiveOrComing) {
                 // Clear any inline warning/error styles first
                 if (errorTitle != null) {
@@ -663,8 +757,10 @@ public class SellerDashboardController {
         }
 
         // 4. Time Validation
-        LocalDateTime startDT = getLocalDateTimeFromSplitFields(txtStartDay, txtStartMonth, txtStartYear, txtStartHour, txtStartMin);
-        LocalDateTime endDT = getLocalDateTimeFromSplitFields(txtEndDay, txtEndMonth, txtEndYear, txtEndHour, txtEndMin);
+        LocalDateTime startDT = getLocalDateTimeFromSplitFields(txtStartDay, txtStartMonth, txtStartYear, txtStartHour,
+                txtStartMin);
+        LocalDateTime endDT = getLocalDateTimeFromSplitFields(txtEndDay, txtEndMonth, txtEndYear, txtEndHour,
+                txtEndMin);
 
         // Validate Start Time
         if (startDT == null) {
@@ -909,8 +1005,10 @@ public class SellerDashboardController {
         }
 
         // 4. Time Validation
-        LocalDateTime startDT = getLocalDateTimeFromSplitFields(txtStartDay, txtStartMonth, txtStartYear, txtStartHour, txtStartMin);
-        LocalDateTime endDT = getLocalDateTimeFromSplitFields(txtEndDay, txtEndMonth, txtEndYear, txtEndHour, txtEndMin);
+        LocalDateTime startDT = getLocalDateTimeFromSplitFields(txtStartDay, txtStartMonth, txtStartYear, txtStartHour,
+                txtStartMin);
+        LocalDateTime endDT = getLocalDateTimeFromSplitFields(txtEndDay, txtEndMonth, txtEndYear, txtEndHour,
+                txtEndMin);
 
         // Validate Start Time
         if (startDT == null) {
@@ -1032,7 +1130,8 @@ public class SellerDashboardController {
             }
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(Config.API_URL + "/api/seller/update-session/" + editingSession.id + "?sellerId=" + sellerId))
+                    .uri(URI.create(Config.API_URL + "/api/seller/update-session/" + editingSession.id + "?sellerId="
+                            + sellerId))
                     .header("Content-Type", "application/json")
                     .PUT(HttpRequest.BodyPublishers.ofString(body.toString()))
                     .build();
@@ -1155,8 +1254,10 @@ public class SellerDashboardController {
         }
 
         // 3. Time Validation
-        LocalDateTime startDT = getLocalDateTimeFromSplitFields(txtStartDay, txtStartMonth, txtStartYear, txtStartHour, txtStartMin);
-        LocalDateTime endDT = getLocalDateTimeFromSplitFields(txtEndDay, txtEndMonth, txtEndYear, txtEndHour, txtEndMin);
+        LocalDateTime startDT = getLocalDateTimeFromSplitFields(txtStartDay, txtStartMonth, txtStartYear, txtStartHour,
+                txtStartMin);
+        LocalDateTime endDT = getLocalDateTimeFromSplitFields(txtEndDay, txtEndMonth, txtEndYear, txtEndHour,
+                txtEndMin);
 
         // Validate Start Time
         if (startDT == null) {
@@ -1280,13 +1381,15 @@ public class SellerDashboardController {
             body.put("endTime", endDT.toString());
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(Config.API_URL + "/api/seller/update-session/" + editingSession.id + "?sellerId=" + sellerId))
+                    .uri(URI.create(Config.API_URL + "/api/seller/update-session/" + editingSession.id + "?sellerId="
+                            + sellerId))
                     .header("Content-Type", "application/json")
                     .PUT(HttpRequest.BodyPublishers.ofString(body.toString()))
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "Cập nhật phiên đấu giá thành công.");
+            ApiResult api = parseApiResponse(response.body(), response.statusCode(),
+                    "Cập nhật phiên đấu giá thành công.");
 
             if (api.success) {
                 clearForm();
@@ -1320,8 +1423,10 @@ public class SellerDashboardController {
         }
     }
 
-    private LocalDateTime getLocalDateTimeFromSplitFields(TextField day, TextField month, TextField year, TextField hour, TextField min) {
-        if (day == null || month == null || year == null || hour == null || min == null) return null;
+    private LocalDateTime getLocalDateTimeFromSplitFields(TextField day, TextField month, TextField year,
+            TextField hour, TextField min) {
+        if (day == null || month == null || year == null || hour == null || min == null)
+            return null;
         String dStr = day.getText().trim();
         String mStr = month.getText().trim();
         String yStr = year.getText().trim();
@@ -1445,8 +1550,10 @@ public class SellerDashboardController {
         }
 
         // 3. Time Validation
-        LocalDateTime startDT = getLocalDateTimeFromSplitFields(txtStartDay, txtStartMonth, txtStartYear, txtStartHour, txtStartMin);
-        LocalDateTime endDT = getLocalDateTimeFromSplitFields(txtEndDay, txtEndMonth, txtEndYear, txtEndHour, txtEndMin);
+        LocalDateTime startDT = getLocalDateTimeFromSplitFields(txtStartDay, txtStartMonth, txtStartYear, txtStartHour,
+                txtStartMin);
+        LocalDateTime endDT = getLocalDateTimeFromSplitFields(txtEndDay, txtEndMonth, txtEndYear, txtEndHour,
+                txtEndMin);
 
         // Validate Start Time
         if (startDT == null) {
@@ -1613,7 +1720,8 @@ public class SellerDashboardController {
 
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(Config.API_URL + "/api/seller/cancel-session/" + selected.id + "?sellerId=" + sellerId))
+                    .uri(URI.create(
+                            Config.API_URL + "/api/seller/cancel-session/" + selected.id + "?sellerId=" + sellerId))
                     .DELETE()
                     .build();
 
@@ -1640,7 +1748,8 @@ public class SellerDashboardController {
         }
 
         // Validate basic fields (Title, Product Type, Starting Price)
-        if (selected.productName == null || selected.productName.trim().isEmpty() || "Không rõ".equals(selected.productName)) {
+        if (selected.productName == null || selected.productName.trim().isEmpty()
+                || "Không rõ".equals(selected.productName)) {
             showAlert(Alert.AlertType.ERROR, "Lỗi đăng bán", "Tên sản phẩm của bản nháp không được để trống!");
             return;
         }
@@ -1657,11 +1766,13 @@ public class SellerDashboardController {
 
         // Parse & validate Start/End times
         LocalDateTime startDT = null;
-        if (selected.startTime != null && !selected.startTime.trim().isEmpty() && !"null".equalsIgnoreCase(selected.startTime)) {
+        if (selected.startTime != null && !selected.startTime.trim().isEmpty()
+                && !"null".equalsIgnoreCase(selected.startTime)) {
             try {
                 startDT = LocalDateTime.parse(selected.startTime);
             } catch (Exception e) {
-                showAlert(Alert.AlertType.ERROR, "Lỗi thời gian", "Định dạng thời gian bắt đầu của bản nháp không hợp lệ!");
+                showAlert(Alert.AlertType.ERROR, "Lỗi thời gian",
+                        "Định dạng thời gian bắt đầu của bản nháp không hợp lệ!");
                 return;
             }
         } else {
@@ -1670,11 +1781,13 @@ public class SellerDashboardController {
         }
 
         LocalDateTime endDT = null;
-        if (selected.endTime != null && !selected.endTime.trim().isEmpty() && !"null".equalsIgnoreCase(selected.endTime)) {
+        if (selected.endTime != null && !selected.endTime.trim().isEmpty()
+                && !"null".equalsIgnoreCase(selected.endTime)) {
             try {
                 endDT = LocalDateTime.parse(selected.endTime);
             } catch (Exception e) {
-                showAlert(Alert.AlertType.ERROR, "Lỗi thời gian", "Định dạng thời gian kết thúc của bản nháp không hợp lệ!");
+                showAlert(Alert.AlertType.ERROR, "Lỗi thời gian",
+                        "Định dạng thời gian kết thúc của bản nháp không hợp lệ!");
                 return;
             }
         } else {
@@ -1720,13 +1833,15 @@ public class SellerDashboardController {
             body.put("endTime", endDT.toString());
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(Config.API_URL + "/api/seller/update-session/" + selected.id + "?sellerId=" + sellerId))
+                    .uri(URI.create(
+                            Config.API_URL + "/api/seller/update-session/" + selected.id + "?sellerId=" + sellerId))
                     .header("Content-Type", "application/json")
                     .PUT(HttpRequest.BodyPublishers.ofString(body.toString()))
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "Đăng bán phiên đấu giá thành công.");
+            ApiResult api = parseApiResponse(response.body(), response.statusCode(),
+                    "Đăng bán phiên đấu giá thành công.");
 
             if (api.success) {
                 loadMySessions();
@@ -1743,7 +1858,7 @@ public class SellerDashboardController {
 
     @FXML
     private void goBack(javafx.event.ActionEvent event) throws IOException {
-        SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 700);
+        SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
     }
 
     private void loadMySessions() {
@@ -1859,11 +1974,13 @@ public class SellerDashboardController {
 
     private void updateStats() {
         int active = 0;
-        int totalBidsEstimate = 0; // Since we don't have exact bid counts from session api directly, we might mock this or use size
+        int totalBidsEstimate = 0; // Since we don't have exact bid counts from session api directly, we might mock
+                                   // this or use size
         BigDecimal revenue = BigDecimal.ZERO;
 
         for (SessionItem s : allSessions) {
-            if (s.status == null) continue;
+            if (s.status == null)
+                continue;
             switch (s.status.toUpperCase()) {
                 case "ACTIVE", "LIVE" -> active++;
                 case "COMPLETED" -> {
@@ -1889,14 +2006,21 @@ public class SellerDashboardController {
         imageUrlField.clear();
         descriptionArea.clear();
         startingPriceField.clear();
-        if (lblImageFileName != null) lblImageFileName.setText("");
+        if (lblImageFileName != null)
+            lblImageFileName.setText("");
 
-        if (startingPriceField != null) startingPriceField.setDisable(false);
-        if (txtStartDay != null) txtStartDay.setDisable(false);
-        if (txtStartMonth != null) txtStartMonth.setDisable(false);
-        if (txtStartYear != null) txtStartYear.setDisable(false);
-        if (txtStartHour != null) txtStartHour.setDisable(false);
-        if (txtStartMin != null) txtStartMin.setDisable(false);
+        if (startingPriceField != null)
+            startingPriceField.setDisable(false);
+        if (txtStartDay != null)
+            txtStartDay.setDisable(false);
+        if (txtStartMonth != null)
+            txtStartMonth.setDisable(false);
+        if (txtStartYear != null)
+            txtStartYear.setDisable(false);
+        if (txtStartHour != null)
+            txtStartHour.setDisable(false);
+        if (txtStartMin != null)
+            txtStartMin.setDisable(false);
 
         LocalDateTime now = LocalDateTime.now();
         txtStartDay.setText(String.format("%02d", now.getDayOfMonth()));
@@ -1990,9 +2114,11 @@ public class SellerDashboardController {
     }
 
     private void updateModalMaxHeight() {
-        if (modalDialog == null || modalOverlay == null) return;
+        if (modalDialog == null || modalOverlay == null)
+            return;
         double parentHeight = modalOverlay.getHeight() * 0.85;
-        if (parentHeight <= 0) return;
+        if (parentHeight <= 0)
+            return;
 
         double chromeHeight = 0;
         double contentHeight = 0;
@@ -2012,89 +2138,16 @@ public class SellerDashboardController {
             }
         }
 
-        // Add a 40px safety buffer to completely eliminate the vertical scrollbar when stretched
+        // Add a 40px safety buffer to completely eliminate the vertical scrollbar when
+        // stretched
         double naturalHeight = chromeHeight + contentHeight + 40;
         modalDialog.setMaxHeight(Math.min(parentHeight, naturalHeight));
     }
 
     @FXML
     private void handleToggleSidebar(javafx.event.ActionEvent event) {
-        isSidebarCollapsed = !isSidebarCollapsed;
-
-        if (isSidebarCollapsed) {
-            // Collapse
-            sidebarContainer.setMinWidth(70);
-            sidebarContainer.setPrefWidth(70);
-            sidebarContainer.setMaxWidth(70);
-            sidebarContent.setPadding(new javafx.geometry.Insets(24, 0, 24, 0));
-            sidebarContent.setAlignment(Pos.TOP_CENTER);
-
-            for (javafx.scene.Node node : sidebarContent.getChildren()) {
-                if (node instanceof Button) {
-                    Button btn = (Button) node;
-                    String currentText = btn.getText();
-                    if (currentText != null && !currentText.isEmpty()) {
-                        sidebarButtonTextMap.put(btn, currentText);
-                    }
-
-                    String tooltipText = sidebarButtonTextMap.get(btn);
-                    if (tooltipText != null) {
-                        Tooltip tooltip = new Tooltip(tooltipText);
-                        tooltip.setStyle("-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 6px 12px; -fx-font-size: 13px;");
-
-                        javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.millis(300));
-                        pause.setOnFinished(e -> {
-                            if (btn.isHover()) {
-                                javafx.geometry.Bounds bounds = btn.localToScreen(btn.getBoundsInLocal());
-                                tooltip.show(btn, bounds.getMaxX() + 15, bounds.getMinY() + btn.getHeight() / 2 - 18);
-                            }
-                        });
-
-                        btn.setOnMouseEntered(e -> pause.playFromStart());
-                        btn.setOnMouseExited(e -> {
-                            pause.stop();
-                            tooltip.hide();
-                        });
-                    }
-
-                    btn.setTooltip(null); // Tắt Tooltip mặc định của JavaFX
-
-                    btn.setText("");
-                    btn.setPrefWidth(50);
-                    btn.setMinWidth(50);
-                    btn.setAlignment(Pos.CENTER);
-                    if (btn.getGraphic() != null) {
-                        btn.getGraphic().setTranslateX(0);
-                    }
-                } else if (node instanceof Label) {
-                    node.setVisible(false);
-                    node.setManaged(false);
-                }
-            }
-        } else {
-            // Expand
-            sidebarContainer.setMinWidth(200);
-            sidebarContainer.setPrefWidth(200);
-            sidebarContainer.setMaxWidth(200);
-            sidebarContent.setPadding(new javafx.geometry.Insets(24, 8, 24, 8));
-            sidebarContent.setAlignment(Pos.TOP_LEFT);
-
-            for (javafx.scene.Node node : sidebarContent.getChildren()) {
-                if (node instanceof Button) {
-                    Button btn = (Button) node;
-                    btn.setTooltip(null);
-                    btn.setOnMouseEntered(null);
-                    btn.setOnMouseExited(null);
-                    String originalText = sidebarButtonTextMap.getOrDefault(btn, "");
-                    btn.setText(originalText);
-                    btn.setPrefWidth(165);
-                    btn.setMinWidth(165);
-                    btn.setAlignment(Pos.CENTER_LEFT);
-                } else if (node instanceof Label) {
-                    node.setVisible(true);
-                    node.setManaged(true);
-                }
-            }
+        if (sidebarController != null) {
+            sidebarController.toggleSidebar();
         }
     }
 
@@ -2106,7 +2159,8 @@ public class SellerDashboardController {
     }
 
     private String safeMessage(String body) {
-        if (body == null || body.isBlank()) return "Có lỗi xảy ra từ server.";
+        if (body == null || body.isBlank())
+            return "Có lỗi xảy ra từ server.";
         return body;
     }
 
@@ -2173,7 +2227,8 @@ public class SellerDashboardController {
         container.setAlignment(Pos.CENTER);
         container.setPadding(new javafx.geometry.Insets(32));
         container.setPrefWidth(360);
-        container.setStyle("-fx-background-color: white; -fx-background-radius: 16px; -fx-border-color: #ffe8f2; -fx-border-width: 1px; -fx-border-radius: 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 30, 0, 0, 10);");
+        container.setStyle(
+                "-fx-background-color: white; -fx-background-radius: 16px; -fx-border-color: #ffe8f2; -fx-border-width: 1px; -fx-border-radius: 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 30, 0, 0, 10);");
 
         StackPane iconCircle = new StackPane();
         iconCircle.setPrefSize(64, 64);
@@ -2186,10 +2241,13 @@ public class SellerDashboardController {
         iconCircle.getChildren().add(timerIcon);
 
         Label titleLabel = new Label("Thời gian bắt đầu đã đến!");
-        titleLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
+        titleLabel.setStyle(
+                "-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
 
-        Label descLabel = new Label("Phiên đấu giá cho vật phẩm của bạn đã sẵn sàng.\nBạn có muốn bắt đầu ngay bây giờ không?");
-        descLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;");
+        Label descLabel = new Label(
+                "Phiên đấu giá cho vật phẩm của bạn đã sẵn sàng.\nBạn có muốn bắt đầu ngay bây giờ không?");
+        descLabel.setStyle(
+                "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;");
         descLabel.setWrapText(true);
 
         VBox btnBox = new VBox(12);
@@ -2199,12 +2257,14 @@ public class SellerDashboardController {
         Button btnStartNow = new Button("Bắt đầu ngay");
         btnStartNow.setPrefHeight(44);
         btnStartNow.setMaxWidth(Double.MAX_VALUE);
-        btnStartNow.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand;");
+        btnStartNow.setStyle(
+                "-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand;");
 
         Button btnEdit = new Button("Sửa lại");
         btnEdit.setPrefHeight(44);
         btnEdit.setMaxWidth(Double.MAX_VALUE);
-        btnEdit.setStyle("-fx-background-color: transparent; -fx-border-color: #dcc8e0; -fx-border-width: 2px; -fx-border-radius: 22px; -fx-background-radius: 22px; -fx-text-fill: #604868; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
+        btnEdit.setStyle(
+                "-fx-background-color: transparent; -fx-border-color: #dcc8e0; -fx-border-width: 2px; -fx-border-radius: 22px; -fx-background-radius: 22px; -fx-text-fill: #604868; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
 
         btnBox.getChildren().addAll(btnStartNow, btnEdit);
         container.getChildren().addAll(iconCircle, titleLabel, descLabel, btnBox);
@@ -2238,7 +2298,8 @@ public class SellerDashboardController {
         container.setAlignment(Pos.CENTER);
         container.setPadding(new javafx.geometry.Insets(32));
         container.setPrefWidth(360);
-        container.setStyle("-fx-background-color: white; -fx-background-radius: 16px; -fx-border-color: #ffe8f2; -fx-border-width: 1px; -fx-border-radius: 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 30, 0, 0, 10);");
+        container.setStyle(
+                "-fx-background-color: white; -fx-background-radius: 16px; -fx-border-color: #ffe8f2; -fx-border-width: 1px; -fx-border-radius: 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 30, 0, 0, 10);");
 
         StackPane iconCircle = new StackPane();
         iconCircle.setPrefSize(64, 64);
@@ -2251,10 +2312,13 @@ public class SellerDashboardController {
         iconCircle.getChildren().add(publishIcon);
 
         Label titleLabel = new Label("Đăng bán nhanh");
-        titleLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
+        titleLabel.setStyle(
+                "-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
 
-        Label descLabel = new Label("Bạn có chắc chắn muốn đăng bán nhanh phiên #" + id + "\n(" + productName + ") không?");
-        descLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;");
+        Label descLabel = new Label(
+                "Bạn có chắc chắn muốn đăng bán nhanh phiên #" + id + "\n(" + productName + ") không?");
+        descLabel.setStyle(
+                "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;");
         descLabel.setWrapText(true);
 
         VBox btnBox = new VBox(12);
@@ -2264,12 +2328,14 @@ public class SellerDashboardController {
         Button btnConfirm = new Button("Đăng bán");
         btnConfirm.setPrefHeight(44);
         btnConfirm.setMaxWidth(Double.MAX_VALUE);
-        btnConfirm.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand;");
+        btnConfirm.setStyle(
+                "-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand;");
 
         Button btnCancel = new Button("Hủy");
         btnCancel.setPrefHeight(44);
         btnCancel.setMaxWidth(Double.MAX_VALUE);
-        btnCancel.setStyle("-fx-background-color: transparent; -fx-border-color: #dcc8e0; -fx-border-width: 2px; -fx-border-radius: 22px; -fx-background-radius: 22px; -fx-text-fill: #604868; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
+        btnCancel.setStyle(
+                "-fx-background-color: transparent; -fx-border-color: #dcc8e0; -fx-border-width: 2px; -fx-border-radius: 22px; -fx-background-radius: 22px; -fx-text-fill: #604868; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
 
         btnBox.getChildren().addAll(btnConfirm, btnCancel);
         container.getChildren().addAll(iconCircle, titleLabel, descLabel, btnBox);
@@ -2304,7 +2370,8 @@ public class SellerDashboardController {
             container.setAlignment(Pos.CENTER);
             container.setPadding(new javafx.geometry.Insets(32));
             container.setPrefWidth(360);
-            container.setStyle("-fx-background-color: white; -fx-background-radius: 16px; -fx-border-color: #ffe8f2; -fx-border-width: 1px; -fx-border-radius: 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 30, 0, 0, 10);");
+            container.setStyle(
+                    "-fx-background-color: white; -fx-background-radius: 16px; -fx-border-color: #ffe8f2; -fx-border-width: 1px; -fx-border-radius: 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 30, 0, 0, 10);");
 
             StackPane iconCircle = new StackPane();
             iconCircle.setPrefSize(64, 64);
@@ -2317,16 +2384,19 @@ public class SellerDashboardController {
             iconCircle.getChildren().add(checkIcon);
 
             Label titleLabel = new Label(title != null ? title : "Thành công");
-            titleLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
+            titleLabel.setStyle(
+                    "-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
 
             Label descLabel = new Label(content);
-            descLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;");
+            descLabel.setStyle(
+                    "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;");
             descLabel.setWrapText(true);
 
             Button btnOk = new Button("Đồng ý");
             btnOk.setPrefHeight(44);
             btnOk.setMaxWidth(Double.MAX_VALUE);
-            btnOk.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand;");
+            btnOk.setStyle(
+                    "-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand;");
 
             container.getChildren().addAll(iconCircle, titleLabel, descLabel, btnOk);
             dialogPane.setContent(container);

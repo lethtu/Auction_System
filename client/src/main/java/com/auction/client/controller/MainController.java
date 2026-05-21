@@ -1057,13 +1057,21 @@ public class MainController implements Initializable {
 
     @FXML
     public void handleToggleSidebar(ActionEvent event) {
+        if (sidebarContainer == null || sidebarContent == null) {
+            return;
+        }
+
         isSidebarCollapsed = !isSidebarCollapsed;
 
         if (isSidebarCollapsed) {
             // Collapse
-            sidebarContainer.setMinWidth(70);
-            sidebarContainer.setPrefWidth(70);
-            sidebarContainer.setMaxWidth(70);
+            if (sidebarContainer != null) {
+                if (sidebarContainer != null) {
+                    sidebarContainer.setMinWidth(70);
+                    sidebarContainer.setPrefWidth(70);
+                    sidebarContainer.setMaxWidth(70);
+                }
+            }
             sidebarContent.setPadding(new Insets(24, 0, 24, 0));
             sidebarContent.setAlignment(Pos.TOP_CENTER);
 
@@ -1115,9 +1123,13 @@ public class MainController implements Initializable {
             }
         } else {
             // Expand
-            sidebarContainer.setMinWidth(200);
-            sidebarContainer.setPrefWidth(200);
-            sidebarContainer.setMaxWidth(200);
+            if (sidebarContainer != null) {
+                if (sidebarContainer != null) {
+                    sidebarContainer.setMinWidth(200);
+                    sidebarContainer.setPrefWidth(200);
+                    sidebarContainer.setMaxWidth(200);
+                }
+            }
             sidebarContent.setPadding(new Insets(24, 8, 24, 8));
             sidebarContent.setAlignment(Pos.TOP_LEFT);
 
@@ -1707,7 +1719,7 @@ public class MainController implements Initializable {
     @FXML
     public void handleGoToDashboard(ActionEvent event) {
         try {
-            SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1024, 768);
+            SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1280, 800);
         } catch (Exception e) {
             logger.error("Lỗi khi chuyển về trang Quản lý Seller: ", e);
         }

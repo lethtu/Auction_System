@@ -234,10 +234,16 @@ public class SidebarController {
 
         String textColor = active ? "#e040a0" : "#604868";
         String backgroundColor = active ? "rgba(224, 64, 160, 0.15)" : "transparent";
-        button.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: " + backgroundColor + "; -fx-text-fill: " + textColor + "; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
+        button.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: "
+                + backgroundColor
+                + "; -fx-text-fill: "
+                + textColor
+                + "; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 7px 16px; -fx-cursor: hand;");
 
         if (button.getGraphic() instanceof Label) {
-            ((Label) button.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: " + textColor + ";");
+            ((Label) button.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: "
+                    + textColor
+                    + ";");
         }
     }
 

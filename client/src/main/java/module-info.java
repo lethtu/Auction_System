@@ -7,6 +7,7 @@ module com.auction.client {
     requires org.json;
     requires java.net.http;
     requires org.slf4j;
+    requires org.kordamp.ikonli.core;
     requires org.kordamp.ikonli.javafx;
     requires org.kordamp.ikonli.materialdesign2;
 
