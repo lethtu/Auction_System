@@ -243,40 +243,53 @@ public class SidebarController {
                     + textColor
                     + ";");
         }
-    }
-
-    @FXML
+    }@FXML
     public void handleDashboard(ActionEvent event) {
         autoCollapse();
         setActiveDashboard();
-        if (listener != null) {
-            listener.onResetFilter(event);
-        } else {
-            try {
-                if (onBeforeNavigate != null) onBeforeNavigate.run();
-                SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
-            } catch (IOException e) {
-                logger.error("Lỗi chuyển cảnh về MainTemplate: ", e);
-            }
-        }
-    }
+        try {
+            Stage stage = resolveStage(event);
+            boolean wasMaximized = stage != null && stage.isMaximized();
+            int currentWidth = stage == null ? 1280 : Math.max(1280, (int) Math.round(stage.getWidth()));
+            int currentHeight = stage == null ? 800 : Math.max(800, (int) Math.round(stage.getHeight()));
 
-    @FXML
+            if (onBeforeNavigate != null) onBeforeNavigate.run();
+            MainController.initialShowWatchlist = false;
+            MainController.initialHomeFilterMode = "ALL";
+            SceneSwitcher.switchScene(event, "MainTemplate.fxml", currentWidth, currentHeight);
+
+            if (stage != null && wasMaximized) {
+                Platform.runLater(() -> stage.setMaximized(true));
+            }
+        } catch (IOException e) {
+            logger.error("Lỗi chuyển cảnh về Dashboard: ", e);
+            showInfo("Dashboard", "Không thể mở Dashboard. Vui lòng thử lại.");
+        }
+    }@FXML
     public void handleWatchlist(ActionEvent event) {
         autoCollapse();
         setActiveWatchlist();
-        if (listener != null) {
-            listener.onFilterWatchlist(event);
-        } else {
-            try {
-                if (onBeforeNavigate != null) onBeforeNavigate.run();
-                MainController.initialShowWatchlist = true;
-                SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
-            } catch (IOException e) {
-                logger.error("Lỗi chuyển cảnh về MainTemplate: ", e);
+        try {
+            Stage stage = resolveStage(event);
+            boolean wasMaximized = stage != null && stage.isMaximized();
+            int currentWidth = stage == null ? 1280 : Math.max(1280, (int) Math.round(stage.getWidth()));
+            int currentHeight = stage == null ? 800 : Math.max(800, (int) Math.round(stage.getHeight()));
+
+            if (onBeforeNavigate != null) onBeforeNavigate.run();
+            MainController.initialShowWatchlist = true;
+            MainController.initialHomeFilterMode = "WATCHLIST";
+            SceneSwitcher.switchScene(event, "MainTemplate.fxml", currentWidth, currentHeight);
+
+            if (stage != null && wasMaximized) {
+                Platform.runLater(() -> stage.setMaximized(true));
             }
+        } catch (IOException e) {
+            logger.error("Lỗi chuyển cảnh sang Watchlist: ", e);
+            showInfo("Watchlist", "Không thể mở Watchlist. Vui lòng thử lại.");
         }
     }
+
+
 
     @FXML
     public void handleStartSelling(ActionEvent event) {

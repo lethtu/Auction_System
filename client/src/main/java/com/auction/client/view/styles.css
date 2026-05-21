@@ -1278,3 +1278,194 @@
 .app-toast-close:hover {
     -fx-text-fill: #2e1a28;
 }
+
+/* === Bidder dashboard filter/toggle polish v3 === */
+.filter-label {
+    -fx-text-fill: #4b3154;
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+}
+
+.filter-combo,
+.combo-box.filter-combo {
+    -fx-background-color: #fff8fd;
+    -fx-border-color: #ffd8ea;
+    -fx-border-width: 1.2px;
+    -fx-background-radius: 18px;
+    -fx-border-radius: 18px;
+    -fx-padding: 6px 10px 6px 12px;
+    -fx-font-size: 14px;
+    -fx-text-fill: #25132a;
+}
+
+.filter-combo:hover,
+.combo-box.filter-combo:hover {
+    -fx-border-color: #ec77be;
+    -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.16), 10, 0, 0, 3);
+}
+
+.filter-combo:focused,
+.combo-box.filter-combo:focused {
+    -fx-border-color: #e040a0;
+    -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.20), 14, 0, 0, 4);
+}
+
+.filter-combo .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.filter-combo .arrow {
+    -fx-background-color: #6f5875;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: white;
+    -fx-border-color: #f4b7d9;
+    -fx-border-width: 1.2px;
+    -fx-background-radius: 14px;
+    -fx-border-radius: 14px;
+    -fx-padding: 6px;
+    -fx-effect: dropshadow(gaussian, rgba(62, 24, 70, 0.18), 18, 0, 0, 8);
+}
+
+.combo-box-popup .list-view .list-cell {
+    -fx-background-color: white;
+    -fx-text-fill: #25132a;
+    -fx-font-size: 14px;
+    -fx-padding: 10px 14px;
+    -fx-background-radius: 10px;
+}
+
+.combo-box-popup .list-view .list-cell:filled:hover {
+    -fx-background-color: #ffeaf6;
+    -fx-text-fill: #d92891;
+}
+
+.combo-box-popup .list-view .list-cell:filled:selected,
+.combo-box-popup .list-view .list-cell:filled:selected:hover {
+    -fx-background-color: #e040a0;
+    -fx-text-fill: white;
+}
+
+.view-toggle-button {
+    -fx-min-width: 48px;
+    -fx-min-height: 48px;
+    -fx-pref-width: 48px;
+    -fx-pref-height: 48px;
+    -fx-max-width: 48px;
+    -fx-max-height: 48px;
+    -fx-background-color: #ffffff;
+    -fx-border-color: #f1dce9;
+    -fx-border-width: 1.2px;
+    -fx-background-radius: 999px;
+    -fx-border-radius: 999px;
+    -fx-text-fill: #8a6b94;
+    -fx-font-size: 24px;
+    -fx-font-weight: 900;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(72, 35, 78, 0.07), 10, 0, 0, 3);
+}
+
+.view-toggle-button:hover {
+    -fx-background-color: #fff3fb;
+    -fx-border-color: #f4a6d4;
+    -fx-text-fill: #e040a0;
+    -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.18), 16, 0, 0, 5);
+}
+
+.view-toggle-button-active {
+    -fx-background-color: linear-gradient(to bottom right, #e040a0, #f15bb5);
+    -fx-border-color: #f9bde0;
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.38), 18, 0, 0, 7);
+}
+/* === End bidder dashboard filter/toggle polish v3 === */
+
+.view-toggle-center {
+    -fx-alignment: center;
+    -fx-content-display: center;
+    -fx-text-alignment: center;
+    -fx-padding: 0;
+}
+
+.view-toggle-center .ikonli-font-icon {
+    -fx-icon-size: 22px;
+}
+
+
+
+/* Final bidder dashboard toggle/filter polish */
+.filter-controls-bar {
+    -fx-alignment: center-right;
+}
+
+.filter-label {
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 13px;
+    -fx-font-weight: 900;
+    -fx-text-fill: #604868;
+}
+
+.filter-combo {
+    -fx-background-color: #fff7fd;
+    -fx-border-color: #ffdceb;
+    -fx-border-width: 1.5px;
+    -fx-border-radius: 999px;
+    -fx-background-radius: 999px;
+    -fx-padding: 0 8px 0 8px;
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 13px;
+    -fx-text-fill: #2e1a28;
+}
+
+.filter-combo .list-cell {
+    -fx-text-fill: #2e1a28;
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 13px;
+    -fx-padding: 7px 12px;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: white;
+    -fx-border-color: #ffdceb;
+    -fx-border-radius: 14px;
+    -fx-background-radius: 14px;
+    -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.16), 14, 0, 0, 4);
+}
+
+.combo-box-popup .list-cell:hover,
+.combo-box-popup .list-cell:selected {
+    -fx-background-color: #ffeaf7;
+    -fx-text-fill: #e040a0;
+}
+
+.view-toggle-button {
+    -fx-min-width: 52px;
+    -fx-pref-width: 52px;
+    -fx-max-width: 52px;
+    -fx-min-height: 52px;
+    -fx-pref-height: 52px;
+    -fx-max-height: 52px;
+    -fx-background-color: #ffffff;
+    -fx-border-color: #f1ddea;
+    -fx-border-width: 1.5px;
+    -fx-background-radius: 26px;
+    -fx-border-radius: 26px;
+    -fx-text-fill: #907898;
+    -fx-font-family: 'Material Symbols Outlined';
+    -fx-font-size: 21px;
+    -fx-font-weight: normal;
+    -fx-padding: 0;
+    -fx-alignment: center;
+    -fx-content-display: center;
+    -fx-text-alignment: center;
+    -fx-cursor: hand;
+}
+
+.view-toggle-button:hover,
+.view-toggle-button-active {
+    -fx-background-color: #ffeaf7;
+    -fx-border-color: #ff9bd5;
+    -fx-text-fill: #e040a0;
+    -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.18), 14, 0, 0, 4);
+}
