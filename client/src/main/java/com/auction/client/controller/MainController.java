@@ -481,49 +481,30 @@ public class MainController implements Initializable {
 
 //         }
 
-    }
-
-
-
-    private void updateGridLayout() {
-
+    }private void updateGridLayout() {
         if (scrollPane == null || productContainer == null) return;
 
-
-
-        // Layout ổn định: không tính lại khoảng cách động theo từng thay đổi rất nhỏ của viewport.
-
-        // JavaFX đôi lúc refresh viewport khi click nền / đổi focus app, khiến gap động đổi qua lại.
-
-        // Vì vậy ta giữ gap cố định và để FlowPane căn giữa hàng sản phẩm.
+        scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        productContainer.setAlignment(Pos.TOP_LEFT);
+        productContainer.setHgap(44.0);
+        productContainer.setVgap(36.0);
+        productContainer.setPadding(new Insets(10.0, 18.0, 32.0, 18.0));
 
         double viewportWidth = scrollPane.getViewportBounds().getWidth();
-
+        if (viewportWidth <= 0 && scrollPane.getWidth() > 0) {
+            viewportWidth = scrollPane.getWidth();
+        }
         if (viewportWidth <= 0) return;
 
-
-
-        double stableWidth = Math.max(0, Math.floor(viewportWidth) - 24.0);
-
-
-
-        productContainer.setAlignment(Pos.TOP_LEFT);
-
+        double stableWidth = Math.max(0, Math.floor(viewportWidth) - 36.0);
         productContainer.setPrefWrapLength(stableWidth);
-
         productContainer.setMinWidth(stableWidth);
-
         productContainer.setPrefWidth(stableWidth);
-
         productContainer.setMaxWidth(stableWidth);
-
-        productContainer.setHgap(44.0);
-
-        productContainer.setVgap(28.0);
-
-        productContainer.setPadding(new Insets(10.0, 18.0, 10.0, 18.0));
-
     }
+
+
 
 
 
@@ -1773,13 +1754,13 @@ public class MainController implements Initializable {
 
         HBox actionBox = new HBox(10);
 
-        actionBox.setAlignment(Pos.CENTER);
+        actionBox.setAlignment(Pos.CENTER_RIGHT);
 
-        actionBox.setMinWidth(102.0);
+        actionBox.setMinWidth(52.0);
 
-        actionBox.setPrefWidth(102.0);
+        actionBox.setPrefWidth(52.0);
 
-        actionBox.setMaxWidth(102.0);
+        actionBox.setMaxWidth(52.0);
 
 
 
@@ -1793,27 +1774,27 @@ public class MainController implements Initializable {
 
         mainPlusIcon.setAlignment(Pos.CENTER);
 
-        mainPlusIcon.setMinSize(44.0, 44.0);
+        mainPlusIcon.setMinSize(48.0, 48.0);
 
-        mainPlusIcon.setPrefSize(44.0, 44.0);
+        mainPlusIcon.setPrefSize(48.0, 48.0);
 
-        mainPlusIcon.setMaxSize(44.0, 44.0);
+        mainPlusIcon.setMaxSize(48.0, 48.0);
 
         mainBtn.setGraphic(mainPlusIcon);
 
         mainBtn.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
 
-        mainBtn.setMinSize(44.0, 44.0);
+        mainBtn.setMinSize(48.0, 48.0);
 
-        mainBtn.setPrefSize(44.0, 44.0);
+        mainBtn.setPrefSize(48.0, 48.0);
 
-        mainBtn.setMaxSize(44.0, 44.0);
+        mainBtn.setMaxSize(48.0, 48.0);
 
         mainBtn.setPadding(Insets.EMPTY);
 
         mainBtn.setAlignment(Pos.CENTER);
 
-        mainBtn.setStyle("-fx-background-color: #ffd6ee; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
+        mainBtn.setStyle("-fx-background-color: #ffd6ee; -fx-background-radius: 24px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.16), 10, 0, 0, 3);");
 
         Tooltip.install(mainBtn, new Tooltip("Tùy chọn"));
 
@@ -4122,9 +4103,7 @@ public class MainController implements Initializable {
         }
 
         updateViewToggleButton(compactProductListMode);
-    }
-
-    private void updateViewToggleButton(boolean compactMode) {
+    }private void updateViewToggleButton(boolean compactMode) {
         if (btnToggleProductView == null) {
             return;
         }
@@ -4138,7 +4117,11 @@ public class MainController implements Initializable {
         }
 
         btnToggleProductView.setText("▦");
+        btnToggleProductView.setAlignment(Pos.CENTER);
+        btnToggleProductView.setContentDisplay(ContentDisplay.CENTER);
     }
+
+
 
 
 

@@ -1,6 +1,10 @@
 package com.auction.client.controller;
 
-import javafx.animation.PauseTransition;
+
+
+
+
+import com.auction.client.util.AlertUtil;import javafx.scene.Scene;import javafx.scene.Parent;import javafx.fxml.FXMLLoader;import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -286,7 +290,7 @@ public class SidebarController {
             if (onBeforeNavigate != null) onBeforeNavigate.run();
             MainController.initialShowWatchlist = false;
             MainController.initialHomeFilterMode = "ALL";
-            SceneSwitcher.switchScene(event, "MainTemplate.fxml", currentWidth, currentHeight);
+            switchSceneKeepingStage(event, "MainTemplate.fxml", currentWidth, currentHeight);
 
             if (stage != null && wasMaximized) {
                 Platform.runLater(() -> stage.setMaximized(true));
@@ -308,7 +312,7 @@ public class SidebarController {
             if (onBeforeNavigate != null) onBeforeNavigate.run();
             MainController.initialShowWatchlist = true;
             MainController.initialHomeFilterMode = "WATCHLIST";
-            SceneSwitcher.switchScene(event, "MainTemplate.fxml", currentWidth, currentHeight);
+            switchSceneKeepingStage(event, "MainTemplate.fxml", currentWidth, currentHeight);
 
             if (stage != null && wasMaximized) {
                 Platform.runLater(() -> stage.setMaximized(true));
@@ -326,7 +330,7 @@ public class SidebarController {
         autoCollapse();
         try {
             if (onBeforeNavigate != null) onBeforeNavigate.run();
-            SceneSwitcher.switchScene(event, "UpToSeller.fxml", 1280, 800);
+            switchSceneKeepingStage(event, "UpToSeller.fxml", 1280, 800);
         } catch (IOException e) {
             logger.error("Lỗi chuyển cảnh sang UpToSeller: ", e);
         }
@@ -343,7 +347,7 @@ public class SidebarController {
             int currentHeight = stage == null ? 800 : Math.max(800, (int) Math.round(stage.getHeight()));
 
             if (onBeforeNavigate != null) onBeforeNavigate.run();
-            SceneSwitcher.switchScene(event, "MyBids.fxml", currentWidth, currentHeight);
+            switchSceneKeepingStage(event, "MyBids.fxml", currentWidth, currentHeight);
 
             if (stage != null && wasMaximized) {
                 Platform.runLater(() -> stage.setMaximized(true));
@@ -365,7 +369,7 @@ public class SidebarController {
             int currentHeight = stage == null ? 800 : Math.max(800, (int) Math.round(stage.getHeight()));
 
             if (onBeforeNavigate != null) onBeforeNavigate.run();
-            SceneSwitcher.switchScene(event, "SellerDashboard.fxml", currentWidth, currentHeight);
+            switchSceneKeepingStage(event, "SellerDashboard.fxml", currentWidth, currentHeight);
 
             if (stage != null && wasMaximized) {
                 Platform.runLater(() -> stage.setMaximized(true));
@@ -387,7 +391,7 @@ public class SidebarController {
             int currentHeight = stage == null ? 800 : Math.max(800, (int) Math.round(stage.getHeight()));
 
             if (onBeforeNavigate != null) onBeforeNavigate.run();
-            SceneSwitcher.switchScene(event, "Support.fxml", currentWidth, currentHeight);
+            switchSceneKeepingStage(event, "Support.fxml", currentWidth, currentHeight);
 
             if (stage != null && wasMaximized) {
                 Platform.runLater(() -> stage.setMaximized(true));
@@ -409,7 +413,7 @@ public class SidebarController {
             int currentHeight = stage == null ? 800 : Math.max(800, (int) Math.round(stage.getHeight()));
 
             if (onBeforeNavigate != null) onBeforeNavigate.run();
-            SceneSwitcher.switchScene(event, "Settings.fxml", currentWidth, currentHeight);
+            switchSceneKeepingStage(event, "Settings.fxml", currentWidth, currentHeight);
 
             if (stage != null && wasMaximized) {
                 Platform.runLater(() -> stage.setMaximized(true));
@@ -419,6 +423,27 @@ public class SidebarController {
             showInfo("Settings", "Không thể mở màn cài đặt. Vui lòng thử lại.");
         }
     }
+    private void switchSceneKeepingStage(ActionEvent event, String fxmlName, int width, int height) throws IOException {
+        Stage stage = resolveStage(event);
+        if (stage == null) {
+            SceneSwitcher.switchScene(event, fxmlName, width, height);
+            return;
+        }
+
+        boolean wasMaximized = stage.isMaximized();
+        int targetWidth = Math.max(900, width);
+        int targetHeight = Math.max(650, height);
+
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/auction/client/view/" + fxmlName));
+        Parent root = loader.load();
+        stage.setScene(new Scene(root, targetWidth, targetHeight));
+        stage.show();
+
+        if (wasMaximized) {
+            Platform.runLater(() -> stage.setMaximized(true));
+        }
+    }
+
 
 
     private Stage resolveStage(ActionEvent event) {
@@ -433,10 +458,7 @@ public class SidebarController {
     }
 
     private void showInfo(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        AlertUtil.showInfo(title, message);
     }
+
 }
