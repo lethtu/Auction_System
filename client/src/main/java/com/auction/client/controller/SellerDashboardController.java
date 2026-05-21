@@ -2216,7 +2216,7 @@ public class SellerDashboardController {
         });
 
         if (userMenuButton != null) {
-            userMenuButton.getItems().addAll(accountItem, depositMoney, logoutItem);
+            userMenuButton.getItems().addAll(accountItem, depositMoney, new SeparatorMenuItem(), logoutItem);
         }
     }
 
