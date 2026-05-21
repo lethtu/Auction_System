@@ -13,7 +13,7 @@ public class UserTest {
 
     @Test
     public void testSetSession() {
-        User.setSession(1, "testuser", "Nguyen Van A", "test@example.com", "2000-01-01", "Hanoi", "USER");
+        User.setSession(1, "testuser", "Nguyen Van A", "test@example.com", "2000-01-01", "Hanoi", "USER", null);
         
         Assertions.assertEquals(1, User.getId());
         Assertions.assertEquals("testuser", User.getUsername());
@@ -26,7 +26,7 @@ public class UserTest {
 
     @Test
     public void testClearSession() {
-        User.setSession(1, "testuser", "Nguyen Van A", "test@example.com", "2000-01-01", "Hanoi", "USER");
+        User.setSession(1, "testuser", "Nguyen Van A", "test@example.com", "2000-01-01", "Hanoi", "USER", null);
         User.clearSession();
         
         Assertions.assertNull(User.getId());

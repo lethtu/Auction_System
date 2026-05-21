@@ -1,15 +1,15 @@
 module com.auction.client {
-    requires javafx.controls;
-    requires javafx.fxml;
-    requires javafx.base;
-    requires javafx.graphics;
+    requires transitive javafx.controls;
+    requires transitive javafx.fxml;
+    requires transitive javafx.base;
+    requires transitive javafx.graphics;
 
-    requires org.json;
-    requires java.net.http;
-    requires org.slf4j;
-    requires org.kordamp.ikonli.core;
-    requires org.kordamp.ikonli.javafx;
-    requires org.kordamp.ikonli.materialdesign2;
+    requires transitive org.json;
+    requires transitive java.net.http;
+    requires transitive org.slf4j;
+    requires transitive org.kordamp.ikonli.core;
+    requires transitive org.kordamp.ikonli.javafx;
+    requires transitive org.kordamp.ikonli.materialdesign2;
     requires java.prefs;
 
     opens com.auction.client.model to javafx.base;

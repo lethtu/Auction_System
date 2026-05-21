@@ -98,6 +98,17 @@ public class AuthGetImage {
         }
     }
 
+    @GetMapping("/images/avatar/{filename:.+}")
+    public ResponseEntity<Resource> serveAvatar(@PathVariable String filename) {
+        try {
+            Path file = getRootLocation().resolve("avatar").resolve(filename).normalize();
+            return serve(file);
+        } catch (Exception e) {
+            logger.error("Lỗi khi xử lý đường dẫn avatar: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
     @GetMapping("/images/{filename:.+}")
     public ResponseEntity<Resource> serveOldFile(@PathVariable String filename) {
         try {

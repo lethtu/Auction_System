@@ -22,7 +22,7 @@
             <Region HBox.hgrow="ALWAYS" />
             
             <HBox alignment="CENTER_LEFT" prefWidth="500.0" prefHeight="40.0" style="-fx-background-color: #ffffff; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 999; -fx-background-radius: 999; -fx-padding: 0 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.05), 10, 0, 0, 2);">
-                <Label text="&#xe8b6;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #e040a0;" translateY="3.0" />
+                <Label text="&#xe8b6;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #e040a0;" translateY="0.0" />
                 <TextField fx:id="txtSearch" promptText="Search your bids..." HBox.hgrow="ALWAYS" style="-fx-background-color: transparent; -fx-padding: 0 0 0 8px; -fx-prompt-text-fill: #907898; -fx-text-fill: #2e1a28; -fx-font-size: 14px;" />
             </HBox>
             
@@ -44,7 +44,7 @@
                 </Button>
                 <MenuButton fx:id="userMenuButton" id="profile-menu" style="-fx-background-color: transparent; -fx-cursor: hand;">
                     <graphic>
-                        <StackPane minWidth="36" maxWidth="36" minHeight="36" maxHeight="36" prefWidth="36" prefHeight="36" style="-fx-background-color: #1a1a3a; -fx-background-radius: 18px;">
+                        <StackPane minWidth="44" maxWidth="44" minHeight="44" maxHeight="44" prefWidth="44" prefHeight="44" style="-fx-background-color: #1a1a3a; -fx-background-radius: 22px;">
                             <Label text="&#xe7fd;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: white;" />
                         </StackPane>
                     </graphic>

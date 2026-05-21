@@ -162,7 +162,7 @@ public class UpToSellerController implements Initializable {
                     btnUpgrade.setDisable(false);
                     if (responseCode >= 200 && responseCode < 300 && jsonResponse.optInt("status", 400) == 200) {
                         // Thành công
-                        User.setSession(User.getId(), User.getUsername(), User.getFullname(), User.getEmail(), User.getDob(), User.getPlace_of_birth(), "SELLER");
+                        User.setSession(User.getId(), User.getUsername(), User.getFullname(), User.getEmail(), User.getDob(), User.getPlace_of_birth(), "SELLER", User.getAvatarUrl());
 
                         Alert alert = new Alert(Alert.AlertType.INFORMATION);
                         alert.setTitle("Nâng cấp thành công");

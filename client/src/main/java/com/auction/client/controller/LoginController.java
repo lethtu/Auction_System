@@ -3,6 +3,7 @@ package com.auction.client.controller;
 import com.auction.client.Config;
 import com.auction.client.HttpClientSingleton;
 import com.auction.client.model.User;
+import com.auction.client.util.AlertUtil;
 import javafx.animation.FadeTransition;
 import javafx.animation.TranslateTransition;
 import javafx.animation.Timeline;
@@ -434,8 +435,10 @@ public class LoginController {
         String dob = data.optString("dob", null);
         String placeOfBirth = data.optString("place_of_birth", null);
         String role = normalizeRole(data.optString("role", data.optString("accountType", DEFAULT_ROLE)));
+        String avatarUrl = data.optString("avatarUrl", data.optString("avatar_url", null));
+        if ("null".equals(avatarUrl)) avatarUrl = null;
 
-        User.setSession(id, username, fullname, email, dob, placeOfBirth, role);
+        User.setSession(id, username, fullname, email, dob, placeOfBirth, role, avatarUrl);
         return role;
     }
 
@@ -460,11 +463,16 @@ public class LoginController {
     }
 
     private void showAlert(Alert.AlertType alertType, String title, String message) {
-        Alert alert = new Alert(alertType);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        if (isTestEnvironment()) {
+            Alert alert = new Alert(alertType);
+            alert.setTitle(title);
+            alert.setHeaderText(null);
+            alert.setContentText(message);
+            alert.showAndWait();
+            return;
+        }
+
+        AlertUtil.show(alertType, title, message);
     }
 
     private record FeaturedProduct(String name, String type, String imageUrl, String priceText) {
