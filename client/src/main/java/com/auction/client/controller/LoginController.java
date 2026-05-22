@@ -42,6 +42,8 @@ import java.util.Locale;
 
 import javafx.scene.control.CheckBox;
 import java.util.prefs.Preferences;
+import com.auction.client.util.GoogleOAuthService;
+
 public class LoginController {
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
 
@@ -89,7 +91,7 @@ public class LoginController {
     public void initialize() {
         loadRememberedLogin();
         if (btnGoogle != null) {
-            btnGoogle.setTooltip(new Tooltip("Google login will be added in a future update."));
+            btnGoogle.setTooltip(new Tooltip("Sign in using your Google account"));
         }
         if (btnFacebook != null) {
             btnFacebook.setTooltip(new Tooltip("Facebook login will be added in a future update."));
@@ -310,7 +312,144 @@ public class LoginController {
 
     @FXML
     public void handleGoogleLogin(ActionEvent event) {
-        handleComingSoonButton(btnGoogle);
+        if (btnGoogle == null) return;
+        btnGoogle.setDisable(true);
+        new Thread(() -> {
+            try {
+                HttpRequest configRequest = HttpRequest.newBuilder()
+                        .uri(URI.create(Config.API_URL + "/api/auth/google/config"))
+                        .GET()
+                        .build();
+
+                HttpResponse<String> response = client.send(configRequest, HttpResponse.BodyHandlers.ofString());
+                if (response == null || response.statusCode() != 200) {
+                    Platform.runLater(() -> {
+                        showAlert(Alert.AlertType.ERROR, "Google Login Error", "Failed to retrieve configuration from server.");
+                        btnGoogle.setDisable(false);
+                    });
+                    return;
+                }
+
+                JSONObject res = new JSONObject(response.body());
+                JSONObject config = res.optJSONObject("data");
+                if (config == null) {
+                    Platform.runLater(() -> {
+                        showAlert(Alert.AlertType.ERROR, "Google Login Error", "Invalid configuration returned by server.");
+                        btnGoogle.setDisable(false);
+                    });
+                    return;
+                }
+
+                boolean isMock = config.optBoolean("mock", false);
+                String clientIdStr = config.optString("clientId", "");
+
+                if (isMock) {
+                    Platform.runLater(() -> {
+                        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog("test-google@gmail.com");
+                        dialog.setTitle("Developer Mock Google Login");
+                        dialog.setHeaderText("Google OAuth is set to mock mode.\nEnter any email to simulate Google authentication.");
+                        dialog.setContentText("Email:");
+
+                        dialog.showAndWait().ifPresent(email -> {
+                            new Thread(() -> submitGoogleLoginPayload(event, email, "Mock Google User", null, null)).start();
+                        });
+                        btnGoogle.setDisable(false);
+                    });
+                } else {
+                    Platform.runLater(() -> {
+                        GoogleOAuthService oauthService = new GoogleOAuthService();
+                        oauthService.startAuthorizationFlow(clientIdStr, new GoogleOAuthService.AuthorizationCallback() {
+                            @Override
+                            public void onSuccess(String code, String redirectUri) {
+                                new Thread(() -> submitGoogleLoginPayload(event, null, null, code, redirectUri)).start();
+                            }
+
+                            @Override
+                            public void onFailure(String error) {
+                                Platform.runLater(() -> {
+                                    showAlert(Alert.AlertType.ERROR, "Google Login Failed", "Authorization failed: " + error);
+                                    btnGoogle.setDisable(false);
+                                });
+                            }
+                        });
+                    });
+                }
+            } catch (Exception e) {
+                logger.error("Error starting Google Login", e);
+                Platform.runLater(() -> {
+                    showAlert(Alert.AlertType.ERROR, "Network Error", "Cannot connect to server for Google config!");
+                    btnGoogle.setDisable(false);
+                });
+            }
+        }).start();
+    }
+
+    private void submitGoogleLoginPayload(ActionEvent event, String email, String name, String code, String redirectUri) {
+        try {
+            JSONObject body = new JSONObject();
+            if (email != null) {
+                body.put("email", email);
+            }
+            if (name != null) {
+                body.put("name", name);
+            }
+            if (code != null) {
+                body.put("code", code);
+            }
+            if (redirectUri != null) {
+                body.put("redirectUri", redirectUri);
+            }
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(Config.API_URL + "/api/auth/google"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response == null || response.statusCode() != 200) {
+                Platform.runLater(() -> {
+                    showAlert(Alert.AlertType.ERROR, "Google Login Failed", "Server rejected Google authentication.");
+                    btnGoogle.setDisable(false);
+                });
+                return;
+            }
+
+            JSONObject responseJson = new JSONObject(response.body());
+            if (responseJson.getInt("status") != 200) {
+                Platform.runLater(() -> {
+                    showAlert(Alert.AlertType.ERROR, "Google Login Failed", responseJson.optString("message", "Login failed"));
+                    btnGoogle.setDisable(false);
+                });
+                return;
+            }
+
+            JSONObject data = responseJson.getJSONObject("data");
+            String role = saveUserSession(data, email != null ? email : "google_user");
+
+            logger.info("Google Login successful, user role: {}", role);
+
+            Platform.runLater(() -> {
+                try {
+                    btnGoogle.setDisable(false);
+                    if (!isTestEnvironment()) {
+                        switchSceneByRole(event, role);
+                    } else {
+                        showAlert(Alert.AlertType.INFORMATION, "Success", "Welcome back!");
+                    }
+                } catch (IOException e) {
+                    logger.error("Navigation error after Google Login", e);
+                }
+            });
+
+        } catch (Exception e) {
+            logger.error("Google Login exchange error", e);
+            Platform.runLater(() -> {
+                showAlert(Alert.AlertType.ERROR, "Network Error", "Cannot connect to server to exchange Google credentials!");
+                btnGoogle.setDisable(false);
+            });
+        }
     }
 
     @FXML
@@ -422,6 +561,7 @@ public class LoginController {
 
         User.setSessionToken(data.optString("sessionToken", null));
         User.setSession(id, username, fullname, email, dob, placeOfBirth, role, avatarUrl);
+        User.setPasswordSet(data.optBoolean("passwordSet", true));
         return role;
     }
 
