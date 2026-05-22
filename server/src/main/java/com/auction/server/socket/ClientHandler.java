@@ -33,6 +33,7 @@ public class ClientHandler implements Runnable {
             String inputLine;
 
             while ((inputLine = in.readLine()) != null) {
+                logger.info("Received inputLine from client: {}", inputLine);
                 if (inputLine.startsWith("JOIN:")) {
                     int sessionId = Integer.parseInt(inputLine.substring(5));
                     SocketServer.joinRoom(sessionId, out);
@@ -65,6 +66,7 @@ public class ClientHandler implements Runnable {
     }
 
     private void handleBidMessage(String jsonString) {
+        logger.info("handleBidMessage called with payload: {}", jsonString);
         BidRequest request = null;
     
         try {
@@ -74,15 +76,19 @@ public class ClientHandler implements Runnable {
                     jsonObj.getInt("bidderId"),
                     new BigDecimal(jsonObj.get("amount").toString())
             );
+            logger.info("Parsed BidRequest: auctionId={}, bidderId={}, amount={}", request.getAuctionId(), request.getBidderId(), request.getBidAmount());
     
             BidResponse response;
             try {
+                logger.info("Calling biddingController.handleBid...");
                 response = biddingController.handleBid(request);
+                logger.info("biddingController.handleBid returned success={}", response.isSuccess());
             } catch (com.auction.server.exception.AuctionClosedException e) {
+                logger.error("Auction closed exception: {}", e.getMessage());
                 JSONObject errorJson = new JSONObject();
                 errorJson.put("success", false);
                 errorJson.put("message", e.getMessage());
-                out.println("RESPONSE:" + errorJson);
+                sendRawResponse(errorJson);
                 return;
             }
     
@@ -114,7 +120,15 @@ public class ClientHandler implements Runnable {
             JSONObject errorResponse = new JSONObject();
             errorResponse.put("success", false);
             errorResponse.put("message", "SYSTEM ERROR: Could not process bid request.");
-            out.println("RESPONSE:" + errorResponse);
+            sendRawResponse(errorResponse);
+        }
+    }
+    
+    private void sendRawResponse(JSONObject jsonResponse) {
+        out.println("RESPONSE:" + jsonResponse);
+        out.flush();
+        if (out.checkError()) {
+            logger.error("Failed to send RESPONSE to client (out.checkError() is true)");
         }
     }
 
@@ -134,7 +148,7 @@ public class ClientHandler implements Runnable {
             jsonResponse.put("newEndTime", response.getNewEndTime());
         }
 
-        out.println("RESPONSE:" + jsonResponse);
+        sendRawResponse(jsonResponse);
     }
 
     private void broadcastBidNotice(Integer auctionId, BidResponse response) {
@@ -196,7 +210,7 @@ public class ClientHandler implements Runnable {
                     "message",
                     "Auto-bidding activated successfully! The system will automatically bid when someone offers a higher price."
             );
-            out.println("RESPONSE:" + response);
+            sendRawResponse(response);
 
             // Resolve immediately if there's a price that needs counter-bidding
             BidResponse autoBidResult = biddingController.resolveAutoBids(auctionId);
@@ -210,7 +224,7 @@ public class ClientHandler implements Runnable {
             JSONObject errorResponse = new JSONObject();
             errorResponse.put("success", false);
             errorResponse.put("message", "Auto-bidding processing error: " + e.getMessage());
-            out.println("RESPONSE:" + errorResponse);
+            sendRawResponse(errorResponse);
         }
     }
 }

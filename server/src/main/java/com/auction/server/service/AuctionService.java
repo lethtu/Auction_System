@@ -126,6 +126,7 @@ public class AuctionService {
         }
 
         AuctionSession item = itemOptional.get();
+        logger.info("AuctionService.updateBid - Session found: ID={}, status={}", ItemAuctionId, item.getStatus());
 
         if (!isProductVisible(item)) {
             logger.error("Bid failed: product for session {} is hidden", ItemAuctionId);
@@ -133,6 +134,7 @@ public class AuctionService {
         }
 
         BigDecimal currentPrice = item.getCurrentPrice() == null ? BigDecimal.ZERO : item.getCurrentPrice();
+        logger.info("Current price for session {}: {}", ItemAuctionId, currentPrice);
         
         BigDecimal minimumRequiredBid;
         if (item.getStepPrice() != null && item.getStepPrice().compareTo(BigDecimal.ZERO) > 0) {
@@ -140,6 +142,7 @@ public class AuctionService {
         } else {
             minimumRequiredBid = calculateMinimumNextBid(currentPrice);
         }
+        logger.info("Minimum required bid for session {}: {}", ItemAuctionId, minimumRequiredBid);
 
         if (item.getStartTime() != null && LocalDateTime.now().isBefore(item.getStartTime())) {
             logger.error("Bid failed: Auction session {} has not started yet.", ItemAuctionId);
@@ -166,6 +169,7 @@ public class AuctionService {
 
             // ============ HOLD BALANCE: Anti Joy-Bidding ============
             // Step 1: Validate balance
+            logger.info("Validating balance for Bidder ID={}: balance={}", BidderId, bidder.getBalance());
             if (bidder.getBalance().compareTo(newBidAmount) < 0) {
                 logger.warn("Bid failed: User ID={} has balance {} but needs {}",
                         BidderId, bidder.getBalance(), newBidAmount);
@@ -234,9 +238,10 @@ public class AuctionService {
             item.addBid(bid);
 
             try {
+                logger.info("Attempting to save bid and update session...");
                 bidRepository.save(bid);
                 auctionSessionRepository.save(item);
-                logger.info("Updated new price for AuctionItem {} to {} by {}", ItemAuctionId, newBidAmount, BidderId);
+                logger.info("Saved Bid to DB. Updated new price for AuctionItem {} to {} by {}", ItemAuctionId, newBidAmount, BidderId);
                 int bidCount = Math.toIntExact(bidRepository.countBySessionId(ItemAuctionId));
                 // Return with updated end time (if any) and actual bid count from DB
                 return new BidResponse(
