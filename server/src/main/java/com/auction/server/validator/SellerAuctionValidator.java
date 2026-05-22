@@ -76,11 +76,11 @@ public final class SellerAuctionValidator {
             return;
         }
 
-        if (reservePrice.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new InvalidItemException("Giá sàn phải lớn hơn 0");
+        if (reservePrice.compareTo(BigDecimal.ZERO) < 0) {
+            throw new InvalidItemException("Giá sàn không được âm");
         }
 
-        if (startingPrice != null && reservePrice.compareTo(startingPrice) < 0) {
+        if (reservePrice.compareTo(BigDecimal.ZERO) > 0 && startingPrice != null && reservePrice.compareTo(startingPrice) < 0) {
             throw new InvalidItemException("Giá sàn không được nhỏ hơn giá khởi điểm");
         }
     }

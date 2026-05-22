@@ -88,8 +88,7 @@ public class MainControllerTest {
         robot.sleep(500); // Chờ hiệu ứng và logic xử lý
 
         // 3. Kiểm tra xem chữ đã bị ẩn đi chưa (trong logic của bạn là setText(""))
-        // Do sidebarContainer null ở MainController nên test phải assert lại nguyên bản
-        verifyThat("#btnSidebarDashboard", LabeledMatchers.hasText("Dashboard"));
+        verifyThat("#btnSidebarDashboard", LabeledMatchers.hasText(""));
 
         // 4. Test Hover để hiện mô tả (Tooltip)
         robot.moveTo("#btnSidebarDashboard");

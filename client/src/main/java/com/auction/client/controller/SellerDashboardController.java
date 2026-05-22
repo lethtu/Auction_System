@@ -65,6 +65,12 @@ public class SellerDashboardController {
     @FXML
     private TextArea descriptionArea;
     @FXML
+    private TextField reservePriceField;
+    @FXML
+    private HBox errorReservePrice;
+    @FXML
+    private Label lblErrorReservePrice;
+    @FXML
     private TextField startingPriceField;
     @FXML
     private VBox imageUploadArea;
@@ -152,6 +158,7 @@ public class SellerDashboardController {
     @FXML
     private Label notificationBadge;
     @FXML
+    private StackPane topBarAvatarPane;
     private Button btnSettings;
 
     private HttpClient httpClient = HttpClientSingleton.getInstance().getHttpClient();
@@ -187,6 +194,8 @@ public class SellerDashboardController {
                 }
             });
         }
+
+        javafx.application.Platform.runLater(() -> updateTopBarAvatar(User.getAvatarUrl()));
 
         if (modalDialog != null && modalOverlay != null) {
             modalOverlay.heightProperty().addListener((obs, oldVal, newVal) -> updateModalMaxHeight());
@@ -602,6 +611,9 @@ public class SellerDashboardController {
         }
         descriptionArea.setText(item.description);
         startingPriceField.setText(item.startingPrice != null ? item.startingPrice.toString() : "0");
+        if (reservePriceField != null) {
+            reservePriceField.setText(item.reservePrice != null ? item.reservePrice.toString() : "");
+        }
 
         // Populate Date/Time fields
         populateSplitTimeFields(item.startTime, txtStartDay, txtStartMonth, txtStartYear, txtStartHour, txtStartMin);
@@ -899,6 +911,16 @@ public class SellerDashboardController {
             body.put("imagePath", imageUrl);
             body.put("description", description);
             body.put("startingPrice", startingPrice);
+            
+            BigDecimal reservePrice = BigDecimal.ZERO;
+            String reservePriceText = reservePriceField != null ? reservePriceField.getText() : "";
+            if (reservePriceText != null && !reservePriceText.trim().isEmpty()) {
+                try {
+                    reservePrice = new BigDecimal(reservePriceText.trim());
+                } catch(Exception e) {}
+            }
+            body.put("reservePrice", reservePrice);
+            
             body.put("sellerId", sellerId);
             body.put("stepPrice", 10000); // Default step price
             body.put("status", "DRAFT");
@@ -1147,6 +1169,16 @@ public class SellerDashboardController {
             body.put("imagePath", imageUrl);
             body.put("description", description);
             body.put("startingPrice", startingPrice);
+            
+            BigDecimal reservePrice = BigDecimal.ZERO;
+            String reservePriceText = reservePriceField != null ? reservePriceField.getText() : "";
+            if (reservePriceText != null && !reservePriceText.trim().isEmpty()) {
+                try {
+                    reservePrice = new BigDecimal(reservePriceText.trim());
+                } catch(Exception e) {}
+            }
+            body.put("reservePrice", reservePrice);
+            
             body.put("sellerId", sellerId);
             body.put("stepPrice", 10000); // Default step price
             body.put("status", "DRAFT");
@@ -1404,6 +1436,15 @@ public class SellerDashboardController {
             body.put("imagePath", imageUrl);
             body.put("description", description);
             body.put("startingPrice", startingPrice);
+            
+            BigDecimal reservePrice = BigDecimal.ZERO;
+            String reservePriceText = reservePriceField != null ? reservePriceField.getText() : "";
+            if (reservePriceText != null && !reservePriceText.trim().isEmpty()) {
+                try {
+                    reservePrice = new BigDecimal(reservePriceText.trim());
+                } catch(Exception e) {}
+            }
+            body.put("reservePrice", reservePrice);
             body.put("sellerId", sellerId);
             body.put("stepPrice", 10000); // Default step price to avoid database NOT NULL constraint
 
@@ -1700,6 +1741,15 @@ public class SellerDashboardController {
             body.put("imagePath", imageUrl);
             body.put("description", description);
             body.put("startingPrice", startingPrice);
+            
+            BigDecimal reservePrice = BigDecimal.ZERO;
+            String reservePriceText = reservePriceField != null ? reservePriceField.getText() : "";
+            if (reservePriceText != null && !reservePriceText.trim().isEmpty()) {
+                try {
+                    reservePrice = new BigDecimal(reservePriceText.trim());
+                } catch(Exception e) {}
+            }
+            body.put("reservePrice", reservePrice);
             body.put("sellerId", sellerId);
             body.put("stepPrice", 10000); // Default step price
 
@@ -1968,6 +2018,7 @@ public class SellerDashboardController {
         s.startingPrice = parseBigDecimal(item, "startingPrice");
         s.currentPrice = parseBigDecimal(item, "currentPrice");
         s.stepPrice = parseBigDecimal(item, "stepPrice");
+        s.reservePrice = parseBigDecimal(item, "reservePrice");
         s.startTime = item.optString("startTime", "");
         s.endTime = item.optString("endTime", "");
         s.status = item.optString("status", "UNKNOWN");
@@ -2039,6 +2090,7 @@ public class SellerDashboardController {
         productNameField.clear();
         imageUrlField.clear();
         descriptionArea.clear();
+        if (reservePriceField != null) reservePriceField.clear();
         startingPriceField.clear();
         if (lblImageFileName != null)
             lblImageFileName.setText("");
@@ -2504,6 +2556,7 @@ public class SellerDashboardController {
         BigDecimal startingPrice = BigDecimal.ZERO;
         BigDecimal currentPrice = BigDecimal.ZERO;
         BigDecimal stepPrice = BigDecimal.ZERO;
+        BigDecimal reservePrice = BigDecimal.ZERO;
         String startTime;
         String endTime;
         String status;
@@ -2528,6 +2581,29 @@ public class SellerDashboardController {
             this.success = success;
             this.message = message;
             this.data = data;
+        }
+    }
+
+    private void updateTopBarAvatar(String avatarUrl) {
+        if (topBarAvatarPane == null) return;
+        try {
+            topBarAvatarPane.getChildren().clear();
+            if (avatarUrl != null && !avatarUrl.isBlank()) {
+                String fullUrl = avatarUrl.startsWith("http") ? avatarUrl : Config.API_URL + avatarUrl;
+                ImageView imgView = new ImageView(new Image(fullUrl, 36, 36, false, true, true));
+                imgView.setFitWidth(36);
+                imgView.setFitHeight(36);
+                imgView.setSmooth(true);
+                javafx.scene.shape.Circle clip = new javafx.scene.shape.Circle(18, 18, 18);
+                imgView.setClip(clip);
+                topBarAvatarPane.getChildren().add(imgView);
+            } else {
+                Label icon = new Label("\uE7FD");
+                icon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: white;");
+                topBarAvatarPane.getChildren().add(icon);
+            }
+        } catch (Exception e) {
+            logger.warn("Không thể cập nhật avatar trên top bar: {}", e.getMessage());
         }
     }
 }
