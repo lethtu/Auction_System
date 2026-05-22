@@ -1000,7 +1000,8 @@ public class SellerDashboardController {
 
         String productName = productNameField.getText().trim();
         String productType = productTypeCombo.getValue();
-        String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField));
+        String existingUuid = (editingSession != null) ? extractUuid(editingSession.imageUrl) : null;
+        String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField), existingUuid);
         if (imageUrl == null) {
             return;
         }
@@ -1263,7 +1264,8 @@ public class SellerDashboardController {
 
         String productName = productNameField.getText().trim();
         String productType = productTypeCombo.getValue();
-        String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField));
+        String existingUuid = (editingSession != null) ? extractUuid(editingSession.imageUrl) : null;
+        String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField), existingUuid);
         if (imageUrl == null) {
             return;
         }
@@ -1945,7 +1947,7 @@ public class SellerDashboardController {
         }
 
         try {
-            String selectedImagePath = prepareImagePathForSave(selected.imageUrl);
+            String selectedImagePath = prepareImagePathForSave(selected.imageUrl, extractUuid(selected.imageUrl));
             if (selectedImagePath == null) {
                 return;
             }
@@ -2331,7 +2333,18 @@ public class SellerDashboardController {
         return obj;
     }
 
+    private String extractUuid(String path) {
+        if (path == null || path.isBlank()) return null;
+        java.util.regex.Pattern uuidPattern = java.util.regex.Pattern.compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
+        java.util.regex.Matcher matcher = uuidPattern.matcher(path);
+        return matcher.find() ? matcher.group() : null;
+    }
+
     private String prepareImagePathForSave(String rawPath) {
+        return prepareImagePathForSave(rawPath, null);
+    }
+
+    private String prepareImagePathForSave(String rawPath, String existingUuid) {
         if (rawPath == null || rawPath.isBlank()) {
             return "";
         }
@@ -2340,7 +2353,7 @@ public class SellerDashboardController {
         File localImage = toExistingLocalFile(path);
         if (localImage != null) {
             try {
-                return uploadProductImage(localImage);
+                return uploadProductImage(localImage, existingUuid);
             } catch (Exception e) {
                 logger.error("Cannot upload product image: {}", e.getMessage(), e);
                 showAlert(Alert.AlertType.ERROR, "Image Upload Error", "Cannot upload product image to the server.");
@@ -2373,7 +2386,12 @@ public class SellerDashboardController {
     }
 
     private String uploadProductImage(File imageFile) throws Exception {
-        HttpResponse<String> response = HttpRequestUtil.uploadImage(Config.API_URL, "/api/files/images", imageFile);
+        return uploadProductImage(imageFile, null);
+    }
+
+    private String uploadProductImage(File imageFile, String existingUuid) throws Exception {
+        String uploadPath = "/api/files/images" + (existingUuid != null ? "?uuid=" + existingUuid : "");
+        HttpResponse<String> response = HttpRequestUtil.uploadImage(Config.API_URL, uploadPath, imageFile);
         if (response.statusCode() < 200 || response.statusCode() >= 300) {
             throw new IOException("Image upload failed with status " + response.statusCode());
         }
@@ -2384,6 +2402,10 @@ public class SellerDashboardController {
         if (imagePath.isBlank()) {
             throw new IOException("Image upload response did not contain imagePath.");
         }
+
+        // Trigger cache buster to immediately reflect the new image across all views
+        Config.triggerImageCacheBuster();
+
         return normalizeImagePathForStorage(imagePath);
     }
 
@@ -2427,11 +2449,12 @@ public class SellerDashboardController {
 
         String path = rawPath.trim().replace("\\", "/");
         if ((path.startsWith("http://") || path.startsWith("https://")) && !path.contains("/api/files/images/")) {
-            return path;
+            return Config.applyCacheBuster(path);
         }
 
         path = normalizeImagePathForStorage(path);
-        return path.isBlank() ? "" : Config.API_URL + "/api/files/images/" + path;
+        String url = path.isBlank() ? "" : Config.API_URL + "/api/files/images/" + path;
+        return Config.applyCacheBuster(url);
     }
 
     private String safeString(String value) {

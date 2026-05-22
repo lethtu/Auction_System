@@ -2,8 +2,19 @@ package com.auction.server.mapper;
 
 import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.model.AuctionSession;
+import com.auction.server.service.CloudinaryService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-public final class SessionResponseMapper {
+@Component
+public class SessionResponseMapper {
+
+    private static CloudinaryService cloudinaryService;
+
+    @Autowired(required = false)
+    public void setCloudinaryService(CloudinaryService service) {
+        SessionResponseMapper.cloudinaryService = service;
+    }
 
     private SessionResponseMapper() {
     }
@@ -22,7 +33,27 @@ public final class SessionResponseMapper {
             dto.setProductName(session.getItem().getName());
             dto.setProductType(session.getItem().getType());
             dto.setDescription(session.getItem().getDescription());
-            dto.setImagePath(session.getItem().getImagePath());
+            
+            String imagePath = session.getItem().getImagePath();
+            if (imagePath != null && !imagePath.isBlank()) {
+                if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+                    dto.setImagePath(imagePath);
+                } else {
+                    String uuid = session.getItem().getUuid();
+                    if (imagePath.equals(uuid) && isUuid(uuid)) {
+                        if (cloudinaryService != null) {
+                            dto.setImagePath(cloudinaryService.getDynamicImageUrl(uuid));
+                        } else {
+                            dto.setImagePath("/api/files/images/" + uuid + "/" + uuid + ".png");
+                        }
+                    } else {
+                        dto.setImagePath(imagePath);
+                    }
+                }
+            } else {
+                dto.setImagePath(imagePath);
+            }
+
             dto.setProductVisible(!session.getItem().isHidden());
         }
 
@@ -55,5 +86,17 @@ public final class SessionResponseMapper {
         dto.setMinRate(session.getMinRate());
 
         return dto;
+    }
+
+    private static boolean isUuid(String str) {
+        if (str == null || str.length() != 36) {
+            return false;
+        }
+        try {
+            java.util.UUID.fromString(str);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 }
