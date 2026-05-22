@@ -1,6 +1,8 @@
 package com.auction.client.controller;
 
 
+
+import com.auction.client.util.AlertUtil;
 import com.auction.client.Config;
 import com.auction.client.HttpClientSingleton;
 import org.slf4j.Logger;
@@ -140,12 +142,12 @@ public class ForgotPasswordController {
     public void goToLogin(ActionEvent event) throws Exception {
         SceneSwitcher.switchScene(event, "Login.fxml", 1100, 700);
     }
-
     private void showAlert(Alert.AlertType type, String title, String content) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(content);
+        AlertUtil.styleDialog(alert);
         alert.showAndWait();
     }
 
