@@ -5,6 +5,12 @@ import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
 import com.auction.client.model.User;
 import com.auction.client.util.NotificationBellBinder;
+import com.auction.client.util.AlertUtil;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -101,9 +107,12 @@ public class DepositController implements Initializable {
         accountItem.setOnAction(event -> {
             try {
                 MainController.initialShowAccount = true;
-                SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
+                MainController.initialShowWatchlist = false;
+                MainController.initialHomeFilterMode = "ACCOUNT";
+                openMainTemplateFromCurrentWindow();
             } catch (IOException e) {
                 logger.error("Error switching to account page: ", e);
+                AlertUtil.showInfo("My Account", "Cannot open account page. Please try again.");
             }
         });
 
@@ -199,13 +208,13 @@ public class DepositController implements Initializable {
     }
 
     private void updateSummary(BigDecimal amount) {
-        String formatted = "₫ " + formatPrice(amount);
+        String formatted = "\u20ab " + formatPrice(amount);
         lblSummaryAmount.setText(formatted);
         lblSummaryTotal.setText(formatted);
     }
 
     private void updateWalletBalanceDisplay() {
-        lblWalletBalance.setText("₫ " + formatPrice(User.getBalance()));
+        lblWalletBalance.setText("\u20ab " + formatPrice(User.getBalance()));
     }
 
     private String formatPrice(BigDecimal price) {
@@ -310,15 +319,31 @@ public class DepositController implements Initializable {
     }
 
     private void showAlert(Alert.AlertType type, String title, String message) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        
-        DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.setStyle("-fx-font-family: 'DM Sans'; -fx-background-color: #fcf8ff; -fx-border-color: #e040a0; -fx-border-width: 2px; -fx-border-radius: 12px; -fx-background-radius: 12px;");
-        
-        alert.showAndWait();
+        AlertUtil.show(type, title, message);
+    }
+
+    private void openMainTemplateFromCurrentWindow() throws IOException {
+        Window window = userMenuButton != null && userMenuButton.getScene() != null
+                ? userMenuButton.getScene().getWindow()
+                : null;
+
+        if (window instanceof Stage stage) {
+            boolean wasMaximized = stage.isMaximized();
+            int width = Math.max(1280, (int) Math.round(stage.getWidth()));
+            int height = Math.max(800, (int) Math.round(stage.getHeight()));
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/auction/client/view/MainTemplate.fxml"));
+            Parent root = loader.load();
+            stage.setScene(new Scene(root, width, height));
+            stage.show();
+
+            if (wasMaximized) {
+                Platform.runLater(() -> stage.setMaximized(true));
+            }
+            return;
+        }
+
+        SceneSwitcher.switchScene(new ActionEvent(userMenuButton, userMenuButton), "MainTemplate.fxml", 1280, 800);
     }
 
     private void updateTopBarAvatar(String avatarUrl) {

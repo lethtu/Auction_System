@@ -92,7 +92,7 @@
                 <Label text="Unlock professional selling tools, reach thousands of potential customers and achieve outstanding revenue growth." wrapText="true" maxWidth="700" style="-fx-font-size: 16px; -fx-text-fill: #604868; -fx-text-alignment: center;" alignment="CENTER" />
             </VBox>
             
-            <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
+            <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS" hbarPolicy="NEVER">
                 <VBox alignment="CENTER" spacing="35.0" style="-fx-padding: 10px 0px;">
 
                 <!-- 3 Benefits Cards -->
@@ -127,7 +127,7 @@
 
                 <!-- Action / Form Card -->
                 <VBox alignment="CENTER" spacing="20.0" maxWidth="600" style="-fx-background-color: #ffffff; -fx-padding: 35px 40px; -fx-background-radius: 24px; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.12), 25, 0, 0, 8);">
-                    <CheckBox fx:id="chkAgree" text="I agree to the terms and seller policies of HY Auction." style="-fx-font-size: 15px; -fx-text-fill: #2e1a28; -fx-cursor: hand;" />
+                    <CheckBox fx:id="chkAgree" text="I agree to the terms and seller policies of HY Auction." style="-fx-font-size: 15px; -fx-text-fill: #2e1a28; -fx-cursor: hand;"  styleClass="seller-policy-check"/>
                     
                     <Label fx:id="lblMessage" text="" style="-fx-font-size: 14px;" visible="false" managed="false" />
 

@@ -1,12 +1,13 @@
 package com.auction.client.controller;
 
+import com.auction.client.util.AlertUtil;
 import javafx.animation.PauseTransition;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -101,6 +102,7 @@ public class SidebarController {
 
     @FXML
     public void initialize() {
+        isSidebarCollapsed = false;
         // Save default text
         for (javafx.scene.Node node : sidebarContent.getChildren()) {
             if (node instanceof Button) {
@@ -133,16 +135,53 @@ public class SidebarController {
             }
         }
 
+        boolean persistedCollapse = java.util.prefs.Preferences
+                .userNodeForPackage(com.auction.client.util.SettingsDialog.class)
+                .getBoolean(com.auction.client.util.SettingsDialog.KEY_AUTO_COLLAPSE, false);
+
         isSidebarCollapsed = false;
         applyExpandedSidebar();
+        if (persistedCollapse) {
+            toggleSidebar();
+        }
+
+        Platform.runLater(() -> {
+            if (sidebarContainer != null && sidebarContainer.getScene() != null) {
+                sidebarContainer.getScene().widthProperty().addListener((obs, oldV, newV) -> {
+                    if (newV.doubleValue() < 1100 && !isSidebarCollapsed) {
+                        toggleSidebar();
+                    }
+                });
+            }
+        });
+    }
+    private void autoCollapse() {
+        // Keep the full bordered sidebar visible after navigation.
+        // Users can still collapse it manually with the hamburger button.
+        ensureExpandedSidebarChrome();
     }
 
-    private void autoCollapse() {
-        if (!isSidebarCollapsed) {
-            toggleSidebar();
+    private void ensureExpandedSidebarChrome() {
+        if (sidebarContainer != null && !isSidebarCollapsed) {
+            sidebarContainer.setMinWidth(200);
+            sidebarContainer.setPrefWidth(200);
+            sidebarContainer.setMaxWidth(200);
+            double expandedHeight = getExpandedSidebarHeight();
+            sidebarContainer.setMinHeight(expandedHeight);
+            sidebarContainer.setPrefHeight(expandedHeight);
+            sidebarContainer.setMaxHeight(expandedHeight);
+        }
+        if (sidebarContent != null && !isSidebarCollapsed) {
+            sidebarContent.setPadding(new Insets(0, 0, 0, 0));
+            sidebarContent.setAlignment(Pos.TOP_LEFT);
+            sidebarContent.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; -fx-effect: null;");
         }
     }
 
+    private double getExpandedSidebarHeight() {
+        boolean showStartSelling = btnStartSelling != null && btnStartSelling.isVisible() && btnStartSelling.isManaged();
+        return showStartSelling ? 388.0 : 336.0;
+    }
     public void forceCollapse() {
         autoCollapse();
     }
@@ -164,7 +203,11 @@ public class SidebarController {
             sidebarContainer.setMinWidth(70);
             sidebarContainer.setPrefWidth(70);
             sidebarContainer.setMaxWidth(70);
-            sidebarContent.setPadding(new Insets(24, 0, 24, 0));
+            double collapsedHeight = getExpandedSidebarHeight();
+            sidebarContainer.setMinHeight(collapsedHeight);
+            sidebarContainer.setPrefHeight(collapsedHeight);
+            sidebarContainer.setMaxHeight(collapsedHeight);
+            sidebarContent.setPadding(new Insets(0, 0, 0, 0));
             sidebarContent.setAlignment(Pos.TOP_CENTER);
 
             for (javafx.scene.Node node : sidebarContent.getChildren()) {
@@ -229,9 +272,13 @@ public class SidebarController {
         }
 
         sidebarContainer.setMinWidth(200);
-        sidebarContainer.setPrefWidth(200);
-        sidebarContainer.setMaxWidth(200);
-        sidebarContent.setPadding(new Insets(24, 8, 24, 8));
+            sidebarContainer.setPrefWidth(200);
+            sidebarContainer.setMaxWidth(200);
+            double expandedHeight = getExpandedSidebarHeight();
+            sidebarContainer.setMinHeight(expandedHeight);
+            sidebarContainer.setPrefHeight(expandedHeight);
+            sidebarContainer.setMaxHeight(expandedHeight);
+        sidebarContent.setPadding(new Insets(0, 0, 0, 0));
         sidebarContent.setAlignment(Pos.TOP_LEFT);
 
         for (javafx.scene.Node node : sidebarContent.getChildren()) {
@@ -326,6 +373,7 @@ public class SidebarController {
 
     @FXML
     public void handleDashboard(ActionEvent event) {
+        autoCollapse();
         setActiveDashboard();
         if (listener != null) {
             listener.onResetFilter(event);
@@ -333,6 +381,8 @@ public class SidebarController {
             try {
                 if (onBeforeNavigate != null)
                     onBeforeNavigate.run();
+                MainController.initialShowWatchlist = false;
+                MainController.initialHomeFilterMode = "ALL";
                 SceneSwitcher.switchScene(event, "MainTemplate.fxml", APP_WIDTH, APP_HEIGHT);
             } catch (IOException e) {
                 logger.error("Error switching to MainTemplate: ", e);
@@ -342,6 +392,7 @@ public class SidebarController {
 
     @FXML
     public void handleWatchlist(ActionEvent event) {
+        autoCollapse();
         setActiveWatchlist();
         if (listener != null) {
             listener.onFilterWatchlist(event);
@@ -350,6 +401,7 @@ public class SidebarController {
                 if (onBeforeNavigate != null)
                     onBeforeNavigate.run();
                 MainController.initialShowWatchlist = true;
+                MainController.initialHomeFilterMode = "WATCHLIST";
                 SceneSwitcher.switchScene(event, "MainTemplate.fxml", APP_WIDTH, APP_HEIGHT);
             } catch (IOException e) {
                 logger.error("Error switching to MainTemplate: ", e);
@@ -359,6 +411,7 @@ public class SidebarController {
 
     @FXML
     public void handleStartSelling(ActionEvent event) {
+        autoCollapse();
         try {
             if (onBeforeNavigate != null)
                 onBeforeNavigate.run();
@@ -370,6 +423,7 @@ public class SidebarController {
 
     @FXML
     public void handleMyBids(ActionEvent event) {
+        autoCollapse();
         setActiveMyBids();
         try {
             Stage stage = resolveStage(event);
@@ -387,6 +441,7 @@ public class SidebarController {
 
     @FXML
     public void handleSelling(ActionEvent event) {
+        autoCollapse();
         setActiveSelling();
         try {
             Stage stage = resolveStage(event);
@@ -404,6 +459,7 @@ public class SidebarController {
 
     @FXML
     public void handleSupport(ActionEvent event) {
+        autoCollapse();
         setActiveSupport();
         try {
             Stage stage = resolveStage(event);
@@ -421,6 +477,7 @@ public class SidebarController {
 
     @FXML
     public void handleSettings(ActionEvent event) {
+        autoCollapse();
         setActiveSettings();
         try {
             Stage stage = resolveStage(event);
@@ -448,11 +505,7 @@ public class SidebarController {
     }
 
     private void showInfo(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        AlertUtil.showInfo(title, message);
     }
 
     @FXML

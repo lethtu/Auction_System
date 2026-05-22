@@ -6,9 +6,13 @@ import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Region;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import java.io.IOException;
@@ -103,6 +107,7 @@ public class SceneSwitcher {
         Parent root;
         try {
             root = loader.load();
+            root = prepareSceneRoot(root);
         } catch (IOException | RuntimeException e) {
             if (hideStageWhileLoading) {
                 stage.setOpacity(previousOpacity);
@@ -178,4 +183,71 @@ public class SceneSwitcher {
             throws IOException {
         return Switch(event, fxmlFile, width, height);
     }
+
+    public static Parent prepareSceneRoot(Parent root) {
+        if (root == null) {
+            return null;
+        }
+
+        if (Boolean.TRUE.equals(root.getProperties().get("rounded-window-prepared"))) {
+            return root;
+        }
+        root.getProperties().put("rounded-window-prepared", Boolean.TRUE);
+
+        polishMainShellSpacing(root);
+
+        appendStyle(root,
+                "-fx-background-color: transparent; "
+                        + "-fx-background-radius: 34px; "
+                        + "-fx-border-radius: 34px; "
+                        + "-fx-background-insets: 0; "
+                        + "-fx-border-insets: 0;");
+
+        Rectangle clip = new Rectangle();
+        clip.setArcWidth(68.0);
+        clip.setArcHeight(68.0);
+
+        if (root instanceof Region) {
+            Region region = (Region) root;
+            clip.widthProperty().bind(region.widthProperty());
+            clip.heightProperty().bind(region.heightProperty());
+        } else {
+            root.layoutBoundsProperty().addListener((obs, oldBounds, bounds) -> {
+                clip.setWidth(bounds.getWidth());
+                clip.setHeight(bounds.getHeight());
+            });
+        }
+
+        root.setClip(clip);
+        return root;
+    }
+
+    private static void polishMainShellSpacing(Node node) {
+        if (node instanceof BorderPane) {
+            BorderPane pane = (BorderPane) node;
+            Node left = pane.getLeft();
+            Node center = pane.getCenter();
+            if (left != null && center != null) {
+                BorderPane.setMargin(left, new Insets(22, 34, 22, 18));
+                BorderPane.setMargin(center, new Insets(22, 30, 22, 4));
+            }
+        }
+
+        if (node instanceof Parent) {
+            Parent parent = (Parent) node;
+            for (Node child : parent.getChildrenUnmodifiable()) {
+                polishMainShellSpacing(child);
+            }
+        }
+    }
+
+    private static void appendStyle(Node node, String extraStyle) {
+        String currentStyle = node.getStyle();
+        if (currentStyle == null || currentStyle.isBlank()) {
+            node.setStyle(extraStyle);
+        } else if (!currentStyle.contains(extraStyle)) {
+            node.setStyle(currentStyle + "; " + extraStyle);
+        }
+    }
+
 }

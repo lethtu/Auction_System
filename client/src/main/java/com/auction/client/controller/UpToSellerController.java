@@ -23,6 +23,7 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.Scanner;
 
+import com.auction.client.util.AlertUtil;
 public class UpToSellerController implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(UpToSellerController.class);
 
@@ -147,15 +148,7 @@ public class UpToSellerController implements Initializable {
                     if (responseCode >= 200 && responseCode < 300 && jsonResponse.optInt("status", 400) == 200) {
                         // Success
                         User.setSession(User.getId(), User.getUsername(), User.getFullname(), User.getEmail(), User.getDob(), User.getPlace_of_birth(), "SELLER", User.getAvatarUrl());
-
-                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                        alert.setTitle("Upgrade successful");
-                        alert.setHeaderText("Congratulations, you are now a Seller!");
-                        alert.setContentText("Selling features are now unlocked. You can now list your own products.");
-
-                        DialogPane dialogPane = alert.getDialogPane();
-                        dialogPane.setStyle("-fx-font-family: 'DM Sans'; -fx-background-color: #fcf8ff; -fx-border-color: #e040a0; -fx-border-width: 2px; -fx-border-radius: 12px; -fx-background-radius: 12px;");
-                        alert.showAndWait();
+                        AlertUtil.showInfo("Upgrade successful", "Congratulations, you are now a Seller!\nSelling features are now unlocked. You can now list your own products.");
 
                         try {
                             SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);

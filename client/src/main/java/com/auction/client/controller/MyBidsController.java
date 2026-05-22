@@ -108,7 +108,8 @@ public class MyBidsController implements Initializable {
         scrollPane.viewportBoundsProperty().addListener((obs, oldBounds, newBounds) -> {
             updateGridLayout();
         });
-        scheduleStableGridLayout();
+        updateGridLayout();
+        Platform.runLater(this::updateGridLayout);
 
         // Initialize sidebar styling
         Platform.runLater(() -> {
@@ -151,21 +152,28 @@ public class MyBidsController implements Initializable {
         if (scrollPane == null || productContainer == null) return;
 
         double viewportWidth = scrollPane.getViewportBounds().getWidth();
+        if (viewportWidth <= 0 && scrollPane.getWidth() > 0) {
+            viewportWidth = scrollPane.getWidth();
+        }
         if (viewportWidth <= 0) return;
 
-        double stableWidth = Math.max(0, Math.floor(viewportWidth) - 24.0);
+        final double cardWidth = 250.0;
+        final double hgap = 24.0;
+        final int maxColumns = 3;
 
-        productContainer.setAlignment(Pos.TOP_CENTER);
-        productContainer.setPrefWrapLength(stableWidth);
-        productContainer.setMinWidth(stableWidth);
-        productContainer.setPrefWidth(stableWidth);
-        productContainer.setMaxWidth(stableWidth);
-        productContainer.setHgap(44.0);
+        int columns = Math.max(1, Math.min(maxColumns, (int) Math.floor((viewportWidth + hgap) / (cardWidth + hgap))));
+        double gridWidth = columns * cardWidth + Math.max(0, columns - 1) * hgap;
+
+        productContainer.setAlignment(Pos.TOP_LEFT);
+        productContainer.setPrefWrapLength(gridWidth);
+        productContainer.setMinWidth(gridWidth);
+        productContainer.setPrefWidth(gridWidth);
+        productContainer.setMaxWidth(gridWidth);
+        productContainer.setHgap(hgap);
         productContainer.setVgap(28.0);
-        productContainer.setPadding(new Insets(10.0, 18.0, 10.0, 18.0));
+        productContainer.setPadding(new Insets(10.0, 0.0, 18.0, 0.0));
     }
-
-    private void scheduleStableGridLayout() {
+ {
         Platform.runLater(this::updateGridLayout);
         PauseTransition delay = new PauseTransition(Duration.millis(150));
         delay.setOnFinished(event -> updateGridLayout());
@@ -443,12 +451,12 @@ if (matchKeyword && matchTab) {
 
         VBox vbox = new VBox();
         vbox.setSpacing(14.0);
-        vbox.setPrefWidth(280.0);
-        vbox.setMinWidth(280.0);
-        vbox.setMaxWidth(280.0);
-        vbox.setPrefHeight(410.0);
-        vbox.setMinHeight(410.0);
-        vbox.setMaxHeight(410.0);
+        vbox.setPrefWidth(250.0);
+        vbox.setMinWidth(250.0);
+        vbox.setMaxWidth(250.0);
+        vbox.setPrefHeight(400.0);
+        vbox.setMinHeight(400.0);
+        vbox.setMaxHeight(400.0);
         
         // Premium modern style
         vbox.setStyle("-fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-padding: 14px; -fx-background-color: #ffffff; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.05), 10, 0, 0, 2);");
@@ -466,14 +474,14 @@ if (matchKeyword && matchTab) {
         imageWrapper.setPrefHeight(150.0);
         imageWrapper.setMinHeight(150.0);
         imageWrapper.setMaxHeight(150.0);
-        imageWrapper.setPrefWidth(252.0);
-        imageWrapper.setMinWidth(252.0);
-        imageWrapper.setMaxWidth(252.0);
+        imageWrapper.setPrefWidth(222.0);
+        imageWrapper.setMinWidth(222.0);
+        imageWrapper.setMaxWidth(222.0);
         imageWrapper.setStyle("-fx-background-radius: 14px; -fx-border-radius: 14px; -fx-background-color: #fcf6fc;");
 
         ImageView imageView = new ImageView();
         imageView.setFitHeight(150.0);
-        imageView.setFitWidth(252.0);
+        imageView.setFitWidth(222.0);
         imageView.setPreserveRatio(true);
         imageView.setSmooth(true);
 
@@ -502,7 +510,7 @@ if (matchKeyword && matchTab) {
         }
 
         // Clip the image wrapper to keep rounded corners
-        javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle(252, 150);
+        javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle(222, 150);
         clip.setArcWidth(28.0);
         clip.setArcHeight(28.0);
         imageWrapper.setClip(clip);
@@ -804,8 +812,12 @@ if (matchKeyword && matchTab) {
             return "";
         }
         String path = rawPath.trim().replace("\\", "/");
-        if (path.startsWith("http://") || path.startsWith("https://")) {
+        if ((path.startsWith("http://") || path.startsWith("https://")) && !path.contains("/api/files/images/")) {
             return path;
+        }
+        int apiIndex = path.indexOf("/api/files/images/");
+        if (apiIndex >= 0) {
+            path = path.substring(apiIndex + "/api/files/images/".length());
         }
         while (path.startsWith("/")) {
             path = path.substring(1);

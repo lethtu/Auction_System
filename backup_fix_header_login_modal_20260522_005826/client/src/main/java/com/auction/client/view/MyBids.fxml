@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane prefWidth="1280.0" prefHeight="800.0" stylesheets="@styles.css" style="-fx-background-color: #fef7ff; -fx-font-family: 'DM Sans';" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.MyBidsController">
+
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-background-color: rgba(254, 247, 255, 0.9); -fx-padding: 12px 30px; -fx-border-color: #ffe8e8; -fx-border-width: 0 0 2px 0; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.15), 20, 0, 0, 4);">
+            <Button fx:id="btnHamburger" onAction="#handleToggleSidebar" style="-fx-background-color: transparent; -fx-cursor: hand;">
+                <graphic>
+                    <Label text="&#xe5d2;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 22px; -fx-font-weight: normal; -fx-text-fill: #604868;" />
+                </graphic>
+            </Button>
+            <Label text="BidPop" textFill="#e040a0" style="-fx-cursor: hand;" onMouseClicked="#handleGoToDashboard">
+                <font>
+                    <Font name="System Bold" size="28.0" />
+                </font>
+            </Label>
+            
+            <Region HBox.hgrow="ALWAYS" />
+            
+            <HBox alignment="CENTER_LEFT" prefWidth="500.0" prefHeight="40.0" style="-fx-background-color: #ffffff; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 999; -fx-background-radius: 999; -fx-padding: 0 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.05), 10, 0, 0, 2);">
+                <Label text="&#xe8b6;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #e040a0;" translateY="3.0" />
+                <TextField fx:id="txtSearch" promptText="Search your bids..." HBox.hgrow="ALWAYS" style="-fx-background-color: transparent; -fx-padding: 0 0 0 8px; -fx-prompt-text-fill: #907898; -fx-text-fill: #2e1a28; -fx-font-size: 14px;" />
+            </HBox>
+            
+            <Region HBox.hgrow="ALWAYS" />
+            
+            <HBox spacing="12.0" alignment="CENTER" minHeight="52.0" prefHeight="52.0" maxHeight="52.0">
+                <Button minWidth="44.0" prefWidth="44.0" maxWidth="44.0" minHeight="44.0" prefHeight="44.0" maxHeight="44.0" style="-fx-background-color: transparent; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: CENTER; -fx-cursor: hand;">
+                    <graphic>
+                        <Label text="&#xe7f4;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 22px; -fx-font-weight: normal; -fx-text-fill: #604868;" />
+                    </graphic>
+                </Button>
+                <Button minWidth="44.0" prefWidth="44.0" maxWidth="44.0" minHeight="44.0" prefHeight="44.0" maxHeight="44.0" style="-fx-background-color: transparent; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: CENTER; -fx-cursor: hand;">
+                    <graphic>
+                        <Label text="&#xe8b8;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 22px; -fx-font-weight: normal; -fx-text-fill: #604868;" />
+                    </graphic>
+                </Button>
+                <MenuButton fx:id="userMenuButton" id="profile-menu" minWidth="54.0" prefWidth="54.0" maxWidth="54.0" minHeight="44.0" prefHeight="44.0" maxHeight="44.0" style="-fx-background-color: transparent; -fx-padding: 0; -fx-alignment: CENTER; -fx-cursor: hand;">
+                    <graphic>
+                        <StackPane minWidth="36" maxWidth="36" minHeight="36" maxHeight="36" prefWidth="36" prefHeight="36" style="-fx-background-color: #1a1a3a; -fx-background-radius: 18px;">
+                            <Label text="&#xe7fd;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: white;" />
+                        </StackPane>
+                    </graphic>
+                </MenuButton>
+            </HBox>
+        </HBox>
+    </top>
+
+    <left>
+        <fx:include source="Sidebar.fxml" fx:id="sidebar" />
+    </left>
+
+    <center>
+        <VBox spacing="20.0" style="-fx-background-color: transparent;">
+            <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-padding: 24px 24px 0 24px;">
+                <VBox spacing="4.0">
+                    <Label text="My Bids" textFill="#2e1a28">
+                        <font>
+                            <Font name="System Bold" size="32.0" />
+                        </font>
+                    </Label>
+                    <Label text="Track and manage your active auction participation." textFill="#604868" style="-fx-font-size: 15px; -fx-font-weight: 500;" />
+                </VBox>
+            </HBox>
+            
+            <HBox spacing="12.0" style="-fx-padding: 0 24px;">
+                <Button fx:id="btnTabActive" text="Active Bids" onAction="#handleShowActive"
+                        style="-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;">
+                    <graphic>
+                        <Label text="&#128498;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #ffffff; -fx-padding: 0 4px 0 0;" />
+                    </graphic>
+                </Button>
+
+                <Button fx:id="btnTabWinning" text="Winning" onAction="#handleShowWinning"
+                        style="-fx-background-color: #f8eef8; -fx-text-fill: #2e1a28; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px; -fx-graphic-text-gap: 8px;"
+                        stylesheets="@styles.css">
+                    <graphic>
+                        <Label text="&#x1F3C6;" style="-fx-font-size: 24px; -fx-padding: 0 4px 0 0;" />
+                    </graphic>
+                </Button>
+
+                <Button fx:id="btnTabOutbid" text="Outbid" onAction="#handleShowOutbid"
+                        style="-fx-background-color: #f8eef8; -fx-text-fill: #2e1a28; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;">
+                    <graphic>
+                        <Label text="&#x1F4C9;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #ef4444; -fx-padding: 0 4px 0 0;" />
+                    </graphic>
+                </Button>
+
+                <Button fx:id="btnTabEnded" text="Ended" onAction="#handleShowEnded"
+                        style="-fx-background-color: #f8eef8; -fx-text-fill: #2e1a28; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;">
+                    <graphic>
+                        <Label text="&#xe889;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #7c52aa; -fx-padding: 0 4px 0 0;" />
+                    </graphic>
+                </Button>
+            </HBox>
+            
+            <ScrollPane fx:id="scrollPane" fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
+                <FlowPane fx:id="productContainer" alignment="TOP_LEFT" hgap="25.0" vgap="25.0" style="-fx-padding: 10px 24px;">
+                    </FlowPane>
+            </ScrollPane>
+        </VBox>
+    </center>
+    
+</BorderPane>

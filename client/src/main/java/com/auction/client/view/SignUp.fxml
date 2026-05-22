@@ -130,7 +130,7 @@
                     </VBox>
 
                     <HBox alignment="CENTER_LEFT" spacing="10.0" maxWidth="Infinity">
-                        <CheckBox fx:id="chkTerms" text="I agree to the Terms &amp; Conditions" style="-fx-font-family: 'DM Sans'; -fx-text-fill: #604868; -fx-font-size: 13px;"/>
+                        <CheckBox fx:id="chkTerms" text="I agree to the Terms &amp; Conditions" style="-fx-font-family: 'DM Sans'; -fx-text-fill: #604868; -fx-font-size: 13px;" styleClass="auth-check-box"/>
                     </HBox>
 
                     <Button fx:id="btnSignUp" text="Create Account" onAction="#handleSignUp" maxWidth="Infinity" prefHeight="50.0" styleClass="auth-primary-button"/>
