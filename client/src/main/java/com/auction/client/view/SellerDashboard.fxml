@@ -193,15 +193,7 @@
                         <HBox alignment="CENTER_LEFT" styleClass="seller-listings-footer">
                             <Label text="Showing 1-10 of many items" style="-fx-text-fill: #604868; -fx-font-size: 14px;"/>
                             <Region HBox.hgrow="ALWAYS" />
-                            <HBox spacing="4.0">
-                                <Button text="1" style="-fx-background-color: #f080c0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 999; -fx-min-width: 40px; -fx-min-height: 40px;"/>
-                                <Button text="2" style="-fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 999; -fx-min-width: 40px; -fx-min-height: 40px;"/>
-                                <Button text="3" style="-fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 999; -fx-min-width: 40px; -fx-min-height: 40px;"/>
-                                <Button style="-fx-background-color: transparent; -fx-background-radius: 999; -fx-min-width: 40px; -fx-min-height: 40px;">
-                                    <graphic><FontIcon iconLiteral="mdi2c-chevron-right" iconSize="24" iconColor="#604868"/></graphic>
-                                </Button>
                             </HBox>
-                        </HBox>
 
                     </VBox>
                     </VBox>

@@ -80,6 +80,7 @@
 
                                     <StackPane prefWidth="400.0" prefHeight="230.0" minWidth="400.0" maxWidth="400.0" minHeight="230.0" maxHeight="230.0">
 
+                                        <Label fx:id="activeProductImagePlaceholder" text="Loading preview..." style="-fx-text-fill: rgba(96,72,104,0.45); -fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: 700;" StackPane.alignment="CENTER"/>
                                         <ImageView fx:id="activeProductImage" fitWidth="360.0" fitHeight="210.0" preserveRatio="true" smooth="true" StackPane.alignment="CENTER"/>
 
                                     </StackPane>

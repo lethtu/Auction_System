@@ -173,7 +173,7 @@ public class LoginController {
                 imgView.setSmooth(true);
 
                 String imageUrl = prod.imageUrl().isBlank() ? FALLBACK_PRODUCT_IMAGE : prod.imageUrl();
-                imgView.setImage(new Image(imageUrl, true));
+                imgView.setImage(new Image(imageUrl, 360.0, 210.0, true, true, true));
 
                 imageHolder.getChildren().add(imgView);
                 imageSliderHBox.getChildren().add(imageHolder);
@@ -218,7 +218,7 @@ public class LoginController {
         if (isFirstProductShow) {
             String imageUrl = product.imageUrl().isBlank() ? FALLBACK_PRODUCT_IMAGE : product.imageUrl();
             if (activeProductImage != null) {
-                activeProductImage.setImage(new Image(imageUrl, true));
+                setActiveProductImage(imageUrl);
             }
             activeProductType.setText(product.type());
             activeProductName.setText(product.name());
@@ -260,6 +260,15 @@ public class LoginController {
         }
     }
 
+
+    private void setActiveProductImage(String imageUrl) {
+        if (activeProductImage == null) {
+            return;
+        }
+        String safeUrl = (imageUrl == null || imageUrl.isBlank()) ? FALLBACK_PRODUCT_IMAGE : imageUrl;
+        Image image = new Image(safeUrl, 360.0, 210.0, true, true, true);
+        activeProductImage.setImage(image);
+    }
     private String buildImageUrl(String imagePath) {
         if (imagePath == null || imagePath.isBlank()) {
             return "";

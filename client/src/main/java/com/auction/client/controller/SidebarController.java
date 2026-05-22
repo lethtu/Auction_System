@@ -166,14 +166,22 @@ public class SidebarController {
             sidebarContainer.setMinWidth(200);
             sidebarContainer.setPrefWidth(200);
             sidebarContainer.setMaxWidth(200);
+            double expandedHeight = getExpandedSidebarHeight();
+            sidebarContainer.setMinHeight(expandedHeight);
+            sidebarContainer.setPrefHeight(expandedHeight);
+            sidebarContainer.setMaxHeight(expandedHeight);
         }
         if (sidebarContent != null && !isSidebarCollapsed) {
-            sidebarContent.setPadding(new Insets(24, 8, 24, 8));
+            sidebarContent.setPadding(new Insets(0, 0, 0, 0));
             sidebarContent.setAlignment(Pos.TOP_LEFT);
-            sidebarContent.setStyle("-fx-background-color: rgba(255,255,255,0.96); -fx-background-radius: 28; -fx-border-color: #f2a6d8; -fx-border-radius: 28; -fx-border-width: 1.8; -fx-effect: dropshadow(gaussian, rgba(224,64,160,0.10), 18, 0.12, 0, 6);");
+            sidebarContent.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; -fx-effect: null;");
         }
     }
 
+    private double getExpandedSidebarHeight() {
+        boolean showStartSelling = btnStartSelling != null && btnStartSelling.isVisible() && btnStartSelling.isManaged();
+        return showStartSelling ? 388.0 : 336.0;
+    }
     public void forceCollapse() {
         autoCollapse();
     }
@@ -195,7 +203,11 @@ public class SidebarController {
             sidebarContainer.setMinWidth(70);
             sidebarContainer.setPrefWidth(70);
             sidebarContainer.setMaxWidth(70);
-            sidebarContent.setPadding(new Insets(24, 0, 24, 0));
+            double collapsedHeight = getExpandedSidebarHeight();
+            sidebarContainer.setMinHeight(collapsedHeight);
+            sidebarContainer.setPrefHeight(collapsedHeight);
+            sidebarContainer.setMaxHeight(collapsedHeight);
+            sidebarContent.setPadding(new Insets(0, 0, 0, 0));
             sidebarContent.setAlignment(Pos.TOP_CENTER);
 
             for (javafx.scene.Node node : sidebarContent.getChildren()) {
@@ -260,9 +272,13 @@ public class SidebarController {
         }
 
         sidebarContainer.setMinWidth(200);
-        sidebarContainer.setPrefWidth(200);
-        sidebarContainer.setMaxWidth(200);
-        sidebarContent.setPadding(new Insets(24, 8, 24, 8));
+            sidebarContainer.setPrefWidth(200);
+            sidebarContainer.setMaxWidth(200);
+            double expandedHeight = getExpandedSidebarHeight();
+            sidebarContainer.setMinHeight(expandedHeight);
+            sidebarContainer.setPrefHeight(expandedHeight);
+            sidebarContainer.setMaxHeight(expandedHeight);
+        sidebarContent.setPadding(new Insets(0, 0, 0, 0));
         sidebarContent.setAlignment(Pos.TOP_LEFT);
 
         for (javafx.scene.Node node : sidebarContent.getChildren()) {

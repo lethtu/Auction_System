@@ -184,7 +184,8 @@ public class MainController implements Initializable {
         scrollPane.viewportBoundsProperty().addListener((obs, oldBounds, newBounds) -> {
             updateGridLayout();
         });
-        scheduleStableGridLayout();
+        updateGridLayout();
+        Platform.runLater(this::updateGridLayout);
 
         if (sidebarController != null) {
             sidebarController.setSidebarListener(new SidebarController.SidebarListener() {
@@ -262,9 +263,10 @@ public class MainController implements Initializable {
         applyAuctionScrollPolicy();
 
         if (showingAccountScreen || showingCompactListScreen) {
-            productContainer.setAlignment(Pos.TOP_CENTER);
+            productContainer.setAlignment(Pos.TOP_LEFT);
             productContainer.setMinWidth(0);
             productContainer.setPrefWidth(Math.max(0, scrollPane.getViewportBounds().getWidth()));
+            productContainer.setMaxWidth(Double.MAX_VALUE);
             return;
         }
 
@@ -276,22 +278,26 @@ public class MainController implements Initializable {
             return;
         }
 
-        double horizontalPadding = 56.0;
-        double stableWidth = Math.max(320.0, Math.floor(viewportWidth) - horizontalPadding);
+        final double cardWidth = 240.0;
+        final double hgap = 28.0;
+        final int maxColumns = 3;
+
+        int columns = Math.max(1, Math.min(maxColumns, (int) Math.floor((viewportWidth + hgap) / (cardWidth + hgap))));
+        double gridWidth = columns * cardWidth + Math.max(0, columns - 1) * hgap;
+
         boolean emptyState = productContainer.getChildren().stream()
                 .anyMatch(node -> node.getStyleClass().contains("empty-state-card"));
 
-        productContainer.setAlignment(emptyState ? Pos.CENTER : Pos.TOP_CENTER);
-        productContainer.setPrefWrapLength(stableWidth);
-        productContainer.setMinWidth(0);
-        productContainer.setPrefWidth(stableWidth);
-        productContainer.setMaxWidth(stableWidth);
-        productContainer.setHgap(28.0);
+        productContainer.setAlignment(emptyState ? Pos.CENTER : Pos.TOP_LEFT);
+        productContainer.setPrefWrapLength(gridWidth);
+        productContainer.setMinWidth(gridWidth);
+        productContainer.setPrefWidth(gridWidth);
+        productContainer.setMaxWidth(gridWidth);
+        productContainer.setHgap(hgap);
         productContainer.setVgap(28.0);
-        productContainer.setPadding(new Insets(10.0, 16.0, 24.0, 16.0));
+        productContainer.setPadding(new Insets(10.0, 0.0, 24.0, 0.0));
     }
-
-    private void scheduleStableGridLayout() {
+ {
         Platform.runLater(this::updateGridLayout);
         PauseTransition delay = new PauseTransition(Duration.millis(150));
         delay.setOnFinished(event -> updateGridLayout());
@@ -585,7 +591,8 @@ public class MainController implements Initializable {
             startCountdownTimeline();
         }
 
-        scheduleStableGridLayout();
+        updateGridLayout();
+        Platform.runLater(this::updateGridLayout);
     }
 
     private void showWatchlistSessions() {
@@ -1208,9 +1215,9 @@ public class MainController implements Initializable {
             btnToggleProductView.setTooltip(new Tooltip("Show compact list view"));
         }
 
-        btnToggleProductView.setText("▦");
+        btnToggleProductView.setText("");
         btnToggleProductView.setAlignment(Pos.CENTER);
-        btnToggleProductView.setContentDisplay(ContentDisplay.CENTER);
+        btnToggleProductView.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
     }
 
     private void showAccountScreen() {
@@ -1260,7 +1267,7 @@ public class MainController implements Initializable {
         productContainer.getChildren().clear();
         productContainer.getChildren().add(fakeTestBtn);
         currentRenderedIds.clear();
-        productContainer.setAlignment(Pos.TOP_CENTER);
+        productContainer.setAlignment(Pos.TOP_LEFT);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
         // Selective hiding: only hide page title and filter controls
@@ -1875,7 +1882,7 @@ public class MainController implements Initializable {
 
         productContainer.getChildren().clear();
         productContainer.getChildren().add(fakeTestBtn);
-        productContainer.setAlignment(Pos.TOP_CENTER);
+        productContainer.setAlignment(Pos.TOP_LEFT);
 
         VBox wrapper = new VBox(16);
         wrapper.setAlignment(Pos.TOP_CENTER);

@@ -80,7 +80,7 @@
                 <Insets bottom="30.0" left="50.0" right="50.0" top="30.0"/>
             </padding>
             
-            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" hbarPolicy=\"NEVER\" vbarPolicy="AS_NEEDED">
+            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
                 <VBox maxWidth="450.0" spacing="20.0" alignment="CENTER" VBox.vgrow="ALWAYS" style="-fx-padding: 10;">
                     
                     <VBox spacing="5.0" alignment="CENTER_LEFT" maxWidth="Infinity">

@@ -92,7 +92,7 @@
                 <Label text="Unlock professional selling tools, reach thousands of potential customers and achieve outstanding revenue growth." wrapText="true" maxWidth="700" style="-fx-font-size: 16px; -fx-text-fill: #604868; -fx-text-alignment: center;" alignment="CENTER" />
             </VBox>
             
-            <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS" hbarPolicy=\"NEVER\">
+            <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS" hbarPolicy="NEVER">
                 <VBox alignment="CENTER" spacing="35.0" style="-fx-padding: 10px 0px;">
 
                 <!-- 3 Benefits Cards -->
