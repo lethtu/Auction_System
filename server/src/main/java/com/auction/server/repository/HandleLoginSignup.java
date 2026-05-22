@@ -13,5 +13,8 @@ public interface HandleLoginSignup extends JpaRepository<User, Integer> {
     @Query("SELECT u FROM User u WHERE (u.username = :loginId OR u.email = :loginId) AND u.password = :password")
     Optional<User> findByUsernameOrEmailAndPassword(@Param("loginId") String loginId, @Param("password") String password);
 
+    @Query("SELECT u FROM User u WHERE u.username = :loginId OR u.email = :loginId")
+    Optional<User> findByUsernameOrEmail(@Param("loginId") String loginId);
+
     boolean existsByUsernameOrEmail(String username, String email);
 }
