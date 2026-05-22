@@ -199,9 +199,7 @@
 
                     <HBox spacing="12.0" alignment="CENTER">
 
-                        <Button fx:id="btnGoogle" text="Google" styleClass="auth-social-button" prefWidth="150.0" prefHeight="40.0" onAction="#handleGoogleLogin"/>
-
-                        <Button fx:id="btnFacebook" text="Facebook" styleClass="auth-social-button" prefWidth="150.0" prefHeight="40.0" onAction="#handleFacebookLogin"/>
+                        <Button fx:id="btnGoogle" text="Google" styleClass="auth-social-button" prefWidth="220.0" prefHeight="40.0" onAction="#handleGoogleLogin"/>
 
                     </HBox>
 
