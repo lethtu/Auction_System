@@ -804,8 +804,12 @@ if (matchKeyword && matchTab) {
             return "";
         }
         String path = rawPath.trim().replace("\\", "/");
-        if (path.startsWith("http://") || path.startsWith("https://")) {
+        if ((path.startsWith("http://") || path.startsWith("https://")) && !path.contains("/api/files/images/")) {
             return path;
+        }
+        int apiIndex = path.indexOf("/api/files/images/");
+        if (apiIndex >= 0) {
+            path = path.substring(apiIndex + "/api/files/images/".length());
         }
         while (path.startsWith("/")) {
             path = path.substring(1);

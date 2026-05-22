@@ -381,8 +381,12 @@ public class SignUpController {
         }
 
         String path = imagePath.trim().replace("\\", "/");
-        if (path.startsWith("http://") || path.startsWith("https://")) {
+        if ((path.startsWith("http://") || path.startsWith("https://")) && !path.contains("/api/files/images/")) {
             return path;
+        }
+        int apiIndex = path.indexOf("/api/files/images/");
+        if (apiIndex >= 0) {
+            path = path.substring(apiIndex + "/api/files/images/".length());
         }
         if (path.startsWith("server/upload/images/")) {
             path = path.substring("server/upload/images/".length());

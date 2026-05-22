@@ -5,9 +5,11 @@ import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
 import com.auction.client.HttpClientSingleton;
 import com.auction.client.model.User;
+import com.auction.client.util.HttpRequestUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -310,8 +312,7 @@ public class SellerDashboardController {
             boolean success = false;
             if (db.hasFiles()) {
                 File file = db.getFiles().get(0);
-                String path = file.toURI().toString();
-                imageUrlField.setText(path);
+                imageUrlField.setText(file.getAbsolutePath());
                 lblImageFileName.setText(file.getName());
                 success = true;
             }
@@ -323,11 +324,10 @@ public class SellerDashboardController {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Select Product Image");
             fileChooser.getExtensionFilters().addAll(
-                    new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif"));
+                    new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.bmp"));
             File selectedFile = fileChooser.showOpenDialog(imageUploadArea.getScene().getWindow());
             if (selectedFile != null) {
-                String path = selectedFile.toURI().toString();
-                imageUrlField.setText(path);
+                imageUrlField.setText(selectedFile.getAbsolutePath());
                 lblImageFileName.setText(selectedFile.getName());
             }
         });
@@ -357,7 +357,8 @@ public class SellerDashboardController {
 
                     if (item.imageUrl != null && !item.imageUrl.isEmpty()) {
                         try {
-                            ImageView iv = new ImageView(new Image(item.imageUrl, 48, 48, true, true));
+                            String tableImageUrl = buildSellerImageUrl(item.imageUrl);
+                            ImageView iv = new ImageView(new Image(tableImageUrl, 48, 48, true, true));
                             Circle clip = new Circle(24, 24, 24);
                             iv.setClip(clip);
                             imgContainer.getChildren().add(iv);
@@ -522,6 +523,8 @@ public class SellerDashboardController {
                         btnView.setOnAction(e -> handleQuickPublish(item));
                     } else {
                         btnView = createIconButton("mdi2e-eye", "#0096cc");
+                        btnView.setTooltip(new javafx.scene.control.Tooltip("View Details"));
+                        btnView.setOnAction(e -> handleViewSession(item, e));
                     }
                     Button btnEdit = createIconButton("mdi2p-pencil", "#7c52aa");
                     Button btnDelete = createIconButton("mdi2d-delete", "#e53e3e");
@@ -762,7 +765,10 @@ public class SellerDashboardController {
 
         String productName = productNameField.getText().trim();
         String productType = productTypeCombo.getValue();
-        String imageUrl = productNameOrEmpty(imageUrlField);
+        String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField));
+        if (imageUrl == null) {
+            return;
+        }
         String description = productNameOrEmpty(descriptionArea);
         String startingPriceText = productNameOrEmpty(startingPriceField);
 
@@ -1020,7 +1026,10 @@ public class SellerDashboardController {
 
         String productName = productNameField.getText().trim();
         String productType = productTypeCombo.getValue();
-        String imageUrl = productNameOrEmpty(imageUrlField);
+        String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField));
+        if (imageUrl == null) {
+            return;
+        }
         String description = productNameOrEmpty(descriptionArea);
         String startingPriceText = productNameOrEmpty(startingPriceField);
 
@@ -1279,7 +1288,10 @@ public class SellerDashboardController {
 
         String productName = productNameField.getText().trim();
         String productType = productTypeCombo.getValue();
-        String imageUrl = productNameOrEmpty(imageUrlField);
+        String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField));
+        if (imageUrl == null) {
+            return;
+        }
         String description = productNameOrEmpty(descriptionArea);
         String startingPriceText = productNameOrEmpty(startingPriceField);
 
@@ -1584,7 +1596,10 @@ public class SellerDashboardController {
 
         String productName = productNameField.getText().trim();
         String productType = productTypeCombo.getValue();
-        String imageUrl = productNameOrEmpty(imageUrlField);
+        String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField));
+        if (imageUrl == null) {
+            return;
+        }
         String description = productNameOrEmpty(descriptionArea);
         String startingPriceText = productNameOrEmpty(startingPriceField);
 
@@ -1952,10 +1967,15 @@ public class SellerDashboardController {
         }
 
         try {
+            String selectedImagePath = prepareImagePathForSave(selected.imageUrl);
+            if (selectedImagePath == null) {
+                return;
+            }
+
             JSONObject body = new JSONObject();
             body.put("name", selected.productName);
             body.put("type", selected.productType);
-            body.put("imagePath", selected.imageUrl);
+            body.put("imagePath", selectedImagePath);
             body.put("description", selected.description);
             body.put("startingPrice", selected.startingPrice);
             body.put("sellerId", sellerId);
@@ -2049,11 +2069,17 @@ public class SellerDashboardController {
             s.productType = product != null ? product.optString("type", "") : "";
         }
 
-        if (item.has("imageUrl")) {
+        if (item.has("imagePath")) {
+            s.imageUrl = item.optString("imagePath", "");
+        } else if (item.has("imageUrl")) {
             s.imageUrl = item.optString("imageUrl", "");
         } else if (item.has("product")) {
             JSONObject product = item.optJSONObject("product");
-            s.imageUrl = product != null ? product.optString("imageUrl", "") : "";
+            if (product != null && product.has("imagePath")) {
+                s.imageUrl = product.optString("imagePath", "");
+            } else {
+                s.imageUrl = product != null ? product.optString("imageUrl", "") : "";
+            }
         }
 
         if (item.has("description")) {
@@ -2323,6 +2349,161 @@ public class SellerDashboardController {
     public void handleLogout(javafx.event.ActionEvent event) throws IOException {
         User.clearSession();
         SceneSwitcher.switchScene(event, "Login.fxml", 1100, 700);
+    }
+
+    private void handleViewSession(SessionItem item, ActionEvent event) {
+        if (item == null) {
+            return;
+        }
+
+        try {
+            JSONObject sessionObj = buildSessionJson(item);
+            JSONObject itemObj = buildItemJson(item);
+
+            FXMLLoader loader = SceneSwitcher.switchScene(event, "AuctionPage.fxml", 1280, 800);
+            AuctionPageController controller = loader.getController();
+            if (controller != null) {
+                controller.setItem(sessionObj, itemObj);
+            }
+        } catch (IOException e) {
+            logger.error("Cannot open auction detail page", e);
+            showAlert(Alert.AlertType.ERROR, "Navigation Error", "Cannot open auction detail page.");
+        }
+    }
+
+    private JSONObject buildSessionJson(SessionItem item) {
+        JSONObject obj = new JSONObject();
+        obj.put("id", item.id);
+        obj.put("productName", safeString(item.productName));
+        obj.put("productType", safeString(item.productType));
+        obj.put("description", safeString(item.description));
+        obj.put("imagePath", safeString(item.imageUrl));
+        obj.put("startingPrice", item.startingPrice == null ? BigDecimal.ZERO : item.startingPrice);
+        obj.put("currentPrice", item.currentPrice == null ? BigDecimal.ZERO : item.currentPrice);
+        obj.put("stepPrice", item.stepPrice == null ? BigDecimal.ZERO : item.stepPrice);
+        obj.put("reservePrice", item.reservePrice == null ? BigDecimal.ZERO : item.reservePrice);
+        obj.put("startTime", safeString(item.startTime));
+        obj.put("endTime", safeString(item.endTime));
+        obj.put("status", safeString(item.status));
+        obj.put("item", buildItemJson(item));
+        return obj;
+    }
+
+    private JSONObject buildItemJson(SessionItem item) {
+        JSONObject obj = new JSONObject();
+        obj.put("name", safeString(item.productName));
+        obj.put("type", safeString(item.productType));
+        obj.put("description", safeString(item.description));
+        obj.put("imagePath", safeString(item.imageUrl));
+        obj.put("startingPrice", item.startingPrice == null ? BigDecimal.ZERO : item.startingPrice);
+        return obj;
+    }
+
+    private String prepareImagePathForSave(String rawPath) {
+        if (rawPath == null || rawPath.isBlank()) {
+            return "";
+        }
+
+        String path = rawPath.trim();
+        File localImage = toExistingLocalFile(path);
+        if (localImage != null) {
+            try {
+                return uploadProductImage(localImage);
+            } catch (Exception e) {
+                logger.error("Cannot upload product image: {}", e.getMessage(), e);
+                showAlert(Alert.AlertType.ERROR, "Image Upload Error", "Cannot upload product image to the server.");
+                return null;
+            }
+        }
+
+        return normalizeImagePathForStorage(path);
+    }
+
+    private File toExistingLocalFile(String rawPath) {
+        if (rawPath == null || rawPath.isBlank()) {
+            return null;
+        }
+
+        try {
+            if (rawPath.startsWith("file:/")) {
+                File file = new File(new URI(rawPath));
+                return file.isFile() ? file : null;
+            }
+        } catch (Exception ignored) {
+        }
+
+        try {
+            File file = new File(rawPath);
+            return file.isFile() ? file : null;
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private String uploadProductImage(File imageFile) throws Exception {
+        HttpResponse<String> response = HttpRequestUtil.uploadImage(Config.API_URL, "/api/files/images", imageFile);
+        if (response.statusCode() < 200 || response.statusCode() >= 300) {
+            throw new IOException("Image upload failed with status " + response.statusCode());
+        }
+
+        JSONObject obj = new JSONObject(response.body());
+        JSONObject data = obj.optJSONObject("data");
+        String imagePath = data != null ? data.optString("imagePath", "") : obj.optString("imagePath", "");
+        if (imagePath.isBlank()) {
+            throw new IOException("Image upload response did not contain imagePath.");
+        }
+        return normalizeImagePathForStorage(imagePath);
+    }
+
+    private String normalizeImagePathForStorage(String rawPath) {
+        if (rawPath == null || rawPath.isBlank()) {
+            return "";
+        }
+
+        String path = rawPath.trim().replace("\\", "/");
+        int apiIndex = path.indexOf("/api/files/images/");
+        if (apiIndex >= 0) {
+            path = path.substring(apiIndex + "/api/files/images/".length());
+        }
+
+        String apiPrefix = Config.API_URL + "/api/files/images/";
+        if (path.startsWith(apiPrefix)) {
+            path = path.substring(apiPrefix.length());
+        }
+        while (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+        if (path.startsWith("api/files/images/")) {
+            path = path.substring("api/files/images/".length());
+        }
+        if (path.startsWith("server/upload/images/")) {
+            path = path.substring("server/upload/images/".length());
+        }
+        if (path.startsWith("upload/images/")) {
+            path = path.substring("upload/images/".length());
+        }
+        if (path.startsWith("images/")) {
+            path = path.substring("images/".length());
+        }
+        return path;
+    }
+
+    private String buildSellerImageUrl(String rawPath) {
+        if (rawPath == null || rawPath.isBlank()) {
+            return "";
+        }
+
+        String path = rawPath.trim().replace("\\", "/");
+        if ((path.startsWith("http://") || path.startsWith("https://")) && !path.contains("/api/files/images/")) {
+            return path;
+        }
+
+        path = normalizeImagePathForStorage(path);
+        return path.isBlank() ? "" : Config.API_URL + "/api/files/images/" + path;
+    }
+
+    private String safeString(String value) {
+        return value == null ? "" : value;
     }
 
     private String productNameOrEmpty(TextInputControl input) {

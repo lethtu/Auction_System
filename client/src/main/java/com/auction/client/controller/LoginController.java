@@ -39,8 +39,16 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Locale;
 
+
+import javafx.scene.control.CheckBox;
+import java.util.prefs.Preferences;
 public class LoginController {
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
+
+    private static final Preferences LOGIN_PREFS = Preferences.userNodeForPackage(LoginController.class).node("login");
+    private static final String PREF_REMEMBER_ME = "rememberMe";
+    private static final String PREF_LOGIN_FIELD = "loginField";
+    private static final String PREF_PASSWORD = "password";
 
     private static final String SELLER_ROLE = "seller";
     private static final String ADMIN_ROLE = "admin";
@@ -62,6 +70,9 @@ public class LoginController {
     @FXML
     private PasswordField txtPassword;
 
+    @FXML
+    private CheckBox rememberMeCheckBox;
+
     @FXML private Label lblLiveAuctions;
     @FXML private Label lblActiveBidders;
     @FXML private Button btnGoogle;
@@ -76,6 +87,7 @@ public class LoginController {
 
     @FXML
     public void initialize() {
+        loadRememberedLogin();
         if (btnGoogle != null) {
             btnGoogle.setTooltip(new Tooltip("Google login will be added in a future update."));
         }
@@ -254,8 +266,12 @@ public class LoginController {
         }
 
         String path = imagePath.trim().replace("\\", "/");
-        if (path.startsWith("http://") || path.startsWith("https://")) {
+        if ((path.startsWith("http://") || path.startsWith("https://")) && !path.contains("/api/files/images/")) {
             return path;
+        }
+        int apiIndex = path.indexOf("/api/files/images/");
+        if (apiIndex >= 0) {
+            path = path.substring(apiIndex + "/api/files/images/".length());
         }
         if (path.startsWith("server/upload/images/")) {
             path = path.substring("server/upload/images/".length());
@@ -338,6 +354,7 @@ public class LoginController {
 
             JSONObject data = responseJson.getJSONObject("data");
             String role = saveUserSession(data, loginField);
+            saveRememberedLoginChoice(loginField, password);
 
             showAlert(Alert.AlertType.INFORMATION, "Success", "Welcome back!");
             logger.info("Login successful");
@@ -446,5 +463,48 @@ public class LoginController {
     @FXML
     private void handleClose(javafx.event.ActionEvent event) {
         SceneSwitcher.handleClose(event);
+    }
+
+    private void loadRememberedLogin() {
+        if (rememberMeCheckBox == null) {
+            return;
+        }
+
+        boolean remember = LOGIN_PREFS.getBoolean(PREF_REMEMBER_ME, false);
+        rememberMeCheckBox.setSelected(remember);
+
+        if (remember) {
+            String savedLogin = LOGIN_PREFS.get(PREF_LOGIN_FIELD, "");
+            String savedPassword = LOGIN_PREFS.get(PREF_PASSWORD, "");
+
+            if (txtUsername != null) {
+                txtUsername.setText(savedLogin);
+            }
+            if (txtPassword != null) {
+                txtPassword.setText(savedPassword);
+            }
+        }
+
+        rememberMeCheckBox.selectedProperty().addListener((observable, oldValue, selected) -> {
+            if (!selected) {
+                clearRememberedLogin();
+            }
+        });
+    }
+
+    private void saveRememberedLoginChoice(String loginField, String password) {
+        if (rememberMeCheckBox != null && rememberMeCheckBox.isSelected()) {
+            LOGIN_PREFS.putBoolean(PREF_REMEMBER_ME, true);
+            LOGIN_PREFS.put(PREF_LOGIN_FIELD, loginField == null ? "" : loginField);
+            LOGIN_PREFS.put(PREF_PASSWORD, password == null ? "" : password);
+        } else {
+            clearRememberedLogin();
+        }
+    }
+
+    private void clearRememberedLogin() {
+        LOGIN_PREFS.putBoolean(PREF_REMEMBER_ME, false);
+        LOGIN_PREFS.remove(PREF_LOGIN_FIELD);
+        LOGIN_PREFS.remove(PREF_PASSWORD);
     }
 }

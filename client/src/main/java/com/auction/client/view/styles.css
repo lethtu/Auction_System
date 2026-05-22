@@ -34,10 +34,10 @@
     -fx-faint-focus-color: rgba(224, 64, 160, 0.12);
 }
 
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    Shared rounded application shell
-   Dùng chung cho MainTemplate/Seller/Settings/Support/... để mọi trang cùng một template.
-   ══════════════════════════════════════════════════════════════ */
+   DÃ¹ng chung cho MainTemplate/Seller/Settings/Support/... Ä‘á»ƒ má»i trang cÃ¹ng má»™t template.
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .rounded-window-root {
     /* Stage/Scene stays transparent; this gutter is the hit-area used by ResizeHelper. */
     -fx-background-color: transparent;
@@ -156,7 +156,7 @@
 
 
 
-/* ── Thanh cuộn mảnh mai, màu hồng ── */
+/* â”€â”€ Thanh cuá»™n máº£nh mai, mÃ u há»“ng â”€â”€ */
 
 .scroll-bar:vertical {
 
@@ -224,7 +224,7 @@
 
 
 
-/* Ẩn tab header khi sidebar đã là nơi điều hướng chính. */
+/* áº¨n tab header khi sidebar Ä‘Ã£ lÃ  nÆ¡i Ä‘iá»u hÆ°á»›ng chÃ­nh. */
 
 .navigationless-tab-pane>.tab-header-area {
 
@@ -256,11 +256,11 @@
 
 
 
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-   Bid Trajectory AreaChart — Premium Styling
+   Bid Trajectory AreaChart â€” Premium Styling
 
-   ══════════════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 
 
@@ -306,7 +306,7 @@
 
 
 
-/* Axis styling — hidden but functional */
+/* Axis styling â€” hidden but functional */
 
 .axis {
 
@@ -332,7 +332,7 @@
 
 
 
-/* Area line — vibrant gradient stroke with glow */
+/* Area line â€” vibrant gradient stroke with glow */
 
 .default-color0.chart-series-area-line {
 
@@ -350,7 +350,7 @@
 
 
 
-/* Area fill — smooth gradient */
+/* Area fill â€” smooth gradient */
 
 .default-color0.chart-series-area-fill {
 
@@ -368,7 +368,7 @@
 
 
 
-/* Data point symbols — glowing circles */
+/* Data point symbols â€” glowing circles */
 
 .default-color0.chart-area-symbol {
 
@@ -386,7 +386,7 @@
 
 
 
-/* Legend — hide it */
+/* Legend â€” hide it */
 
 .chart-legend {
 
@@ -398,11 +398,11 @@
 
 
 
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-   Bid History Row — Premium List Items
+   Bid History Row â€” Premium List Items
 
-   ══════════════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 
 
@@ -947,7 +947,7 @@
 
 
 
-/* 2. Định dạng cho class cái cúp của bạn */
+/* 2. Äá»‹nh dáº¡ng cho class cÃ¡i cÃºp cá»§a báº¡n */
 
 .award-trophy {
 
@@ -955,11 +955,11 @@
 
     -fx-font-size: 24px;
 
-    /* Điều chỉnh kích thước */
+    /* Äiá»u chá»‰nh kÃ­ch thÆ°á»›c */
 
     -fx-text-fill: #FFD700;
 
-    /* Màu vàng Gold */
+    /* MÃ u vÃ ng Gold */
 
     -fx-padding: 0 8px 0 0;
 
@@ -967,11 +967,11 @@
 
 
 
-/* ══════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
-   Admin Center polish — sidebar state + table theme
+   Admin Center polish â€” sidebar state + table theme
 
-   ══════════════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 .admin-sidebar {
 
@@ -3264,3 +3264,377 @@
     -fx-background-radius: 34px;
     -fx-border-radius: 34px;
 }
+
+/* === ADMIN SOLID BACKGROUND FIX START ===
+   Fix AdminDashboard showing transparent desktop/IDE behind the panel.
+   Keep this block late in the file so it overrides older rgba/transparent admin CSS.
+*/
+.admin-bidpop-root {
+    -fx-background-color: #fff8fd;
+    -fx-background-radius: 28;
+    -fx-border-radius: 28;
+}
+
+.admin-bidpop-root > .top,
+.admin-bidpop-topbar {
+    -fx-background-color: #fff8fd;
+}
+
+.admin-bidpop-sidebar {
+    -fx-background-color: #ffffff;
+}
+
+.admin-bidpop-scroll,
+.admin-bidpop-scroll > .viewport {
+    -fx-background-color: #fff8fd;
+    -fx-background: #fff8fd;
+}
+
+.admin-bidpop-content {
+    -fx-background-color: #fff8fd;
+}
+
+.admin-bidpop-data-panel,
+.admin-bidpop-table-section,
+.admin-table,
+.admin-table .table-row-cell {
+    -fx-background-color: #ffffff;
+}
+/* === ADMIN SOLID BACKGROUND FIX END === */
+
+/* === ADMIN HEADER ROUND FIX START ===
+   Keeps the Admin window visually solid, fixes rounded corners, and styles safe ASCII window controls.
+*/
+.admin-bidpop-root {
+    -fx-background-color: #fff8fd;
+    -fx-background-radius: 30;
+    -fx-border-radius: 30;
+    -fx-border-color: #ffe2f1;
+    -fx-border-width: 1;
+    -fx-font-family: "DM Sans", "Segoe UI", sans-serif;
+}
+
+.admin-bidpop-topbar {
+    -fx-background-color: #fff8fd;
+    -fx-background-radius: 30 30 0 0;
+    -fx-border-radius: 30 30 0 0;
+    -fx-padding: 13 30 13 30;
+}
+
+.admin-bidpop-scroll,
+.admin-bidpop-scroll > .viewport,
+.admin-bidpop-content {
+    -fx-background-color: #fff8fd;
+    -fx-background: #fff8fd;
+}
+
+.admin-bidpop-sidebar {
+    -fx-background-color: #ffffff;
+}
+
+.admin-window-control,
+.window-control,
+.window-control-button,
+.titlebar-control,
+.titlebar-button {
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-font-size: 16px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #907898;
+    -fx-background-color: transparent;
+    -fx-background-radius: 999;
+    -fx-padding: 4 8 4 8;
+    -fx-cursor: hand;
+}
+
+.admin-window-control:hover,
+.window-control:hover,
+.window-control-button:hover,
+.titlebar-control:hover,
+.titlebar-button:hover {
+    -fx-background-color: #fff0f8;
+    -fx-text-fill: #e040a0;
+}
+/* === ADMIN HEADER ROUND FIX END === */
+
+/* === LOGIN KEEP ADMIN CONTROLS FIX START === */
+.admin-window-control,
+.window-control,
+.window-control-button,
+.titlebar-control,
+.titlebar-button {
+    -fx-min-width: 30px;
+    -fx-pref-width: 30px;
+    -fx-max-width: 30px;
+    -fx-min-height: 30px;
+    -fx-pref-height: 30px;
+    -fx-max-height: 30px;
+    -fx-alignment: center;
+    -fx-text-alignment: center;
+    -fx-font-family: "Segoe UI Symbol", "Segoe UI", "Arial", sans-serif;
+    -fx-font-size: 15px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #907898;
+    -fx-background-color: transparent;
+    -fx-background-radius: 999px;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+
+.admin-window-control:hover,
+.window-control:hover,
+.window-control-button:hover,
+.titlebar-control:hover,
+.titlebar-button:hover {
+    -fx-background-color: #fff0f8;
+    -fx-text-fill: #e040a0;
+}
+/* === LOGIN KEEP ADMIN CONTROLS FIX END === */
+
+/* === REMEMBER ME PILL UI START === */
+#rememberMeCheckBox,
+.remember-me-pill {
+    -fx-background-color: #fff6fc;
+    -fx-background-radius: 999px;
+    -fx-border-color: #f4d4e8;
+    -fx-border-width: 1.5px;
+    -fx-border-radius: 999px;
+    -fx-padding: 8 14 8 12;
+    -fx-text-fill: #604868;
+    -fx-font-family: "DM Sans", "Segoe UI", sans-serif;
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-accent: #e040a0;
+    -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.08), 10, 0.18, 0, 2);
+}
+
+#rememberMeCheckBox:hover,
+.remember-me-pill:hover {
+    -fx-background-color: #fff0f8;
+    -fx-border-color: #e040a0;
+    -fx-text-fill: #e040a0;
+    -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.20), 14, 0.22, 0, 3);
+}
+
+#rememberMeCheckBox:selected,
+.remember-me-pill:selected {
+    -fx-background-color: #fff0f8;
+    -fx-border-color: #e040a0;
+    -fx-text-fill: #a02070;
+}
+
+#rememberMeCheckBox .box,
+#rememberMeCheckBox > .box,
+.check-box#rememberMeCheckBox .box,
+.check-box#rememberMeCheckBox > .box,
+.remember-me-pill .box,
+.remember-me-pill > .box {
+    -fx-min-width: 22px;
+    -fx-pref-width: 22px;
+    -fx-max-width: 22px;
+    -fx-min-height: 22px;
+    -fx-pref-height: 22px;
+    -fx-max-height: 22px;
+    -fx-background-color: white;
+    -fx-background-insets: 0;
+    -fx-background-radius: 8px;
+    -fx-border-color: #e6c8e6;
+    -fx-border-width: 2px;
+    -fx-border-radius: 8px;
+    -fx-effect: none;
+}
+
+#rememberMeCheckBox:hover .box,
+#rememberMeCheckBox:hover > .box,
+.remember-me-pill:hover .box,
+.remember-me-pill:hover > .box {
+    -fx-border-color: #e040a0;
+    -fx-background-color: #fffafd;
+}
+
+#rememberMeCheckBox:selected .box,
+#rememberMeCheckBox:selected > .box,
+.remember-me-pill:selected .box,
+.remember-me-pill:selected > .box {
+    -fx-background-color: linear-gradient(to bottom right, #e040a0, #b2368f);
+    -fx-background-insets: 0;
+    -fx-border-color: #e040a0;
+}
+
+#rememberMeCheckBox:selected .mark,
+#rememberMeCheckBox:selected > .box > .mark,
+.remember-me-pill:selected .mark,
+.remember-me-pill:selected > .box > .mark {
+    -fx-background-color: white;
+    -fx-shape: "M 2 7 L 6 11 L 14 2 L 16 4 L 6 15 L 0 9 Z";
+    -fx-scale-x: 0.78;
+    -fx-scale-y: 0.78;
+}
+/* === REMEMBER ME PILL UI END === */
+
+
+/* === MINH FINAL ADMIN SELLER IMAGE FIX START === */
+/* Keep AdminDashboard opaque even when the Stage/Scene uses transparent rounded windows. */
+.admin-solid-window-backdrop {
+    -fx-background-color: #fff8fd;
+    -fx-background-radius: 34px;
+    -fx-border-color: #ffe2f1;
+    -fx-border-width: 1px;
+    -fx-border-radius: 34px;
+    -fx-effect: dropshadow(gaussian, rgba(46, 26, 40, 0.20), 34, 0.16, 0, 10);
+}
+
+.admin-bidpop-root {
+    -fx-background-color: transparent;
+    -fx-background-radius: 34px;
+    -fx-border-radius: 34px;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.admin-bidpop-topbar {
+    -fx-background-color: #fff8fd;
+    -fx-background-radius: 34px 34px 0 0;
+    -fx-border-radius: 34px 34px 0 0;
+}
+
+.admin-bidpop-sidebar,
+.admin-bidpop-scroll,
+.admin-bidpop-scroll > .viewport,
+.admin-bidpop-content {
+    -fx-background-color: #fff8fd;
+    -fx-background: #fff8fd;
+}
+
+.admin-bidpop-sidebar {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 0 0 0 24px;
+}
+
+.admin-bidpop-data-panel,
+.admin-bidpop-table-section,
+.admin-table,
+.admin-table .column-header-background,
+.admin-table .filler,
+.admin-table .table-row-cell,
+.admin-table .table-cell {
+    -fx-background-color: #ffffff;
+}
+
+.rounded-window-root.window-maximized .admin-solid-window-backdrop,
+.rounded-window-root.window-maximized .admin-bidpop-root,
+.rounded-window-root.window-maximized .admin-bidpop-topbar {
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-effect: null;
+}
+
+/* Seller create/edit modal: avoid duplicated Item Title and keep the form readable. */
+.modal-overlay {
+    -fx-background-color: rgba(46, 26, 40, 0.42);
+}
+
+.custom-text-input,
+.custom-combo-box,
+.custom-segmented-input {
+    -fx-min-height: 44px;
+    -fx-pref-height: 44px;
+}
+
+.transparent-text-area {
+    -fx-min-height: 92px;
+}
+/* === MINH FINAL ADMIN SELLER IMAGE FIX END === */
+
+/* === ADMIN TABLE SELECT FIX V2 START === */
+/* Late override: keeps Admin tables readable when a row is selected/focused. */
+.admin-table {
+    -fx-background-color: #fffafd;
+    -fx-control-inner-background: #fffafd;
+    -fx-background-radius: 22px;
+    -fx-border-color: #f3ddea;
+    -fx-border-width: 1.4px;
+    -fx-border-radius: 22px;
+    -fx-padding: 8px;
+    -fx-table-cell-border-color: #f5e7f0;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-selection-bar: #ffe1f3;
+    -fx-selection-bar-non-focused: #fff0f8;
+    -fx-selection-bar-text: #2e1a28;
+}
+
+.admin-table .column-header-background {
+    -fx-background-color: linear-gradient(to bottom, #fff4fb, #ffedf7);
+    -fx-background-radius: 18px 18px 0 0;
+    -fx-border-color: transparent transparent #f1dbe8 transparent;
+    -fx-border-width: 0 0 1px 0;
+}
+
+.admin-table .column-header,
+.admin-table .filler {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.admin-table .column-header .label {
+    -fx-text-fill: #2e1a28;
+    -fx-font-size: 13px;
+    -fx-font-weight: 900;
+    -fx-alignment: center-left;
+}
+
+.admin-table .table-row-cell {
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent transparent #f8edf5 transparent;
+    -fx-border-width: 0 0 1px 0;
+    -fx-text-background-color: #2e1a28;
+    -fx-cell-size: 44px;
+}
+
+.admin-table .table-row-cell:odd {
+    -fx-background-color: #fffbfd;
+}
+
+.admin-table .table-row-cell:filled:hover {
+    -fx-background-color: #fff1f9;
+    -fx-text-background-color: #2e1a28;
+}
+
+.admin-table .table-row-cell:filled:selected,
+.admin-table .table-row-cell:filled:selected:hover,
+.admin-table .table-row-cell:filled:focused:selected {
+    -fx-background-color: #ffe1f3;
+    -fx-border-color: transparent transparent #f2c9df #e040a0;
+    -fx-border-width: 0 0 1px 4px;
+    -fx-text-background-color: #2e1a28;
+}
+
+.admin-table .table-row-cell:filled:selected .table-cell,
+.admin-table .table-row-cell:filled:selected:hover .table-cell,
+.admin-table .table-row-cell:filled:focused:selected .table-cell,
+.admin-table .table-cell:selected {
+    -fx-text-fill: #2e1a28;
+    -fx-background-color: transparent;
+}
+
+.admin-table .table-cell {
+    -fx-text-fill: #2e1a28;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-alignment: center-left;
+    -fx-padding: 0 14px 0 14px;
+    -fx-border-color: transparent #f4e5ee transparent transparent;
+    -fx-border-width: 0 1px 0 0;
+}
+
+.admin-table .placeholder .label,
+.admin-table-placeholder {
+    -fx-text-fill: #9c7aa0;
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+}
+/* === ADMIN TABLE SELECT FIX V2 END === */
