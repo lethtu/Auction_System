@@ -33,6 +33,20 @@
             <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
                 <VBox spacing="35.0" style="-fx-padding: 10px 0px;">
 
+                    <!-- Set Password Card for Google users who haven't set a password -->
+                    <VBox fx:id="passwordSetBox" spacing="16.0" style="-fx-background-color: #fff9e6; -fx-padding: 24px 30px; -fx-background-radius: 20px; -fx-border-color: #ffe0b2; -fx-border-width: 2px; -fx-border-radius: 20px; -fx-effect: dropshadow(three-pass-box, rgba(255, 152, 0, 0.05), 15, 0, 0, 4);">
+                        <HBox spacing="10.0" alignment="CENTER_LEFT">
+                            <Label text="&#xe8a6;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px; -fx-text-fill: #e65100;" />
+                            <Label text="THIẾT LẬP MẬT KHẨU TÀI KHOẢN (1 LẦN DUY NHẤT)" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #e65100;" />
+                        </HBox>
+                        <Label text="Vì bạn đăng nhập bằng Google, tài khoản này chưa có mật khẩu riêng. Vui lòng thiết lập mật khẩu dưới đây để có thể đăng nhập trực tiếp bằng tài khoản/email sau này." wrapText="true" style="-fx-font-size: 14px; -fx-text-fill: #5d4037; -fx-line-spacing: 4px;" />
+                        <HBox spacing="20.0" alignment="CENTER_LEFT">
+                            <PasswordField fx:id="txtNewPassword" promptText="Mật khẩu mới (tối thiểu 6 ký tự)" prefWidth="250.0" style="-fx-background-color: #ffffff; -fx-border-color: #ffe0b2; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 10px; -fx-font-size: 14px;" />
+                            <PasswordField fx:id="txtConfirmPassword" promptText="Xác nhận mật khẩu mới" prefWidth="250.0" style="-fx-background-color: #ffffff; -fx-border-color: #ffe0b2; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 10px; -fx-font-size: 14px;" />
+                            <Button fx:id="btnSetPassword" onAction="#handleSetPassword" text="Thiết Lập Mật Khẩu" prefHeight="40.0" style="-fx-background-color: #e65100; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-cursor: hand; -fx-padding: 8px 24px;" />
+                        </HBox>
+                    </VBox>
+
                 <!-- 2-Column Grid Area -->
                 <HBox spacing="40.0" alignment="TOP_LEFT">
                     <!-- Column 1: Config Form (Left) -->
