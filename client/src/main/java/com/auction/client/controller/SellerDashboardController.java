@@ -5,9 +5,11 @@ import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
 import com.auction.client.HttpClientSingleton;
 import com.auction.client.model.User;
+import com.auction.client.util.HttpRequestUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -143,22 +145,9 @@ public class SellerDashboardController {
     private TableColumn<SessionItem, SessionItem> colActions;
 
     @FXML
-    private TextField txtSearch;
-
-    @FXML
     private SidebarController sidebarController;
     @FXML
-    private Button btnHamburger;
-    @FXML
-    private MenuButton userMenuButton;
-    @FXML
-    private Button btnNotificationBell;
-    @FXML
-    private Label notificationBadge;
-    @FXML
-    private StackPane topBarAvatarPane;
-    @FXML
-    private Button btnSettings;
+    private TopbarController topbarController;
 
     private HttpClient httpClient = HttpClientSingleton.getInstance().getHttpClient();
     final List<SessionItem> allSessions = new ArrayList<>();
@@ -178,32 +167,17 @@ public class SellerDashboardController {
         setupImageUpload();
         setupSplitDatetimePickers();
 
-        if (User.getFullname() != null) {
-            createUserOption("Hello, " + User.getFullname());
+        if (topbarController != null) {
+            topbarController.setSearchVisible(false);
+            if (sidebarController != null) {
+                topbarController.setSidebarController(sidebarController);
+            }
         }
-        if (btnNotificationBell != null && notificationBadge != null) {
-            com.auction.client.util.NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
-        }
-        if (btnSettings != null) {
-            btnSettings.setOnAction(e -> {
-                try {
-                    com.auction.client.controller.SceneSwitcher.switchScene(e, "Settings.fxml", 1280, 800);
-                } catch (IOException ex) {
-                    logger.error("Error switching to Settings.fxml: ", ex);
-                }
-            });
-        }
-
-        javafx.application.Platform.runLater(() -> updateTopBarAvatar(User.getAvatarUrl()));
 
         if (modalDialog != null && modalOverlay != null) {
             modalOverlay.heightProperty().addListener((obs, oldVal, newVal) -> updateModalMaxHeight());
             modalDialog.widthProperty().addListener((obs, oldVal, newVal) -> updateModalMaxHeight());
         }
-
-        btnHamburger.setId("btnHamburger");
-        btnHamburger.setOnAction(this::handleToggleSidebar);
-
         javafx.application.Platform.runLater(() -> {
             if (sidebarController != null) {
                 sidebarController.setActiveSelling();
@@ -310,8 +284,7 @@ public class SellerDashboardController {
             boolean success = false;
             if (db.hasFiles()) {
                 File file = db.getFiles().get(0);
-                String path = file.toURI().toString();
-                imageUrlField.setText(path);
+                imageUrlField.setText(file.getAbsolutePath());
                 lblImageFileName.setText(file.getName());
                 success = true;
             }
@@ -323,11 +296,11 @@ public class SellerDashboardController {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Select Product Image");
             fileChooser.getExtensionFilters().addAll(
-                    new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif"));
+                    new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp",
+                            "*.bmp"));
             File selectedFile = fileChooser.showOpenDialog(imageUploadArea.getScene().getWindow());
             if (selectedFile != null) {
-                String path = selectedFile.toURI().toString();
-                imageUrlField.setText(path);
+                imageUrlField.setText(selectedFile.getAbsolutePath());
                 lblImageFileName.setText(selectedFile.getName());
             }
         });
@@ -357,7 +330,8 @@ public class SellerDashboardController {
 
                     if (item.imageUrl != null && !item.imageUrl.isEmpty()) {
                         try {
-                            ImageView iv = new ImageView(new Image(item.imageUrl, 48, 48, true, true));
+                            String tableImageUrl = buildSellerImageUrl(item.imageUrl);
+                            ImageView iv = new ImageView(new Image(tableImageUrl, 48, 48, true, true));
                             Circle clip = new Circle(24, 24, 24);
                             iv.setClip(clip);
                             imgContainer.getChildren().add(iv);
@@ -394,7 +368,9 @@ public class SellerDashboardController {
             protected void updateItem(String status, boolean empty) {
                 super.updateItem(status, empty);
                 if (empty || status == null) {
+                    setText(null);
                     setGraphic(null);
+                    setContentDisplay(ContentDisplay.TEXT_ONLY);
                 } else {
                     Label lblStatus = new Label(status.toUpperCase());
                     lblStatus.getStyleClass().add("badge");
@@ -412,7 +388,17 @@ public class SellerDashboardController {
                         }
                         default -> lblStatus.setStyle("-fx-background-color: #f2e8f2; ");
                     }
-                    setGraphic(lblStatus);
+
+                    StackPane wrapper = new StackPane(lblStatus);
+                    wrapper.setMaxWidth(Double.MAX_VALUE);
+                    wrapper.prefWidthProperty().bind(widthProperty().subtract(20));
+                    wrapper.setAlignment(Pos.CENTER);
+
+                    setText(null);
+                    setGraphic(wrapper);
+                    setAlignment(Pos.CENTER);
+                    setStyle("-fx-alignment: CENTER; -fx-padding: 0 10 0 10;");
+                    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
                 }
             }
         });
@@ -424,6 +410,11 @@ public class SellerDashboardController {
             @Override
             protected void updateItem(BigDecimal price, boolean empty) {
                 super.updateItem(price, empty);
+                setText(null);
+                setAlignment(Pos.CENTER);
+                setStyle("-fx-alignment: CENTER; -fx-padding: 0 10 0 10;");
+                setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+
                 if (empty || price == null) {
                     setText(null);
                 } else {
@@ -435,6 +426,17 @@ public class SellerDashboardController {
                         setStyle("-fx-text-fill: -fx-accent; -fx-font-weight: 900; -fx-alignment: center-right;");
                     }
                 }
+
+                Label priceLabel = new Label(price.compareTo(BigDecimal.ZERO) == 0 ? "--" : "$" + df.format(price));
+                priceLabel.setStyle(price.compareTo(BigDecimal.ZERO) == 0
+                        ? "-fx-text-fill: #604868; -fx-font-weight: bold;"
+                        : "-fx-text-fill: #e040a0; -fx-font-weight: 900;");
+
+                StackPane wrapper = new StackPane(priceLabel);
+                wrapper.setMaxWidth(Double.MAX_VALUE);
+                wrapper.prefWidthProperty().bind(widthProperty().subtract(20));
+                wrapper.setAlignment(Pos.CENTER);
+                setGraphic(wrapper);
             }
         });
 
@@ -443,6 +445,11 @@ public class SellerDashboardController {
             @Override
             protected void updateItem(String endTime, boolean empty) {
                 super.updateItem(endTime, empty);
+                setText(null);
+                setAlignment(Pos.CENTER);
+                setStyle("-fx-alignment: CENTER; -fx-padding: 0 10 0 10;");
+                setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+
                 if (empty || endTime == null || endTime.isEmpty()) {
                     setText(null);
                 } else {
@@ -462,6 +469,32 @@ public class SellerDashboardController {
                         setText(endTime);
                     }
                 }
+
+                String displayText;
+                String textColor = "#604868";
+                try {
+                    LocalDateTime end = LocalDateTime.parse(endTime);
+                    if (end.isBefore(LocalDateTime.now())) {
+                        displayText = "Ended";
+                        textColor = "#e53e3e";
+                    } else {
+                        Duration d = Duration.between(LocalDateTime.now(), end);
+                        long hours = d.toHours();
+                        long minutes = d.toMinutesPart();
+                        displayText = String.format("%02dh %02dm", hours, minutes);
+                    }
+                } catch (Exception e) {
+                    displayText = endTime;
+                }
+
+                Label timeLabel = new Label(displayText);
+                timeLabel.setStyle("-fx-text-fill: " + textColor + "; -fx-font-weight: bold;");
+
+                StackPane wrapper = new StackPane(timeLabel);
+                wrapper.setMaxWidth(Double.MAX_VALUE);
+                wrapper.prefWidthProperty().bind(widthProperty().subtract(20));
+                wrapper.setAlignment(Pos.CENTER);
+                setGraphic(wrapper);
             }
         });
 
@@ -471,10 +504,12 @@ public class SellerDashboardController {
             protected void updateItem(SessionItem item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null) {
+                    setText(null);
                     setGraphic(null);
+                    setContentDisplay(ContentDisplay.TEXT_ONLY);
                 } else {
                     HBox hbox = new HBox(8);
-                    hbox.setAlignment(Pos.CENTER_LEFT);
+                    hbox.setAlignment(Pos.CENTER);
 
                     Button btnView;
                     if ("DRAFT".equalsIgnoreCase(item.status)) {
@@ -483,6 +518,8 @@ public class SellerDashboardController {
                         btnView.setOnAction(e -> handleQuickPublish(item));
                     } else {
                         btnView = createIconButton("mdi2e-eye", "#0096cc");
+                        btnView.setTooltip(new javafx.scene.control.Tooltip("View Details"));
+                        btnView.setOnAction(e -> handleViewSession(item, e));
                     }
                     Button btnEdit = createIconButton("mdi2p-pencil", "#7c52aa");
                     Button btnDelete = createIconButton("mdi2d-delete", "#e53e3e");
@@ -510,7 +547,17 @@ public class SellerDashboardController {
                     }
 
                     hbox.getChildren().addAll(btnView, btnEdit, btnDelete);
-                    setGraphic(hbox);
+
+                    StackPane wrapper = new StackPane(hbox);
+                    wrapper.setMaxWidth(Double.MAX_VALUE);
+                    wrapper.prefWidthProperty().bind(widthProperty().subtract(20));
+                    wrapper.setAlignment(Pos.CENTER);
+
+                    setText(null);
+                    setGraphic(wrapper);
+                    setAlignment(Pos.CENTER);
+                    setStyle("-fx-alignment: CENTER; -fx-padding: 0 10 0 10;");
+                    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
                 }
             }
         });
@@ -713,7 +760,10 @@ public class SellerDashboardController {
 
         String productName = productNameField.getText().trim();
         String productType = productTypeCombo.getValue();
-        String imageUrl = productNameOrEmpty(imageUrlField);
+        String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField));
+        if (imageUrl == null) {
+            return;
+        }
         String description = productNameOrEmpty(descriptionArea);
         String startingPriceText = productNameOrEmpty(startingPriceField);
 
@@ -910,16 +960,17 @@ public class SellerDashboardController {
             body.put("imagePath", imageUrl);
             body.put("description", description);
             body.put("startingPrice", startingPrice);
-            
+
             BigDecimal reservePrice = BigDecimal.ZERO;
             String reservePriceText = reservePriceField != null ? reservePriceField.getText() : "";
             if (reservePriceText != null && !reservePriceText.trim().isEmpty()) {
                 try {
                     reservePrice = new BigDecimal(reservePriceText.trim());
-                } catch(Exception e) {}
+                } catch (Exception e) {
+                }
             }
             body.put("reservePrice", reservePrice);
-            
+
             body.put("sellerId", sellerId);
             body.put("stepPrice", 10000); // Default step price
             body.put("status", "DRAFT");
@@ -936,7 +987,7 @@ public class SellerDashboardController {
                 body.put("endTime", endDT.toString());
             }
 
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest request = newRequestBuilder()
                     .uri(URI.create(Config.API_URL + "/api/seller/create-auction"))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
@@ -971,7 +1022,11 @@ public class SellerDashboardController {
 
         String productName = productNameField.getText().trim();
         String productType = productTypeCombo.getValue();
-        String imageUrl = productNameOrEmpty(imageUrlField);
+        String existingUuid = (editingSession != null) ? extractUuid(editingSession.imageUrl) : null;
+        String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField), existingUuid);
+        if (imageUrl == null) {
+            return;
+        }
         String description = productNameOrEmpty(descriptionArea);
         String startingPriceText = productNameOrEmpty(startingPriceField);
 
@@ -1168,16 +1223,17 @@ public class SellerDashboardController {
             body.put("imagePath", imageUrl);
             body.put("description", description);
             body.put("startingPrice", startingPrice);
-            
+
             BigDecimal reservePrice = BigDecimal.ZERO;
             String reservePriceText = reservePriceField != null ? reservePriceField.getText() : "";
             if (reservePriceText != null && !reservePriceText.trim().isEmpty()) {
                 try {
                     reservePrice = new BigDecimal(reservePriceText.trim());
-                } catch(Exception e) {}
+                } catch (Exception e) {
+                }
             }
             body.put("reservePrice", reservePrice);
-            
+
             body.put("sellerId", sellerId);
             body.put("stepPrice", 10000); // Default step price
             body.put("status", "DRAFT");
@@ -1194,7 +1250,7 @@ public class SellerDashboardController {
                 body.put("endTime", endDT.toString());
             }
 
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest request = newRequestBuilder()
                     .uri(URI.create(Config.API_URL + "/api/seller/update-session/" + editingSession.id + "?sellerId="
                             + sellerId))
                     .header("Content-Type", "application/json")
@@ -1230,7 +1286,11 @@ public class SellerDashboardController {
 
         String productName = productNameField.getText().trim();
         String productType = productTypeCombo.getValue();
-        String imageUrl = productNameOrEmpty(imageUrlField);
+        String existingUuid = (editingSession != null) ? extractUuid(editingSession.imageUrl) : null;
+        String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField), existingUuid);
+        if (imageUrl == null) {
+            return;
+        }
         String description = productNameOrEmpty(descriptionArea);
         String startingPriceText = productNameOrEmpty(startingPriceField);
 
@@ -1435,13 +1495,14 @@ public class SellerDashboardController {
             body.put("imagePath", imageUrl);
             body.put("description", description);
             body.put("startingPrice", startingPrice);
-            
+
             BigDecimal reservePrice = BigDecimal.ZERO;
             String reservePriceText = reservePriceField != null ? reservePriceField.getText() : "";
             if (reservePriceText != null && !reservePriceText.trim().isEmpty()) {
                 try {
                     reservePrice = new BigDecimal(reservePriceText.trim());
-                } catch(Exception e) {}
+                } catch (Exception e) {
+                }
             }
             body.put("reservePrice", reservePrice);
             body.put("sellerId", sellerId);
@@ -1454,7 +1515,7 @@ public class SellerDashboardController {
             }
             body.put("endTime", endDT.toString());
 
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest request = newRequestBuilder()
                     .uri(URI.create(Config.API_URL + "/api/seller/update-session/" + editingSession.id + "?sellerId="
                             + sellerId))
                     .header("Content-Type", "application/json")
@@ -1535,7 +1596,10 @@ public class SellerDashboardController {
 
         String productName = productNameField.getText().trim();
         String productType = productTypeCombo.getValue();
-        String imageUrl = productNameOrEmpty(imageUrlField);
+        String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField));
+        if (imageUrl == null) {
+            return;
+        }
         String description = productNameOrEmpty(descriptionArea);
         String startingPriceText = productNameOrEmpty(startingPriceField);
 
@@ -1740,13 +1804,14 @@ public class SellerDashboardController {
             body.put("imagePath", imageUrl);
             body.put("description", description);
             body.put("startingPrice", startingPrice);
-            
+
             BigDecimal reservePrice = BigDecimal.ZERO;
             String reservePriceText = reservePriceField != null ? reservePriceField.getText() : "";
             if (reservePriceText != null && !reservePriceText.trim().isEmpty()) {
                 try {
                     reservePrice = new BigDecimal(reservePriceText.trim());
-                } catch(Exception e) {}
+                } catch (Exception e) {
+                }
             }
             body.put("reservePrice", reservePrice);
             body.put("sellerId", sellerId);
@@ -1759,14 +1824,15 @@ public class SellerDashboardController {
             }
             body.put("endTime", endDT.toString());
 
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest request = newRequestBuilder()
                     .uri(URI.create(Config.API_URL + "/api/seller/create-auction"))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "Auction session created successfully.");
+            ApiResult api = parseApiResponse(response.body(), response.statusCode(),
+                    "Auction session created successfully.");
 
             if (api.success) {
                 clearForm();
@@ -1802,7 +1868,7 @@ public class SellerDashboardController {
         }
 
         try {
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest request = newRequestBuilder()
                     .uri(URI.create(
                             Config.API_URL + "/api/seller/cancel-session/" + selected.id + "?sellerId=" + sellerId))
                     .DELETE()
@@ -1903,10 +1969,15 @@ public class SellerDashboardController {
         }
 
         try {
+            String selectedImagePath = prepareImagePathForSave(selected.imageUrl, extractUuid(selected.imageUrl));
+            if (selectedImagePath == null) {
+                return;
+            }
+
             JSONObject body = new JSONObject();
             body.put("name", selected.productName);
             body.put("type", selected.productType);
-            body.put("imagePath", selected.imageUrl);
+            body.put("imagePath", selectedImagePath);
             body.put("description", selected.description);
             body.put("startingPrice", selected.startingPrice);
             body.put("sellerId", sellerId);
@@ -1915,7 +1986,7 @@ public class SellerDashboardController {
             body.put("startTime", startDT.toString());
             body.put("endTime", endDT.toString());
 
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest request = newRequestBuilder()
                     .uri(URI.create(
                             Config.API_URL + "/api/seller/update-session/" + selected.id + "?sellerId=" + sellerId))
                     .header("Content-Type", "application/json")
@@ -1953,7 +2024,7 @@ public class SellerDashboardController {
         }
 
         try {
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest request = newRequestBuilder()
                     .uri(URI.create(Config.API_URL + "/api/seller/my-sessions/" + sellerId))
                     .GET()
                     .build();
@@ -2000,11 +2071,17 @@ public class SellerDashboardController {
             s.productType = product != null ? product.optString("type", "") : "";
         }
 
-        if (item.has("imageUrl")) {
+        if (item.has("imagePath")) {
+            s.imageUrl = item.optString("imagePath", "");
+        } else if (item.has("imageUrl")) {
             s.imageUrl = item.optString("imageUrl", "");
         } else if (item.has("product")) {
             JSONObject product = item.optJSONObject("product");
-            s.imageUrl = product != null ? product.optString("imageUrl", "") : "";
+            if (product != null && product.has("imagePath")) {
+                s.imageUrl = product.optString("imagePath", "");
+            } else {
+                s.imageUrl = product != null ? product.optString("imageUrl", "") : "";
+            }
         }
 
         if (item.has("description")) {
@@ -2089,7 +2166,8 @@ public class SellerDashboardController {
         productNameField.clear();
         imageUrlField.clear();
         descriptionArea.clear();
-        if (reservePriceField != null) reservePriceField.clear();
+        if (reservePriceField != null)
+            reservePriceField.clear();
         startingPriceField.clear();
         if (lblImageFileName != null)
             lblImageFileName.setText("");
@@ -2229,51 +2307,180 @@ public class SellerDashboardController {
         modalDialog.setMaxHeight(Math.min(parentHeight, naturalHeight));
     }
 
-    @FXML
-    private void handleToggleSidebar(javafx.event.ActionEvent event) {
-        if (sidebarController != null) {
-            sidebarController.toggleSidebar();
+    private void handleViewSession(SessionItem item, ActionEvent event) {
+        if (item == null) {
+            return;
+        }
+
+        try {
+            JSONObject sessionObj = buildSessionJson(item);
+            JSONObject itemObj = buildItemJson(item);
+
+            FXMLLoader loader = SceneSwitcher.switchScene(event, "AuctionPage.fxml", 1280, 800);
+            AuctionPageController controller = loader.getController();
+            if (controller != null) {
+                controller.setItem(sessionObj, itemObj);
+            }
+        } catch (IOException e) {
+            logger.error("Cannot open auction detail page", e);
+            showAlert(Alert.AlertType.ERROR, "Navigation Error", "Cannot open auction detail page.");
         }
     }
 
-    private void createUserOption(String text) {
-        MenuItem accountItem = new MenuItem("My Account");
-        MenuItem depositMoney = new MenuItem("Deposit");
-        MenuItem logoutItem = new MenuItem("Logout");
+    private JSONObject buildSessionJson(SessionItem item) {
+        JSONObject obj = new JSONObject();
+        obj.put("id", item.id);
+        obj.put("productName", safeString(item.productName));
+        obj.put("productType", safeString(item.productType));
+        obj.put("description", safeString(item.description));
+        obj.put("imagePath", safeString(item.imageUrl));
+        obj.put("startingPrice", item.startingPrice == null ? BigDecimal.ZERO : item.startingPrice);
+        obj.put("currentPrice", item.currentPrice == null ? BigDecimal.ZERO : item.currentPrice);
+        obj.put("stepPrice", item.stepPrice == null ? BigDecimal.ZERO : item.stepPrice);
+        obj.put("reservePrice", item.reservePrice == null ? BigDecimal.ZERO : item.reservePrice);
+        obj.put("startTime", safeString(item.startTime));
+        obj.put("endTime", safeString(item.endTime));
+        obj.put("status", safeString(item.status));
+        obj.put("item", buildItemJson(item));
+        return obj;
+    }
 
-        accountItem.setOnAction(event -> {
+    private JSONObject buildItemJson(SessionItem item) {
+        JSONObject obj = new JSONObject();
+        obj.put("name", safeString(item.productName));
+        obj.put("type", safeString(item.productType));
+        obj.put("description", safeString(item.description));
+        obj.put("imagePath", safeString(item.imageUrl));
+        obj.put("startingPrice", item.startingPrice == null ? BigDecimal.ZERO : item.startingPrice);
+        return obj;
+    }
+
+    private String extractUuid(String path) {
+        if (path == null || path.isBlank()) return null;
+        java.util.regex.Pattern uuidPattern = java.util.regex.Pattern.compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
+        java.util.regex.Matcher matcher = uuidPattern.matcher(path);
+        return matcher.find() ? matcher.group() : null;
+    }
+
+    private String prepareImagePathForSave(String rawPath) {
+        return prepareImagePathForSave(rawPath, null);
+    }
+
+    private String prepareImagePathForSave(String rawPath, String existingUuid) {
+        if (rawPath == null || rawPath.isBlank()) {
+            return "";
+        }
+
+        String path = rawPath.trim();
+        File localImage = toExistingLocalFile(path);
+        if (localImage != null) {
             try {
-                MainController.initialShowAccount = true;
-                SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
-            } catch (IOException e) {
-                logger.error("Error switching to account page: ", e);
+                return uploadProductImage(localImage, existingUuid);
+            } catch (Exception e) {
+                logger.error("Cannot upload product image: {}", e.getMessage(), e);
+                showAlert(Alert.AlertType.ERROR, "Image Upload Error", "Cannot upload product image to the server.");
+                return null;
             }
-        });
+        }
 
-        depositMoney.setOnAction(event -> {
-            try {
-                SceneSwitcher.switchScene(event, "Deposit.fxml", 1280, 800);
-            } catch (IOException e) {
-                logger.error("Error switching to deposit page: ", e);
+        return normalizeImagePathForStorage(path);
+    }
+
+    private File toExistingLocalFile(String rawPath) {
+        if (rawPath == null || rawPath.isBlank()) {
+            return null;
+        }
+
+        try {
+            if (rawPath.startsWith("file:/")) {
+                File file = new File(new URI(rawPath));
+                return file.isFile() ? file : null;
             }
-        });
+        } catch (Exception ignored) {
+        }
 
-        logoutItem.setOnAction(event -> {
-            try {
-                handleLogout(event);
-            } catch (IOException e) {
-                logger.error("Error switching to Login screen!", e);
-            }
-        });
-
-        if (userMenuButton != null) {
-            userMenuButton.getItems().addAll(accountItem, depositMoney, new SeparatorMenuItem(), logoutItem);
+        try {
+            File file = new File(rawPath);
+            return file.isFile() ? file : null;
+        } catch (Exception ignored) {
+            return null;
         }
     }
 
-    public void handleLogout(javafx.event.ActionEvent event) throws IOException {
-        User.clearSession();
-        SceneSwitcher.switchScene(event, "Login.fxml", 1100, 700);
+    private String uploadProductImage(File imageFile) throws Exception {
+        return uploadProductImage(imageFile, null);
+    }
+
+    private String uploadProductImage(File imageFile, String existingUuid) throws Exception {
+        String uploadPath = "/api/files/images" + (existingUuid != null ? "?uuid=" + existingUuid : "");
+        HttpResponse<String> response = HttpRequestUtil.uploadImage(Config.API_URL, uploadPath, imageFile);
+        if (response.statusCode() < 200 || response.statusCode() >= 300) {
+            throw new IOException("Image upload failed with status " + response.statusCode());
+        }
+
+        JSONObject obj = new JSONObject(response.body());
+        JSONObject data = obj.optJSONObject("data");
+        String imagePath = data != null ? data.optString("imagePath", "") : obj.optString("imagePath", "");
+        if (imagePath.isBlank()) {
+            throw new IOException("Image upload response did not contain imagePath.");
+        }
+
+        // Trigger cache buster to immediately reflect the new image across all views
+        Config.triggerImageCacheBuster();
+
+        return normalizeImagePathForStorage(imagePath);
+    }
+
+    private String normalizeImagePathForStorage(String rawPath) {
+        if (rawPath == null || rawPath.isBlank()) {
+            return "";
+        }
+
+        String path = rawPath.trim().replace("\\", "/");
+        int apiIndex = path.indexOf("/api/files/images/");
+        if (apiIndex >= 0) {
+            path = path.substring(apiIndex + "/api/files/images/".length());
+        }
+
+        String apiPrefix = Config.API_URL + "/api/files/images/";
+        if (path.startsWith(apiPrefix)) {
+            path = path.substring(apiPrefix.length());
+        }
+        while (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+        if (path.startsWith("api/files/images/")) {
+            path = path.substring("api/files/images/".length());
+        }
+        if (path.startsWith("server/upload/images/")) {
+            path = path.substring("server/upload/images/".length());
+        }
+        if (path.startsWith("upload/images/")) {
+            path = path.substring("upload/images/".length());
+        }
+        if (path.startsWith("images/")) {
+            path = path.substring("images/".length());
+        }
+        return path;
+    }
+
+    private String buildSellerImageUrl(String rawPath) {
+        if (rawPath == null || rawPath.isBlank()) {
+            return "";
+        }
+
+        String path = rawPath.trim().replace("\\", "/");
+        if ((path.startsWith("http://") || path.startsWith("https://")) && !path.contains("/api/files/images/")) {
+            return Config.applyCacheBuster(path);
+        }
+
+        path = normalizeImagePathForStorage(path);
+        String url = path.isBlank() ? "" : Config.API_URL + "/api/files/images/" + path;
+        return Config.applyCacheBuster(url);
+    }
+
+    private String safeString(String value) {
+        return value == null ? "" : value;
     }
 
     private String productNameOrEmpty(TextInputControl input) {
@@ -2292,7 +2499,8 @@ public class SellerDashboardController {
     private ApiResult parseApiResponse(String body, int httpStatus, String defaultSuccessMessage) {
         if (body == null || body.isBlank()) {
             return new ApiResult(httpStatus >= 200 && httpStatus < 300,
-                    httpStatus >= 200 && httpStatus < 300 ? defaultSuccessMessage : "An error occurred from the server.");
+                    httpStatus >= 200 && httpStatus < 300 ? defaultSuccessMessage
+                            : "An error occurred from the server.");
         }
 
         try {
@@ -2583,41 +2791,12 @@ public class SellerDashboardController {
         }
     }
 
-    private void updateTopBarAvatar(String avatarUrl) {
-        if (topBarAvatarPane == null) return;
-        try {
-            topBarAvatarPane.getChildren().clear();
-            if (avatarUrl != null && !avatarUrl.isBlank()) {
-                String fullUrl = avatarUrl.startsWith("http") ? avatarUrl : Config.API_URL + avatarUrl;
-                ImageView imgView = new ImageView(new Image(fullUrl, 36, 36, false, true, true));
-                imgView.setFitWidth(36);
-                imgView.setFitHeight(36);
-                imgView.setSmooth(true);
-                javafx.scene.shape.Circle clip = new javafx.scene.shape.Circle(18, 18, 18);
-                imgView.setClip(clip);
-                topBarAvatarPane.getChildren().add(imgView);
-            } else {
-                Label icon = new Label("\uE7FD");
-                icon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: white;");
-                topBarAvatarPane.getChildren().add(icon);
-            }
-        } catch (Exception e) {
-            logger.warn("Cannot update avatar on top bar: {}", e.getMessage());
+    private HttpRequest.Builder newRequestBuilder() {
+        HttpRequest.Builder builder = HttpRequest.newBuilder();
+        String token = User.getSessionToken();
+        if (token != null && !token.isEmpty()) {
+            builder.header("X-Auth-Token", token);
         }
-    }
-
-    @FXML
-    private void handleMinimize(javafx.event.ActionEvent event) {
-        SceneSwitcher.handleMinimize(event);
-    }
-
-    @FXML
-    private void handleMaximize(javafx.event.ActionEvent event) {
-        SceneSwitcher.handleMaximize(event);
-    }
-
-    @FXML
-    private void handleClose(javafx.event.ActionEvent event) {
-        SceneSwitcher.handleClose(event);
+        return builder;
     }
 }

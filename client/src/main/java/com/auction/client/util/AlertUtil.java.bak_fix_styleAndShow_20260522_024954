@@ -7,6 +7,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
@@ -23,10 +24,10 @@ import javafx.stage.Window;
 import java.util.Optional;
 
 public final class AlertUtil {
-    private static final String DEFAULT_INFO_TITLE = "Success";
-    private static final String DEFAULT_ERROR_TITLE = "Error";
-    private static final String DEFAULT_WARNING_TITLE = "Warning";
-    private static final String DEFAULT_ERROR_MESSAGE = "An error occurred. Please try again.";
+    private static final String DEFAULT_INFO_TITLE = "Thành công";
+    private static final String DEFAULT_ERROR_TITLE = "Lỗi";
+    private static final String DEFAULT_WARNING_TITLE = "Cảnh báo";
+    private static final String DEFAULT_ERROR_MESSAGE = "Đã xảy ra lỗi. Vui lòng thử lại.";
 
     private AlertUtil() {
     }
@@ -39,32 +40,12 @@ public final class AlertUtil {
         show(Alert.AlertType.INFORMATION, DEFAULT_INFO_TITLE, message);
     }
 
-    public static void showInfo(String title, String message) {
-        show(Alert.AlertType.INFORMATION, title, message);
-    }
-
-    public static void showSuccess(String message) {
-        showInfo(DEFAULT_INFO_TITLE, message);
-    }
-
-    public static void showSuccess(String title, String message) {
-        showInfo(title, message);
-    }
-
-    public static void showWarning(String message) {
-        show(Alert.AlertType.WARNING, DEFAULT_WARNING_TITLE, message);
-    }
-
     public static void showWarning(String title, String message) {
         show(Alert.AlertType.WARNING, title, message);
     }
 
     public static void showError(String message) {
         show(Alert.AlertType.ERROR, DEFAULT_ERROR_TITLE, message);
-    }
-
-    public static void showError(String title, String message) {
-        show(Alert.AlertType.ERROR, title, message);
     }
 
     public static void showError(Exception e, String defaultMessage) {
@@ -75,7 +56,7 @@ public final class AlertUtil {
         Stage dialog = createBaseStage(title);
 
         TextField input = new TextField();
-        input.setPromptText("Enter content...");
+        input.setPromptText("Nhập nội dung...");
         input.setMaxWidth(330);
         input.setStyle("-fx-background-color: #fff5fb;"
                 + " -fx-border-color: #f4addb;"
@@ -88,8 +69,8 @@ public final class AlertUtil {
 
         final String[] value = {null};
 
-        Button cancelButton = secondaryButton("Cancel");
-        Button okButton = primaryButton("OK");
+        Button cancelButton = secondaryButton("Hủy");
+        Button okButton = primaryButton("Đồng ý");
         cancelButton.setOnAction(event -> dialog.close());
         okButton.setOnAction(event -> {
             value[0] = input.getText();
@@ -141,36 +122,11 @@ public final class AlertUtil {
         pane.lookupAll(".button").forEach(AlertUtil::styleDialogButton);
     }
 
-    public static void styleAndShow(Alert alert) {
-        if (alert == null) {
-            return;
-        }
-
-        String title = alert.getTitle();
-        String message = alert.getContentText();
-
-        if (isBlank(title)) {
-            if (alert.getAlertType() == Alert.AlertType.ERROR) {
-                title = DEFAULT_ERROR_TITLE;
-            } else if (alert.getAlertType() == Alert.AlertType.WARNING) {
-                title = DEFAULT_WARNING_TITLE;
-            } else {
-                title = DEFAULT_INFO_TITLE;
-            }
-        }
-
-        if (isBlank(message)) {
-            message = DEFAULT_ERROR_MESSAGE;
-        }
-
-        show(alert.getAlertType(), title, message);
-    }
-
     private static void showCardModal(String title, String message, Alert.AlertType type) {
         Stage dialog = createBaseStage(title);
         VBox card = baseCard(type, title, message);
 
-        Button okButton = primaryButton("OK");
+        Button okButton = primaryButton("Đồng ý");
         okButton.setDefaultButton(true);
         okButton.setOnAction(event -> dialog.close());
         card.getChildren().add(okButton);
@@ -279,7 +235,7 @@ public final class AlertUtil {
     private static void styleDialogButton(Node node) {
         if (node instanceof Button button) {
             boolean primary = ButtonBar.getButtonData(button) != null && ButtonBar.getButtonData(button).isDefaultButton();
-            if (primary || "OK".equalsIgnoreCase(button.getText())) {
+            if (primary || "Đồng ý".equals(button.getText()) || "OK".equalsIgnoreCase(button.getText())) {
                 button.setMinWidth(112);
                 button.setMinHeight(40);
                 button.setStyle("-fx-background-color: #e040a0;"
@@ -371,4 +327,21 @@ public final class AlertUtil {
     private static boolean isBlank(String value) {
         return value == null || value.isBlank();
     }
+
+
+    public static void styleAndShow(Alert alert) {
+        if (alert == null) return;
+        try {
+            if (alert.getAlertType() == Alert.AlertType.ERROR) {
+                showError(alert.getTitle() == null ? "Lỗi" : alert.getTitle(), alert.getContentText());
+            } else if (alert.getAlertType() == Alert.AlertType.WARNING) {
+                showWarning(alert.getTitle() == null ? "Cảnh báo" : alert.getTitle(), alert.getContentText());
+            } else {
+                showInfo(alert.getTitle() == null ? "Thông báo" : alert.getTitle(), alert.getContentText());
+            }
+        } catch (Exception ex) {
+            alert.showAndWait();
+        }
+    }
+
 }

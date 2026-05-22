@@ -82,7 +82,11 @@
     </top>
     
     <left>
-        <fx:include source="Sidebar.fxml" fx:id="sidebar" />
+        <fx:include source="Sidebar.fxml" fx:id="sidebar">
+            <BorderPane.margin>
+                <Insets top="14.0" right="0.0" bottom="14.0" left="14.0" />
+            </BorderPane.margin>
+        </fx:include>
     </left>
     
     <center>

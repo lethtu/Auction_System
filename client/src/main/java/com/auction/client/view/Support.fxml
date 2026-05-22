@@ -74,7 +74,11 @@
     </top>
 
     <left>
-        <fx:include source="Sidebar.fxml" fx:id="sidebar" />
+        <fx:include source="Sidebar.fxml" fx:id="sidebar">
+            <BorderPane.margin>
+                <Insets top="14.0" right="0.0" bottom="14.0" left="14.0" />
+            </BorderPane.margin>
+        </fx:include>
     </left>
 
     <center>
@@ -88,7 +92,7 @@
                 <Label text="We are always ready to answer your questions and support you during the auction process." style="-fx-font-size: 15px; " />
             </VBox>
             
-            <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
                 <VBox spacing="35.0" style="-fx-padding: 10px 0px;">
 
                 <!-- 2-Column Grid Area -->

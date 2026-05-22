@@ -70,6 +70,8 @@ public class PublicAuctionController {
     private boolean isProductVisible(AuctionSession session) {
         return session != null
                 && session.getItem() != null
-                && !session.getItem().isHidden();
+                && !session.getItem().isHidden()
+                && session.getStatus() != AuctionStatus.DRAFT
+                && session.getStatus() != AuctionStatus.CANCELED;
     }
 }

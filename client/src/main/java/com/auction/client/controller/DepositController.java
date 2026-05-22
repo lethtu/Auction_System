@@ -5,6 +5,12 @@ import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
 import com.auction.client.model.User;
 import com.auction.client.util.NotificationBellBinder;
+import com.auction.client.util.AlertUtil;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -30,14 +36,7 @@ import java.util.ResourceBundle;
 public class DepositController implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(DepositController.class);
 
-    @FXML private Button btnHamburger;
-
-    @FXML private Button btnNotificationBell;
-    @FXML private Label notificationBadge;
-    @FXML private Button btnSettings;
-    @FXML private MenuButton userMenuButton;
-    @FXML private Button btnDashboard;
-    @FXML private StackPane topBarAvatarPane;
+    @FXML private TopbarController topbarController;
 
     @FXML private Label lblWalletBalance;
     @FXML private Button btnAmount50;
@@ -57,22 +56,23 @@ public class DepositController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        if (User.getFullname() != null) {
-            createUserOption("Hello, " + User.getFullname());
+        if (topbarController != null) {
+            topbarController.setSearchVisible(false);
+            if (sidebarController != null) {
+                topbarController.setSidebarController(sidebarController);
+            }
         }
 
-        
-        if (btnNotificationBell != null && notificationBadge != null) {
-            NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
-        }
-
-        Platform.runLater(() -> updateTopBarAvatar(User.getAvatarUrl()));
-        if (btnSettings != null) {
-            btnSettings.setOnAction(e -> {
+        if (topbarController != null && topbarController.getTxtSearch() != null) {
+            topbarController.getTxtSearch().setOnAction(e -> {
                 try {
-                    com.auction.client.controller.SceneSwitcher.switchScene(e, "Settings.fxml", 1280, 800);
+                    String query = topbarController.getTxtSearch().getText();
+                    if (query != null && !query.trim().isEmpty()) {
+                        MainController.initialHomeFilterMode = "SEARCH:" + query.trim();
+                        SceneSwitcher.switchScene(e, "MainTemplate.fxml", 1280, 800);
+                    }
                 } catch (IOException ex) {
-                    logger.error("Error switching to Settings.fxml: ", ex);
+                    logger.error("Error switching page: ", ex);
                 }
             });
         }
@@ -93,47 +93,7 @@ public class DepositController implements Initializable {
         updateSummary(BigDecimal.ZERO);
     }
 
-    private void createUserOption(String text) {
-        MenuItem accountItem = new MenuItem("My Account");
-        MenuItem depositMoney = new MenuItem("Deposit");
-        MenuItem logoutItem = new MenuItem("Logout");
 
-        accountItem.setOnAction(event -> {
-            try {
-                MainController.initialShowAccount = true;
-                SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
-            } catch (IOException e) {
-                logger.error("Error switching to account page: ", e);
-            }
-        });
-
-        logoutItem.setOnAction(event -> {
-            try {
-                handleLogout(event);
-            } catch (IOException e) {
-                logger.error("Error switching to Login screen!", e);
-            }
-        });
-
-        // In this page we are already on deposit, but just for consistency
-        depositMoney.setOnAction(event -> {
-            // Do nothing as we are already here
-        });
-
-        userMenuButton.getItems().addAll(accountItem, depositMoney, new SeparatorMenuItem(), logoutItem);
-    }
-
-    public void handleLogout(ActionEvent event) throws IOException {
-        User.clearSession();
-        SceneSwitcher.switchScene(event, "Login.fxml", 1100, 700);
-    }
-
-    @FXML
-    public void handleToggleSidebar(ActionEvent event) {
-        if (sidebarController != null) {
-            sidebarController.toggleSidebar();
-        }
-    }
 
 
 
@@ -199,13 +159,13 @@ public class DepositController implements Initializable {
     }
 
     private void updateSummary(BigDecimal amount) {
-        String formatted = "₫ " + formatPrice(amount);
+        String formatted = "\u20ab " + formatPrice(amount);
         lblSummaryAmount.setText(formatted);
         lblSummaryTotal.setText(formatted);
     }
 
     private void updateWalletBalanceDisplay() {
-        lblWalletBalance.setText("₫ " + formatPrice(User.getBalance()));
+        lblWalletBalance.setText("\u20ab " + formatPrice(User.getBalance()));
     }
 
     private String formatPrice(BigDecimal price) {
@@ -221,10 +181,13 @@ public class DepositController implements Initializable {
         
         new Thread(() -> {
             try {
-                HttpRequest request = HttpRequest.newBuilder()
+                HttpRequest.Builder builder = HttpRequest.newBuilder()
                         .uri(URI.create(Config.API_URL + "/api/users/" + User.getId()))
-                        .GET()
-                        .build();
+                        .GET();
+                if (User.getSessionToken() != null) {
+                    builder.header("X-Auth-Token", User.getSessionToken());
+                }
+                HttpRequest request = builder.build();
 
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() == 200) {
@@ -262,10 +225,13 @@ public class DepositController implements Initializable {
         new Thread(() -> {
             try {
                 String url = Config.API_URL + "/api/bidder/deposit?bidderId=" + User.getId() + "&amount=" + currentDepositAmount.toPlainString();
-                HttpRequest request = HttpRequest.newBuilder()
+                HttpRequest.Builder builder = HttpRequest.newBuilder()
                         .uri(URI.create(url))
-                        .POST(HttpRequest.BodyPublishers.noBody())
-                        .build();
+                        .POST(HttpRequest.BodyPublishers.noBody());
+                if (User.getSessionToken() != null) {
+                    builder.header("X-Auth-Token", User.getSessionToken());
+                }
+                HttpRequest request = builder.build();
                 
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
                 
@@ -321,41 +287,27 @@ public class DepositController implements Initializable {
         alert.showAndWait();
     }
 
-    private void updateTopBarAvatar(String avatarUrl) {
-        if (topBarAvatarPane == null) return;
-        try {
-            topBarAvatarPane.getChildren().clear();
-            if (avatarUrl != null && !avatarUrl.isBlank()) {
-                String fullUrl = avatarUrl.startsWith("http") ? avatarUrl : Config.API_URL + avatarUrl;
-                ImageView imgView = new ImageView(new Image(fullUrl, 36, 36, false, true, true));
-                imgView.setFitWidth(36);
-                imgView.setFitHeight(36);
-                imgView.setSmooth(true);
-                javafx.scene.shape.Circle clip = new javafx.scene.shape.Circle(18, 18, 18);
-                imgView.setClip(clip);
-                topBarAvatarPane.getChildren().add(imgView);
-            } else {
-                Label icon = new Label("\uE7FD");
-                icon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: white;");
-                topBarAvatarPane.getChildren().add(icon);
+    private void openMainTemplateFromCurrentWindow() throws IOException {
+        Window window = lblWalletBalance != null && lblWalletBalance.getScene() != null
+                ? lblWalletBalance.getScene().getWindow()
+                : null;
+
+        if (window instanceof Stage stage) {
+            boolean wasMaximized = stage.isMaximized();
+            int width = Math.max(1280, (int) Math.round(stage.getWidth()));
+            int height = Math.max(800, (int) Math.round(stage.getHeight()));
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/auction/client/view/MainTemplate.fxml"));
+            Parent root = loader.load();
+            stage.setScene(new Scene(root, width, height));
+            stage.show();
+
+            if (wasMaximized) {
+                Platform.runLater(() -> stage.setMaximized(true));
             }
-        } catch (Exception e) {
-            logger.warn("Cannot update avatar on top bar: {}", e.getMessage());
+            return;
         }
-    }
 
-    @FXML
-    private void handleMinimize(javafx.event.ActionEvent event) {
-        SceneSwitcher.handleMinimize(event);
-    }
-
-    @FXML
-    private void handleMaximize(javafx.event.ActionEvent event) {
-        SceneSwitcher.handleMaximize(event);
-    }
-
-    @FXML
-    private void handleClose(javafx.event.ActionEvent event) {
-        SceneSwitcher.handleClose(event);
+        SceneSwitcher.switchScene(new ActionEvent(lblWalletBalance, lblWalletBalance), "MainTemplate.fxml", 1280, 800);
     }
 }

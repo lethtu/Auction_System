@@ -16,20 +16,23 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.layout.StackPane?>
 
-<StackPane stylesheets="@styles.css" styleClass="rounded-window-root" style="-fx-font-family: 'DM Sans';" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.AdminDashboardController">
-    <!-- Kết hợp cả style class cũ và mới để tránh lỗi hiển thị -->
-    <BorderPane prefWidth="1280" prefHeight="720" styleClass="admin-bidpop-root rounded-window-content">
+<StackPane stylesheets="@styles.css" styleClass="rounded-window-root" style="-fx-font-family: 'DM Sans'; -fx-background-color: #fff8fd; -fx-background-radius: 32; -fx-border-radius: 32;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.AdminDashboardController">
+    
+    <Region styleClass="admin-solid-window-backdrop" />
+<!-- Káº¿t há»£p cáº£ style class cÅ© vÃ  má»›i Ä‘á»ƒ trÃ¡nh lá»—i hiá»ƒn thá»‹ -->
+    <BorderPane style=" -fx-background-color: #fff8fd; -fx-background-radius: 30; -fx-border-radius: 30; -fx-border-color: #ffe2f1; -fx-border-width: 1;" prefWidth="1280" prefHeight="720" styleClass="admin-bidpop-root rounded-window-content">
 
         <top>
             <HBox alignment="CENTER_LEFT" spacing="18" styleClass="admin-bidpop-topbar">
-                <Label text="HY Auctions" styleClass="admin-bidpop-brand"/>
+                <Label text="BidPop" styleClass="admin-bidpop-brand"/>
                 <Label text="Admin Control Panel" styleClass="admin-bidpop-top-chip"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <!-- Đã giữ lại bản dịch tiếng Anh "Logout" thay vì "Đăng xuất" -->
+                <!-- ÄÃ£ giá»¯ láº¡i báº£n dá»‹ch tiáº¿ng Anh "Logout" thay vÃ¬ "ÄÄƒng xuáº¥t" -->
                 <Button text="Logout" onAction="#handleLogout" prefHeight="38" styleClass="admin-bidpop-logout-button"/>
                 
-                <!-- Giữ nguyên cụm nút thao tác cửa sổ mới (minimize, maximize, close) từ nhánh main -->
+                <!-- Giá»¯ nguyÃªn cá»¥m nÃºt thao tÃ¡c cá»­a sá»• má»›i (minimize, maximize, close) tá»« nhÃ¡nh main -->
                 <HBox alignment="CENTER" spacing="6" style="-fx-padding: 0 0 0 10;">
                     <Button onAction="#handleMinimize" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 4;">
                         <graphic>
@@ -132,12 +135,12 @@
 
                     <VBox spacing="8" maxWidth="Infinity" styleClass="admin-bidpop-metric-card" GridPane.columnIndex="3" GridPane.rowIndex="0">
                         <HBox alignment="CENTER_LEFT" spacing="10">
-                            <Label text="Starting Price" styleClass="admin-bidpop-metric-title"/>
+                            <Label text="Platform Fee" styleClass="admin-bidpop-metric-title"/>
                             <Region HBox.hgrow="ALWAYS"/>
-                            <Label text="VND" styleClass="admin-metric-badge"/>
+                            <Label text="5%" styleClass="admin-metric-badge"/>
                         </HBox>
                         <Label fx:id="lblTotalStartingPrice" text="0 VND" styleClass="admin-bidpop-metric-value"/>
-                        <Label text="Total based on current sessions." wrapText="true" styleClass="admin-bidpop-metric-desc"/>
+                        <Label text="5% of completed seller sales." wrapText="true" styleClass="admin-bidpop-metric-desc"/>
                     </VBox>
                 </GridPane>
 

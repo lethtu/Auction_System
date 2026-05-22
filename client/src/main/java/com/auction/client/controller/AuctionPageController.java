@@ -928,17 +928,30 @@ public class AuctionPageController {
     public void setRemainingTime(String endTimeStr) {
         stopTimeline();
 
-        LocalDateTime endTime = LocalDateTime.parse(endTimeStr);
+        if (endTimeStr == null || endTimeStr.isBlank()) {
+            remainingTimeLabel.setText("Loading...");
+            return;
+        }
 
-        timeline = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1), event -> updateRemainingTime(endTime)));
-        timeline.setCycleCount(Timeline.INDEFINITE);
-        timeline.play();
+        try {
+            LocalDateTime endTime = LocalDateTime.parse(endTimeStr.trim());
+
+            // Update immediately so the UI never shows a fake 00:00:00 value.
+            updateRemainingTime(endTime);
+
+            timeline = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1), event -> updateRemainingTime(endTime)));
+            timeline.setCycleCount(Timeline.INDEFINITE);
+            timeline.play();
+        } catch (Exception e) {
+            remainingTimeLabel.setText("Unknown time");
+            logger.warn("Invalid auction end time: {}", endTimeStr);
+        }
     }
 
     private void initDefaultView() {
         productNameLabel.setText("Loading...");
         currentPriceLabel.setText("...");
-        remainingTimeLabel.setText("00:00:00");
+        remainingTimeLabel.setText("Loading...");
 
         setLabelText(minIncrementLabel, "Min increment ₫ 0");
         setLabelText(highestBidderLabel, DEFAULT_HIGHEST_BIDDER);
@@ -1665,14 +1678,19 @@ public class AuctionPageController {
 
         String path = rawPath.trim().replace("\\", "/");
 
-        if (path.startsWith("http://") || path.startsWith("https://")) {
-            return path;
+        if ((path.startsWith("http://") || path.startsWith("https://")) && !path.contains("/api/files/images/")) {
+            return Config.applyCacheBuster(path);
+        }
+        int apiIndex = path.indexOf("/api/files/images/");
+        if (apiIndex >= 0) {
+            path = path.substring(apiIndex + "/api/files/images/".length());
         }
 
         path = removeLeadingSlashes(path);
         path = removeKnownImagePrefix(path);
 
-        return path.isBlank() ? "" : Config.API_URL + "/api/files/images/" + path;
+        String url = path.isBlank() ? "" : Config.API_URL + "/api/files/images/" + path;
+        return Config.applyCacheBuster(url);
     }
 
     private String removeLeadingSlashes(String path) {

@@ -17,6 +17,7 @@ public final class AdminSessionRow {
     private final SimpleStringProperty productName;
     private final SimpleStringProperty sellerUsername;
     private final ObjectProperty<BigDecimal> startingPrice;
+    private final ObjectProperty<BigDecimal> currentPrice;
     private final SimpleStringProperty status;
     private final SimpleBooleanProperty productVisible;
 
@@ -39,11 +40,25 @@ public final class AdminSessionRow {
             String status,
             boolean productVisible
     ) {
+        this(id, productId, productName, sellerUsername, startingPrice, startingPrice, status, productVisible);
+    }
+
+    public AdminSessionRow(
+            int id,
+            int productId,
+            String productName,
+            String sellerUsername,
+            BigDecimal startingPrice,
+            BigDecimal currentPrice,
+            String status,
+            boolean productVisible
+    ) {
         this.id = new SimpleIntegerProperty(id);
         this.productId = new SimpleIntegerProperty(productId);
         this.productName = new SimpleStringProperty(safeText(productName));
         this.sellerUsername = new SimpleStringProperty(safeText(sellerUsername));
         this.startingPrice = new SimpleObjectProperty<>(safePrice(startingPrice));
+        this.currentPrice = new SimpleObjectProperty<>(safePrice(currentPrice));
         this.status = new SimpleStringProperty(safeText(status));
         this.productVisible = new SimpleBooleanProperty(productVisible);
     }
@@ -66,6 +81,10 @@ public final class AdminSessionRow {
 
     public BigDecimal getStartingPrice() {
         return startingPrice.get();
+    }
+
+    public BigDecimal getCurrentPrice() {
+        return currentPrice.get();
     }
 
     public String getStatus() {
@@ -94,6 +113,10 @@ public final class AdminSessionRow {
 
     public ObjectProperty<BigDecimal> startingPriceProperty() {
         return startingPrice;
+    }
+
+    public ObjectProperty<BigDecimal> currentPriceProperty() {
+        return currentPrice;
     }
 
     public SimpleStringProperty statusProperty() {

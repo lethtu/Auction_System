@@ -46,6 +46,24 @@ public class User {
     @Column(name = "avatar_url", length = 500)
     private String avatarUrl;
 
+    @Column(name = "password_set")
+    private Boolean passwordSet = true;
+
+    @Transient
+    private String sessionToken;
+
+    public String getSessionToken() {
+        return sessionToken;
+    }
+
+    public void setSessionToken(String sessionToken) {
+        this.sessionToken = sessionToken;
+    }
+
+    public String getRole() {
+        return getAccountType();
+    }
+
     public User() {
     }
 
@@ -159,6 +177,14 @@ public class User {
 
     public void setAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
+    }
+
+    public Boolean getPasswordSet() {
+        return passwordSet == null || passwordSet;
+    }
+
+    public void setPasswordSet(Boolean passwordSet) {
+        this.passwordSet = passwordSet;
     }
 
     @Override
