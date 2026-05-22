@@ -134,7 +134,7 @@ public class DepositController implements Initializable {
 
     public void handleLogout(ActionEvent event) throws IOException {
         User.clearSession();
-        SceneSwitcher.switchScene(event, "Login.fxml", 400, 500);
+        SceneSwitcher.switchScene(event, "Login.fxml", 1100, 700);
     }
 
     @FXML
@@ -367,5 +367,20 @@ public class DepositController implements Initializable {
         } catch (Exception e) {
             logger.warn("Kh\u00f4ng th\u1ec3 c\u1eadp nh\u1eadt avatar tr\u00ean top bar: {}", e.getMessage());
         }
+    }
+
+    @FXML
+    private void handleMinimize(javafx.event.ActionEvent event) {
+        SceneSwitcher.handleMinimize(event);
+    }
+
+    @FXML
+    private void handleMaximize(javafx.event.ActionEvent event) {
+        SceneSwitcher.handleMaximize(event);
+    }
+
+    @FXML
+    private void handleClose(javafx.event.ActionEvent event) {
+        SceneSwitcher.handleClose(event);
     }
 }

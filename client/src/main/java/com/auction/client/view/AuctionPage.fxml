@@ -21,13 +21,11 @@
 <?import javafx.scene.text.Font?>
 <?import java.net.URL?>
 
-<BorderPane style="-fx-background-color: #fef7ff;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.AuctionPageController">
-    <stylesheets>
-        <URL value="@styles.css" />
-    </stylesheets>
+<StackPane stylesheets="@styles.css" styleClass="rounded-window-root" style="-fx-font-family: 'DM Sans';" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.AuctionPageController">
+    <BorderPane styleClass="rounded-window-content" style="-fx-background-color: #fef7ff;">
     <top>
         <!-- Top Navigation Bar -->
-        <HBox fx:id="topNav" alignment="CENTER_LEFT" spacing="0.0" style="-fx-background-color: rgba(254, 247, 255, 0.9); -fx-padding: 12 30; -fx-border-color: #f2e8f2; -fx-border-width: 0 0 2px 0; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.15), 20, 0, 0, 4);">
+        <HBox fx:id="topNav" alignment="CENTER_LEFT" spacing="0.0" styleClass="app-topbar-even">
             <children>
                 <HBox alignment="CENTER_LEFT" spacing="20.0">
                     <Button fx:id="hamburgerBtn" onAction="#handleToggleSidebar" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 8;">
@@ -61,6 +59,23 @@
                             </StackPane>
                         </graphic>
                     </MenuButton>
+                    <HBox alignment="CENTER" spacing="6" style="-fx-padding: 0 0 0 10;">
+                        <Button onAction="#handleMinimize" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 4;">
+                            <graphic>
+                                <Label text="−" style="-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: #907898;" />
+                            </graphic>
+                        </Button>
+                        <Button onAction="#handleMaximize" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 4;">
+                            <graphic>
+                                <Label text="□" style="-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: #907898;" />
+                            </graphic>
+                        </Button>
+                        <Button onAction="#handleClose" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 4;">
+                            <graphic>
+                                <Label text="×" style="-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: #907898;" />
+                            </graphic>
+                        </Button>
+                    </HBox>
                 </HBox>
             </children>
         </HBox>
@@ -263,3 +278,4 @@
                         </ScrollPane>
     </center>
 </BorderPane>
+</StackPane>

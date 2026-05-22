@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.image.*?>
+
+<StackPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.LoginController" styleClass="auth-root" stylesheets="@../css/auth-theme.css">
+    <padding>
+        <Insets bottom="40.0" left="40.0" right="40.0" top="40.0"/>
+    </padding>
+
+    <HBox styleClass="auth-shell" maxWidth="1050.0" maxHeight="680.0">
+        <StackPane styleClass="auth-brand-panel" HBox.hgrow="ALWAYS" minWidth="0.0" prefWidth="500.0">
+            <AnchorPane mouseTransparent="true">
+                <Circle centerX="30.0" centerY="20.0" radius="170.0" styleClass="auth-blob"/>
+                <Circle centerX="500.0" centerY="330.0" radius="120.0" styleClass="auth-blob"/>
+                <Circle centerX="170.0" centerY="520.0" radius="65.0" styleClass="auth-blob-strong"/>
+            </AnchorPane>
+
+            <VBox alignment="CENTER_LEFT" spacing="30.0" style="-fx-background-color: transparent;">
+                <padding>
+                    <Insets bottom="36.0" left="48.0" right="36.0" top="42.0"/>
+                </padding>
+                <VBox alignment="CENTER_LEFT" spacing="12.0" VBox.vgrow="ALWAYS">
+                    <Label text="BidPop" styleClass="auth-brand-title"/>
+                    <Label text="The most vibrant marketplace for digital collectibles and rare finds." styleClass="auth-brand-subtitle"/>
+                </VBox>
+
+                <VBox alignment="CENTER" spacing="30.0" maxWidth="Infinity" VBox.vgrow="NEVER">
+                    <StackPane fx:id="activeProductCarousel" prefWidth="400.0" prefHeight="350.0" maxWidth="400.0" maxHeight="350.0" styleClass="auth-product-carousel" VBox.vgrow="NEVER">
+                        <clip>
+                            <Rectangle width="400.0" height="350.0" arcWidth="32.0" arcHeight="32.0"/>
+                        </clip>
+                        <VBox alignment="TOP_CENTER" prefWidth="400.0" prefHeight="350.0">
+                            <!-- Image Viewport with Clip -->
+                            <Pane prefHeight="230.0" prefWidth="400.0" styleClass="auth-product-image-container" VBox.vgrow="NEVER">
+                                <clip>
+                                    <Rectangle width="400.0" height="230.0"/>
+                                </clip>
+                                <HBox fx:id="imageSliderHBox" alignment="CENTER_LEFT" prefHeight="230.0" prefWidth="400.0" maxHeight="230.0" maxWidth="400.0" spacing="0.0">
+                                    <!-- Fallback wrapper for the injected ImageView -->
+                                    <StackPane prefWidth="400.0" prefHeight="230.0" minWidth="400.0" maxWidth="400.0" minHeight="230.0" maxHeight="230.0">
+                                        <ImageView fx:id="activeProductImage" fitWidth="360.0" fitHeight="210.0" preserveRatio="true" smooth="true" StackPane.alignment="CENTER"/>
+                                    </StackPane>
+                                </HBox>
+                            </Pane>
+                            <!-- Text Details Container -->
+                            <VBox fx:id="activeProductDetailsContainer" alignment="BOTTOM_LEFT" spacing="8.0" styleClass="auth-product-details-container" VBox.vgrow="ALWAYS">
+                                <padding>
+                                    <Insets top="14.0" right="24.0" bottom="18.0" left="24.0"/>
+                                </padding>
+                                <HBox alignment="CENTER_LEFT" spacing="8.0">
+                                    <Label text="LIVE" styleClass="auth-live-badge"/>
+                                    <Label fx:id="activeProductType" text="Featured auction" styleClass="auth-product-type"/>
+                                </HBox>
+                                <Label fx:id="activeProductName" text="Loading active products..." styleClass="auth-product-name"/>
+                                <Label fx:id="activeProductPrice" text="Kết thúc: --/--/---- --:--" styleClass="auth-product-price"/>
+                            </VBox>
+                        </VBox>
+                    </StackPane>
+                </VBox>
+            </VBox>
+        </StackPane>
+
+        <VBox alignment="CENTER" HBox.hgrow="ALWAYS" minWidth="300.0" prefWidth="500.0">
+            <padding>
+                <Insets bottom="40.0" left="60.0" right="60.0" top="40.0"/>
+            </padding>
+            <VBox maxWidth="360.0" spacing="24.0" VBox.vgrow="ALWAYS" alignment="CENTER">
+                <VBox spacing="7.0" maxWidth="Infinity">
+                    <Label text="Welcome Back" styleClass="auth-title"/>
+                    <Label text="Ready to place your next winning bid?" styleClass="auth-subtitle"/>
+                </VBox>
+
+                <VBox spacing="18.0" maxWidth="Infinity">
+                    <VBox spacing="7.0">
+                        <Label text="Email Address" styleClass="auth-input-label"/>
+                        <TextField fx:id="txtUsername" promptText="alex@example.com" styleClass="auth-input"/>
+                    </VBox>
+
+                    <VBox spacing="7.0">
+                        <HBox alignment="CENTER_LEFT">
+                            <Label text="Password" styleClass="auth-input-label" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                            <Hyperlink text="Forgot?" onAction="#handleForgotPassword" styleClass="auth-secondary-link" style="-fx-font-size: 12px;"/>
+                        </HBox>
+                        <PasswordField fx:id="txtPassword" promptText="Password" styleClass="auth-input"/>
+                    </VBox>
+                </VBox>
+
+                <HBox alignment="CENTER_LEFT" spacing="10.0" maxWidth="Infinity">
+                    <CheckBox text="Keep me signed in on this device" styleClass="auth-remember-check"/ style="-fx-padding: 0 0 0 2; -fx-text-fill: #604868;">
+                </HBox>
+
+                <Button fx:id="btnLogin" text="Enter Marketplace" onAction="#handleLogin" maxWidth="Infinity" prefHeight="52.0" styleClass="auth-primary-button"/>
+
+                <VBox spacing="18.0" alignment="CENTER" maxWidth="Infinity" styleClass="auth-footer">
+                    <HBox alignment="CENTER" spacing="5.0">
+                        <Label text="Don't have an account?" styleClass="auth-footer-text"/>
+                        <Hyperlink fx:id="linkSignUp" text="Create Profile" onAction="#goToSignUp" styleClass="auth-secondary-link"/>
+                    </HBox>
+
+                    <HBox spacing="12.0" alignment="CENTER">
+                        <Button fx:id="btnGoogle" text="Google" styleClass="auth-social-button" prefWidth="150.0" prefHeight="40.0" onAction="#handleGoogleLogin"/>
+                        <Button fx:id="btnFacebook" text="Facebook" styleClass="auth-social-button" prefWidth="150.0" prefHeight="40.0" onAction="#handleFacebookLogin"/>
+                    </HBox>
+                </VBox>
+
+                <HBox spacing="20.0" alignment="CENTER" opacity="0.4" style="-fx-padding: 10 0 0 0;">
+                    <HBox spacing="5.0" alignment="CENTER">
+                        <Label text="SECURE PAYMENTS" styleClass="auth-trust-label"/>
+                    </HBox>
+                    <HBox spacing="5.0" alignment="CENTER">
+                        <Label text="VERIFIED SELLERS" styleClass="auth-trust-label"/>
+                    </HBox>
+                </HBox>
+            </VBox>
+        </VBox>
+    </HBox>
+</StackPane>
