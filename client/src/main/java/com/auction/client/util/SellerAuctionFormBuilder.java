@@ -13,13 +13,13 @@ public final class SellerAuctionFormBuilder {
     private static final int DEFAULT_DURATION_DAYS = 7;
 
     private static final String MISSING_REQUIRED_FIELDS_MESSAGE =
-            "Please enter product name, type, starting price and step price.";
+            "Vui lòng nhập tên sản phẩm, loại, giá khởi điểm và bước giá.";
     private static final String INVALID_NUMBER_FORMAT_MESSAGE =
-            "Starting price, step price and reserve price must be valid numbers.";
-    private static final String INVALID_STARTING_PRICE_MESSAGE = "Starting price must be greater than 0.";
-    private static final String INVALID_STEP_PRICE_MESSAGE = "Step price must be greater than 0.";
-    private static final String INVALID_RESERVE_PRICE_MESSAGE = "Reserve price must be greater than 0.";
-    private static final String RESERVE_PRICE_TOO_LOW_MESSAGE = "Reserve price cannot be less than starting price.";
+            "Giá khởi điểm, bước giá và giá sàn phải là số hợp lệ.";
+    private static final String INVALID_STARTING_PRICE_MESSAGE = "Giá khởi điểm phải lớn hơn 0.";
+    private static final String INVALID_STEP_PRICE_MESSAGE = "Bước giá phải lớn hơn 0.";
+    private static final String INVALID_RESERVE_PRICE_MESSAGE = "Giá sàn phải lớn hơn 0.";
+    private static final String RESERVE_PRICE_TOO_LOW_MESSAGE = "Giá sàn không được nhỏ hơn giá khởi điểm.";
 
     private SellerAuctionFormBuilder() {
     }
@@ -131,11 +131,11 @@ public final class SellerAuctionFormBuilder {
         BigDecimal minRate = null;
         if (applyMinRate) {
             if (formValues.minRateText().isEmpty()) {
-                throw new IllegalArgumentException("Please enter minimum rate (Min rate).");
+                throw new IllegalArgumentException("Vui lòng nhập giá tối thiểu.");
             }
-            minRate = parsePositiveMoney(formValues.minRateText(), "Minimum rate must be a valid number greater than 0.");
+            minRate = parsePositiveMoney(formValues.minRateText(), "Giá tối thiểu phải là số hợp lệ và lớn hơn 0.");
             if (minRate.compareTo(startingPrice) < 0) {
-                throw new IllegalArgumentException("Minimum rate must be greater than or equal to starting price.");
+                throw new IllegalArgumentException("Giá tối thiểu phải lớn hơn hoặc bằng giá khởi điểm.");
             }
         }
 
@@ -223,7 +223,8 @@ public final class SellerAuctionFormBuilder {
     private static String normalizeMoneyText(String value) {
         return trimOrEmpty(value)
                 .replace("₫", "")
-                .replace("₫", "")
+                .replace("đ", "")
+                .replace("Đ", "")
                 .replace(" ", "")
                 .replace(".", "")
                 .replace(",", "");

@@ -28,12 +28,12 @@ public class ForgotPasswordController {
     public void handleGetOTP(ActionEvent event) {
         String email = txtEmail.getText().trim();
         if (email.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Error", "Please enter your email!");
+            showAlert(Alert.AlertType.WARNING, "Error", "Vui lòng nhập Email!");
             return;
         }
 
         btnGetOTP.setDisable(true);
-        btnGetOTP.setText("Processing...");
+        btnGetOTP.setText("Đang xử lý...");
 
         new Thread(() -> {
             try {
@@ -64,7 +64,7 @@ public class ForgotPasswordController {
                     else {
                         showAlert(Alert.AlertType.ERROR, "Error", rq.getString("message"));
                         btnGetOTP.setDisable(false);
-                        btnGetOTP.setText("Resend code");
+                        btnGetOTP.setText("Gửi lại mã");
                         logger.info("Request failed, server message: {}", rq.getString("message"));
                     }
                 });
@@ -84,7 +84,7 @@ public class ForgotPasswordController {
         String confirmPass = txtConfirmNewPassword.getText();
 
         if (code.isEmpty() || newPass.isEmpty() || !newPass.equals(confirmPass)) {
-            showAlert(Alert.AlertType.ERROR, "Error", "Invalid information or passwords do not match!");
+            showAlert(Alert.AlertType.ERROR, "Error", "Thông tin không hợp lệ hoặc mật khẩu không khớp!");
             return;
         }
 

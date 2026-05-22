@@ -348,7 +348,7 @@ public class LoginController {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
-                showAlert(Alert.AlertType.ERROR, "Login Error", "Invalid account or password!");
+                showAlert(Alert.AlertType.ERROR, "Login Error", "Sai tài khoản hoặc mật khẩu!");
                 logger.error("Error connecting to server");
                 return;
             }
@@ -370,7 +370,7 @@ public class LoginController {
             if (!isTestEnvironment()) {
                 switchSceneByRole(event, role);
             } else {
-                showAlert(Alert.AlertType.INFORMATION, "Success", "Welcome back!");
+                showAlert(Alert.AlertType.INFORMATION, "Success", "Chào mừng bạn đã quay lại!");
             }
             
         } catch (Exception e) {

@@ -183,7 +183,13 @@ public class SidebarController {
         return showStartSelling ? 388.0 : 336.0;
     }
     public void forceCollapse() {
-        autoCollapse();
+        if (!isSidebarCollapsed) {
+            toggleSidebar();
+        } else if (sidebarContainer != null) {
+            sidebarContainer.setMinWidth(70);
+            sidebarContainer.setPrefWidth(70);
+            sidebarContainer.setMaxWidth(70);
+        }
     }
 
     public void toggleSidebar() {

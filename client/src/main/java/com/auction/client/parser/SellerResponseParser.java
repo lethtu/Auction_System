@@ -25,7 +25,7 @@ public final class SellerResponseParser {
     private static final String KEY_END_TIME = "endTime";
     private static final String KEY_STATUS = "status";
 
-    private static final String DEFAULT_PRODUCT_NAME = "Unknown";
+    private static final String DEFAULT_PRODUCT_NAME = "Không rõ";
     private static final String DEFAULT_STATUS = "UNKNOWN";
     private static final String DEFAULT_TEXT = "";
     private static final BigDecimal DEFAULT_PRICE = BigDecimal.ZERO;

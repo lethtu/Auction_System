@@ -120,7 +120,7 @@ public class SignUpController {
         String confirmPassword = txtConfirmPassword.getText();
 
         if (fullname.isEmpty() || username.isEmpty() || email.isEmpty() || password.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Notice", "Please fill in all fields!");
+            showAlert(Alert.AlertType.WARNING, "Notice", "Vui lòng điền đầy đủ các trường!");
             return;
         }
 
@@ -135,7 +135,7 @@ public class SignUpController {
         }
 
         if (!password.equals(confirmPassword)) {
-            showAlert(Alert.AlertType.ERROR, "Password Error", "Confirm password does not match!");
+            showAlert(Alert.AlertType.ERROR, "Password Error", "Mật khẩu xác nhận không khớp!");
             return;
         }
 
@@ -162,8 +162,8 @@ public class SignUpController {
                     String message = resObj.optString("message", "");
 
                     Platform.runLater(() -> {
-                        if (message.contains("success") || message.contains("success")) {
-                            showAlert(Alert.AlertType.INFORMATION, "Success", "Account registered successfully!");
+                        if (message.toLowerCase().contains("success") || message.toLowerCase().contains("thành công") || message.toLowerCase().contains("thanh cong")) {
+                            showAlert(Alert.AlertType.INFORMATION, "Success", "Đăng ký tài khoản thành công!");
                             logger.info("Account registration successful");
                             try {
                                 goToLogin(event);
@@ -206,9 +206,13 @@ public class SignUpController {
             Platform.runLater(() -> showAlert(alertType, title, message));
             return;
         }
-        AlertUtil.show(alertType, title, message);
-    }
 
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
     private void loadActiveProducts() {
         if (activeProductCarousel == null || activeProductImage == null) return;
 

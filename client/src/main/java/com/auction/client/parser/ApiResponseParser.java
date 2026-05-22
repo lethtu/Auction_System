@@ -13,10 +13,10 @@ public final class ApiResponseParser {
     private static final String FIELD_MESSAGE = "message";
     private static final String FIELD_DATA = "data";
 
-    private static final String INVALID_RESPONSE_MESSAGE = "Invalid response from server.";
-    private static final String NO_DATA_MESSAGE = "No data from server.";
-    private static final String DEFAULT_DATA_SUCCESS_MESSAGE = "Data retrieved successfully.";
-    private static final String DEFAULT_FAILURE_MESSAGE = "Operation failed.";
+    private static final String INVALID_RESPONSE_MESSAGE = "Phản hồi từ server không hợp lệ.";
+    private static final String NO_DATA_MESSAGE = "Không có dữ liệu từ server.";
+    private static final String DEFAULT_DATA_SUCCESS_MESSAGE = "Lấy dữ liệu thành công.";
+    private static final String DEFAULT_FAILURE_MESSAGE = "Thao tác thất bại.";
 
     private ApiResponseParser() {
     }

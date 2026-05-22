@@ -8,13 +8,13 @@ import java.text.DecimalFormat;
 import java.util.List;
 
 public final class SellerStatsCalculator {
-    private static final String TOTAL_SESSIONS_LABEL = "Total sessions: ";
-    private static final String PENDING_SESSIONS_LABEL = "Pending sessions: ";
-    private static final String ACTIVE_SESSIONS_LABEL = "Active sessions: ";
-    private static final String REJECTED_SESSIONS_LABEL = "Rejected sessions: ";
-    private static final String ENDED_SESSIONS_LABEL = "Ended sessions: ";
-    private static final String CANCELED_SESSIONS_LABEL = "Canceled sessions: ";
-    private static final String TOTAL_REVENUE_LABEL = "Total revenue from ended sessions: ";
+    private static final String TOTAL_SESSIONS_LABEL = "Tổng số phiên: ";
+    private static final String PENDING_SESSIONS_LABEL = "Số phiên chờ duyệt: ";
+    private static final String ACTIVE_SESSIONS_LABEL = "Số phiên đang hoạt động: ";
+    private static final String REJECTED_SESSIONS_LABEL = "Số phiên bị từ chối: ";
+    private static final String ENDED_SESSIONS_LABEL = "Số phiên đã kết thúc: ";
+    private static final String CANCELED_SESSIONS_LABEL = "Số phiên đã hủy: ";
+    private static final String TOTAL_REVENUE_LABEL = "Tổng doanh thu phiên đã kết thúc: ";
 
     private static final String MONEY_PATTERN = "#,##0.##";
 

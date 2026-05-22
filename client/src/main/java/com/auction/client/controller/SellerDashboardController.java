@@ -519,7 +519,7 @@ public class SellerDashboardController {
                     Button btnView;
                     if ("DRAFT".equalsIgnoreCase(item.status)) {
                         btnView = createIconButton("mdi2p-publish", "#0096cc");
-                        btnView.setTooltip(new javafx.scene.control.Tooltip("Quick Sale"));
+                        btnView.setTooltip(new javafx.scene.control.Tooltip("Đăng bán nhanh"));
                         btnView.setOnAction(e -> handleQuickPublish(item));
                     } else {
                         btnView = createIconButton("mdi2e-eye", "#0096cc");
@@ -914,9 +914,9 @@ public class SellerDashboardController {
                     }
                     if (lblErrorEndDT != null) {
                         if (!isEndFuture) {
-                            lblErrorEndDT.setText("End time must be in the future");
+                            lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
                         } else {
-                            lblErrorEndDT.setText("End time must be after start time");
+                            lblErrorEndDT.setText("Thời gian kết thúc phải sau thời gian bắt đầu");
                         }
                     }
                 } else {
@@ -940,7 +940,7 @@ public class SellerDashboardController {
                         wrapperEndDT.getStyleClass().add("error-segmented-input");
                     }
                     if (lblErrorEndDT != null) {
-                        lblErrorEndDT.setText("End time must be in the future");
+                        lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
                     }
                 } else {
                     if (errorEndDT != null) {
@@ -1175,9 +1175,9 @@ public class SellerDashboardController {
                     }
                     if (lblErrorEndDT != null) {
                         if (!isEndFuture) {
-                            lblErrorEndDT.setText("End time must be in the future");
+                            lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
                         } else {
-                            lblErrorEndDT.setText("End time must be after start time");
+                            lblErrorEndDT.setText("Thời gian kết thúc phải sau thời gian bắt đầu");
                         }
                     }
                 } else {
@@ -1201,7 +1201,7 @@ public class SellerDashboardController {
                         wrapperEndDT.getStyleClass().add("error-segmented-input");
                     }
                     if (lblErrorEndDT != null) {
-                        lblErrorEndDT.setText("End time must be in the future");
+                        lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
                     }
                 } else {
                     if (errorEndDT != null) {
@@ -1437,9 +1437,9 @@ public class SellerDashboardController {
                     }
                     if (lblErrorEndDT != null) {
                         if (!isEndFuture) {
-                            lblErrorEndDT.setText("End time must be in the future");
+                            lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
                         } else {
-                            lblErrorEndDT.setText("End time must be after start time");
+                            lblErrorEndDT.setText("Thời gian kết thúc phải sau thời gian bắt đầu");
                         }
                     }
                 } else {
@@ -1463,7 +1463,7 @@ public class SellerDashboardController {
                         wrapperEndDT.getStyleClass().add("error-segmented-input");
                     }
                     if (lblErrorEndDT != null) {
-                        lblErrorEndDT.setText("End time must be in the future");
+                        lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
                     }
                 } else {
                     if (errorEndDT != null) {
@@ -1745,9 +1745,9 @@ public class SellerDashboardController {
                     }
                     if (lblErrorEndDT != null) {
                         if (!isEndFuture) {
-                            lblErrorEndDT.setText("End time must be in the future");
+                            lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
                         } else {
-                            lblErrorEndDT.setText("End time must be after start time");
+                            lblErrorEndDT.setText("Thời gian kết thúc phải sau thời gian bắt đầu");
                         }
                     }
                 } else {
@@ -1771,7 +1771,7 @@ public class SellerDashboardController {
                         wrapperEndDT.getStyleClass().add("error-segmented-input");
                     }
                     if (lblErrorEndDT != null) {
-                        lblErrorEndDT.setText("End time must be in the future");
+                        lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
                     }
                 } else {
                     if (errorEndDT != null) {
@@ -1873,7 +1873,7 @@ public class SellerDashboardController {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "Session canceled successfully.");
+            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "Đã hủy phiên thành công.");
 
             if (api.success) {
                 loadMySessions();
@@ -1944,13 +1944,13 @@ public class SellerDashboardController {
 
         // End Time must be in the future
         if (!endDT.isAfter(LocalDateTime.now())) {
-            showAlert(Alert.AlertType.ERROR, "Time Error", "End time must be in the future!");
+            showAlert(Alert.AlertType.ERROR, "Time Error", "Thời gian kết thúc phải ở tương lai");
             return;
         }
 
         // End Time must be after Start Time
         if (!endDT.isAfter(startDT)) {
-            showAlert(Alert.AlertType.ERROR, "Time Error", "End time must be after start time!");
+            showAlert(Alert.AlertType.ERROR, "Time Error", "Thời gian kết thúc phải sau thời gian bắt đầu");
             return;
         }
 
@@ -2543,7 +2543,7 @@ public class SellerDashboardController {
 
     private ApiArrayResult extractDataArray(String body, int httpStatus) {
         if (body == null || body.isBlank()) {
-            return new ApiArrayResult(false, "No data from the server.", new JSONArray());
+            return new ApiArrayResult(false, "Không có dữ liệu từ server.", new JSONArray());
         }
 
         try {
@@ -2568,7 +2568,7 @@ public class SellerDashboardController {
 
             return new ApiArrayResult(true, message, new JSONArray());
         } catch (Exception e) {
-            return new ApiArrayResult(false, "Could not read data from the server.", new JSONArray());
+            return new ApiArrayResult(false, "Không thể đọc dữ liệu từ server.", new JSONArray());
         }
     }
 
@@ -2595,12 +2595,12 @@ public class SellerDashboardController {
         timerIcon.setIconColor(Color.valueOf("#e040a0"));
         iconCircle.getChildren().add(timerIcon);
 
-        Label titleLabel = new Label("Start time has arrived!");
+        Label titleLabel = new Label("Thời gian bắt đầu đã đến!");
         titleLabel.setStyle(
                 "-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
 
         Label descLabel = new Label(
-                "The auction session for your item is ready.\nDo you want to start it now?");
+                "Phiên đấu giá của sản phẩm đã sẵn sàng.\nBạn có muốn bắt đầu ngay không?");
         descLabel.setStyle(
                 "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;");
         descLabel.setWrapText(true);
@@ -2609,13 +2609,13 @@ public class SellerDashboardController {
         btnBox.setAlignment(Pos.CENTER);
         btnBox.setPrefWidth(300);
 
-        Button btnStartNow = new Button("Start Now");
+        Button btnStartNow = new Button("Bắt đầu ngay");
         btnStartNow.setPrefHeight(44);
         btnStartNow.setMaxWidth(Double.MAX_VALUE);
         btnStartNow.setStyle(
                 "-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand;");
 
-        Button btnEdit = new Button("Edit");
+        Button btnEdit = new Button("Chỉnh sửa");
         btnEdit.setPrefHeight(44);
         btnEdit.setMaxWidth(Double.MAX_VALUE);
         btnEdit.setStyle(
@@ -2666,12 +2666,12 @@ public class SellerDashboardController {
         publishIcon.setIconColor(Color.valueOf("#e040a0"));
         iconCircle.getChildren().add(publishIcon);
 
-        Label titleLabel = new Label("Quick Sale");
+        Label titleLabel = new Label("Đăng bán nhanh");
         titleLabel.setStyle(
                 "-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
 
         Label descLabel = new Label(
-                "Are you sure you want to quick publish session #" + id + "\n(" + productName + ")?");
+                "Bạn có chắc muốn đăng bán nhanh phiên #" + id + "\n(" + productName + ")?");
         descLabel.setStyle(
                 "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;");
         descLabel.setWrapText(true);
@@ -2680,13 +2680,13 @@ public class SellerDashboardController {
         btnBox.setAlignment(Pos.CENTER);
         btnBox.setPrefWidth(300);
 
-        Button btnConfirm = new Button("Publish");
+        Button btnConfirm = new Button("Đăng bán");
         btnConfirm.setPrefHeight(44);
         btnConfirm.setMaxWidth(Double.MAX_VALUE);
         btnConfirm.setStyle(
                 "-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand;");
 
-        Button btnCancel = new Button("Cancel");
+        Button btnCancel = new Button("Hủy");
         btnCancel.setPrefHeight(44);
         btnCancel.setMaxWidth(Double.MAX_VALUE);
         btnCancel.setStyle(
@@ -2747,7 +2747,7 @@ public class SellerDashboardController {
                     "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;");
             descLabel.setWrapText(true);
 
-            Button btnOk = new Button("Agree");
+            Button btnOk = new Button("Đồng ý");
             btnOk.setPrefHeight(44);
             btnOk.setMaxWidth(Double.MAX_VALUE);
             btnOk.setStyle(

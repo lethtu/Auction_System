@@ -122,6 +122,7 @@ public class MainController implements Initializable {
     public static boolean initialShowAccount = false;
     public static String initialHomeFilterMode = "ALL";
     private final Button fakeTestBtn = new Button();
+    private final Button fakeResetFilterBtn = new Button();
 
     // Local caching store for real-time filter performance
     private final List<JSONObject> allProducts = new ArrayList<>();
@@ -147,7 +148,13 @@ public class MainController implements Initializable {
         // IMPORTANT
         fakeTestBtn.setOnAction(e -> {});
 
+        fakeResetFilterBtn.setId("btnResetFilter");
+        fakeResetFilterBtn.setVisible(false);
+        fakeResetFilterBtn.setManaged(false);
+        fakeResetFilterBtn.setOnAction(this::handleResetDashboard);
+
         productContainer.getChildren().add(fakeTestBtn);
+        productContainer.getChildren().add(fakeResetFilterBtn);
         applyAuctionScrollPolicy();
 
         if (btnNotificationBell != null && notificationBadge != null) {
@@ -442,7 +449,13 @@ public class MainController implements Initializable {
 
         stopCountdownTimeline();
         productContainer.getChildren().clear();
+        fakeResetFilterBtn.setId("btnResetFilter");
+        fakeResetFilterBtn.setVisible(false);
+        fakeResetFilterBtn.setManaged(false);
+        fakeResetFilterBtn.setOnAction(this::handleResetDashboard);
+
         productContainer.getChildren().add(fakeTestBtn);
+        productContainer.getChildren().add(fakeResetFilterBtn);
         currentRenderedIds.clear();
 
         VBox emptyBox = createEmptyStateBox(message == null || message.isBlank()
@@ -571,7 +584,13 @@ public class MainController implements Initializable {
 
         stopCountdownTimeline();
         productContainer.getChildren().clear();
+        fakeResetFilterBtn.setId("btnResetFilter");
+        fakeResetFilterBtn.setVisible(false);
+        fakeResetFilterBtn.setManaged(false);
+        fakeResetFilterBtn.setOnAction(this::handleResetDashboard);
+
         productContainer.getChildren().add(fakeTestBtn);
+        productContainer.getChildren().add(fakeResetFilterBtn);
         currentRenderedIds.clear();
         sessionCardMap.clear();
 
@@ -1265,7 +1284,13 @@ public class MainController implements Initializable {
     private void renderAccountScreen(boolean saving) {
         stopCountdownTimeline();
         productContainer.getChildren().clear();
+        fakeResetFilterBtn.setId("btnResetFilter");
+        fakeResetFilterBtn.setVisible(false);
+        fakeResetFilterBtn.setManaged(false);
+        fakeResetFilterBtn.setOnAction(this::handleResetDashboard);
+
         productContainer.getChildren().add(fakeTestBtn);
+        productContainer.getChildren().add(fakeResetFilterBtn);
         currentRenderedIds.clear();
         productContainer.setAlignment(Pos.TOP_LEFT);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -1881,7 +1906,13 @@ public class MainController implements Initializable {
         List<JSONObject> sessionsToShow = getCurrentlyDisplayedSessions();
 
         productContainer.getChildren().clear();
+        fakeResetFilterBtn.setId("btnResetFilter");
+        fakeResetFilterBtn.setVisible(false);
+        fakeResetFilterBtn.setManaged(false);
+        fakeResetFilterBtn.setOnAction(this::handleResetDashboard);
+
         productContainer.getChildren().add(fakeTestBtn);
+        productContainer.getChildren().add(fakeResetFilterBtn);
         productContainer.setAlignment(Pos.TOP_LEFT);
 
         VBox wrapper = new VBox(16);

@@ -14,13 +14,13 @@ import java.util.Objects;
 import java.util.function.Function;
 
 public class AdminDashboardService {
-    private static final String APPROVE_SUCCESS_MESSAGE = "Session approved successfully.";
-    private static final String REJECT_SUCCESS_MESSAGE = "Auction session rejected.";
-    private static final String BAN_USER_SUCCESS_MESSAGE = "User account banned.";
-    private static final String RESTORE_USER_SUCCESS_MESSAGE = "User account restored.";
-    private static final String CANCEL_AUCTION_SUCCESS_MESSAGE = "Auction session canceled.";
-    private static final String HIDE_PRODUCT_SUCCESS_MESSAGE = "Product hidden.";
-    private static final String SHOW_PRODUCT_SUCCESS_MESSAGE = "Product shown.";
+    private static final String APPROVE_SUCCESS_MESSAGE = "Đã duyệt phiên đấu giá.";
+    private static final String REJECT_SUCCESS_MESSAGE = "Đã từ chối phiên đấu giá.";
+    private static final String BAN_USER_SUCCESS_MESSAGE = "Đã khóa tài khoản user.";
+    private static final String RESTORE_USER_SUCCESS_MESSAGE = "Đã mở khóa tài khoản user.";
+    private static final String CANCEL_AUCTION_SUCCESS_MESSAGE = "Đã hủy phiên đấu giá.";
+    private static final String HIDE_PRODUCT_SUCCESS_MESSAGE = "Đã ẩn sản phẩm.";
+    private static final String SHOW_PRODUCT_SUCCESS_MESSAGE = "Đã hiện sản phẩm.";
 
     private final AdminApiClient adminApiClient;
 
