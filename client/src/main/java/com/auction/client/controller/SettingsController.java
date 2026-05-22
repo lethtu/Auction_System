@@ -197,7 +197,7 @@ public class SettingsController implements Initializable {
         logoutItem.setOnAction(event -> {
             try {
                 User.clearSession();
-                SceneSwitcher.switchScene(event, "Login.fxml", 800, 500);
+                SceneSwitcher.switchScene(event, "Login.fxml", 1100, 700);
             } catch (IOException e) {
                 logger.error("Error logging out: ", e);
             }
@@ -228,5 +228,20 @@ public class SettingsController implements Initializable {
         } catch (Exception e) {
             logger.warn("Cannot update avatar on top bar: {}", e.getMessage());
         }
+    }
+
+    @FXML
+    private void handleMinimize(javafx.event.ActionEvent event) {
+        SceneSwitcher.handleMinimize(event);
+    }
+
+    @FXML
+    private void handleMaximize(javafx.event.ActionEvent event) {
+        SceneSwitcher.handleMaximize(event);
+    }
+
+    @FXML
+    private void handleClose(javafx.event.ActionEvent event) {
+        SceneSwitcher.handleClose(event);
     }
 }

@@ -3,24 +3,54 @@
     src: url("../view/fonts/DMSans-Variable.ttf");
 }
 
+@font-face {
+    font-family: "Material Symbols Outlined";
+    src: url("../view/fonts/MaterialSymbolsOutlined.ttf");
+}
+
 .auth-root {
-    -fx-background-color: #fef7ff;
+    /* Root remains transparent; only auth-shell paints the rounded window. */
+    -fx-background-color: transparent;
     -fx-font-family: "DM Sans", sans-serif;
+    -fx-padding: 10;
+}
+
+.auth-root.window-maximized {
+    -fx-padding: 0;
+}
+
+.auth-root.window-maximized .auth-shadow-wrapper {
+    -fx-effect: null;
+}
+
+.auth-root.window-maximized .auth-shell {
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-border-width: 0;
+}
+
+.auth-root.window-maximized .auth-brand-panel {
+    -fx-background-radius: 0;
+}
+
+.auth-shadow-wrapper {
+    -fx-effect: dropshadow(gaussian, rgba(46, 26, 40, 0.24), 38, 0.14, 0, 10);
+    -fx-background-color: transparent;
+    -fx-padding: 0;
 }
 
 .auth-shell {
     -fx-background-color: #ffffff;
-    -fx-background-radius: 22;
-    -fx-border-radius: 22;
-    -fx-border-color: #f2e8f2;
+    -fx-background-radius: 32;
+    -fx-border-radius: 32;
+    -fx-border-color: rgba(224, 64, 160, 0.24);
     -fx-border-width: 1;
-    -fx-effect: dropshadow(three-pass-box, rgba(70, 34, 64, 0.10), 56, 0, 0, 18);
 }
 
 .auth-brand-panel {
-    -fx-background-color: #e040a0;
-    -fx-background-radius: 22 0 0 22;
-    -fx-effect: innershadow(gaussian, rgba(255, 255, 255, 0.08), 30, 0, 0, 0);
+    -fx-background-color: linear-gradient(to bottom right, #df49aa 0%, #e13b9d 58%, #d9369a 100%);
+    -fx-background-radius: 32 0 0 32;
+    -fx-background-insets: 1 0 1 1;
 }
 
 .auth-blob {
@@ -112,18 +142,18 @@
 
 .auth-product-carousel {
     -fx-background-color: #ffffff;
-    -fx-background-radius: 20;
-    -fx-effect: dropshadow(three-pass-box, rgba(34, 12, 32, 0.15), 24, 0, 0, 8);
+    -fx-background-radius: 18;
+    -fx-effect: dropshadow(gaussian, rgba(34, 12, 32, 0.13), 24, 0.12, 0, 7);
 }
 
 .auth-product-image-container {
     -fx-background-color: #ffffff;
-    -fx-background-radius: 20 20 0 0;
+    -fx-background-radius: 18 18 0 0;
 }
 
 .auth-product-details-container {
-    -fx-background-color: #fdfafc;
-    -fx-background-radius: 0 0 20 20;
+    -fx-background-color: #fffbfe;
+    -fx-background-radius: 0 0 18 18;
     -fx-border-color: #f3ebf3 transparent transparent transparent;
     -fx-border-width: 1 0 0 0;
 }
@@ -183,7 +213,7 @@
 }
 
 .auth-input {
-    -fx-background-color: #fbf2fb;
+    -fx-background-color: #fbf1fb;
     -fx-background-radius: 30;
     -fx-border-radius: 30;
     -fx-border-color: transparent;
@@ -200,7 +230,7 @@
 }
 
 .auth-input:focused {
-    -fx-background-color: #fbf2fb;
+    -fx-background-color: #fff6fd;
     -fx-border-color: transparent;
     -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.15), 10, 0, 0, 4);
 }
@@ -212,7 +242,7 @@
 }
 
 .auth-primary-button {
-    -fx-background-color: #e040a0;
+    -fx-background-color: linear-gradient(to right, #e040a0, #dd3ba0);
     -fx-background-radius: 30;
     -fx-text-fill: #ffffff;
     -fx-font-family: "DM Sans";
@@ -224,7 +254,7 @@
 }
 
 .auth-primary-button:hover {
-    -fx-background-color: #f050b0;
+    -fx-background-color: linear-gradient(to right, #ec4caf, #d9369a);
     -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.4), 35, 0, 0, 15);
 }
 
@@ -320,4 +350,28 @@
 .strength-empty {
     -fx-background-color: #f2e8f2;
 }
+
+/* === CUSTOM WINDOW CONTROL BUTTONS === */
+.window-control-btn {
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+    -fx-padding: 6 8;
+    -fx-background-radius: 6;
+}
+.window-control-btn:hover {
+    -fx-background-color: rgba(0, 0, 0, 0.05);
+}
+.close-btn:hover {
+    -fx-background-color: #ef4444;
+}
+.close-btn:hover .window-control-icon {
+    -fx-text-fill: white;
+}
+.window-control-icon {
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 14px;
+    -fx-font-weight: 900;
+    -fx-text-fill: #907898;
+}
+
 

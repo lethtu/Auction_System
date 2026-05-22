@@ -432,4 +432,19 @@ public class LoginController {
 
     private record FeaturedProduct(String name, String type, String imageUrl, String priceText) {
     }
+
+    @FXML
+    private void handleMinimize(javafx.event.ActionEvent event) {
+        SceneSwitcher.handleMinimize(event);
+    }
+
+    @FXML
+    private void handleMaximize(javafx.event.ActionEvent event) {
+        SceneSwitcher.handleMaximize(event);
+    }
+
+    @FXML
+    private void handleClose(javafx.event.ActionEvent event) {
+        SceneSwitcher.handleClose(event);
+    }
 }

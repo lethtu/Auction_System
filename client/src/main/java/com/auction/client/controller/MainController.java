@@ -2206,7 +2206,7 @@ public class MainController implements Initializable {
 
     public void handleLogout(ActionEvent event) throws IOException {
         User.clearSession();
-        SceneSwitcher.switchScene(event, "Login.fxml", 400, 500);
+        SceneSwitcher.switchScene(event, "Login.fxml", 1100, 700);
     }
 
     public void setHttpClient(HttpClient httpClient) {
@@ -2422,5 +2422,20 @@ public class MainController implements Initializable {
         
         countdownTimeline.setCycleCount(Timeline.INDEFINITE);
         countdownTimeline.play();
+    }
+
+    @FXML
+    private void handleMinimize(javafx.event.ActionEvent event) {
+        SceneSwitcher.handleMinimize(event);
+    }
+
+    @FXML
+    private void handleMaximize(javafx.event.ActionEvent event) {
+        SceneSwitcher.handleMaximize(event);
+    }
+
+    @FXML
+    private void handleClose(javafx.event.ActionEvent event) {
+        SceneSwitcher.handleClose(event);
     }
 }
