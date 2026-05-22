@@ -98,11 +98,12 @@ public class AuthGetImage {
         }
     }
 
-    @GetMapping("/images/avatar/{filename:.+}")
+    @GetMapping("/avatar/{filename:.+}")
     public ResponseEntity<Resource> serveAvatar(@PathVariable String filename) {
         try {
-            Path file = getRootLocation().resolve("avatar").resolve(filename).normalize();
-            return serve(file);
+            Path avatarRoot = Paths.get("upload/avatar").toAbsolutePath().normalize();
+            Path file = avatarRoot.resolve(filename).normalize();
+            return serveFrom(file, avatarRoot);
         } catch (Exception e) {
             logger.error("Error processing avatar path: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
@@ -173,8 +174,12 @@ public class AuthGetImage {
     }
 
     private ResponseEntity<Resource> serve(Path file) {
+        return serveFrom(file, getRootLocation());
+    }
+
+    private ResponseEntity<Resource> serveFrom(Path file, Path allowedRoot) {
         try {
-            if (!isInsideRootLocation(file)) {
+            if (file == null || !file.normalize().startsWith(allowedRoot)) {
                 return ResponseEntity.badRequest().build();
             }
 

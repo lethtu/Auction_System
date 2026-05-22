@@ -52,6 +52,7 @@ public class SocketServer {
                 while (running) {
                     try {
                         Socket clientSocket = serverSocket.accept();
+                        logger.info("SERVER SOCKET: Accepted new connection from {}", clientSocket.getRemoteSocketAddress());
                         threadPool.execute(new ClientHandler(clientSocket, biddingController));
                     } catch (SocketException e) {
                         if (running) logger.error("Accept error: {}", e.getMessage());
