@@ -154,7 +154,7 @@ public class MyBidsController implements Initializable {
 
         final double cardWidth = 250.0;
         final double hgap = 24.0;
-        final int maxColumns = 3;
+        final int maxColumns = 8;
 
         int columns = Math.max(1, Math.min(maxColumns, (int) Math.floor((viewportWidth + hgap) / (cardWidth + hgap))));
         double gridWidth = columns * cardWidth + Math.max(0, columns - 1) * hgap;

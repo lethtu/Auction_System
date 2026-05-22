@@ -71,7 +71,7 @@
                         hbarPolicy="NEVER"
                         style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;"
                         VBox.vgrow="ALWAYS">
-                <StackPane alignment="TOP_CENTER" style="-fx-background-color: transparent;">
+                <StackPane alignment="TOP_LEFT" style="-fx-background-color: transparent;">
                     <FlowPane fx:id="productContainer"
                               alignment="TOP_LEFT"
                               hgap="25.0"
