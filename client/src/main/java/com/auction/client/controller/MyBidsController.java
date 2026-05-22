@@ -776,7 +776,7 @@ if (matchKeyword && matchTab) {
         if (pollingScheduler != null) {
             pollingScheduler.shutdown();
         }
-        SceneSwitcher.switchScene(event, "Login.fxml", 400, 500);
+        SceneSwitcher.switchScene(event, "Login.fxml", 1100, 700);
     }
 
     private JSONObject getItemObject(JSONObject sessionObj) {
@@ -855,5 +855,20 @@ if (matchKeyword && matchTab) {
         } catch (Exception e) {
             logger.warn("Không thể cập nhật avatar trên top bar: {}", e.getMessage());
         }
+    }
+
+    @FXML
+    private void handleMinimize(javafx.event.ActionEvent event) {
+        SceneSwitcher.handleMinimize(event);
+    }
+
+    @FXML
+    private void handleMaximize(javafx.event.ActionEvent event) {
+        SceneSwitcher.handleMaximize(event);
+    }
+
+    @FXML
+    private void handleClose(javafx.event.ActionEvent event) {
+        SceneSwitcher.handleClose(event);
     }
 }

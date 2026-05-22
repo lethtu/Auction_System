@@ -21,6 +21,38 @@ public class SceneSwitcher {
     public static final double MIN_WIDTH = 900;
     public static final double MIN_HEIGHT = 600;
 
+    
+    public static Stage getStage(javafx.event.Event event) {
+        Object source = event.getSource();
+        if (source instanceof Node node) {
+            return (Stage) node.getScene().getWindow();
+        } else if (source instanceof MenuItem menuItem) {
+            return (Stage) menuItem.getParentPopup().getOwnerWindow();
+        }
+        return null;
+    }
+
+    public static void handleMinimize(javafx.event.Event event) {
+        Stage stage = getStage(event);
+        if (stage != null) {
+            stage.setIconified(true);
+        }
+    }
+
+    public static void handleMaximize(javafx.event.Event event) {
+        Stage stage = getStage(event);
+        if (stage != null) {
+            com.auction.client.util.ResizeHelper.toggleMaximize(stage);
+        }
+    }
+
+    public static void handleClose(javafx.event.Event event) {
+        Stage stage = getStage(event);
+        if (stage != null) {
+            stage.close();
+        }
+    }
+
     public static FXMLLoader Switch(Event event, String fxmlFile, Integer targetWidth, Integer targetHeight) throws IOException {
         String path = "/com/auction/client/view/" + fxmlFile;
         URL xmlResource = SceneSwitcher.class.getResource(path);
@@ -48,6 +80,7 @@ public class SceneSwitcher {
 
         boolean wasMaximized = stage.isMaximized();
         boolean wasFullScreen = stage.isFullScreen();
+        boolean isAuthScene = fxmlFile.equals("Login.fxml") || fxmlFile.equals("SignUp.fxml") || fxmlFile.equals("ForgotPassword.fxml");
 
         double currentWidth = stage.getWidth() > MIN_WIDTH ? stage.getWidth() : DEFAULT_WIDTH;
         double currentHeight = stage.getHeight() > MIN_HEIGHT ? stage.getHeight() : DEFAULT_HEIGHT;
@@ -59,11 +92,14 @@ public class SceneSwitcher {
         } else {
             scene.setRoot(root);
         }
+        scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
+        com.auction.client.util.ResizeHelper.install(stage, root);
 
         stage.setMinWidth(MIN_WIDTH);
         stage.setMinHeight(MIN_HEIGHT);
+        stage.setResizable(!isAuthScene);
 
-        if (!wasMaximized && !wasFullScreen) {
+        if (!wasMaximized && !wasFullScreen && !isAuthScene) {
             if (Double.isNaN(currentWidth) || currentWidth < MIN_WIDTH) {
                 stage.setWidth(DEFAULT_WIDTH);
             } else {

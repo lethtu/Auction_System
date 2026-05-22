@@ -8,6 +8,7 @@ import com.auction.client.model.User;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -2275,7 +2276,7 @@ public class SellerDashboardController {
 
     public void handleLogout(javafx.event.ActionEvent event) throws IOException {
         User.clearSession();
-        SceneSwitcher.switchScene(event, "Login.fxml", 400, 500);
+        SceneSwitcher.switchScene(event, "Login.fxml", 1100, 700);
     }
 
     private String productNameOrEmpty(TextInputControl input) {
@@ -2606,5 +2607,20 @@ public class SellerDashboardController {
         } catch (Exception e) {
             logger.warn("Không thể cập nhật avatar trên top bar: {}", e.getMessage());
         }
+    }
+
+    @FXML
+    private void handleMinimize(javafx.event.ActionEvent event) {
+        SceneSwitcher.handleMinimize(event);
+    }
+
+    @FXML
+    private void handleMaximize(javafx.event.ActionEvent event) {
+        SceneSwitcher.handleMaximize(event);
+    }
+
+    @FXML
+    private void handleClose(javafx.event.ActionEvent event) {
+        SceneSwitcher.handleClose(event);
     }
 }

@@ -13,13 +13,118 @@
     src: url('fonts/MaterialSymbolsOutlined.ttf');
 }
 
-@font-face {
-    font-family: 'Material Symbols Outlined';
-    src: url('fonts/MaterialSymbolsOutlined.ttf');
-}
-
 .root {
     -fx-font-family: 'DM Sans';
+    -fx-focus-color: #e040a0;
+    -fx-faint-focus-color: rgba(224, 64, 160, 0.12);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Shared rounded application shell
+   Dùng chung cho MainTemplate/Seller/Settings/Support/... để mọi trang cùng một template.
+   ══════════════════════════════════════════════════════════════ */
+.rounded-window-root {
+    /* Stage/Scene stays transparent; this gutter is the hit-area used by ResizeHelper. */
+    -fx-background-color: transparent;
+    -fx-padding: 10;
+}
+
+/* Maximize is custom: no transparent gutter and no rounded desktop leak at screen edges. */
+.rounded-window-root.window-maximized {
+    -fx-padding: 0;
+}
+
+.rounded-window-root.window-maximized .rounded-window-content {
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-border-width: 0;
+    -fx-effect: null;
+}
+
+.rounded-window-root.window-maximized .app-topbar,
+.rounded-window-root.window-maximized .app-topbar-even,
+.rounded-window-root.window-maximized .admin-bidpop-topbar {
+    -fx-background-radius: 0;
+}
+
+.rounded-window-content {
+    -fx-background-color: linear-gradient(to bottom right, #fffbff 0%, #fff6fb 52%, #fffaf6 100%);
+    -fx-background-radius: 32;
+    -fx-border-radius: 32;
+    -fx-border-color: rgba(224, 64, 160, 0.24);
+    -fx-border-width: 1.2;
+    -fx-effect: dropshadow(gaussian, rgba(46, 26, 40, 0.22), 34, 0.16, 0, 10);
+}
+
+.app-topbar {
+    -fx-background-color: rgba(255, 251, 255, 0.97);
+    -fx-background-radius: 32 32 0 0;
+    -fx-padding: 12 30 12 0;
+    -fx-border-color: rgba(246, 221, 234, 0.95);
+    -fx-border-width: 0 0 1 0;
+    -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.08), 14, 0.12, 0, 3);
+}
+
+.app-topbar-even {
+    -fx-background-color: rgba(255, 251, 255, 0.97);
+    -fx-background-radius: 32 32 0 0;
+    -fx-padding: 12 30;
+    -fx-border-color: rgba(246, 221, 234, 0.95);
+    -fx-border-width: 0 0 1 0;
+    -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.08), 14, 0.12, 0, 3);
+}
+
+.app-content-panel {
+    -fx-background-color: linear-gradient(to bottom right, rgba(255, 251, 255, 0.90), rgba(254, 247, 255, 0.96));
+    -fx-background-radius: 30;
+    -fx-border-color: rgba(244, 221, 235, 0.95);
+    -fx-border-radius: 30;
+    -fx-border-width: 1;
+    -fx-padding: 28;
+}
+
+.app-content-scroll {
+    -fx-background-color: linear-gradient(to bottom right, rgba(255, 251, 255, 0.90), rgba(254, 247, 255, 0.96));
+    -fx-background-radius: 30;
+    -fx-border-color: rgba(244, 221, 235, 0.95);
+    -fx-border-radius: 30;
+    -fx-border-width: 1;
+    -fx-padding: 28;
+}
+
+.app-content-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.app-sidebar-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 14 0 14 14;
+}
+
+.app-sidebar-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.app-sidebar-content {
+    -fx-background-color: rgba(255, 255, 255, 0.92);
+    -fx-background-radius: 28;
+    -fx-border-color: rgba(244, 221, 235, 0.95);
+    -fx-border-radius: 28;
+    -fx-border-width: 1;
+    -fx-padding: 24 8 24 8;
+    -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.08), 16, 0.12, 0, 5);
+}
+
+
+.rounded-window-content .scroll-pane,
+.rounded-window-content .scroll-pane>.viewport {
+    -fx-background-color: transparent;
+}
+
+.rounded-window-content .button {
+    -fx-background-insets: 0;
 }
 
 .material-icon {
@@ -197,13 +302,13 @@
 }
 
 .page-root {
-    -fx-background-color: linear-gradient(to bottom right, #fff9fd 0%, #fff6fa 55%, #fffaf3 100%);
+    -fx-background-color: transparent;
     -fx-font-family: "DM Sans", "Segoe UI", sans-serif;
 }
 
 .topbar {
     -fx-padding: 18 28 18 28;
-    -fx-background-color: rgba(255, 251, 255, 0.92);
+    -fx-background-color: rgba(255, 251, 255, 0.96);
     -fx-border-color: #f6ddea;
     -fx-border-width: 0 0 1 0;
 }
@@ -232,11 +337,11 @@
 
 .icon-btn {
     -fx-background-color: #ffffff;
-    -fx-background-radius: 14px;
+    -fx-background-radius: 999px;
     -fx-padding: 10 12 10 12;
     -fx-cursor: hand;
     -fx-border-color: #f3deea;
-    -fx-border-radius: 14px;
+    -fx-border-radius: 999px;
     -fx-border-width: 1px;
 }
 
@@ -354,11 +459,12 @@
 }
 
 .section-card {
-    -fx-background-color: rgba(255, 255, 255, 0.88);
-    -fx-background-radius: 28px;
-    -fx-border-color: #f4dfeb;
-    -fx-border-radius: 28px;
+    -fx-background-color: rgba(255, 255, 255, 0.94);
+    -fx-background-radius: 22px;
+    -fx-border-color: #f2d7e9;
+    -fx-border-radius: 22px;
     -fx-padding: 18 18 10 18;
+    -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.07), 18, 0.10, 0, 5);
 }
 
 .filter-pill {
@@ -586,11 +692,12 @@
 }
 
 .admin-bidpop-topbar {
-    -fx-background-color: rgba(255, 251, 255, 0.96);
+    -fx-background-color: rgba(255, 251, 255, 0.97);
+    -fx-background-radius: 32 32 0 0;
     -fx-padding: 13 30 13 30;
     -fx-border-color: #f6ddea;
     -fx-border-width: 0 0 1 0;
-    -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.14), 18, 0.18, 0, 4);
+    -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.08), 14, 0.12, 0, 3);
 }
 
 .admin-bidpop-brand {
@@ -1332,4 +1439,38 @@
     -fx-shape: null;
 }
 
+/* === CUSTOM WINDOW CONTROL BUTTONS === */
+.window-control-btn {
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+    -fx-padding: 6 8;
+    -fx-background-radius: 6;
+}
+.window-control-btn:hover {
+    -fx-background-color: rgba(0, 0, 0, 0.05);
+}
+.close-btn:hover {
+    -fx-background-color: #ef4444;
+}
+.close-btn:hover .window-control-icon {
+    -fx-text-fill: white;
+}
+.window-control-icon {
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 14px;
+    -fx-font-weight: 900;
+    -fx-text-fill: #907898;
+}
 
+
+/* Unified roundness override */
+.admin-bidpop-root,
+.page-root {
+    -fx-background-color: transparent;
+}
+
+.table-view,
+.table-view .column-header-background,
+.table-view .filler {
+    -fx-background-insets: 0;
+}
