@@ -50,6 +50,7 @@ public class SidebarController {
     private Button currentActiveButton;
 
     public static boolean isSidebarCollapsed = false;
+    private static boolean preferenceLoaded = false;
     private final Map<Button, String> sidebarButtonTextMap = new HashMap<>();
 
     public interface SidebarListener {
@@ -135,15 +136,18 @@ public class SidebarController {
             }
         }
 
-        boolean persistedCollapse = java.util.prefs.Preferences
-                .userNodeForPackage(com.auction.client.util.SettingsDialog.class)
-                .getBoolean(com.auction.client.util.SettingsDialog.KEY_AUTO_COLLAPSE, false);
-
-        isSidebarCollapsed = false;
-        applyExpandedSidebar();
-        if (persistedCollapse) {
-            toggleSidebar();
+        if (!preferenceLoaded) {
+            boolean persistedCollapse = java.util.prefs.Preferences
+                    .userNodeForPackage(com.auction.client.util.SettingsDialog.class)
+                    .getBoolean(com.auction.client.util.SettingsDialog.KEY_AUTO_COLLAPSE, false);
+            isSidebarCollapsed = persistedCollapse;
+            preferenceLoaded = true;
         }
+
+        // Apply current static state by temporarily inverting it and calling toggleSidebar()
+        boolean currentCollapsedState = isSidebarCollapsed;
+        isSidebarCollapsed = !currentCollapsedState;
+        toggleSidebar();
 
         Platform.runLater(() -> {
             if (sidebarContainer != null && sidebarContainer.getScene() != null) {
@@ -168,8 +172,8 @@ public class SidebarController {
             sidebarContainer.setMaxWidth(200);
             double expandedHeight = getExpandedSidebarHeight();
             sidebarContainer.setMinHeight(expandedHeight);
-            sidebarContainer.setPrefHeight(expandedHeight);
-            sidebarContainer.setMaxHeight(expandedHeight);
+            sidebarContainer.setPrefHeight(Double.MAX_VALUE);
+            sidebarContainer.setMaxHeight(Double.MAX_VALUE);
         }
         if (sidebarContent != null && !isSidebarCollapsed) {
             sidebarContent.setPadding(new Insets(0, 0, 0, 0));
@@ -211,8 +215,8 @@ public class SidebarController {
             sidebarContainer.setMaxWidth(70);
             double collapsedHeight = getExpandedSidebarHeight();
             sidebarContainer.setMinHeight(collapsedHeight);
-            sidebarContainer.setPrefHeight(collapsedHeight);
-            sidebarContainer.setMaxHeight(collapsedHeight);
+            sidebarContainer.setPrefHeight(Double.MAX_VALUE);
+            sidebarContainer.setMaxHeight(Double.MAX_VALUE);
             sidebarContent.setPadding(new Insets(0, 0, 0, 0));
             sidebarContent.setAlignment(Pos.TOP_CENTER);
 
@@ -282,8 +286,8 @@ public class SidebarController {
             sidebarContainer.setMaxWidth(200);
             double expandedHeight = getExpandedSidebarHeight();
             sidebarContainer.setMinHeight(expandedHeight);
-            sidebarContainer.setPrefHeight(expandedHeight);
-            sidebarContainer.setMaxHeight(expandedHeight);
+            sidebarContainer.setPrefHeight(Double.MAX_VALUE);
+            sidebarContainer.setMaxHeight(Double.MAX_VALUE);
         sidebarContent.setPadding(new Insets(0, 0, 0, 0));
         sidebarContent.setAlignment(Pos.TOP_LEFT);
 

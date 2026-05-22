@@ -10,16 +10,8 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.scene.input.MouseEvent;
-
-import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
-import javafx.scene.layout.StackPane;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import com.auction.client.Config;
-import com.auction.client.util.NotificationBellBinder;
 
 public class SupportController implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(SupportController.class);
@@ -30,39 +22,17 @@ public class SupportController implements Initializable {
     @FXML private Label lblMessageStatus;
     @FXML private Button btnSendSupport;
 
-    @FXML private MenuButton userMenuButton;
-
-    @FXML private Button btnNotificationBell;
-    @FXML private Label notificationBadge;
-    @FXML private Button btnSettings;
-    @FXML private TextField txtSearch;
-
     @FXML private SidebarController sidebarController;
-    @FXML private Button btnHamburger;
-    @FXML private StackPane topBarAvatarPane;
+    @FXML private TopbarController topbarController;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        if (User.getFullname() != null) {
-            createUserOption("Hello, " + User.getFullname());
+        if (topbarController != null) {
+            topbarController.setSearchVisible(false);
+            if (sidebarController != null) {
+                topbarController.setSidebarController(sidebarController);
+            }
         }
-
-        if (btnNotificationBell != null && notificationBadge != null) {
-            NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
-        }
-
-        if (btnSettings != null) {
-            btnSettings.setOnAction(e -> {
-                try {
-                    com.auction.client.controller.SceneSwitcher.switchScene(e, "Settings.fxml", 1280, 800);
-                } catch (IOException ex) {
-                    logger.error("Error switching to Settings.fxml: ", ex);
-                }
-            });
-        }
-
-        Platform.runLater(() -> updateTopBarAvatar(User.getAvatarUrl()));
-
 
         if (User.getEmail() != null) {
             txtEmail.setText(User.getEmail());
@@ -83,7 +53,7 @@ public class SupportController implements Initializable {
                     try {
                         MainController.initialShowWatchlist = true;
                         SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
-                    } catch (IOException e) {
+                    } catch (java.io.IOException e) {
                         logger.error("Navigation error:", e);
                     }
                 }
@@ -92,70 +62,13 @@ public class SupportController implements Initializable {
                 public void onResetFilter(ActionEvent event) {
                     try {
                         SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
-                    } catch (IOException e) {
+                    } catch (java.io.IOException e) {
                         logger.error("Navigation error:", e);
                     }
                 }
             });
         }
     }
-
-    private void createUserOption(String text) {
-        MenuItem accountItem = new MenuItem("My Account");
-        MenuItem depositMoney = new MenuItem("Deposit");
-        MenuItem logoutItem = new MenuItem("Logout");
-
-        accountItem.setOnAction(event -> {
-            try {
-                MainController.initialShowAccount = true;
-                SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
-            } catch (IOException e) {
-                logger.error("Error switching to account page: ", e);
-            }
-        });
-
-        depositMoney.setOnAction(event -> {
-            try {
-                SceneSwitcher.switchScene(event, "Deposit.fxml", 1280, 800);
-            } catch (IOException e) {
-                logger.error("Error switching to deposit page: ", e);
-            }
-        });
-
-        logoutItem.setOnAction(event -> {
-            try {
-                handleLogout(event);
-            } catch (IOException e) {
-                logger.error("Error switching to Login screen!", e);
-            }
-        });
-
-        userMenuButton.getItems().addAll(accountItem, depositMoney, new SeparatorMenuItem(), logoutItem);
-    }
-
-    public void handleLogout(ActionEvent event) throws IOException {
-        User.clearSession();
-        SceneSwitcher.switchScene(event, "Login.fxml", 1100, 700);
-    }
-
-    @FXML
-    public void handleToggleSidebar(ActionEvent event) {
-        if (sidebarController != null) {
-            sidebarController.toggleSidebar();
-        }
-    }
-
-    @FXML
-    public void handleGoToDashboard(MouseEvent event) {
-        try {
-            ActionEvent actionEvent = new ActionEvent(event.getSource(), event.getTarget());
-            SceneSwitcher.switchScene(actionEvent, "MainTemplate.fxml", 1280, 800);
-        } catch (Exception e) {
-            logger.error("Error switching to MainTemplate: ", e);
-        }
-    }
-
-
 
     @FXML
     public void handleSendSupport(ActionEvent event) {
@@ -214,48 +127,5 @@ public class SupportController implements Initializable {
         }
         lblMessageStatus.setVisible(true);
         lblMessageStatus.setManaged(true);
-    }
-
-    @FXML
-    public void handleSettings(ActionEvent event) {
-        // Can navigate to settings if needed
-    }
-
-    private void updateTopBarAvatar(String avatarUrl) {
-        if (topBarAvatarPane == null) return;
-        try {
-            topBarAvatarPane.getChildren().clear();
-            if (avatarUrl != null && !avatarUrl.isBlank()) {
-                String fullUrl = avatarUrl.startsWith("http") ? avatarUrl : Config.API_URL + avatarUrl;
-                ImageView imgView = new ImageView(new Image(fullUrl, 36, 36, false, true, true));
-                imgView.setFitWidth(36);
-                imgView.setFitHeight(36);
-                imgView.setSmooth(true);
-                javafx.scene.shape.Circle clip = new javafx.scene.shape.Circle(18, 18, 18);
-                imgView.setClip(clip);
-                topBarAvatarPane.getChildren().add(imgView);
-            } else {
-                Label icon = new Label("\uE7FD");
-                icon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: white;");
-                topBarAvatarPane.getChildren().add(icon);
-            }
-        } catch (Exception e) {
-            logger.warn("Cannot update avatar on top bar: {}", e.getMessage());
-        }
-    }
-
-    @FXML
-    private void handleMinimize(javafx.event.ActionEvent event) {
-        SceneSwitcher.handleMinimize(event);
-    }
-
-    @FXML
-    private void handleMaximize(javafx.event.ActionEvent event) {
-        SceneSwitcher.handleMaximize(event);
-    }
-
-    @FXML
-    private void handleClose(javafx.event.ActionEvent event) {
-        SceneSwitcher.handleClose(event);
     }
 }

@@ -147,22 +147,9 @@ public class SellerDashboardController {
     private TableColumn<SessionItem, SessionItem> colActions;
 
     @FXML
-    private TextField txtSearch;
-
-    @FXML
     private SidebarController sidebarController;
     @FXML
-    private Button btnHamburger;
-    @FXML
-    private MenuButton userMenuButton;
-    @FXML
-    private Button btnNotificationBell;
-    @FXML
-    private Label notificationBadge;
-    @FXML
-    private StackPane topBarAvatarPane;
-    @FXML
-    private Button btnSettings;
+    private TopbarController topbarController;
 
     private HttpClient httpClient = HttpClientSingleton.getInstance().getHttpClient();
     final List<SessionItem> allSessions = new ArrayList<>();
@@ -182,32 +169,17 @@ public class SellerDashboardController {
         setupImageUpload();
         setupSplitDatetimePickers();
 
-        if (User.getFullname() != null) {
-            createUserOption("Hello, " + User.getFullname());
+        if (topbarController != null) {
+            topbarController.setSearchVisible(false);
+            if (sidebarController != null) {
+                topbarController.setSidebarController(sidebarController);
+            }
         }
-        if (btnNotificationBell != null && notificationBadge != null) {
-            com.auction.client.util.NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
-        }
-        if (btnSettings != null) {
-            btnSettings.setOnAction(e -> {
-                try {
-                    com.auction.client.controller.SceneSwitcher.switchScene(e, "Settings.fxml", 1280, 800);
-                } catch (IOException ex) {
-                    logger.error("Error switching to Settings.fxml: ", ex);
-                }
-            });
-        }
-
-        javafx.application.Platform.runLater(() -> updateTopBarAvatar(User.getAvatarUrl()));
 
         if (modalDialog != null && modalOverlay != null) {
             modalOverlay.heightProperty().addListener((obs, oldVal, newVal) -> updateModalMaxHeight());
             modalDialog.widthProperty().addListener((obs, oldVal, newVal) -> updateModalMaxHeight());
         }
-
-        btnHamburger.setId("btnHamburger");
-        btnHamburger.setOnAction(this::handleToggleSidebar);
-
         javafx.application.Platform.runLater(() -> {
             if (sidebarController != null) {
                 sidebarController.setActiveSelling();
@@ -326,7 +298,8 @@ public class SellerDashboardController {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Select Product Image");
             fileChooser.getExtensionFilters().addAll(
-                    new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.bmp"));
+                    new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp",
+                            "*.bmp"));
             File selectedFile = fileChooser.showOpenDialog(imageUploadArea.getScene().getWindow());
             if (selectedFile != null) {
                 imageUrlField.setText(selectedFile.getAbsolutePath());
@@ -967,16 +940,17 @@ public class SellerDashboardController {
             body.put("imagePath", imageUrl);
             body.put("description", description);
             body.put("startingPrice", startingPrice);
-            
+
             BigDecimal reservePrice = BigDecimal.ZERO;
             String reservePriceText = reservePriceField != null ? reservePriceField.getText() : "";
             if (reservePriceText != null && !reservePriceText.trim().isEmpty()) {
                 try {
                     reservePrice = new BigDecimal(reservePriceText.trim());
-                } catch(Exception e) {}
+                } catch (Exception e) {
+                }
             }
             body.put("reservePrice", reservePrice);
-            
+
             body.put("sellerId", sellerId);
             body.put("stepPrice", 10000); // Default step price
             body.put("status", "DRAFT");
@@ -993,7 +967,7 @@ public class SellerDashboardController {
                 body.put("endTime", endDT.toString());
             }
 
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest request = newRequestBuilder()
                     .uri(URI.create(Config.API_URL + "/api/seller/create-auction"))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
@@ -1228,16 +1202,17 @@ public class SellerDashboardController {
             body.put("imagePath", imageUrl);
             body.put("description", description);
             body.put("startingPrice", startingPrice);
-            
+
             BigDecimal reservePrice = BigDecimal.ZERO;
             String reservePriceText = reservePriceField != null ? reservePriceField.getText() : "";
             if (reservePriceText != null && !reservePriceText.trim().isEmpty()) {
                 try {
                     reservePrice = new BigDecimal(reservePriceText.trim());
-                } catch(Exception e) {}
+                } catch (Exception e) {
+                }
             }
             body.put("reservePrice", reservePrice);
-            
+
             body.put("sellerId", sellerId);
             body.put("stepPrice", 10000); // Default step price
             body.put("status", "DRAFT");
@@ -1254,7 +1229,7 @@ public class SellerDashboardController {
                 body.put("endTime", endDT.toString());
             }
 
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest request = newRequestBuilder()
                     .uri(URI.create(Config.API_URL + "/api/seller/update-session/" + editingSession.id + "?sellerId="
                             + sellerId))
                     .header("Content-Type", "application/json")
@@ -1498,13 +1473,14 @@ public class SellerDashboardController {
             body.put("imagePath", imageUrl);
             body.put("description", description);
             body.put("startingPrice", startingPrice);
-            
+
             BigDecimal reservePrice = BigDecimal.ZERO;
             String reservePriceText = reservePriceField != null ? reservePriceField.getText() : "";
             if (reservePriceText != null && !reservePriceText.trim().isEmpty()) {
                 try {
                     reservePrice = new BigDecimal(reservePriceText.trim());
-                } catch(Exception e) {}
+                } catch (Exception e) {
+                }
             }
             body.put("reservePrice", reservePrice);
             body.put("sellerId", sellerId);
@@ -1517,7 +1493,7 @@ public class SellerDashboardController {
             }
             body.put("endTime", endDT.toString());
 
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest request = newRequestBuilder()
                     .uri(URI.create(Config.API_URL + "/api/seller/update-session/" + editingSession.id + "?sellerId="
                             + sellerId))
                     .header("Content-Type", "application/json")
@@ -1806,13 +1782,14 @@ public class SellerDashboardController {
             body.put("imagePath", imageUrl);
             body.put("description", description);
             body.put("startingPrice", startingPrice);
-            
+
             BigDecimal reservePrice = BigDecimal.ZERO;
             String reservePriceText = reservePriceField != null ? reservePriceField.getText() : "";
             if (reservePriceText != null && !reservePriceText.trim().isEmpty()) {
                 try {
                     reservePrice = new BigDecimal(reservePriceText.trim());
-                } catch(Exception e) {}
+                } catch (Exception e) {
+                }
             }
             body.put("reservePrice", reservePrice);
             body.put("sellerId", sellerId);
@@ -1825,14 +1802,15 @@ public class SellerDashboardController {
             }
             body.put("endTime", endDT.toString());
 
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest request = newRequestBuilder()
                     .uri(URI.create(Config.API_URL + "/api/seller/create-auction"))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "Auction session created successfully.");
+            ApiResult api = parseApiResponse(response.body(), response.statusCode(),
+                    "Auction session created successfully.");
 
             if (api.success) {
                 clearForm();
@@ -1869,7 +1847,7 @@ public class SellerDashboardController {
         }
 
         try {
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest request = newRequestBuilder()
                     .uri(URI.create(
                             Config.API_URL + "/api/seller/cancel-session/" + selected.id + "?sellerId=" + sellerId))
                     .DELETE()
@@ -1987,7 +1965,7 @@ public class SellerDashboardController {
             body.put("startTime", startDT.toString());
             body.put("endTime", endDT.toString());
 
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest request = newRequestBuilder()
                     .uri(URI.create(
                             Config.API_URL + "/api/seller/update-session/" + selected.id + "?sellerId=" + sellerId))
                     .header("Content-Type", "application/json")
@@ -2025,7 +2003,7 @@ public class SellerDashboardController {
         }
 
         try {
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest request = newRequestBuilder()
                     .uri(URI.create(Config.API_URL + "/api/seller/my-sessions/" + sellerId))
                     .GET()
                     .build();
@@ -2167,7 +2145,8 @@ public class SellerDashboardController {
         productNameField.clear();
         imageUrlField.clear();
         descriptionArea.clear();
-        if (reservePriceField != null) reservePriceField.clear();
+        if (reservePriceField != null)
+            reservePriceField.clear();
         startingPriceField.clear();
         if (lblImageFileName != null)
             lblImageFileName.setText("");
@@ -2305,53 +2284,6 @@ public class SellerDashboardController {
         // stretched
         double naturalHeight = chromeHeight + contentHeight + 40;
         modalDialog.setMaxHeight(Math.min(parentHeight, naturalHeight));
-    }
-
-    @FXML
-    private void handleToggleSidebar(javafx.event.ActionEvent event) {
-        if (sidebarController != null) {
-            sidebarController.toggleSidebar();
-        }
-    }
-
-    private void createUserOption(String text) {
-        MenuItem accountItem = new MenuItem("My Account");
-        MenuItem depositMoney = new MenuItem("Deposit");
-        MenuItem logoutItem = new MenuItem("Logout");
-
-        accountItem.setOnAction(event -> {
-            try {
-                MainController.initialShowAccount = true;
-                SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
-            } catch (IOException e) {
-                logger.error("Error switching to account page: ", e);
-            }
-        });
-
-        depositMoney.setOnAction(event -> {
-            try {
-                SceneSwitcher.switchScene(event, "Deposit.fxml", 1280, 800);
-            } catch (IOException e) {
-                logger.error("Error switching to deposit page: ", e);
-            }
-        });
-
-        logoutItem.setOnAction(event -> {
-            try {
-                handleLogout(event);
-            } catch (IOException e) {
-                logger.error("Error switching to Login screen!", e);
-            }
-        });
-
-        if (userMenuButton != null) {
-            userMenuButton.getItems().addAll(accountItem, depositMoney, new SeparatorMenuItem(), logoutItem);
-        }
-    }
-
-    public void handleLogout(javafx.event.ActionEvent event) throws IOException {
-        User.clearSession();
-        SceneSwitcher.switchScene(event, "Login.fxml", 1100, 700);
     }
 
     private void handleViewSession(SessionItem item, ActionEvent event) {
@@ -2525,7 +2457,8 @@ public class SellerDashboardController {
     private ApiResult parseApiResponse(String body, int httpStatus, String defaultSuccessMessage) {
         if (body == null || body.isBlank()) {
             return new ApiResult(httpStatus >= 200 && httpStatus < 300,
-                    httpStatus >= 200 && httpStatus < 300 ? defaultSuccessMessage : "An error occurred from the server.");
+                    httpStatus >= 200 && httpStatus < 300 ? defaultSuccessMessage
+                            : "An error occurred from the server.");
         }
 
         try {
@@ -2762,41 +2695,12 @@ public class SellerDashboardController {
         }
     }
 
-    private void updateTopBarAvatar(String avatarUrl) {
-        if (topBarAvatarPane == null) return;
-        try {
-            topBarAvatarPane.getChildren().clear();
-            if (avatarUrl != null && !avatarUrl.isBlank()) {
-                String fullUrl = avatarUrl.startsWith("http") ? avatarUrl : Config.API_URL + avatarUrl;
-                ImageView imgView = new ImageView(new Image(fullUrl, 36, 36, false, true, true));
-                imgView.setFitWidth(36);
-                imgView.setFitHeight(36);
-                imgView.setSmooth(true);
-                javafx.scene.shape.Circle clip = new javafx.scene.shape.Circle(18, 18, 18);
-                imgView.setClip(clip);
-                topBarAvatarPane.getChildren().add(imgView);
-            } else {
-                Label icon = new Label("\uE7FD");
-                icon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: white;");
-                topBarAvatarPane.getChildren().add(icon);
-            }
-        } catch (Exception e) {
-            logger.warn("Cannot update avatar on top bar: {}", e.getMessage());
+    private HttpRequest.Builder newRequestBuilder() {
+        HttpRequest.Builder builder = HttpRequest.newBuilder();
+        String token = User.getSessionToken();
+        if (token != null && !token.isEmpty()) {
+            builder.header("X-Auth-Token", token);
         }
-    }
-
-    @FXML
-    private void handleMinimize(javafx.event.ActionEvent event) {
-        SceneSwitcher.handleMinimize(event);
-    }
-
-    @FXML
-    private void handleMaximize(javafx.event.ActionEvent event) {
-        SceneSwitcher.handleMaximize(event);
-    }
-
-    @FXML
-    private void handleClose(javafx.event.ActionEvent event) {
-        SceneSwitcher.handleClose(event);
+        return builder;
     }
 }

@@ -420,6 +420,7 @@ public class LoginController {
         String avatarUrl = data.optString("avatarUrl", data.optString("avatar_url", null));
         if ("null".equals(avatarUrl)) avatarUrl = null;
 
+        User.setSessionToken(data.optString("sessionToken", null));
         User.setSession(id, username, fullname, email, dob, placeOfBirth, role, avatarUrl);
         return role;
     }

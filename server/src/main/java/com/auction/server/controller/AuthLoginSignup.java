@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.util.Optional;
 
+import com.auction.server.util.SessionManager;
+
 @RestController
 @RequestMapping("/api")
 public class AuthLoginSignup {
@@ -21,6 +23,8 @@ public class AuthLoginSignup {
     private RqLoginSignup rq;
     @Autowired
     private EmailServer emailServer;
+    @Autowired
+    private SessionManager sessionManager;
 
     @PostMapping("/login")
     public ApiResponse<?> Login(@RequestBody Map<String, String> requests) {
@@ -28,12 +32,15 @@ public class AuthLoginSignup {
         String password = requests.get("password");
         Optional<User> res = rq.login(username, password);
         if (res.isPresent()) {
-            if (res.get().isBanned()) {
+            User user = res.get();
+            if (user.isBanned()) {
                 logger.warn("User {} account is banned", username);
                 return new ApiResponse<String>(403, "Account has been banned", "");
             }
+            String token = sessionManager.createSession(user);
+            user.setSessionToken(token);
             logger.info("User {} logged in successfully", username);
-            return new ApiResponse<Optional<User>>(200, "Login successful", res);
+            return new ApiResponse<User>(200, "Login successful", user);
         }
         else {
             logger.error("User {} login failed", username);

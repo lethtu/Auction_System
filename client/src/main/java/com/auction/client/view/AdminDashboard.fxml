@@ -26,7 +26,7 @@
 
         <top>
             <HBox alignment="CENTER_LEFT" spacing="18" styleClass="admin-bidpop-topbar">
-                <Label text="HY Auctions" styleClass="admin-bidpop-brand"/>
+                <Label text="BidPop" styleClass="admin-bidpop-brand"/>
                 <Label text="Admin Control Panel" styleClass="admin-bidpop-top-chip"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <!-- ÄÃ£ giá»¯ láº¡i báº£n dá»‹ch tiáº¿ng Anh "Logout" thay vÃ¬ "ÄÄƒng xuáº¥t" -->

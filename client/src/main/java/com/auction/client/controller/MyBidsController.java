@@ -47,21 +47,25 @@ public class MyBidsController implements Initializable {
 
     private HttpClient client = HttpClient.newHttpClient();
 
-    @FXML private MenuButton userMenuButton;
-    @FXML private StackPane topBarAvatarPane;
-    @FXML private Button btnNotificationBell;
-    @FXML private Label notificationBadge;
-    @FXML private Button btnSettings;
-    @FXML private ScrollPane scrollPane;
-    @FXML private FlowPane productContainer;
-    @FXML private TextField txtSearch;
-    @FXML private Button btnTabActive;
-    @FXML private Button btnTabWinning;
-    @FXML private Button btnTabOutbid;
-    @FXML private Button btnTabEnded;
+    @FXML
+    private ScrollPane scrollPane;
+    @FXML
+    private FlowPane productContainer;
+    @FXML
+    private Button btnTabActive;
+    @FXML
+    private Button btnTabWinning;
+    @FXML
+    private Button btnTabOutbid;
+    @FXML
+    private Button btnTabEnded;
 
-    @FXML private SidebarController sidebarController;
-    @FXML private Button btnHamburger;
+    @FXML
+    private SidebarController sidebarController;
+    @FXML
+    private TopbarController topbarController;
+
+    private TextField txtSearch;
 
     private enum Tab {
         ACTIVE,
@@ -69,6 +73,7 @@ public class MyBidsController implements Initializable {
         OUTBID,
         ENDED
     }
+
     private Tab currentTab = Tab.ACTIVE;
 
     private final List<JSONObject> allProducts = new ArrayList<>();
@@ -78,31 +83,19 @@ public class MyBidsController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        
-        btnHamburger.setId("btnHamburger");
-        btnHamburger.setOnAction(this::handleToggleSidebar);
 
-        if (User.getFullname() != null) {
-            createUserOption();
+        if (topbarController != null && sidebarController != null) {
+            topbarController.setSidebarController(sidebarController);
         }
 
-        Platform.runLater(() -> updateTopBarAvatar(User.getAvatarUrl()));
-        if (btnNotificationBell != null && notificationBadge != null) {
-            com.auction.client.util.NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
+        if (topbarController != null) {
+            this.txtSearch = topbarController.getTxtSearch();
         }
 
-        if (btnSettings != null) {
-            btnSettings.setOnAction(e -> {
-                try {
-                    com.auction.client.controller.SceneSwitcher.switchScene(e, "Settings.fxml", 1280, 800);
-                } catch (IOException ex) {
-                    logger.error("Error switching to Settings.fxml: ", ex);
-                }
-            });
+        if (txtSearch != null) {
+            txtSearch.setPromptText("Search your bids...");
+            txtSearch.textProperty().addListener((observable, oldValue, newValue) -> filterAndRenderProducts());
         }
-
-        // Search events
-        txtSearch.textProperty().addListener((observable, oldValue, newValue) -> filterAndRenderProducts());
 
         // Stable responsive spacing. Keep layout fixed across focus/click refreshes.
         scrollPane.viewportBoundsProperty().addListener((obs, oldBounds, newBounds) -> {
@@ -149,13 +142,15 @@ public class MyBidsController implements Initializable {
     }
 
     private void updateGridLayout() {
-        if (scrollPane == null || productContainer == null) return;
+        if (scrollPane == null || productContainer == null)
+            return;
 
         double viewportWidth = scrollPane.getViewportBounds().getWidth();
         if (viewportWidth <= 0 && scrollPane.getWidth() > 0) {
             viewportWidth = scrollPane.getWidth();
         }
-        if (viewportWidth <= 0) return;
+        if (viewportWidth <= 0)
+            return;
 
         final double cardWidth = 250.0;
         final double hgap = 24.0;
@@ -172,45 +167,6 @@ public class MyBidsController implements Initializable {
         productContainer.setHgap(hgap);
         productContainer.setVgap(28.0);
         productContainer.setPadding(new Insets(10.0, 0.0, 18.0, 0.0));
-    }
- {
-        Platform.runLater(this::updateGridLayout);
-        PauseTransition delay = new PauseTransition(Duration.millis(150));
-        delay.setOnFinished(event -> updateGridLayout());
-        delay.play();
-    }
-
-    private void createUserOption() {
-        MenuItem accountItem = new MenuItem("My Account");
-        MenuItem depositMoney = new MenuItem("Deposit");
-        MenuItem logoutItem = new MenuItem("Logout");
-
-        accountItem.setOnAction(event -> {
-            try {
-                MainController.initialShowAccount = true;
-                SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
-            } catch (IOException e) {
-                logger.error("Error switching to account page: ", e);
-            }
-        });
-
-        depositMoney.setOnAction(event -> {
-            try {
-                SceneSwitcher.switchScene(event, "Deposit.fxml", 1280, 800);
-            } catch (IOException e) {
-                logger.error("Error switching to deposit page: ", e);
-            }
-        });
-
-        logoutItem.setOnAction(event -> {
-            try {
-                handleLogout(event);
-            } catch (IOException e) {
-                logger.error("Logout error", e);
-            }
-        });
-
-        userMenuButton.getItems().addAll(accountItem, depositMoney, new SeparatorMenuItem(), logoutItem);
     }
 
     private void startPolling() {
@@ -230,14 +186,19 @@ public class MyBidsController implements Initializable {
                 return;
             }
             logger.info("[MyBids-DEBUG] Fetching my-bids for userId={}", userId);
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
                     .uri(URI.create(Config.API_URL + "/api/bidder/my-bids?bidderId=" + userId))
-                    .GET()
-                    .build();
+                    .GET();
+            if (User.getSessionToken() != null) {
+                builder.header("X-Auth-Token", User.getSessionToken());
+            }
+            HttpRequest request = builder.build();
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            logger.info("[MyBids-DEBUG] HTTP status={}, body length={}", response.statusCode(), response.body().length());
-            logger.info("[MyBids-DEBUG] Response body (first 500 chars): {}", response.body().substring(0, Math.min(500, response.body().length())));
+            logger.info("[MyBids-DEBUG] HTTP status={}, body length={}", response.statusCode(),
+                    response.body().length());
+            logger.info("[MyBids-DEBUG] Response body (first 500 chars): {}",
+                    response.body().substring(0, Math.min(500, response.body().length())));
 
             if (response.statusCode() == 200) {
                 JSONObject responseJson = new JSONObject(response.body());
@@ -257,7 +218,8 @@ public class MyBidsController implements Initializable {
 
                     logger.info("[MyBids-DEBUG] jsonArray length={}", jsonArray.length());
                     if (jsonArray.length() > 0) {
-                        logger.info("[MyBids-DEBUG] First item: {}", jsonArray.getJSONObject(0).toString().substring(0, Math.min(300, jsonArray.getJSONObject(0).toString().length())));
+                        logger.info("[MyBids-DEBUG] First item: {}", jsonArray.getJSONObject(0).toString().substring(0,
+                                Math.min(300, jsonArray.getJSONObject(0).toString().length())));
                     }
 
                     List<JSONObject> newProducts = new ArrayList<>();
@@ -299,7 +261,8 @@ public class MyBidsController implements Initializable {
                 String name = itemObj.optString("name", "");
                 String status = normalizeSessionStatus(sessionObj);
                 int highestBidderId = sessionObj.optInt("highestBidderId", -1);
-                BigDecimal currentPrice = getMoney(sessionObj, "currentPrice", getMoney(sessionObj, "startingPrice", BigDecimal.ZERO));
+                BigDecimal currentPrice = getMoney(sessionObj, "currentPrice",
+                        getMoney(sessionObj, "startingPrice", BigDecimal.ZERO));
 
                 boolean matchKeyword = keyword.isEmpty() || name.toLowerCase().contains(keyword);
                 boolean matchTab = false;
@@ -317,7 +280,7 @@ public class MyBidsController implements Initializable {
                         matchTab = isEndedSession(sessionObj);
                         break;
                 }
-if (matchKeyword && matchTab) {
+                if (matchKeyword && matchTab) {
                     newStatesToRender.add(getRenderedStateKey(sessionObj, currentPrice, highestBidderId));
                 }
             }
@@ -331,25 +294,26 @@ if (matchKeyword && matchTab) {
                     String name = itemObj.optString("name", "");
                     String status = normalizeSessionStatus(sessionObj);
                     int highestBidderId = sessionObj.optInt("highestBidderId", -1);
-                    BigDecimal currentPrice = getMoney(sessionObj, "currentPrice", getMoney(sessionObj, "startingPrice", BigDecimal.ZERO));
+                    BigDecimal currentPrice = getMoney(sessionObj, "currentPrice",
+                            getMoney(sessionObj, "startingPrice", BigDecimal.ZERO));
 
                     boolean matchKeyword = keyword.isEmpty() || name.toLowerCase().contains(keyword);
-                boolean matchTab = false;
-                switch (currentTab) {
-                    case ACTIVE:
-                        matchTab = isActiveSession(sessionObj);
-                        break;
-                    case WINNING:
-                        matchTab = isWinningSession(sessionObj, currentUserId);
-                        break;
-                    case OUTBID:
-                        matchTab = isOutbidSession(sessionObj, currentUserId);
-                        break;
-                    case ENDED:
-                        matchTab = isEndedSession(sessionObj);
-                        break;
-                }
-if (matchKeyword && matchTab) {
+                    boolean matchTab = false;
+                    switch (currentTab) {
+                        case ACTIVE:
+                            matchTab = isActiveSession(sessionObj);
+                            break;
+                        case WINNING:
+                            matchTab = isWinningSession(sessionObj, currentUserId);
+                            break;
+                        case OUTBID:
+                            matchTab = isOutbidSession(sessionObj, currentUserId);
+                            break;
+                        case ENDED:
+                            matchTab = isEndedSession(sessionObj);
+                            break;
+                    }
+                    if (matchKeyword && matchTab) {
                         VBox card = createProductCard(sessionObj, itemObj);
                         productContainer.getChildren().add(card);
                         currentRenderedStates.add(getRenderedStateKey(sessionObj, currentPrice, highestBidderId));
@@ -359,7 +323,6 @@ if (matchKeyword && matchTab) {
             }
         });
     }
-
 
     private String normalizeSessionStatus(JSONObject sessionObj) {
         if (sessionObj == null) {
@@ -406,9 +369,9 @@ if (matchKeyword && matchTab) {
     }
 
     private String getRenderedStateKey(JSONObject sessionObj, BigDecimal currentPrice, int highestBidderId) {
-        return sessionObj.optInt("id") + "_" + currentPrice + "_" + highestBidderId + "_" + normalizeSessionStatus(sessionObj);
+        return sessionObj.optInt("id") + "_" + currentPrice + "_" + highestBidderId + "_"
+                + normalizeSessionStatus(sessionObj);
     }
-
 
     private boolean isActiveStatus(String status) {
         if (status == null) {
@@ -439,7 +402,8 @@ if (matchKeyword && matchTab) {
 
         String type = itemObj.optString("type", "");
         String name = itemObj.optString("name", "");
-        BigDecimal currentPrice = getMoney(sessionObj, "currentPrice", getMoney(sessionObj, "startingPrice", BigDecimal.ZERO));
+        BigDecimal currentPrice = getMoney(sessionObj, "currentPrice",
+                getMoney(sessionObj, "startingPrice", BigDecimal.ZERO));
         String status = normalizeSessionStatus(sessionObj);
         String imagePath = itemObj.optString("imagePath", "default.png");
         int highestBidderId = sessionObj.optInt("highestBidderId", -1);
@@ -457,16 +421,19 @@ if (matchKeyword && matchTab) {
         vbox.setPrefHeight(400.0);
         vbox.setMinHeight(400.0);
         vbox.setMaxHeight(400.0);
-        
+
         // Premium modern style
-        vbox.setStyle("-fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-padding: 14px; -fx-background-color: #ffffff; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.05), 10, 0, 0, 2);");
+        vbox.setStyle(
+                "-fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-padding: 14px; -fx-background-color: #ffffff; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.05), 10, 0, 0, 2);");
 
         // Interactive hover scaling and drop shadow micro-animation
         vbox.setOnMouseEntered(e -> {
-            vbox.setStyle("-fx-border-color: #ffd6ee; -fx-border-width: 2px; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-padding: 14px; -fx-background-color: #ffffff; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.15), 15, 0, 0, 4); -fx-scale-x: 1.02; -fx-scale-y: 1.02; -fx-cursor: hand;");
+            vbox.setStyle(
+                    "-fx-border-color: #ffd6ee; -fx-border-width: 2px; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-padding: 14px; -fx-background-color: #ffffff; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.15), 15, 0, 0, 4); -fx-scale-x: 1.02; -fx-scale-y: 1.02; -fx-cursor: hand;");
         });
         vbox.setOnMouseExited(e -> {
-            vbox.setStyle("-fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-padding: 14px; -fx-background-color: #ffffff; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.05), 10, 0, 0, 2); -fx-scale-x: 1.0; -fx-scale-y: 1.0;");
+            vbox.setStyle(
+                    "-fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-padding: 14px; -fx-background-color: #ffffff; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.05), 10, 0, 0, 2); -fx-scale-x: 1.0; -fx-scale-y: 1.0;");
         });
 
         // Image container with clipping and shadow
@@ -532,32 +499,38 @@ if (matchKeyword && matchTab) {
 
         if (endedSession) {
             if (highestBidderId == currentUserId) {
-                statusBadge.setStyle("-fx-background-color: rgba(16, 185, 129, 0.15); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: rgba(16, 185, 129, 0.3); -fx-border-radius: 12px;");
+                statusBadge.setStyle(
+                        "-fx-background-color: rgba(16, 185, 129, 0.15); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: rgba(16, 185, 129, 0.3); -fx-border-radius: 12px;");
                 badgeLabel.setText("Won");
                 badgeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #10b981;");
                 dot.setStyle("-fx-background-color: #10b981; -fx-background-radius: 4px;");
                 statusBadge.getChildren().setAll(dot, badgeLabel);
             } else {
-                statusBadge.setStyle("-fx-background-color: rgba(108, 117, 125, 0.15); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: rgba(108, 117, 125, 0.3); -fx-border-radius: 12px;");
+                statusBadge.setStyle(
+                        "-fx-background-color: rgba(108, 117, 125, 0.15); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: rgba(108, 117, 125, 0.3); -fx-border-radius: 12px;");
                 badgeLabel.setText("Ended");
                 badgeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #6c757d;");
                 statusBadge.getChildren().setAll(badgeLabel);
             }
         } else if (winningSession) {
-            statusBadge.setStyle("-fx-background-color: rgba(16, 185, 129, 0.15); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: rgba(16, 185, 129, 0.3); -fx-border-radius: 12px;");
+            statusBadge.setStyle(
+                    "-fx-background-color: rgba(16, 185, 129, 0.15); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: rgba(16, 185, 129, 0.3); -fx-border-radius: 12px;");
             badgeLabel.setText("Winning");
             badgeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #10b981;");
             dot.setStyle("-fx-background-color: #10b981; -fx-background-radius: 4px;");
             statusBadge.getChildren().setAll(dot, badgeLabel);
         } else if (outbidSession) {
-            statusBadge.setStyle("-fx-background-color: rgba(239, 68, 68, 0.15); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: rgba(239, 68, 68, 0.3); -fx-border-radius: 12px;");
+            statusBadge.setStyle(
+                    "-fx-background-color: rgba(239, 68, 68, 0.15); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: rgba(239, 68, 68, 0.3); -fx-border-radius: 12px;");
             badgeLabel.setText("Outbid");
             badgeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #ef4444;");
             Label warningIcon = new Label("\uE002");
-            warningIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 14px; -fx-text-fill: #ef4444;");
+            warningIcon.setStyle(
+                    "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 14px; -fx-text-fill: #ef4444;");
             statusBadge.getChildren().setAll(warningIcon, badgeLabel);
         } else {
-            statusBadge.setStyle("-fx-background-color: rgba(224, 64, 160, 0.12); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: rgba(224, 64, 160, 0.25); -fx-border-radius: 12px;");
+            statusBadge.setStyle(
+                    "-fx-background-color: rgba(224, 64, 160, 0.12); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: rgba(224, 64, 160, 0.25); -fx-border-radius: 12px;");
             badgeLabel.setText(status);
             badgeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #e040a0;");
             statusBadge.getChildren().setAll(badgeLabel);
@@ -571,11 +544,13 @@ if (matchKeyword && matchTab) {
             timeBadge.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
             StackPane.setAlignment(timeBadge, Pos.TOP_RIGHT);
             StackPane.setMargin(timeBadge, new Insets(10, 10, 0, 0));
-            timeBadge.setStyle("-fx-background-color: rgba(255, 255, 255, 0.9); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: #ffe8e8; -fx-border-radius: 12px;");
+            timeBadge.setStyle(
+                    "-fx-background-color: rgba(255, 255, 255, 0.9); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: #ffe8e8; -fx-border-radius: 12px;");
 
             Label timerIcon = new Label("\uE425");
-            timerIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 14px; -fx-text-fill: #e040a0;");
-            
+            timerIcon.setStyle(
+                    "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 14px; -fx-text-fill: #e040a0;");
+
             Label timeLabel = new Label("Active");
             timeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #e040a0;");
             timeBadge.getChildren().addAll(timerIcon, timeLabel);
@@ -593,7 +568,8 @@ if (matchKeyword && matchTab) {
 
         VBox bidDetailsBox = new VBox(6.0);
         if (outbidSession) {
-            bidDetailsBox.setStyle("-fx-background-color: rgba(239, 68, 68, 0.05); -fx-background-radius: 12px; -fx-padding: 10px; -fx-border-color: rgba(239, 68, 68, 0.1); -fx-border-width: 1px; -fx-border-radius: 12px;");
+            bidDetailsBox.setStyle(
+                    "-fx-background-color: rgba(239, 68, 68, 0.05); -fx-background-radius: 12px; -fx-padding: 10px; -fx-border-color: rgba(239, 68, 68, 0.1); -fx-border-width: 1px; -fx-border-radius: 12px;");
         } else {
             bidDetailsBox.setStyle("-fx-background-color: #f8eef8; -fx-background-radius: 12px; -fx-padding: 10px;");
         }
@@ -615,7 +591,7 @@ if (matchKeyword && matchTab) {
         lblYourBid.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #604868;");
         Region spacer2 = new Region();
         HBox.setHgrow(spacer2, Priority.ALWAYS);
-        
+
         BigDecimal userMaxBid = getMoney(sessionObj, "userMaxBid", BigDecimal.ZERO);
         Label userPriceLabel = new Label();
         if (winningSession || (endedSession && highestBidderId == currentUserId)) {
@@ -637,29 +613,37 @@ if (matchKeyword && matchTab) {
 
         if (outbidSession) {
             btnAction.setText("Increase Bid");
-            btnAction.setStyle("-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 6, 0, 0, 1);");
+            btnAction.setStyle(
+                    "-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 6, 0, 0, 1);");
             Label arrowIcon = new Label("\uE5D8");
-            arrowIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 15px; -fx-text-fill: white; -fx-padding: 0 4px 0 0;");
+            arrowIcon.setStyle(
+                    "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 15px; -fx-text-fill: white; -fx-padding: 0 4px 0 0;");
             btnAction.setGraphic(arrowIcon);
 
             btnAction.setOnMouseEntered(e -> {
-                btnAction.setStyle("-fx-background-color: #d03090; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.35), 8, 0, 0, 2);");
+                btnAction.setStyle(
+                        "-fx-background-color: #d03090; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.35), 8, 0, 0, 2);");
             });
             btnAction.setOnMouseExited(e -> {
-                btnAction.setStyle("-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 6, 0, 0, 1);");
+                btnAction.setStyle(
+                        "-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 6, 0, 0, 1);");
             });
         } else {
             btnAction.setText("View Details");
-            btnAction.setStyle("-fx-background-color: #f2e8f2; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px;");
+            btnAction.setStyle(
+                    "-fx-background-color: #f2e8f2; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px;");
             Label eyeIcon = new Label("\uE8f4");
-            eyeIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 15px; -fx-text-fill: #604868; -fx-padding: 0 4px 0 0;");
+            eyeIcon.setStyle(
+                    "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 15px; -fx-text-fill: #604868; -fx-padding: 0 4px 0 0;");
             btnAction.setGraphic(eyeIcon);
 
             btnAction.setOnMouseEntered(e -> {
-                btnAction.setStyle("-fx-background-color: #ffd6ee; -fx-text-fill: #e040a0; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px;");
+                btnAction.setStyle(
+                        "-fx-background-color: #ffd6ee; -fx-text-fill: #e040a0; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px;");
             });
             btnAction.setOnMouseExited(e -> {
-                btnAction.setStyle("-fx-background-color: #f2e8f2; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px;");
+                btnAction.setStyle(
+                        "-fx-background-color: #f2e8f2; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px;");
             });
         }
 
@@ -710,44 +694,60 @@ if (matchKeyword && matchTab) {
         // Active
         if (btnTabActive != null) {
             if (currentTab == Tab.ACTIVE) {
-                btnTabActive.setStyle("-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
-                setLabelStyleInButton(btnTabActive, "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #ffffff; -fx-padding: 0 4px 0 0;");
+                btnTabActive.setStyle(
+                        "-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
+                setLabelStyleInButton(btnTabActive,
+                        "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #ffffff; -fx-padding: 0 4px 0 0;");
             } else {
-                btnTabActive.setStyle("-fx-background-color: #f8eef8; -fx-text-fill: #2e1a28; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
-                setLabelStyleInButton(btnTabActive, "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #e040a0; -fx-padding: 0 4px 0 0;");
+                btnTabActive.setStyle(
+                        "-fx-background-color: #f8eef8; -fx-text-fill: #2e1a28; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
+                setLabelStyleInButton(btnTabActive,
+                        "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #e040a0; -fx-padding: 0 4px 0 0;");
             }
         }
 
         // Winning
         if (btnTabWinning != null) {
             if (currentTab == Tab.WINNING) {
-                btnTabWinning.setStyle("-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
-                setLabelStyleInButton(btnTabWinning, "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #ffffff; -fx-padding: 0 4px 0 0;");
+                btnTabWinning.setStyle(
+                        "-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
+                setLabelStyleInButton(btnTabWinning,
+                        "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #ffffff; -fx-padding: 0 4px 0 0;");
             } else {
-                btnTabWinning.setStyle("-fx-background-color: #f8eef8; -fx-text-fill: #2e1a28; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
-                setLabelStyleInButton(btnTabWinning, "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #10b981; -fx-padding: 0 4px 0 0;");
+                btnTabWinning.setStyle(
+                        "-fx-background-color: #f8eef8; -fx-text-fill: #2e1a28; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
+                setLabelStyleInButton(btnTabWinning,
+                        "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #10b981; -fx-padding: 0 4px 0 0;");
             }
         }
 
         // Outbid
         if (btnTabOutbid != null) {
             if (currentTab == Tab.OUTBID) {
-                btnTabOutbid.setStyle("-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
-                setLabelStyleInButton(btnTabOutbid, "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #ffffff; -fx-padding: 0 4px 0 0;");
+                btnTabOutbid.setStyle(
+                        "-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
+                setLabelStyleInButton(btnTabOutbid,
+                        "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #ffffff; -fx-padding: 0 4px 0 0;");
             } else {
-                btnTabOutbid.setStyle("-fx-background-color: #f8eef8; -fx-text-fill: #2e1a28; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
-                setLabelStyleInButton(btnTabOutbid, "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #ef4444; -fx-padding: 0 4px 0 0;");
+                btnTabOutbid.setStyle(
+                        "-fx-background-color: #f8eef8; -fx-text-fill: #2e1a28; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
+                setLabelStyleInButton(btnTabOutbid,
+                        "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #ef4444; -fx-padding: 0 4px 0 0;");
             }
         }
 
         // Ended
         if (btnTabEnded != null) {
             if (currentTab == Tab.ENDED) {
-                btnTabEnded.setStyle("-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
-                setLabelStyleInButton(btnTabEnded, "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #ffffff; -fx-padding: 0 4px 0 0;");
+                btnTabEnded.setStyle(
+                        "-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
+                setLabelStyleInButton(btnTabEnded,
+                        "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #ffffff; -fx-padding: 0 4px 0 0;");
             } else {
-                btnTabEnded.setStyle("-fx-background-color: #f8eef8; -fx-text-fill: #2e1a28; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
-                setLabelStyleInButton(btnTabEnded, "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #7c52aa; -fx-padding: 0 4px 0 0;");
+                btnTabEnded.setStyle(
+                        "-fx-background-color: #f8eef8; -fx-text-fill: #2e1a28; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
+                setLabelStyleInButton(btnTabEnded,
+                        "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #7c52aa; -fx-padding: 0 4px 0 0;");
             }
         }
     }
@@ -835,48 +835,12 @@ if (matchKeyword && matchTab) {
     }
 
     private String formatPrice(BigDecimal price) {
-        if (price == null) return "0";
+        if (price == null)
+            return "0";
         DecimalFormatSymbols symbols = new DecimalFormatSymbols();
         symbols.setGroupingSeparator('.');
         DecimalFormat df = new DecimalFormat("###,###", symbols);
         return df.format(price);
     }
 
-    private void updateTopBarAvatar(String avatarUrl) {
-        if (topBarAvatarPane == null) return;
-        try {
-            topBarAvatarPane.getChildren().clear();
-            if (avatarUrl != null && !avatarUrl.isBlank()) {
-                String fullUrl = avatarUrl.startsWith("http") ? avatarUrl : Config.API_URL + avatarUrl;
-                ImageView imgView = new ImageView(new Image(fullUrl, 36, 36, false, true, true));
-                imgView.setFitWidth(36);
-                imgView.setFitHeight(36);
-                imgView.setSmooth(true);
-                javafx.scene.shape.Circle clip = new javafx.scene.shape.Circle(18, 18, 18);
-                imgView.setClip(clip);
-                topBarAvatarPane.getChildren().add(imgView);
-            } else {
-                Label icon = new Label("\uE7FD");
-                icon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: white;");
-                topBarAvatarPane.getChildren().add(icon);
-            }
-        } catch (Exception e) {
-            logger.warn("Cannot update avatar on top bar: {}", e.getMessage());
-        }
-    }
-
-    @FXML
-    private void handleMinimize(javafx.event.ActionEvent event) {
-        SceneSwitcher.handleMinimize(event);
-    }
-
-    @FXML
-    private void handleMaximize(javafx.event.ActionEvent event) {
-        SceneSwitcher.handleMaximize(event);
-    }
-
-    @FXML
-    private void handleClose(javafx.event.ActionEvent event) {
-        SceneSwitcher.handleClose(event);
-    }
 }
