@@ -45,6 +45,8 @@ public class AuthGetImage {
     private static final String INVALID_IMAGE_TYPE_MESSAGE = "Only image files are accepted.";
     private static final String INVALID_FILE_PATH_MESSAGE = "Invalid file path.";
 
+    private Path rootLocation = Paths.get(resolveUploadRootDirectory()).toAbsolutePath().normalize();
+
     private static final int BAD_REQUEST_STATUS = 400;
     private static final int MAX_EXTENSION_LENGTH = 10;
 
@@ -234,7 +236,7 @@ public class AuthGetImage {
     }
 
     private Path getRootLocation() {
-        return Paths.get(resolveUploadRootDirectory()).toAbsolutePath().normalize();
+        return rootLocation;
     }
 
     private String resolveUploadRootDirectory() {
