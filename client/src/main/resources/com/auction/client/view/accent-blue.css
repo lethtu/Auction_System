@@ -1,0 +1,17 @@
+/* Blue Accent overrides */
+.root {
+    -fx-accent: #3b82f6;
+    -fx-focus-color: #3b82f6;
+}
+.setting-switch:selected .box {
+    -fx-background-color: #3b82f6;
+}
+.button.primary-btn {
+    -fx-background-color: #3b82f6;
+}
+.slider .thumb {
+    -fx-background-color: #3b82f6;
+}
+.slider .track {
+    -fx-background-color: rgba(59, 130, 246, 0.2);
+}

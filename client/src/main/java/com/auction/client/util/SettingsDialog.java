@@ -217,14 +217,14 @@ public final class SettingsDialog {
     }
 
     public static boolean isSoundEnabled() {
-        return prefs.getBoolean(KEY_SOUND, true);
+        return com.auction.client.service.SettingsService.getInstance().isSoundEnabled();
     }
 
     public static boolean isOutbidNotificationEnabled() {
-        return prefs.getBoolean(KEY_OUTBID, true);
+        return com.auction.client.service.SettingsService.getInstance().isOutbidNotificationEnabled();
     }
 
     public static boolean isAutoCollapseSidebarEnabled() {
-        return prefs.getBoolean(KEY_AUTO_COLLAPSE, false);
+        return com.auction.client.service.SettingsService.getInstance().isAutoCollapseSidebar();
     }
 }

@@ -1,0 +1,17 @@
+/* Emerald Accent overrides */
+.root {
+    -fx-accent: #10b981;
+    -fx-focus-color: #10b981;
+}
+.setting-switch:selected .box {
+    -fx-background-color: #10b981;
+}
+.button.primary-btn {
+    -fx-background-color: #10b981;
+}
+.slider .thumb {
+    -fx-background-color: #10b981;
+}
+.slider .track {
+    -fx-background-color: rgba(16, 185, 129, 0.2);
+}

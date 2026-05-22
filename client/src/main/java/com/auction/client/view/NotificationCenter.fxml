@@ -3,15 +3,15 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.NotificationCenterController" style="-fx-background-color: #fef7ff;" prefWidth="600.0" prefHeight="800.0">
+<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.NotificationCenterController" style="-fx-background-color: -app-bg;" prefWidth="600.0" prefHeight="800.0">
     <padding>
         <Insets top="20" right="20" bottom="20" left="20"/>
     </padding>
 
     <!-- Header -->
     <HBox alignment="CENTER_LEFT" spacing="15.0" style="-fx-padding: 0 0 20 0;">
-        <Label text="Notifications" style="-fx-font-family: 'DM Sans'; -fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;" />
-        <Label fx:id="lblUnreadCount" text="0 unread" style="-fx-background-color: #ffd6ee; -fx-text-fill: #a02070; -fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-padding: 4 10; -fx-background-radius: 12;" />
+        <Label text="Notifications" style="-fx-font-family: 'DM Sans'; -fx-font-size: 28px; -fx-font-weight: 900; " />
+        <Label fx:id="lblUnreadCount" text="0 unread" style="-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-padding: 4 10; -fx-background-radius: 12;" />
         <Region HBox.hgrow="ALWAYS" />
         <Button text="Mark all as read" onAction="#handleMarkAllRead" style="-fx-background-color: transparent; -fx-text-fill: #e040a0; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;" />
     </HBox>
@@ -19,9 +19,9 @@
     <!-- Tabs/Filters -->
     <HBox spacing="10.0" style="-fx-padding: 0 0 15 0;">
         <Button fx:id="tabAll" text="All" onAction="#filterAll" style="-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;" />
-        <Button fx:id="tabUnread" text="Unread" onAction="#filterUnread" style="-fx-background-color: #f2e8f2; -fx-text-fill: #604868; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;" />
-        <Button fx:id="tabAuction" text="Auction" onAction="#filterAuction" style="-fx-background-color: #f2e8f2; -fx-text-fill: #604868; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;" />
-        <Button fx:id="tabSystem" text="System" onAction="#filterSystem" style="-fx-background-color: #f2e8f2; -fx-text-fill: #604868; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;" />
+        <Button fx:id="tabUnread" text="Unread" onAction="#filterUnread" style="-fx-background-color: -app-surface-2; -fx-text-fill: -app-text; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;" />
+        <Button fx:id="tabAuction" text="Auction" onAction="#filterAuction" style="-fx-background-color: -app-surface-2; -fx-text-fill: -app-text; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;" />
+        <Button fx:id="tabSystem" text="System" onAction="#filterSystem" style="-fx-background-color: -app-surface-2; -fx-text-fill: -app-text; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;" />
     </HBox>
 
     <!-- List -->

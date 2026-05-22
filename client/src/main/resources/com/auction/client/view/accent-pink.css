@@ -1,0 +1,17 @@
+/* Pink Accent overrides */
+.root {
+    -fx-accent: #e040a0;
+    -fx-focus-color: #e040a0;
+}
+.setting-switch:selected .box {
+    -fx-background-color: #e040a0;
+}
+.button.primary-btn {
+    -fx-background-color: #e040a0;
+}
+.slider .thumb {
+    -fx-background-color: #e040a0;
+}
+.slider .track {
+    -fx-background-color: rgba(224, 64, 160, 0.2);
+}

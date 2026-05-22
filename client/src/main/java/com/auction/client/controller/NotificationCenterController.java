@@ -65,11 +65,11 @@ public class NotificationCenterController {
     }
 
     private String getActiveTabStyle() {
-        return "-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;";
+        return "-fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;";
     }
     
     private String getInactiveTabStyle() {
-        return "-fx-background-color: #f2e8f2; -fx-text-fill: #604868; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;";
+        return "-fx-background-color: #f2e8f2;  -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;";
     }
 
     private void renderList() {
@@ -89,7 +89,7 @@ public class NotificationCenterController {
             Label icon = new Label("notifications_off");
             icon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 48px; -fx-text-fill: #dcc8e0;");
             Label msg = new Label("No notifications here");
-            msg.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #907898;");
+            msg.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: bold; ");
             emptyState.getChildren().addAll(icon, msg);
             listContainer.getChildren().add(emptyState);
             return;
@@ -104,10 +104,10 @@ public class NotificationCenterController {
         HBox card = new HBox(15);
         card.setAlignment(Pos.CENTER_LEFT);
         String bgColor = n.isRead() ? "#ffffff" : "#fff0f8";
-        card.setStyle("-fx-background-color: " + bgColor + "; -fx-background-radius: 12; -fx-border-color: #f2e8f2; -fx-border-radius: 12; -fx-padding: 15;");
+        card.setStyle("-fx-background-color: " + bgColor + "; -fx-background-radius: 12;  -fx-border-radius: 12; -fx-padding: 15;");
         
-        card.setOnMouseEntered(e -> card.setStyle("-fx-background-color: #fbf2fb; -fx-background-radius: 12; -fx-border-color: #f2e8f2; -fx-border-radius: 12; -fx-padding: 15; -fx-cursor: hand;"));
-        card.setOnMouseExited(e -> card.setStyle("-fx-background-color: " + (n.isRead() ? "#ffffff" : "#fff0f8") + "; -fx-background-radius: 12; -fx-border-color: #f2e8f2; -fx-border-radius: 12; -fx-padding: 15;"));
+        card.setOnMouseEntered(e -> card.setStyle("-fx-background-color: #fbf2fb; -fx-background-radius: 12;  -fx-border-radius: 12; -fx-padding: 15; -fx-cursor: hand;"));
+        card.setOnMouseExited(e -> card.setStyle("-fx-background-color: " + (n.isRead() ? "#ffffff" : "#fff0f8") + "; -fx-background-radius: 12;  -fx-border-radius: 12; -fx-padding: 15;"));
         card.setOnMouseClicked(e -> {
             service.markAsRead(n.getId());
         });
@@ -118,12 +118,12 @@ public class NotificationCenterController {
         VBox textCol = new VBox(5);
         HBox.setHgrow(textCol, Priority.ALWAYS);
         Label title = new Label(n.getTitle());
-        title.setStyle("-fx-font-family: 'DM Sans'; -fx-font-weight: " + (n.isRead() ? "bold" : "900") + "; -fx-font-size: 15px; -fx-text-fill: #2e1a28;");
+        title.setStyle("-fx-font-family: 'DM Sans'; -fx-font-weight: " + (n.isRead() ? "bold" : "900") + "; -fx-font-size: 15px; ");
         Label message = new Label(n.getMessage());
-        message.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-text-fill: #604868;");
+        message.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 13px; ");
         message.setWrapText(true);
         Label time = new Label(n.getCreatedAt().format(DateTimeFormatter.ofPattern("HH:mm · dd/MM/yyyy")));
-        time.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-text-fill: #907898;");
+        time.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 11px; ");
         textCol.getChildren().addAll(title, message, time);
 
         Circle unreadDot = new Circle(4, Color.web("#e040a0"));
@@ -154,7 +154,7 @@ public class NotificationCenterController {
             case WARNING: return "#eab308";
             case DANGER: return "#e53e3e";
             case INFO:
-            default: return "#e040a0";
+            default: return "-fx-accent";
         }
     }
 

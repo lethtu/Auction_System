@@ -418,14 +418,14 @@ public class MainController implements Initializable {
         iconLabel.setStyle("-fx-font-family: 'Material Icons'; -fx-font-size: 64px; -fx-text-fill: #adb5bd;");
 
         Label titleLabel = new Label("Server Connection Lost");
-        titleLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
+        titleLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 24px; -fx-font-weight: bold; ");
 
         Label msgLabel = new Label(message);
-        msgLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868; -fx-wrap-text: true; -fx-text-alignment: center;");
+        msgLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px;  -fx-wrap-text: true; -fx-text-alignment: center;");
         msgLabel.setMaxWidth(400);
 
         Button retryBtn = new Button("Retry Connection");
-        retryBtn.setStyle("-fx-background-color: linear-gradient(to right, #e040a0, #f06292); -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-padding: 8 24; -fx-background-radius: 999; -fx-cursor: hand;");
+        retryBtn.setStyle("-fx-background-color: linear-gradient(to right, -fx-accent, #f06292); -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-padding: 8 24; -fx-background-radius: 999; -fx-cursor: hand;");
         retryBtn.setOnAction(e -> {
             retryBtn.setText("Retrying...");
             retryBtn.setDisable(true);
@@ -931,13 +931,13 @@ public class MainController implements Initializable {
         iconLabel.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 56px; -fx-text-fill: #c8b6cf;");
 
         Label titleLabel = new Label(getEmptyStateTitle());
-        titleLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
+        titleLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: bold; ");
 
         Label msgLabel = new Label(getEmptyStateMessage());
         msgLabel.setWrapText(true);
         msgLabel.setMaxWidth(480);
         msgLabel.setAlignment(Pos.CENTER);
-        msgLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;");
+        msgLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px;  -fx-text-alignment: center;");
 
         emptyBox.getChildren().addAll(iconLabel, titleLabel, msgLabel);
         return emptyBox;
@@ -985,11 +985,14 @@ public class MainController implements Initializable {
         vbox.setMaxWidth(240.0);
         vbox.setPrefHeight(360.0);
         vbox.setMinHeight(360.0);
-        vbox.setStyle("-fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-padding: 16px; -fx-background-color: #ffffff; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.05), 10, 0, 0, 2);");
+        vbox.setStyle(" -fx-border-width: 2px; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-padding: 16px;  -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.05), 10, 0, 0, 2);");
+        vbox.getStyleClass().add("dashboard-card");
+        vbox.setPickOnBounds(true);
+        vbox.setCursor(javafx.scene.Cursor.HAND);
 
         StackPane imageWrapper = new StackPane();
         imageWrapper.setPrefHeight(192.0);
-        imageWrapper.setStyle("-fx-background-radius: 12px; -fx-border-radius: 12px; -fx-border-color: #f2e8f2; -fx-border-width: 1px;");
+        imageWrapper.setStyle("-fx-background-radius: 12px; -fx-border-radius: 12px;  -fx-border-width: 1px;");
 
         ImageView imageView = new ImageView();
         imageView.setFitHeight(192.0);
@@ -1064,8 +1067,8 @@ public class MainController implements Initializable {
             imageWrapper.getChildren().add(timerBadge);
         } else if ("RUNNING".equals(normalizedStatus)) {
             timerBadge.setStyle("-fx-background-color: rgba(255, 255, 255, 0.9); -fx-background-radius: 15px; -fx-padding: 4px 8px;");
-            timerIcon.setStyle("-fx-text-fill: #e040a0; -fx-font-size: 14px;");
-            timerText.setStyle("-fx-font-weight: 900; -fx-font-size: 11px; -fx-text-fill: #e040a0;");
+            timerIcon.setStyle("-fx-text-fill: -fx-accent; -fx-font-size: 14px;");
+            timerText.setStyle("-fx-font-weight: 900; -fx-font-size: 11px; -fx-text-fill: -fx-accent;");
             
             // Calculate remaining time immediately on creation
             String displayRemaining = "Ongoing";
@@ -1123,13 +1126,13 @@ public class MainController implements Initializable {
         }
 
         Label nameLabel = new Label(name);
-        nameLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 16px; -fx-text-fill: #2e1a28;");
+        nameLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 16px; ");
         nameLabel.setWrapText(true);
         nameLabel.setMaxHeight(24.0);
         VBox.setMargin(nameLabel, new Insets(8, 0, 0, 0));
 
         Label categoryLabel = new Label(type);
-        categoryLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #604868;");
+        categoryLabel.setStyle("-fx-font-size: 13px; ");
 
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
@@ -1139,10 +1142,10 @@ public class MainController implements Initializable {
 
         VBox priceBox = new VBox(0);
         Label lblCurrentBid = new Label("CURRENT BID");
-        lblCurrentBid.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #907898;");
+        lblCurrentBid.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; ");
         Label priceLabel = new Label("₫ " + formatPrice(currentPrice));
         priceLabel.setId("priceLabel_" + id); // Set ID for fast updating
-        priceLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 18px; -fx-text-fill: #e040a0;");
+        priceLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 18px; -fx-text-fill: -fx-accent;");
         priceBox.getChildren().addAll(lblCurrentBid, priceLabel);
 
         Region hSpacer = new Region();
@@ -1169,12 +1172,12 @@ public class MainController implements Initializable {
         mainBtn.setMaxSize(44.0, 44.0);
         mainBtn.setPadding(Insets.EMPTY);
         mainBtn.setAlignment(Pos.CENTER);
-        mainBtn.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
+        mainBtn.setStyle("-fx-background-color: -fx-accent; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
         Tooltip.install(mainBtn, new Tooltip("Options"));
 
         Button btnWatch = new Button();
         Label watchIcon = new Label(User.watchlistIds.contains(id) ? "\uE87D" : "\uE87E"); // heart filled or outline
-        watchIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: " + (User.watchlistIds.contains(id) ? "#e040a0" : "#604868") + ";");
+        watchIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: " + (User.watchlistIds.contains(id) ? "-fx-accent" : "-app-text-muted") + ";");
         watchIcon.setAlignment(Pos.CENTER);
         watchIcon.setMinSize(44.0, 44.0);
         watchIcon.setPrefSize(44.0, 44.0);
@@ -1187,7 +1190,7 @@ public class MainController implements Initializable {
         btnWatch.setMaxSize(44.0, 44.0);
         btnWatch.setPadding(Insets.EMPTY);
         btnWatch.setAlignment(Pos.CENTER);
-        btnWatch.setStyle("-fx-background-color: #f2e8f2; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
+        btnWatch.setStyle(" -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
         Tooltip.install(btnWatch, new Tooltip(User.watchlistIds.contains(id) ? "Favorited" : "Add to favorites"));
 
         Button btnBid = new Button();
@@ -1206,7 +1209,7 @@ public class MainController implements Initializable {
         btnBid.setMaxSize(44.0, 44.0);
         btnBid.setPadding(Insets.EMPTY);
         btnBid.setAlignment(Pos.CENTER);
-        btnBid.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224,64,160,0.3), 8, 0, 0, 2);");
+        btnBid.setStyle("-fx-background-color: -fx-accent; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224,64,160,0.3), 8, 0, 0, 2);");
         Tooltip.install(btnBid, new Tooltip("Bid Now"));
 
         btnWatch.setVisible(false); btnWatch.setManaged(false);
@@ -1236,14 +1239,14 @@ public class MainController implements Initializable {
                 if (User.watchlistIds.contains(id)) {
                     User.watchlistIds.remove(id);
                     watchIcon.setText("\uE87E");
-                    watchIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #604868;");
+                    watchIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; ");
                     watchIcon.setTranslateY(1.5);
                     Tooltip.install(btnWatch, new Tooltip("Add to favorites"));
                     ClientLogger.logFavorite(User.getUsername(), name, id, false);
                 } else {
                     User.watchlistIds.add(id);
                     watchIcon.setText("\uE87D");
-                    watchIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #e040a0;");
+                    watchIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: -fx-accent;");
                     watchIcon.setTranslateY(1.5);
                     Tooltip.install(btnWatch, new Tooltip("Favorited"));
                     ClientLogger.logFavorite(User.getUsername(), name, id, true);
@@ -1279,7 +1282,7 @@ public class MainController implements Initializable {
             
             if ("UPCOMING".equals(normalizedStatus)) {
                 mainPlusIcon.setTextFill(Color.web("#ffffff"));
-                mainBtn.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
+                mainBtn.setStyle("-fx-background-color: -fx-accent; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
                 Tooltip.install(mainBtn, new Tooltip("View details"));
                 mainBtn.setDisable(false);
                 mainBtn.setOnAction(e -> {
@@ -1288,7 +1291,7 @@ public class MainController implements Initializable {
                 });
             } else if ("ENDED".equals(normalizedStatus)) {
                 mainPlusIcon.setTextFill(Color.web("#ffffff"));
-                mainBtn.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
+                mainBtn.setStyle("-fx-background-color: -fx-accent; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
                 Tooltip.install(mainBtn, new Tooltip("View results"));
                 mainBtn.setDisable(false);
                 mainBtn.setOnAction(e -> {
@@ -1297,8 +1300,8 @@ public class MainController implements Initializable {
                 });
             } else {
                 // UNKNOWN_TIME
-                mainPlusIcon.setTextFill(Color.web("#888888"));
-                mainBtn.setStyle("-fx-background-color: #cccccc; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: default;");
+                mainPlusIcon.setTextFill(Color.web("-app-text-muted"));
+                mainBtn.setStyle(" -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: default;");
                 Tooltip.install(mainBtn, new Tooltip("Auction time unknown"));
                 mainBtn.setDisable(true);
                 mainBtn.setOnAction(e -> {
@@ -1548,7 +1551,7 @@ public class MainController implements Initializable {
         StackPane placeholder = new StackPane();
         placeholder.setMinSize(size, size);
         placeholder.setMaxSize(size, size);
-        placeholder.setStyle("-fx-background-color: linear-gradient(to bottom right, #e040a0, #c83090);"
+        placeholder.setStyle("-fx-background-color: linear-gradient(to bottom right, -fx-accent, #c83090);"
                 + " -fx-background-radius: " + (size / 2) + ";");
 
         String initials = getInitials(User.getFullname());
@@ -1973,16 +1976,16 @@ public class MainController implements Initializable {
 
         VBox titleBox = new VBox(2);
         Label title = new Label("Compact Session List");
-        title.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 26px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
+        title.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 26px; -fx-font-weight: 900; ");
         Label subtitle = new Label("Sessions currently displayed based on filters.");
-        subtitle.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #907898;");
+        subtitle.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; ");
         titleBox.getChildren().addAll(title, subtitle);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         Button backButton = new Button("Back to Grid");
-        backButton.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 999; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-padding: 9 22 9 22; -fx-cursor: hand;");
+        backButton.setStyle("-fx-background-color: -fx-accent; -fx-background-radius: 999; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-padding: 9 22 9 22; -fx-cursor: hand;");
         backButton.setOnAction(e -> returnToAuctionGrid());
         header.getChildren().addAll(titleBox, spacer, backButton);
 
@@ -1993,11 +1996,11 @@ public class MainController implements Initializable {
             VBox empty = new VBox(8);
             empty.setAlignment(Pos.CENTER);
             empty.setPadding(new Insets(60));
-            empty.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 22px; -fx-border-color: #ffe8e8; -fx-border-radius: 22px; -fx-border-width: 2px;");
+            empty.setStyle(" -fx-background-radius: 22px;  -fx-border-radius: 22px; -fx-border-width: 2px;");
             Label emptyTitle = new Label("No sessions found with current filters");
-            emptyTitle.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
+            emptyTitle.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 18px; -fx-font-weight: 900; ");
             Label emptyMsg = new Label("Try changing filters or return to grid view.");
-            emptyMsg.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #907898;");
+            emptyMsg.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; ");
             empty.getChildren().addAll(emptyTitle, emptyMsg);
             listBox.getChildren().add(empty);
         } else {
@@ -2029,7 +2032,7 @@ public class MainController implements Initializable {
         HBox row = new HBox(14);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(14, 18, 14, 18));
-        row.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 18px; -fx-border-color: #ffe8e8; -fx-border-width: 1.5px; -fx-border-radius: 18px; -fx-cursor: hand;");
+        row.setStyle(" -fx-background-radius: 18px;  -fx-border-width: 1.5px; -fx-border-radius: 18px; -fx-cursor: hand;");
         row.setOnMouseClicked(event -> {
             openAuctionPage(event, sessionObj, itemObj, itemObj.optString("name", "Unknown"), sessionObj.optInt("id"), currentPrice);
         });
@@ -2038,25 +2041,25 @@ public class MainController implements Initializable {
         order.setAlignment(Pos.CENTER);
         order.setMinSize(34, 34);
         order.setPrefSize(34, 34);
-        order.setStyle("-fx-background-color: #ffd6ee; -fx-background-radius: 17px; -fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: 900; -fx-text-fill: #e040a0;");
+        order.setStyle(" -fx-background-radius: 17px; -fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: 900; -fx-text-fill: -fx-accent;");
 
         VBox infoBox = new VBox(3);
         Label name = new Label("#" + sessionObj.optInt("id") + " · " + itemObj.optString("name", "Unknown"));
-        name.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
+        name.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: 900; ");
         Label type = new Label(itemObj.optString("type", "Unknown category"));
-        type.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-text-fill: #907898;");
+        type.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 12px; ");
         infoBox.getChildren().addAll(name, type);
 
         Region rowSpacer = new Region();
         HBox.setHgrow(rowSpacer, Priority.ALWAYS);
 
         Label statusBadge = new Label(status);
-        statusBadge.setStyle("-fx-background-color: #f2e8f2; -fx-background-radius: 999; -fx-padding: 5 12 5 12; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: #604868;");
+        statusBadge.setStyle(" -fx-background-radius: 999; -fx-padding: 5 12 5 12; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: 900; ");
 
         Label price = new Label("₫ " + formatPrice(currentPrice));
         price.setMinWidth(110);
         price.setAlignment(Pos.CENTER_RIGHT);
-        price.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: #e040a0;");
+        price.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: -fx-accent;");
 
         row.getChildren().addAll(order, infoBox, rowSpacer, statusBadge, price);
         return row;
@@ -2153,7 +2156,7 @@ public class MainController implements Initializable {
 
         toast.getChildren().addAll(icon, textBox, closeBtn);
 
-        toast.setOpacity(0);
+        toast.setOpacity(0); // OK for animation
         toast.setTranslateY(20);
         toastContainer.getChildren().add(toast);
 
@@ -2254,8 +2257,8 @@ public class MainController implements Initializable {
     private void markCardAsEnded(int sessionId) {
         VBox card = sessionCardMap.get(sessionId);
         if (card != null) {
-            card.setOpacity(0.6);
-            card.setStyle("-fx-border-color: #dee2e6; -fx-border-radius: 5px; -fx-padding: 10px; -fx-background-color: #f4f4f4;");
+            // card.setOpacity(0.6);
+            card.setStyle(" -fx-border-radius: 5px; -fx-padding: 10px; ");
 
             // Find Button in Card and update
             card.getChildren().stream()
@@ -2265,7 +2268,7 @@ public class MainController implements Initializable {
                     .ifPresent(btn -> {
                         btn.setText("Time's Up");
                         btn.setDisable(true);
-                        btn.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white;");
+                        btn.setStyle(" -fx-text-fill: white;");
                     });
         }
     }
@@ -2353,7 +2356,7 @@ public class MainController implements Initializable {
             FXMLLoader loader = SceneSwitcher.switchScene(event, "AuctionPage.fxml", 1280, 800);
             AuctionPageController controller = loader.getController();
             controller.setItem(sessionObj, itemObj);
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             logger.error("Cannot open Auction Page", ex);
         }
     }

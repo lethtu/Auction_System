@@ -1,0 +1,62 @@
+package com.auction.server.controller;
+
+import com.auction.server.model.User;
+import com.auction.server.dto.ApiResponse;
+import com.auction.server.view.EmailServer;
+import com.auction.server.view.RqLoginSignup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+import java.util.Optional;
+
+@RestController
+@RequestMapping("/api")
+public class AuthLoginSignup {
+    private static final Logger logger = LoggerFactory.getLogger(AuthLoginSignup.class);
+    @Autowired
+    private RqLoginSignup rq;
+    @Autowired
+    private EmailServer emailServer;
+
+    @PostMapping("/login")
+    public ApiResponse<?> Login(@RequestBody Map<String, String> requests) {
+        String username = requests.get("username");
+        String password = requests.get("password");
+        Optional<User> res = rq.login(username, password);
+        if (res.isPresent()) {
+            if (res.get().isBanned()) {
+                logger.warn("User {} account is banned", username);
+                return new ApiResponse<String>(403, "Account has been banned", "");
+            }
+            logger.info("User {} logged in successfully", username);
+            return new ApiResponse<Optional<User>>(200, "Login successful", res);
+        }
+        else {
+            logger.error("User {} login failed", username);
+            return new ApiResponse<String>(400, "Login failed", "");
+        }
+    }
+
+    @PostMapping("/signup")
+    public ApiResponse<?> Signup(@RequestBody User newUser) {
+        logger.info("New user registration info: {}", newUser);
+        logger.info("Email: {}, Fullname: {}, Password: {}", newUser.getEmail(), newUser.getFullname(), newUser.getPassword());
+        boolean check = rq.signup(newUser);
+        if (!check) {
+            String body = "Hello " + newUser.getFullname() + ",\n\n"
+                    + "Your account (" + newUser.getUsername() + ") has been created successfully.\n"
+                    + "We wish you great auction experiences!\n\n"
+                    + "Best regards,\nThe Admin Team.";
+            emailServer.SendEmail(newUser.getEmail(), "Account Registration Successful", body);
+            logger.info("User {} registered successfully", newUser.getUsername());
+            return new ApiResponse<User>(200, "Registration successful", newUser);
+        }
+        else {
+            logger.error("Registration error, username: {} or email: {} already exists", newUser.getUsername(), newUser.getEmail());
+            return new ApiResponse<User>(400, "Email or Username already exists", newUser);
+        }
+    }
+}

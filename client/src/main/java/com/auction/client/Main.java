@@ -10,6 +10,7 @@ import javafx.stage.Stage;
 import javafx.scene.paint.Color;
 import javafx.stage.StageStyle;
 import com.auction.client.util.ResizeHelper;
+import com.auction.client.service.AppStyleManager;
 import java.util.Objects;
 
 public class Main extends Application {
@@ -23,6 +24,7 @@ public class Main extends Application {
         primaryStage.setTitle("Auction System");
         Scene scene = new Scene(root, 1000, 700);
         scene.setFill(Color.TRANSPARENT);
+        AppStyleManager.applyCurrentStyle(scene);
         primaryStage.initStyle(StageStyle.TRANSPARENT);
         primaryStage.setScene(scene);
 

@@ -1,0 +1,17 @@
+/* Orange Accent overrides */
+.root {
+    -fx-accent: #f97316;
+    -fx-focus-color: #f97316;
+}
+.setting-switch:selected .box {
+    -fx-background-color: #f97316;
+}
+.button.primary-btn {
+    -fx-background-color: #f97316;
+}
+.slider .thumb {
+    -fx-background-color: #f97316;
+}
+.slider .track {
+    -fx-background-color: rgba(249, 115, 22, 0.2);
+}

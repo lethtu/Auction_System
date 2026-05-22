@@ -451,14 +451,26 @@ if (matchKeyword && matchTab) {
         vbox.setMaxHeight(410.0);
         
         // Premium modern style
-        vbox.setStyle("-fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-padding: 14px; -fx-background-color: #ffffff; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.05), 10, 0, 0, 2);");
+        vbox.setStyle(" -fx-border-width: 2px; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-padding: 14px;  -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.05), 10, 0, 0, 2);");
+        vbox.getStyleClass().add("auction-card");
+        vbox.setPickOnBounds(true);
+        vbox.setCursor(javafx.scene.Cursor.HAND);
+        vbox.setOnMouseClicked(event -> {
+            try {
+                FXMLLoader loader = SceneSwitcher.switchScene(event, "AuctionPage.fxml", 1280, 800);
+                AuctionPageController controller = loader.getController();
+                controller.setItem(sessionObj, itemObj);
+            } catch (IOException e) {
+                logger.error("Error switching to auction room", e);
+            }
+        });
 
         // Interactive hover scaling and drop shadow micro-animation
         vbox.setOnMouseEntered(e -> {
-            vbox.setStyle("-fx-border-color: #ffd6ee; -fx-border-width: 2px; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-padding: 14px; -fx-background-color: #ffffff; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.15), 15, 0, 0, 4); -fx-scale-x: 1.02; -fx-scale-y: 1.02; -fx-cursor: hand;");
+            vbox.setStyle("-fx-border-color: #ffd6ee; -fx-border-width: 2px; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-padding: 14px;  -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.15), 15, 0, 0, 4); -fx-scale-x: 1.02; -fx-scale-y: 1.02; -fx-cursor: hand;");
         });
         vbox.setOnMouseExited(e -> {
-            vbox.setStyle("-fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-padding: 14px; -fx-background-color: #ffffff; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.05), 10, 0, 0, 2); -fx-scale-x: 1.0; -fx-scale-y: 1.0;");
+            vbox.setStyle(" -fx-border-width: 2px; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-padding: 14px;  -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.05), 10, 0, 0, 2); -fx-scale-x: 1.0; -fx-scale-y: 1.0;");
         });
 
         // Image container with clipping and shadow
@@ -551,7 +563,7 @@ if (matchKeyword && matchTab) {
         } else {
             statusBadge.setStyle("-fx-background-color: rgba(224, 64, 160, 0.12); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: rgba(224, 64, 160, 0.25); -fx-border-radius: 12px;");
             badgeLabel.setText(status);
-            badgeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #e040a0;");
+            badgeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: -fx-accent;");
             statusBadge.getChildren().setAll(badgeLabel);
         }
         imageWrapper.getChildren().remove(statusBadge);
@@ -563,19 +575,19 @@ if (matchKeyword && matchTab) {
             timeBadge.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
             StackPane.setAlignment(timeBadge, Pos.TOP_RIGHT);
             StackPane.setMargin(timeBadge, new Insets(10, 10, 0, 0));
-            timeBadge.setStyle("-fx-background-color: rgba(255, 255, 255, 0.9); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: #ffe8e8; -fx-border-radius: 12px;");
+            timeBadge.setStyle("-fx-background-color: rgba(255, 255, 255, 0.9); -fx-background-radius: 12px; -fx-padding: 4px 10px;  -fx-border-radius: 12px;");
 
             Label timerIcon = new Label("\uE425");
-            timerIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 14px; -fx-text-fill: #e040a0;");
+            timerIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 14px; -fx-text-fill: -fx-accent;");
             
             Label timeLabel = new Label("Active");
-            timeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #e040a0;");
+            timeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: -fx-accent;");
             timeBadge.getChildren().addAll(timerIcon, timeLabel);
             imageWrapper.getChildren().add(timeBadge);
         }
 
         Label nameLabel = new Label(name);
-        nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2e1a28;");
+        nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; ");
         nameLabel.setWrapText(true);
         nameLabel.setPrefHeight(44.0);
         nameLabel.setMaxHeight(44.0);
@@ -593,18 +605,18 @@ if (matchKeyword && matchTab) {
         HBox currentBidRow = new HBox();
         currentBidRow.setAlignment(Pos.CENTER_LEFT);
         Label lblCurrentBid = new Label("CURRENT BID");
-        lblCurrentBid.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #604868;");
+        lblCurrentBid.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; ");
         Region spacer1 = new Region();
         HBox.setHgrow(spacer1, Priority.ALWAYS);
         Label priceLabel = new Label("₫ " + formatPrice(currentPrice));
         priceLabel.setId("priceLabel_" + id);
-        priceLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2e1a28;");
+        priceLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; ");
         currentBidRow.getChildren().addAll(lblCurrentBid, spacer1, priceLabel);
 
         HBox userBidRow = new HBox();
         userBidRow.setAlignment(Pos.CENTER_LEFT);
         Label lblYourBid = new Label(outbidSession ? "YOUR MAX BID" : (endedSession ? "FINAL BID" : "YOUR BID"));
-        lblYourBid.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #604868;");
+        lblYourBid.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; ");
         Region spacer2 = new Region();
         HBox.setHgrow(spacer2, Priority.ALWAYS);
         
@@ -629,7 +641,7 @@ if (matchKeyword && matchTab) {
 
         if (outbidSession) {
             btnAction.setText("Increase Bid");
-            btnAction.setStyle("-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 6, 0, 0, 1);");
+            btnAction.setStyle("-fx-background-color: -fx-accent; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 6, 0, 0, 1);");
             Label arrowIcon = new Label("\uE5D8");
             arrowIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 15px; -fx-text-fill: white; -fx-padding: 0 4px 0 0;");
             btnAction.setGraphic(arrowIcon);
@@ -638,20 +650,20 @@ if (matchKeyword && matchTab) {
                 btnAction.setStyle("-fx-background-color: #d03090; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.35), 8, 0, 0, 2);");
             });
             btnAction.setOnMouseExited(e -> {
-                btnAction.setStyle("-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 6, 0, 0, 1);");
+                btnAction.setStyle("-fx-background-color: -fx-accent; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 6, 0, 0, 1);");
             });
         } else {
             btnAction.setText("View Details");
-            btnAction.setStyle("-fx-background-color: #f2e8f2; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px;");
+            btnAction.setStyle("-fx-background-color: #f2e8f2;  -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px;");
             Label eyeIcon = new Label("\uE8f4");
-            eyeIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 15px; -fx-text-fill: #604868; -fx-padding: 0 4px 0 0;");
+            eyeIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 15px;  -fx-padding: 0 4px 0 0;");
             btnAction.setGraphic(eyeIcon);
 
             btnAction.setOnMouseEntered(e -> {
-                btnAction.setStyle("-fx-background-color: #ffd6ee; -fx-text-fill: #e040a0; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px;");
+                btnAction.setStyle("-fx-background-color: #ffd6ee; -fx-text-fill: -fx-accent; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px;");
             });
             btnAction.setOnMouseExited(e -> {
-                btnAction.setStyle("-fx-background-color: #f2e8f2; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px;");
+                btnAction.setStyle("-fx-background-color: #f2e8f2;  -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px;");
             });
         }
 
@@ -702,21 +714,21 @@ if (matchKeyword && matchTab) {
         // Active
         if (btnTabActive != null) {
             if (currentTab == Tab.ACTIVE) {
-                btnTabActive.setStyle("-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
+                btnTabActive.setStyle("-fx-background-color: -fx-accent; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
                 setLabelStyleInButton(btnTabActive, "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #ffffff; -fx-padding: 0 4px 0 0;");
             } else {
-                btnTabActive.setStyle("-fx-background-color: #f8eef8; -fx-text-fill: #2e1a28; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
-                setLabelStyleInButton(btnTabActive, "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #e040a0; -fx-padding: 0 4px 0 0;");
+                btnTabActive.setStyle("-fx-background-color: #f8eef8;  -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
+                setLabelStyleInButton(btnTabActive, "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: -fx-accent; -fx-padding: 0 4px 0 0;");
             }
         }
 
         // Winning
         if (btnTabWinning != null) {
             if (currentTab == Tab.WINNING) {
-                btnTabWinning.setStyle("-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
+                btnTabWinning.setStyle("-fx-background-color: -fx-accent; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
                 setLabelStyleInButton(btnTabWinning, "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #ffffff; -fx-padding: 0 4px 0 0;");
             } else {
-                btnTabWinning.setStyle("-fx-background-color: #f8eef8; -fx-text-fill: #2e1a28; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
+                btnTabWinning.setStyle("-fx-background-color: #f8eef8;  -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
                 setLabelStyleInButton(btnTabWinning, "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #10b981; -fx-padding: 0 4px 0 0;");
             }
         }
@@ -724,10 +736,10 @@ if (matchKeyword && matchTab) {
         // Outbid
         if (btnTabOutbid != null) {
             if (currentTab == Tab.OUTBID) {
-                btnTabOutbid.setStyle("-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
+                btnTabOutbid.setStyle("-fx-background-color: -fx-accent; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
                 setLabelStyleInButton(btnTabOutbid, "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #ffffff; -fx-padding: 0 4px 0 0;");
             } else {
-                btnTabOutbid.setStyle("-fx-background-color: #f8eef8; -fx-text-fill: #2e1a28; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
+                btnTabOutbid.setStyle("-fx-background-color: #f8eef8;  -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
                 setLabelStyleInButton(btnTabOutbid, "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #ef4444; -fx-padding: 0 4px 0 0;");
             }
         }
@@ -735,10 +747,10 @@ if (matchKeyword && matchTab) {
         // Ended
         if (btnTabEnded != null) {
             if (currentTab == Tab.ENDED) {
-                btnTabEnded.setStyle("-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
+                btnTabEnded.setStyle("-fx-background-color: -fx-accent; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
                 setLabelStyleInButton(btnTabEnded, "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #ffffff; -fx-padding: 0 4px 0 0;");
             } else {
-                btnTabEnded.setStyle("-fx-background-color: #f8eef8; -fx-text-fill: #2e1a28; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
+                btnTabEnded.setStyle("-fx-background-color: #f8eef8;  -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
                 setLabelStyleInButton(btnTabEnded, "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #7c52aa; -fx-padding: 0 4px 0 0;");
             }
         }

@@ -13,7 +13,7 @@
             <StackPane prefWidth="70.0" minWidth="70.0" maxWidth="70.0">
                 <Button fx:id="btnHamburger" onAction="#handleToggleSidebar" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0;">
                     <graphic>
-                        <Label text="&#xe5d2;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" />
+                        <Label text="&#xe5d2;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; " />
                     </graphic>
                 </Button>
             </StackPane>
@@ -21,9 +21,9 @@
             
             <Region HBox.hgrow="ALWAYS" />
             
-            <HBox alignment="CENTER_LEFT" prefWidth="500.0" prefHeight="40.0" style="-fx-background-color: #ffffff; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 999; -fx-background-radius: 999; -fx-padding: 0 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.05), 10, 0, 0, 2);">
+            <HBox alignment="CENTER_LEFT" prefWidth="500.0" prefHeight="40.0" style="  -fx-border-width: 2px; -fx-border-radius: 999; -fx-background-radius: 999; -fx-padding: 0 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.05), 10, 0, 0, 2);">
                 <Label text="&#xe8b6;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #e040a0;" translateY="0.0" />
-                <TextField fx:id="txtSearch" promptText="Search items, categories, or auctions..." HBox.hgrow="ALWAYS" style="-fx-background-color: transparent; -fx-padding: 0 0 0 8px; -fx-prompt-text-fill: #907898; -fx-text-fill: #2e1a28; -fx-font-size: 14px;" />
+                <TextField fx:id="txtSearch" promptText="Search items, categories, or auctions..." HBox.hgrow="ALWAYS" style="-fx-background-color: transparent; -fx-padding: 0 0 0 8px; -fx-prompt-text-fill: #907898;  -fx-font-size: 14px;" />
             </HBox>
             
             <Region HBox.hgrow="ALWAYS" />
@@ -32,14 +32,14 @@
                 <StackPane alignment="CENTER" minWidth="44.0" prefWidth="44.0" maxWidth="44.0" minHeight="44.0" prefHeight="44.0" maxHeight="44.0">
                     <Button fx:id="btnNotificationBell" minWidth="44.0" prefWidth="44.0" maxWidth="44.0" minHeight="44.0" prefHeight="44.0" maxHeight="44.0" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0; -fx-alignment: center;">
                         <graphic>
-                            <Label text="&#xe7f4;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" />
+                            <Label text="&#xe7f4;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; " />
                         </graphic>
                     </Button>
                     <Label fx:id="notificationBadge" text="0" visible="false" managed="false" style="-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 1 5; -fx-background-radius: 10; -fx-translate-x: 12; -fx-translate-y: -12;" />
                 </StackPane>
                 <Button onAction="#handleSettings" minWidth="44.0" prefWidth="44.0" maxWidth="44.0" minHeight="44.0" prefHeight="44.0" maxHeight="44.0" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0; -fx-alignment: center;">
                     <graphic>
-                        <Label text="&#xe8b8;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #604868;" />
+                        <Label text="&#xe8b8;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; " />
                     </graphic>
                 </Button>
                 <MenuButton fx:id="userMenuButton" id="profile-menu" minWidth="58.0" prefWidth="58.0" maxWidth="58.0" minHeight="44.0" prefHeight="44.0" maxHeight="44.0" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0; -fx-alignment: center; -fx-background-insets: 0;">
@@ -53,17 +53,17 @@
                 <HBox alignment="CENTER" spacing="6" style="-fx-padding: 0 0 0 10;">
                     <Button onAction="#handleMinimize" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 4;">
                         <graphic>
-                            <Label text="−" style="-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: #907898;" />
+                            <Label text="−" style="-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; " />
                         </graphic>
                     </Button>
                     <Button onAction="#handleMaximize" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 4;">
                         <graphic>
-                            <Label text="□" style="-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: #907898;" />
+                            <Label text="□" style="-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; " />
                         </graphic>
                     </Button>
                     <Button onAction="#handleClose" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 4;">
                         <graphic>
-                            <Label text="×" style="-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: #907898;" />
+                            <Label text="×" style="-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; " />
                         </graphic>
                     </Button>
                 </HBox>
@@ -82,24 +82,20 @@
             </BorderPane.margin>
             <!-- Header Section inside Center -->
             <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-padding: 0 0 0 0;">
-                <Label fx:id="lblPageTitle" text="Live Auctions" textFill="#2e1a28">
-                    <font>
-                        <Font name="System Bold" size="28.0" />
-                    </font>
-                </Label>
+                <Label fx:id="lblPageTitle" text="Live Auctions" styleClass="page-title" />
                 
                 <Region HBox.hgrow="ALWAYS" />
                 
                 <!-- Filter controls mapping to cbCategory and cbStatus -->
                 <HBox fx:id="filterControlsBox" spacing="10.0" alignment="CENTER">
-                    <Label text="Filter:" textFill="#604868" style="-fx-font-weight: bold;" />
-                    <ComboBox fx:id="cbCategory" promptText="Category" prefWidth="150.0" style="-fx-background-color: #fef7ff; -fx-border-color: #ffe8e8; -fx-border-radius: 32px; -fx-background-radius: 32px; -fx-text-fill: #e040a0;" />
-                    <ComboBox fx:id="cbStatus" promptText="Status" prefWidth="150.0" style="-fx-background-color: #fef7ff; -fx-border-color: #ffe8e8; -fx-border-radius: 32px; -fx-background-radius: 32px; -fx-text-fill: #e040a0;" />
-                    <Button fx:id="btnResetFilter" onAction="#handleResetFilter" text="Reset" graphicTextGap="5.0" style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 999; -fx-background-radius: 999; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 6px 14px;">
+                    <Label text="Filter:" style="-fx-font-weight: bold; -fx-text-fill: -app-text-muted;" />
+                    <ComboBox fx:id="cbCategory" promptText="Category" prefWidth="150.0" style="-fx-border-radius: 32px; -fx-background-radius: 32px;" />
+                    <ComboBox fx:id="cbStatus" promptText="Status" prefWidth="150.0" style="-fx-border-radius: 32px; -fx-background-radius: 32px;" />
+                    <Button fx:id="btnResetFilter" onAction="#handleResetFilter" text="Reset" graphicTextGap="5.0" style="  -fx-border-radius: 999; -fx-background-radius: 999;  -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 6px 14px;">
                         <graphic><Label text="&#xe9b0;" translateY="2.0" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #e040a0;" /></graphic>
                     </Button>
-                    <Button onAction="#handleListView" style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 999; -fx-background-radius: 999; -fx-cursor: hand; -fx-padding: 6px 8px;">
-                        <graphic><Label text="&#xe8ef;" translateY="2.0" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #907898;" /></graphic>
+                    <Button onAction="#handleListView" style="  -fx-border-radius: 999; -fx-background-radius: 999; -fx-cursor: hand; -fx-padding: 6px 8px;">
+                        <graphic><Label text="&#xe8ef;" translateY="2.0" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; " /></graphic>
                     </Button>
                 </HBox>
             </HBox>

@@ -1,0 +1,17 @@
+/* Purple Accent overrides */
+.root {
+    -fx-accent: #8b5cf6;
+    -fx-focus-color: #8b5cf6;
+}
+.setting-switch:selected .box {
+    -fx-background-color: #8b5cf6;
+}
+.button.primary-btn {
+    -fx-background-color: #8b5cf6;
+}
+.slider .thumb {
+    -fx-background-color: #8b5cf6;
+}
+.slider .track {
+    -fx-background-color: rgba(139, 92, 246, 0.2);
+}

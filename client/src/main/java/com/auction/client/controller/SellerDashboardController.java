@@ -294,7 +294,7 @@ public class SellerDashboardController {
             if (event.getGestureSource() != imageUploadArea && event.getDragboard().hasFiles()) {
                 event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
                 imageUploadArea.setStyle(
-                        "-fx-border-color: #e040a0; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 32px; -fx-cursor: hand; -fx-background-color: #ffd6ee;");
+                        "-fx-border-color: -fx-accent; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 32px; -fx-cursor: hand; -fx-background-color: #ffd6ee;");
             }
             event.consume();
         });
@@ -377,9 +377,9 @@ public class SellerDashboardController {
                     VBox vbox = new VBox(2);
                     vbox.setAlignment(Pos.CENTER_LEFT);
                     Label lblName = new Label(item.productName);
-                    lblName.setStyle("-fx-font-weight: bold; -fx-text-fill: #2e1a28;");
+                    lblName.setStyle("-fx-font-weight: bold; ");
                     Label lblId = new Label("ID: #AUC-" + item.id);
-                    lblId.setStyle("-fx-font-size: 11px; -fx-text-fill: #604868;");
+                    lblId.setStyle("-fx-font-size: 11px; ");
 
                     vbox.getChildren().addAll(lblName, lblId);
                     hbox.getChildren().addAll(imgContainer, vbox);
@@ -410,7 +410,7 @@ public class SellerDashboardController {
                         case "CANCELED" -> {
                             lblStatus.setStyle("-fx-background-color: #ffe8e8; -fx-text-fill: #e53e3e;");
                         }
-                        default -> lblStatus.setStyle("-fx-background-color: #f2e8f2; -fx-text-fill: #604868;");
+                        default -> lblStatus.setStyle("-fx-background-color: #f2e8f2; ");
                     }
                     setGraphic(lblStatus);
                 }
@@ -429,10 +429,10 @@ public class SellerDashboardController {
                 } else {
                     if (price.compareTo(BigDecimal.ZERO) == 0) {
                         setText("--");
-                        setStyle("-fx-text-fill: #604868; -fx-font-weight: bold; -fx-alignment: center-right;");
+                        setStyle(" -fx-font-weight: bold; -fx-alignment: center-right;");
                     } else {
                         setText("$" + df.format(price));
-                        setStyle("-fx-text-fill: #e040a0; -fx-font-weight: 900; -fx-alignment: center-right;");
+                        setStyle("-fx-text-fill: -fx-accent; -fx-font-weight: 900; -fx-alignment: center-right;");
                     }
                 }
             }
@@ -456,7 +456,7 @@ public class SellerDashboardController {
                             long hours = d.toHours();
                             long minutes = d.toMinutesPart();
                             setText(String.format("%02dh %02dm", hours, minutes));
-                            setStyle("-fx-text-fill: #604868; -fx-font-weight: bold; -fx-alignment: center-right;");
+                            setStyle(" -fx-font-weight: bold; -fx-alignment: center-right;");
                         }
                     } catch (Exception e) {
                         setText(endTime);
@@ -2353,7 +2353,7 @@ public class SellerDashboardController {
         container.setPadding(new javafx.geometry.Insets(32));
         container.setPrefWidth(360);
         container.setStyle(
-                "-fx-background-color: white; -fx-background-radius: 16px; -fx-border-color: #ffe8f2; -fx-border-width: 1px; -fx-border-radius: 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 30, 0, 0, 10);");
+                " -fx-background-radius: 16px; -fx-border-color: #ffe8f2; -fx-border-width: 1px; -fx-border-radius: 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 30, 0, 0, 10);");
 
         StackPane iconCircle = new StackPane();
         iconCircle.setPrefSize(64, 64);
@@ -2367,12 +2367,12 @@ public class SellerDashboardController {
 
         Label titleLabel = new Label("Start time has arrived!");
         titleLabel.setStyle(
-                "-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
+                "-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: bold; ");
 
         Label descLabel = new Label(
                 "The auction session for your item is ready.\nDo you want to start it now?");
         descLabel.setStyle(
-                "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;");
+                "-fx-font-family: 'DM Sans'; -fx-font-size: 14px;  -fx-text-alignment: center;");
         descLabel.setWrapText(true);
 
         VBox btnBox = new VBox(12);
@@ -2383,13 +2383,13 @@ public class SellerDashboardController {
         btnStartNow.setPrefHeight(44);
         btnStartNow.setMaxWidth(Double.MAX_VALUE);
         btnStartNow.setStyle(
-                "-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand;");
+                "-fx-background-color: -fx-accent; -fx-background-radius: 22px; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand;");
 
         Button btnEdit = new Button("Edit");
         btnEdit.setPrefHeight(44);
         btnEdit.setMaxWidth(Double.MAX_VALUE);
         btnEdit.setStyle(
-                "-fx-background-color: transparent; -fx-border-color: #dcc8e0; -fx-border-width: 2px; -fx-border-radius: 22px; -fx-background-radius: 22px; -fx-text-fill: #604868; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
+                "-fx-background-color: transparent; -fx-border-color: #dcc8e0; -fx-border-width: 2px; -fx-border-radius: 22px; -fx-background-radius: 22px;  -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
 
         btnBox.getChildren().addAll(btnStartNow, btnEdit);
         container.getChildren().addAll(iconCircle, titleLabel, descLabel, btnBox);
@@ -2424,7 +2424,7 @@ public class SellerDashboardController {
         container.setPadding(new javafx.geometry.Insets(32));
         container.setPrefWidth(360);
         container.setStyle(
-                "-fx-background-color: white; -fx-background-radius: 16px; -fx-border-color: #ffe8f2; -fx-border-width: 1px; -fx-border-radius: 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 30, 0, 0, 10);");
+                " -fx-background-radius: 16px; -fx-border-color: #ffe8f2; -fx-border-width: 1px; -fx-border-radius: 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 30, 0, 0, 10);");
 
         StackPane iconCircle = new StackPane();
         iconCircle.setPrefSize(64, 64);
@@ -2438,12 +2438,12 @@ public class SellerDashboardController {
 
         Label titleLabel = new Label("Quick Sale");
         titleLabel.setStyle(
-                "-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
+                "-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: bold; ");
 
         Label descLabel = new Label(
                 "Are you sure you want to quick publish session #" + id + "\n(" + productName + ")?");
         descLabel.setStyle(
-                "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;");
+                "-fx-font-family: 'DM Sans'; -fx-font-size: 14px;  -fx-text-alignment: center;");
         descLabel.setWrapText(true);
 
         VBox btnBox = new VBox(12);
@@ -2454,13 +2454,13 @@ public class SellerDashboardController {
         btnConfirm.setPrefHeight(44);
         btnConfirm.setMaxWidth(Double.MAX_VALUE);
         btnConfirm.setStyle(
-                "-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand;");
+                "-fx-background-color: -fx-accent; -fx-background-radius: 22px; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand;");
 
         Button btnCancel = new Button("Cancel");
         btnCancel.setPrefHeight(44);
         btnCancel.setMaxWidth(Double.MAX_VALUE);
         btnCancel.setStyle(
-                "-fx-background-color: transparent; -fx-border-color: #dcc8e0; -fx-border-width: 2px; -fx-border-radius: 22px; -fx-background-radius: 22px; -fx-text-fill: #604868; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
+                "-fx-background-color: transparent; -fx-border-color: #dcc8e0; -fx-border-width: 2px; -fx-border-radius: 22px; -fx-background-radius: 22px;  -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
 
         btnBox.getChildren().addAll(btnConfirm, btnCancel);
         container.getChildren().addAll(iconCircle, titleLabel, descLabel, btnBox);
@@ -2496,7 +2496,7 @@ public class SellerDashboardController {
             container.setPadding(new javafx.geometry.Insets(32));
             container.setPrefWidth(360);
             container.setStyle(
-                    "-fx-background-color: white; -fx-background-radius: 16px; -fx-border-color: #ffe8f2; -fx-border-width: 1px; -fx-border-radius: 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 30, 0, 0, 10);");
+                    " -fx-background-radius: 16px; -fx-border-color: #ffe8f2; -fx-border-width: 1px; -fx-border-radius: 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 30, 0, 0, 10);");
 
             StackPane iconCircle = new StackPane();
             iconCircle.setPrefSize(64, 64);
@@ -2510,18 +2510,18 @@ public class SellerDashboardController {
 
             Label titleLabel = new Label(title != null ? title : "Success");
             titleLabel.setStyle(
-                    "-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
+                    "-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: bold; ");
 
             Label descLabel = new Label(content);
             descLabel.setStyle(
-                    "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;");
+                    "-fx-font-family: 'DM Sans'; -fx-font-size: 14px;  -fx-text-alignment: center;");
             descLabel.setWrapText(true);
 
             Button btnOk = new Button("Agree");
             btnOk.setPrefHeight(44);
             btnOk.setMaxWidth(Double.MAX_VALUE);
             btnOk.setStyle(
-                    "-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand;");
+                    "-fx-background-color: -fx-accent; -fx-background-radius: 22px; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand;");
 
             container.getChildren().addAll(iconCircle, titleLabel, descLabel, btnOk);
             dialogPane.setContent(container);

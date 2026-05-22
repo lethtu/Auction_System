@@ -1,0 +1,26 @@
+package com.auction.server.dto;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+
+public class PriceUpdateNotification implements Serializable {
+    private Integer auctionSessionId;
+    private BigDecimal newPrice;
+    private String message;
+
+    public PriceUpdateNotification(Integer auctionSessionId, BigDecimal newPrice, String message) {
+        this.auctionSessionId = auctionSessionId;
+        this.newPrice = newPrice;
+        this.message = message;
+    }
+
+    // Getters and Setters
+    public Integer getAuctionSessionId() { return auctionSessionId; }
+    public BigDecimal getNewPrice() { return newPrice; }
+    public String getMessage() { return message; }
+
+    @Override
+    public String toString() {
+        return "NOTIFICATION: Session " + auctionSessionId + " has a new price: " + newPrice;
+    }
+}

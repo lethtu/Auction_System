@@ -24,9 +24,9 @@
    Dùng chung cho MainTemplate/Seller/Settings/Support/... để mọi trang cùng một template.
    ══════════════════════════════════════════════════════════════ */
 .rounded-window-root {
-    /* Stage/Scene stays transparent; this gutter is the hit-area used by ResizeHelper. */
-    -fx-background-color: transparent;
-    -fx-padding: 10;
+    /* Background follows theme token - DO NOT hardcode a color here */
+    -fx-background-color: transparent !important;
+    -fx-padding: 12;
 }
 
 /* Maximize is custom: no transparent gutter and no rounded desktop leak at screen edges. */
@@ -48,45 +48,45 @@
 }
 
 .rounded-window-content {
-    -fx-background-color: linear-gradient(to bottom right, #fffbff 0%, #fff6fb 52%, #fffaf6 100%);
+    -fx-background-color: -app-bg;
     -fx-background-radius: 32;
     -fx-border-radius: 32;
     -fx-border-color: transparent;
     -fx-border-width: 0;
-    -fx-effect: dropshadow(gaussian, rgba(46, 26, 40, 0.22), 34, 0.16, 0, 10);
+    -fx-effect: dropshadow(gaussian, rgba(46, 26, 40, 0.15), 10, 0, 0, 2);
 }
 
 .app-topbar {
-    -fx-background-color: rgba(255, 251, 255, 0.97);
+    -fx-background-color: -app-surface;
     -fx-background-radius: 32 32 0 0;
     -fx-padding: 12 30 12 0;
-    -fx-border-color: rgba(224, 64, 160, 0.55);
+    -fx-border-color: -app-border;
     -fx-border-width: 0 0 1.5 0;
     -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.08), 14, 0.12, 0, 3);
 }
 
 .app-topbar-even {
-    -fx-background-color: rgba(255, 251, 255, 0.97);
+    -fx-background-color: -app-surface;
     -fx-background-radius: 32 32 0 0;
     -fx-padding: 12 30;
-    -fx-border-color: rgba(224, 64, 160, 0.55);
+    -fx-border-color: -app-border;
     -fx-border-width: 0 0 1.5 0;
     -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.08), 14, 0.12, 0, 3);
 }
 
 .app-content-panel {
-    -fx-background-color: linear-gradient(to bottom right, rgba(255, 251, 255, 0.90), rgba(254, 247, 255, 0.96));
+    -fx-background-color: -app-surface;
     -fx-background-radius: 30;
-    -fx-border-color: rgba(224, 64, 160, 0.75);
+    -fx-border-color: -app-border;
     -fx-border-radius: 30;
     -fx-border-width: 2.0;
     -fx-padding: 28;
 }
 
 .app-content-scroll {
-    -fx-background-color: linear-gradient(to bottom right, rgba(255, 251, 255, 0.90), rgba(254, 247, 255, 0.96));
+    -fx-background-color: -app-surface;
     -fx-background-radius: 30;
-    -fx-border-color: rgba(224, 64, 160, 0.75);
+    -fx-border-color: -app-border;
     -fx-border-radius: 30;
     -fx-border-width: 2.0;
     -fx-padding: 28;
@@ -119,9 +119,9 @@
 }
 
 .app-sidebar-content {
-    -fx-background-color: rgba(255, 255, 255, 0.92);
+    -fx-background-color: -app-surface;
     -fx-background-radius: 28;
-    -fx-border-color: rgba(224, 64, 160, 0.75);
+    -fx-border-color: -app-border;
     -fx-border-radius: 28;
     -fx-border-width: 2.0;
     -fx-padding: 24 8 24 8;
@@ -129,9 +129,9 @@
 }
 
 .app-sidebar-content-collapsed {
-    -fx-background-color: rgba(255, 255, 255, 0.92);
+    -fx-background-color: -app-surface;
     -fx-background-radius: 28;
-    -fx-border-color: rgba(224, 64, 160, 0.75);
+    -fx-border-color: -app-border;
     -fx-border-radius: 28;
     -fx-border-width: 2.0;
     -fx-padding: 24 0 24 0;
@@ -141,7 +141,7 @@
 
 .rounded-window-content .scroll-pane,
 .rounded-window-content .scroll-pane>.viewport {
-    -fx-background-color: transparent;
+    
 }
 
 .rounded-window-content .button {
@@ -314,20 +314,20 @@
     -fx-font-family: 'DM Sans';
     -fx-font-size: 13px;
     -fx-font-weight: 700;
-    -fx-text-fill: #2e1a28;
+    -fx-text-fill: -app-text;
 }
 
 .bid-history-row .bid-amount {
     -fx-font-family: 'DM Sans';
     -fx-font-size: 14px;
     -fx-font-weight: 900;
-    -fx-text-fill: #2e1a28;
+    -fx-text-fill: -app-text;
 }
 
 .bid-history-row .bid-time {
     -fx-font-family: 'DM Sans';
     -fx-font-size: 10px;
-    -fx-text-fill: #a088a8;
+    -fx-text-fill: -app-text-muted;
 }
 
 .page-root {
@@ -338,53 +338,53 @@
 .topbar {
     -fx-padding: 18 28 18 28;
     -fx-background-color: rgba(255, 251, 255, 0.96);
-    -fx-border-color: #f6ddea;
+    -fx-border-color: -app-border;
     -fx-border-width: 0 0 1 0;
 }
 
 .brand-title {
     -fx-font-size: 28px;
     -fx-font-weight: 800;
-    -fx-text-fill: #e23ea1;
+    -fx-text-fill: -fx-accent;
     -fx-cursor: hand;
 }
 
 .brand-subtitle {
     -fx-font-size: 11px;
-    -fx-text-fill: #8c6f8f;
+    -fx-text-fill: -app-text-muted;
 }
 
 .material-icon {
     -fx-font-family: "Material Symbols Outlined";
     -fx-font-size: 20px;
-    -fx-text-fill: #654a67;
+    -fx-text-fill: -app-text-muted;
 }
 
 .accent-icon {
-    -fx-text-fill: #e23ea1;
+    -fx-text-fill: -fx-accent;
 }
 
 .icon-btn {
-    -fx-background-color: #ffffff;
+    -fx-background-color: -app-surface;
     -fx-background-radius: 999px;
     -fx-padding: 10 12 10 12;
     -fx-cursor: hand;
-    -fx-border-color: #f3deea;
+    -fx-border-color: -app-border;
     -fx-border-radius: 999px;
     -fx-border-width: 1px;
 }
 
 .icon-btn:hover {
-    -fx-background-color: #fff3f9;
+    -fx-background-color: -app-surface-2;
 }
 
 .search-shell {
     -fx-pref-width: 450px;
     -fx-min-width: 380px;
     -fx-max-width: 520px;
-    -fx-background-color: #ffffff;
+    -fx-background-color: -app-surface;
     -fx-background-radius: 18px;
-    -fx-border-color: #f3deea;
+    -fx-border-color: -app-border;
     -fx-border-radius: 18px;
     -fx-padding: 0 14 0 14;
 }
@@ -393,15 +393,15 @@
     -fx-background-color: transparent;
     -fx-padding: 11 0 11 4;
     -fx-font-size: 14px;
-    -fx-text-fill: #2e1a28;
+    -fx-text-fill: -app-text;
     -fx-prompt-text-fill: #ac92ab;
 }
 
 .profile-menu-btn {
-    -fx-background-color: #ffffff;
+    -fx-background-color: -app-surface;
     -fx-background-radius: 18px;
     -fx-border-radius: 18px;
-    -fx-border-color: #f3deea;
+    -fx-border-color: -app-border;
     -fx-padding: 6 10 6 8;
 }
 
@@ -422,12 +422,12 @@
 .profile-title {
     -fx-font-size: 12px;
     -fx-font-weight: 700;
-    -fx-text-fill: #2e1a28;
+    -fx-text-fill: -app-text;
 }
 
 .profile-subtitle {
     -fx-font-size: 10px;
-    -fx-text-fill: #9b85a0;
+    -fx-text-fill: -app-text-muted;
 }
 
 .content-wrap {
@@ -437,7 +437,7 @@
 .hero-card {
     -fx-background-color: linear-gradient(to right, rgba(255, 255, 255, 0.98) 0%, rgba(255, 247, 251, 0.98) 100%);
     -fx-background-radius: 26px;
-    -fx-border-color: #f4dfeb;
+    -fx-border-color: -app-border;
     -fx-border-radius: 26px;
     -fx-padding: 22 24 22 24;
 }
@@ -445,34 +445,34 @@
 .page-title {
     -fx-font-size: 38px;
     -fx-font-weight: 800;
-    -fx-text-fill: #28142d;
+    -fx-text-fill: -app-text;
 }
 
 .page-subtitle {
     -fx-font-size: 15px;
-    -fx-text-fill: #705a73;
+    -fx-text-fill: -app-text-muted;
 }
 
 .mini-stat-card {
     -fx-min-width: 96px;
     -fx-alignment: center-left;
     -fx-padding: 14 16 14 16;
-    -fx-background-color: #ffffff;
+    -fx-background-color: -app-surface;
     -fx-background-radius: 20px;
-    -fx-border-color: #f1e1ec;
+    -fx-border-color: -app-border;
     -fx-border-radius: 20px;
 }
 
 .mini-stat-label {
     -fx-font-size: 12px;
     -fx-font-weight: 600;
-    -fx-text-fill: #8f7a93;
+    -fx-text-fill: -app-text-muted;
 }
 
 .mini-stat-value {
     -fx-font-size: 24px;
     -fx-font-weight: 800;
-    -fx-text-fill: #28142d;
+    -fx-text-fill: -app-text;
 }
 
 .success-text {
@@ -488,26 +488,26 @@
 }
 
 .section-card {
-    -fx-background-color: rgba(255, 255, 255, 0.94);
+    -fx-background-color: -app-card;
     -fx-background-radius: 22px;
-    -fx-border-color: #f2d7e9;
+    -fx-border-color: -app-border;
     -fx-border-radius: 22px;
     -fx-padding: 18 18 10 18;
     -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.07), 18, 0.10, 0, 5);
 }
 
 .filter-pill {
-    -fx-background-color: #f7eef7;
+    -fx-background-color: -app-surface-2;
     -fx-background-radius: 999px;
     -fx-padding: 12 18 12 18;
     -fx-font-size: 14px;
     -fx-font-weight: 700;
-    -fx-text-fill: #39213d;
+    -fx-text-fill: -app-text;
     -fx-cursor: hand;
 }
 
 .filter-pill:hover {
-    -fx-background-color: #f3e5f3;
+    -fx-background-color: -app-surface;
 }
 
 .filter-pill-active {
@@ -524,22 +524,22 @@
 }
 
 .soft-chip {
-    -fx-background-color: #fff5fa;
-    -fx-border-color: #f7ddeb;
+    -fx-background-color: -app-surface-2;
+    -fx-border-color: -app-border;
     -fx-border-radius: 999px;
     -fx-background-radius: 999px;
     -fx-padding: 10 14 10 14;
 }
 
 .chip-icon {
-    -fx-text-fill: #e23ea1;
+    -fx-text-fill: -fx-accent;
     -fx-font-size: 16px;
 }
 
 .soft-chip-text {
     -fx-font-size: 12px;
     -fx-font-weight: 600;
-    -fx-text-fill: #7b617e;
+    -fx-text-fill: -app-text-muted;
 }
 
 .products-scroll,
@@ -579,21 +579,21 @@
    Admin Center polish — sidebar state + table theme
    ══════════════════════════════════════════════════════════════ */
 .admin-sidebar {
-    -fx-background-color: #ffffff;
+    -fx-background-color: -app-surface;
     -fx-padding: 28px 14px;
-    -fx-border-color: #f2e8f2;
+    -fx-border-color: -app-border;
     -fx-border-width: 0 2px 0 0;
 }
 
 .admin-sidebar-title {
-    -fx-text-fill: #907898;
+    -fx-text-fill: -app-text-muted;
     -fx-font-size: 11px;
     -fx-font-weight: 900;
     -fx-padding: 0 0 0 16px;
 }
 
 .admin-sidebar-subtitle {
-    -fx-text-fill: #b08aad;
+    -fx-text-fill: -app-text-muted;
     -fx-font-size: 11px;
     -fx-padding: 0 0 10px 16px;
 }
@@ -601,7 +601,7 @@
 .admin-nav-button {
     -fx-font-size: 14px;
     -fx-background-color: transparent;
-    -fx-text-fill: #604868;
+    -fx-text-fill: -app-text-muted;
     -fx-font-weight: 800;
     -fx-background-radius: 22px;
     -fx-border-radius: 22px;
@@ -612,15 +612,15 @@
 }
 
 .admin-nav-button:hover {
-    -fx-background-color: #fff3fb;
-    -fx-border-color: #f5c7df;
-    -fx-text-fill: #e040a0;
+    -fx-background-color: -app-surface-2;
+    -fx-border-color: -app-border;
+    -fx-text-fill: -fx-accent;
 }
 
 .admin-nav-button.active-admin-nav {
     -fx-background-color: linear-gradient(to right, #fff3fb, #fef7ff);
     -fx-border-color: #e040a0;
-    -fx-text-fill: #e040a0;
+    -fx-text-fill: -fx-accent;
     -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.22), 16, 0, 0, 4);
 }
 
@@ -640,9 +640,9 @@
 }
 
 .admin-table {
-    -fx-background-color: #ffffff;
+    -fx-background-color: -app-surface;
     -fx-background-radius: 20px;
-    -fx-border-color: #f2e8f2;
+    -fx-border-color: -app-border;
     -fx-border-radius: 20px;
     -fx-border-width: 1px;
     -fx-padding: 0;
@@ -650,7 +650,7 @@
 }
 
 .admin-table .column-header-background {
-    -fx-background-color: #fff3fb;
+    -fx-background-color: -app-surface-2;
     -fx-background-radius: 20px 20px 0 0;
     -fx-border-color: transparent transparent #f2e8f2 transparent;
     -fx-border-width: 0 0 1px 0;
@@ -665,24 +665,24 @@
 }
 
 .admin-table .column-header .label {
-    -fx-text-fill: #2e1a28;
+    -fx-text-fill: -app-text;
     -fx-font-size: 13px;
     -fx-font-weight: 900;
     -fx-alignment: center;
 }
 
 .admin-table .table-row-cell {
-    -fx-background-color: #ffffff;
+    -fx-background-color: -app-surface;
     -fx-border-color: transparent transparent #f5edf5 transparent;
     -fx-border-width: 0 0 1px 0;
 }
 
 .admin-table .table-row-cell:odd {
-    -fx-background-color: #fffbfe;
+    -fx-background-color: -app-surface;
 }
 
 .admin-table .table-row-cell:hover {
-    -fx-background-color: #fff3fb;
+    -fx-background-color: -app-surface-2;
 }
 
 .admin-table .table-row-cell:filled:selected,
@@ -696,7 +696,7 @@
 }
 
 .admin-table .table-cell {
-    -fx-text-fill: #2e1a28;
+    -fx-text-fill: -app-text;
     -fx-font-size: 13px;
     -fx-padding: 8px 10px;
     -fx-border-color: transparent #f4edf4 transparent transparent;
@@ -709,7 +709,7 @@
 }
 
 .admin-table-placeholder {
-    -fx-text-fill: #907898;
+    -fx-text-fill: -app-text-muted;
     -fx-font-size: 14px;
     -fx-font-weight: 700;
 }
@@ -721,10 +721,10 @@
 }
 
 .admin-bidpop-topbar {
-    -fx-background-color: rgba(255, 251, 255, 0.97);
+    -fx-background-color: -app-surface;
     -fx-background-radius: 32 32 0 0;
     -fx-padding: 13 30 13 30;
-    -fx-border-color: #f6ddea;
+    -fx-border-color: -app-border;
     -fx-border-width: 0 0 1 0;
     -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.08), 14, 0.12, 0, 3);
 }
@@ -732,17 +732,17 @@
 .admin-bidpop-brand {
     -fx-font-size: 27px;
     -fx-font-weight: 900;
-    -fx-text-fill: #e040a0;
+    -fx-text-fill: -fx-accent;
 }
 
 .admin-bidpop-top-chip,
 .admin-bidpop-status-chip {
-    -fx-background-color: #fff0f8;
-    -fx-border-color: #f3b6dc;
+    -fx-background-color: -app-surface-2;
+    -fx-border-color: -app-border;
     -fx-border-radius: 999;
     -fx-background-radius: 999;
     -fx-padding: 8 16 8 16;
-    -fx-text-fill: #a02070;
+    -fx-text-fill: -fx-accent;
     -fx-font-size: 12px;
     -fx-font-weight: 800;
 }
@@ -757,9 +757,9 @@
 }
 
 .admin-bidpop-sidebar {
-    -fx-background-color: rgba(255, 255, 255, 0.98);
+    -fx-background-color: -app-surface;
     -fx-padding: 26 18 22 18;
-    -fx-border-color: #f4ddeb;
+    -fx-border-color: -app-border;
     -fx-border-width: 0 1.5 0 0;
     -fx-effect: dropshadow(gaussian, rgba(124, 82, 170, 0.08), 18, 0.12, 4, 0);
 }
@@ -784,7 +784,7 @@
 .admin-bidpop-side-title {
     -fx-font-size: 14px;
     -fx-font-weight: 900;
-    -fx-text-fill: #2e1a28;
+    -fx-text-fill: -app-text;
 }
 
 .admin-bidpop-side-subtitle,
@@ -792,20 +792,20 @@
 .admin-bidpop-section-desc,
 .admin-bidpop-note-text {
     -fx-font-size: 12px;
-    -fx-text-fill: #907898;
+    -fx-text-fill: -app-text-muted;
 }
 
 .admin-bidpop-menu-label {
     -fx-padding: 8 0 4 14;
     -fx-font-size: 11px;
     -fx-font-weight: 900;
-    -fx-text-fill: #a088a8;
+    -fx-text-fill: -app-text-muted;
 }
 
 .admin-nav-button {
     -fx-font-size: 14px;
     -fx-background-color: transparent;
-    -fx-text-fill: #604868;
+    -fx-text-fill: -app-text-muted;
     -fx-font-weight: 800;
     -fx-background-radius: 999;
     -fx-border-radius: 999;
@@ -817,14 +817,14 @@
 
 .admin-nav-button:hover {
     -fx-background-color: #fff4fb;
-    -fx-text-fill: #e040a0;
-    -fx-border-color: #f3b6dc;
+    -fx-text-fill: -fx-accent;
+    -fx-border-color: -app-border;
     -fx-translate-x: 3;
 }
 
 .admin-nav-button.active-admin-nav {
-    -fx-background-color: #fff0f8;
-    -fx-text-fill: #e040a0;
+    -fx-background-color: -app-surface-2;
+    -fx-text-fill: -fx-accent;
     -fx-border-color: #e040a0;
     -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.22), 14, 0.25, 0, 3);
 }
@@ -882,9 +882,9 @@
 }
 
 .admin-bidpop-metric-card {
-    -fx-background-color: linear-gradient(to bottom right, #ffffff, #fff7fc);
+    -fx-background-color: -app-surface;
     -fx-background-radius: 30;
-    -fx-border-color: #f2d7e9;
+    -fx-border-color: -app-border;
     -fx-border-width: 1.2;
     -fx-border-radius: 30;
     -fx-padding: 18 20 18 20;
@@ -895,51 +895,51 @@
 
 .admin-bidpop-metric-card:hover {
     -fx-translate-y: -2;
-    -fx-background-color: linear-gradient(to bottom right, #ffffff, #fff0f8);
+    -fx-background-color: -app-surface;
     -fx-border-color: #f0a0cc;
     -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.20), 24, 0.22, 0, 8);
 }
 
 .admin-metric-badge {
-    -fx-background-color: #fff0f8;
+    -fx-background-color: -app-surface-2;
     -fx-background-radius: 999;
     -fx-border-color: #f6c0df;
     -fx-border-radius: 999;
     -fx-padding: 5 10 5 10;
-    -fx-text-fill: #b01873;
+    -fx-text-fill: -fx-accent;
     -fx-font-size: 11px;
     -fx-font-weight: 900;
 }
 
 .admin-bidpop-metric-title {
-    -fx-text-fill: #6d5574;
+    -fx-text-fill: -app-text-muted;
     -fx-font-size: 13px;
     -fx-font-weight: 900;
 }
 
 .admin-bidpop-metric-value {
-    -fx-text-fill: #2e1a28;
+    -fx-text-fill: -app-text;
     -fx-font-size: 24px;
     -fx-font-weight: 900;
 }
 
 .admin-bidpop-metric-desc {
-    -fx-text-fill: #9b839f;
+    -fx-text-fill: -app-text-muted;
     -fx-font-size: 12px;
     -fx-font-weight: 600;
 }
 
 .admin-bidpop-data-panel {
-    -fx-background-color: white;
+    -fx-background-color: -app-card;
     -fx-background-radius: 30;
-    -fx-border-color: #f2e8f2;
+    -fx-border-color: -app-border;
     -fx-border-radius: 30;
     -fx-effect: dropshadow(gaussian, rgba(124, 82, 170, 0.11), 30, 0.15, 0, 8);
 }
 
 .admin-bidpop-table-section {
     -fx-padding: 22;
-    -fx-background-color: white;
+    -fx-background-color: -app-surface;
     -fx-background-radius: 30;
 }
 
@@ -948,7 +948,7 @@
 }
 
 .admin-bidpop-section-title {
-    -fx-text-fill: #2e1a28;
+    -fx-text-fill: -app-text;
     -fx-font-size: 19px;
     -fx-font-weight: 900;
 }
@@ -991,9 +991,9 @@
 }
 
 .admin-table {
-    -fx-background-color: white;
+    -fx-background-color: -app-card;
     -fx-background-radius: 22;
-    -fx-border-color: #f2e8f2;
+    -fx-border-color: -app-border;
     -fx-border-radius: 22;
     -fx-padding: 6;
     -fx-table-cell-border-color: transparent;
@@ -1013,14 +1013,14 @@
 }
 
 .admin-table .column-header .label {
-    -fx-text-fill: #2e1a28;
+    -fx-text-fill: -app-text;
     -fx-font-size: 12px;
     -fx-font-weight: 900;
     -fx-alignment: center-left;
 }
 
 .admin-table .table-row-cell {
-    -fx-background-color: white;
+    -fx-background-color: -app-card;
     -fx-border-color: transparent transparent #fbedf5 transparent;
     -fx-border-width: 0 0 1 0;
     -fx-cell-size: 39;
@@ -1036,7 +1036,7 @@
 }
 
 .admin-table .table-cell {
-    -fx-text-fill: #2e1a28;
+    -fx-text-fill: -app-text;
     -fx-font-size: 13px;
     -fx-font-weight: 600;
     -fx-alignment: center-left;
@@ -1050,7 +1050,7 @@
 }
 
 .admin-table-placeholder {
-    -fx-text-fill: #a088a8;
+    -fx-text-fill: -app-text-muted;
     -fx-font-size: 14px;
     -fx-font-weight: 700;
 }
@@ -1083,7 +1083,7 @@
 
 .account-back-btn {
     -fx-background-color: transparent;
-    -fx-text-fill: #e040a0;
+    -fx-text-fill: -fx-accent;
     -fx-font-weight: bold;
     -fx-font-size: 14px;
     -fx-cursor: hand;
@@ -1101,22 +1101,22 @@
 }
 
 .account-page-title {
-    -fx-text-fill: #2e1a28;
+    -fx-text-fill: -app-text;
     -fx-font-size: 26px;
     -fx-font-weight: 900;
 }
 
 .account-page-subtitle {
-    -fx-text-fill: #907898;
+    -fx-text-fill: -app-text-muted;
     -fx-font-size: 14px;
     -fx-font-weight: 600;
 }
 
 /* --- Profile Summary Card --- */
 .profile-summary-card {
-    -fx-background-color: white;
+    -fx-background-color: -app-card;
     -fx-background-radius: 24;
-    -fx-border-color: #f2e8f2;
+    -fx-border-color: -app-border;
     -fx-border-radius: 24;
     -fx-border-width: 1.5;
     -fx-padding: 28;
@@ -1158,13 +1158,13 @@
 }
 
 .profile-name {
-    -fx-text-fill: #2e1a28;
+    -fx-text-fill: -app-text;
     -fx-font-size: 22px;
     -fx-font-weight: 900;
 }
 
 .profile-email {
-    -fx-text-fill: #907898;
+    -fx-text-fill: -app-text-muted;
     -fx-font-size: 14px;
     -fx-font-weight: 600;
 }
@@ -1173,16 +1173,16 @@
     -fx-background-color: rgba(224, 64, 160, 0.12);
     -fx-background-radius: 999;
     -fx-padding: 4 14;
-    -fx-text-fill: #e040a0;
+    -fx-text-fill: -fx-accent;
     -fx-font-size: 12px;
     -fx-font-weight: 900;
 }
 
 /* --- Account Stat Cards --- */
 .account-stat-card {
-    -fx-background-color: white;
+    -fx-background-color: -app-card;
     -fx-background-radius: 20;
-    -fx-border-color: #f2e8f2;
+    -fx-border-color: -app-border;
     -fx-border-radius: 20;
     -fx-border-width: 1.5;
     -fx-padding: 20 24;
@@ -1197,13 +1197,13 @@
 }
 
 .account-stat-label {
-    -fx-text-fill: #907898;
+    -fx-text-fill: -app-text-muted;
     -fx-font-size: 12px;
     -fx-font-weight: 700;
 }
 
 .account-stat-value {
-    -fx-text-fill: #2e1a28;
+    -fx-text-fill: -app-text;
     -fx-font-size: 22px;
     -fx-font-weight: 900;
 }
@@ -1211,14 +1211,14 @@
 .account-stat-icon {
     -fx-font-family: 'Material Symbols Outlined';
     -fx-font-size: 24px;
-    -fx-text-fill: #e040a0;
+    -fx-text-fill: -fx-accent;
 }
 
 /* --- Account Form Card --- */
 .account-form-card {
-    -fx-background-color: white;
+    -fx-background-color: -app-card;
     -fx-background-radius: 24;
-    -fx-border-color: #f2e8f2;
+    -fx-border-color: -app-border;
     -fx-border-radius: 24;
     -fx-border-width: 1.5;
     -fx-padding: 28;
@@ -1231,25 +1231,25 @@
 }
 
 .account-form-title {
-    -fx-text-fill: #2e1a28;
+    -fx-text-fill: -app-text;
     -fx-font-size: 18px;
     -fx-font-weight: 900;
 }
 
 .account-form-label {
-    -fx-text-fill: #604868;
+    -fx-text-fill: -app-text-muted;
     -fx-font-size: 13px;
     -fx-font-weight: 700;
 }
 
 .account-input {
-    -fx-background-color: #fef7ff;
-    -fx-border-color: #f2e8f2;
+    -fx-background-color: -app-surface;
+    -fx-border-color: -app-border;
     -fx-border-radius: 14;
     -fx-background-radius: 14;
     -fx-padding: 10 16;
     -fx-font-size: 14px;
-    -fx-text-fill: #2e1a28;
+    -fx-text-fill: -app-text;
     -fx-prompt-text-fill: #b898b8;
 }
 
@@ -1270,7 +1270,7 @@
     -fx-background-radius: 14;
     -fx-padding: 10 16;
     -fx-font-size: 14px;
-    -fx-text-fill: #907898;
+    -fx-text-fill: -app-text-muted;
     -fx-opacity: 0.85;
 }
 
@@ -1298,11 +1298,11 @@
 }
 
 .btn-account-secondary {
-    -fx-background-color: white;
-    -fx-text-fill: #e040a0;
+    -fx-background-color: -app-card;
+    -fx-text-fill: -fx-accent;
     -fx-font-size: 14px;
     -fx-font-weight: 900;
-    -fx-border-color: #f5c7df;
+    -fx-border-color: -app-border;
     -fx-border-radius: 14;
     -fx-background-radius: 14;
     -fx-border-width: 1.5;
@@ -1311,7 +1311,7 @@
 }
 
 .btn-account-secondary:hover {
-    -fx-background-color: #fff3f9;
+    -fx-background-color: -app-surface-2;
     -fx-border-color: #e040a0;
     -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.10), 8, 0.08, 0, 2);
 }
@@ -1323,7 +1323,7 @@
 
 .btn-avatar-change {
     -fx-background-color: rgba(224, 64, 160, 0.10);
-    -fx-text-fill: #e040a0;
+    -fx-text-fill: -fx-accent;
     -fx-font-size: 13px;
     -fx-font-weight: 800;
     -fx-background-radius: 12;
@@ -1345,7 +1345,7 @@
 
 /* === CUSTOM TOAST STYLES === */
 .app-toast {
-    -fx-background-color: rgba(255, 255, 255, 0.98);
+    -fx-background-color: -app-surface;
     -fx-background-radius: 12px;
     -fx-border-radius: 12px;
     -fx-border-width: 1.5px;
@@ -1393,18 +1393,18 @@
 .app-toast-title {
     -fx-font-weight: bold;
     -fx-font-size: 15px;
-    -fx-text-fill: #2e1a28;
+    -fx-text-fill: -app-text;
 }
 
 .app-toast-message {
     -fx-font-size: 13.5px;
-    -fx-text-fill: #604868;
+    -fx-text-fill: -app-text-muted;
 }
 
 .app-toast-close {
     -fx-font-family: 'Material Symbols Outlined';
     -fx-font-size: 18px;
-    -fx-text-fill: #907898;
+    -fx-text-fill: -app-text-muted;
     -fx-cursor: hand;
     -fx-background-color: transparent;
     -fx-border-color: transparent;
@@ -1412,12 +1412,12 @@
 }
 
 .app-toast-close:hover {
-    -fx-text-fill: #2e1a28;
+    -fx-text-fill: -app-text;
 }
 
 /* === PREMIUM CONTEXT MENU & MENU ITEM STYLING === */
 .context-menu {
-    -fx-background-color: #ffffff;
+    -fx-background-color: -app-surface;
     -fx-background-radius: 16px;
     -fx-border-radius: 16px;
     -fx-border-color: #ffe8e8;
@@ -1435,7 +1435,7 @@
 }
 
 .menu-item .label {
-    -fx-text-fill: #2e1a28;
+    -fx-text-fill: -app-text;
     -fx-font-family: 'DM Sans', 'Segoe UI', sans-serif;
     -fx-font-size: 13.5px;
     -fx-font-weight: bold;
@@ -1443,12 +1443,12 @@
 
 .menu-item:focused,
 .menu-item:hover {
-    -fx-background-color: #fef7ff;
+    -fx-background-color: -app-surface;
 }
 
 .menu-item:focused .label,
 .menu-item:hover .label {
-    -fx-text-fill: #e040a0;
+    -fx-text-fill: -fx-accent;
 }
 
 .context-menu .separator {
@@ -1495,7 +1495,7 @@
     -fx-font-family: 'DM Sans';
     -fx-font-size: 14px;
     -fx-font-weight: 900;
-    -fx-text-fill: #907898;
+    -fx-text-fill: -app-text-muted;
 }
 
 
@@ -1510,3 +1510,79 @@
 .table-view .filler {
     -fx-background-insets: 0;
 }
+/* Global UI components styling mapped to tokens */
+.rounded-window-content {
+    -fx-background-color: -app-bg;
+}
+.app-topbar, .app-topbar-even, .admin-bidpop-topbar {
+    -fx-background-color: -app-surface;
+    -fx-border-color: -app-border;
+}
+.app-sidebar-content, .app-sidebar-content-collapsed {
+    -fx-background-color: -app-surface;
+    -fx-border-color: -app-border;
+}
+.app-content-panel, .app-content-scroll {
+    -fx-background-color: -app-surface-2;
+    -fx-border-color: -app-border;
+}
+
+.text-field, .text-area, .combo-box {
+    -fx-background-color: -app-input-bg;
+    -fx-text-fill: -app-input-text;
+    -fx-prompt-text-fill: -app-text-muted;
+    -fx-border-color: -app-border;
+}
+.text-area .content {
+    -fx-background-color: -app-input-bg;
+}
+
+.combo-box .list-cell {
+    -fx-text-fill: -app-input-text;
+}
+.combo-box-popup .list-view {
+    -fx-background-color: -app-surface;
+    -fx-border-color: -app-border;
+}
+.combo-box-popup .list-cell {
+    -fx-text-fill: -app-input-text;
+}
+.combo-box-popup .list-cell:filled:hover {
+    -fx-background-color: -app-primary;
+    -fx-text-fill: white;
+}
+
+.label, .text, .brand-title, .page-title {
+    -fx-text-fill: -app-text;
+    -fx-fill: -app-text;
+}
+.brand-subtitle, .page-subtitle, .settings-card-subtitle, .setting-description, .faq-text, .contact-text {
+    -fx-text-fill: -app-text-muted;
+    -fx-fill: -app-text-muted;
+}
+.settings-card, .support-card, .auction-card, .dashboard-card, .notification-card, .hero-card, .section-card, .mini-stat-card {
+    -fx-background-color: -app-card;
+    -fx-border-color: -app-border;
+}
+.settings-card-title, .setting-label, .settings-section-title {
+    -fx-text-fill: -app-text;
+}
+.scroll-pane, .scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+.table-view, .list-view, .table-row-cell, .list-cell {
+    -fx-background-color: -app-surface;
+}
+.table-view .column-header-background, .table-view .column-header {
+    -fx-background-color: -app-surface-2;
+}
+.setting-switch .box {
+    -fx-background-color: -app-border;
+}
+.setting-switch .text {
+    -fx-fill: -app-text;
+}
+.button {
+    /* If any button needs specific fix */
+}
+
