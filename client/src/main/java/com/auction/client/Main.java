@@ -28,7 +28,7 @@ public class Main extends Application {
 
         primaryStage.setMinWidth(Config.Width);
         primaryStage.setMinHeight(Config.Height);
-        primaryStage.setResizable(true);
+        primaryStage.setResizable(false);
         ResizeHelper.install(primaryStage, root);
         primaryStage.centerOnScreen();
         primaryStage.show();

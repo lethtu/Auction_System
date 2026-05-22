@@ -100,11 +100,10 @@ public class SecurityInterceptor implements HandlerInterceptor {
         response.setStatus(statusCode);
         response.setContentType("application/json;charset=UTF-8");
         
-        Map<String, Object> errorBody = Map.of(
-            "status", statusCode,
-            "message", message,
-            "data", null
-        );
+        Map<String, Object> errorBody = new java.util.HashMap<>();
+        errorBody.put("status", statusCode);
+        errorBody.put("message", message);
+        errorBody.put("data", null);
 
         response.getWriter().write(objectMapper.writeValueAsString(errorBody));
     }

@@ -22,11 +22,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.auction.server.util.SessionManager;
+
 @WebMvcTest(AuthLoginSignup.class)
 public class AuthLoginSignupTest {
 
     @Autowired
     private MockMvc mockMvc; // Công cụ giả lập bắn Request (như Postman)
+
+    @MockBean
+    private SessionManager sessionManager;
 
     // Tạo diễn viên đóng thế cho Database và Dịch vụ Email
     @MockBean

@@ -23,6 +23,22 @@ public class User {
 
     private static String sessionToken;
 
+    private static javafx.scene.image.Image cachedAvatarImage;
+    private static String cachedAvatarUrl;
+
+    public static javafx.scene.image.Image getCachedAvatarImage() {
+        return cachedAvatarImage;
+    }
+
+    public static void setCachedAvatarImage(javafx.scene.image.Image img, String url) {
+        cachedAvatarImage = img;
+        cachedAvatarUrl = url;
+    }
+
+    public static String getCachedAvatarUrl() {
+        return cachedAvatarUrl;
+    }
+
     public static String getSessionToken() {
         return sessionToken;
     }
@@ -87,6 +103,8 @@ public class User {
         avatarUrl = null;
         sessionToken = null;
         watchlistIds.clear();
+        cachedAvatarImage = null;
+        cachedAvatarUrl = null;
     }
 
     public static String getRole(){
