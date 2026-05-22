@@ -103,8 +103,13 @@ public final class HttpRequestUtil {
     }
 
     private static HttpRequest.Builder requestBuilder(String baseUrl, String path) {
-        return HttpRequest.newBuilder()
+        HttpRequest.Builder builder = HttpRequest.newBuilder()
                 .uri(uri(baseUrl, path));
+        String token = com.auction.client.model.User.getSessionToken();
+        if (token != null && !token.isEmpty()) {
+            builder.header("X-Auth-Token", token);
+        }
+        return builder;
     }
 
     private static URI uri(String baseUrl, String path) {

@@ -23,7 +23,7 @@ import java.util.WeakHashMap;
  * </p>
  */
 public final class ResizeHelper {
-    private static final double RESIZE_BORDER = 10.0;
+    private static final double RESIZE_BORDER = 16.0;
     private static final double AUTH_DRAG_BAR_HEIGHT = 68.0;
     private static final String MAXIMIZED_CLASS = "window-maximized";
     private static final String DRAG_AREA_CLASS = "window-drag-area";
@@ -33,7 +33,7 @@ public final class ResizeHelper {
     private ResizeHelper() {
     }
 
-    /** Installs custom drag/resize handlers for the current Scene root. */
+    /** Installs custom drag/resize handlers for the current Scene. */
     public static void install(Stage stage, Parent root) {
         if (stage == null || root == null) {
             return;
@@ -50,20 +50,46 @@ public final class ResizeHelper {
         state.root = root;
         applyMaximizedCss(root, state.maximized);
 
-        root.addEventFilter(MouseEvent.MOUSE_MOVED, event -> handleMouseMoved(stage, root, state, event));
-        root.addEventFilter(MouseEvent.MOUSE_EXITED, event -> {
+        Scene scene = stage.getScene();
+        if (scene == null) {
+            return;
+        }
+
+        // Remove old filters from the scene if they exist to prevent duplication
+        if (state.mouseMovedFilter != null) {
+            scene.removeEventFilter(MouseEvent.MOUSE_MOVED, state.mouseMovedFilter);
+        }
+        if (state.mouseExitedFilter != null) {
+            scene.removeEventFilter(MouseEvent.MOUSE_EXITED, state.mouseExitedFilter);
+        }
+        if (state.mousePressedFilter != null) {
+            scene.removeEventFilter(MouseEvent.MOUSE_PRESSED, state.mousePressedFilter);
+        }
+        if (state.mouseDraggedFilter != null) {
+            scene.removeEventFilter(MouseEvent.MOUSE_DRAGGED, state.mouseDraggedFilter);
+        }
+        if (state.mouseReleasedFilter != null) {
+            scene.removeEventFilter(MouseEvent.MOUSE_RELEASED, state.mouseReleasedFilter);
+        }
+        if (state.mouseClickedFilter != null) {
+            scene.removeEventFilter(MouseEvent.MOUSE_CLICKED, state.mouseClickedFilter);
+        }
+
+        // Create new filters
+        state.mouseMovedFilter = event -> handleMouseMoved(stage, root, state, event);
+        state.mouseExitedFilter = event -> {
             if (state.operation == Operation.NONE) {
-                root.setCursor(Cursor.DEFAULT);
+                scene.setCursor(Cursor.DEFAULT);
             }
-        });
-        root.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> handleMousePressed(stage, root, state, event));
-        root.addEventFilter(MouseEvent.MOUSE_DRAGGED, event -> handleMouseDragged(stage, root, state, event));
-        root.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
+        };
+        state.mousePressedFilter = event -> handleMousePressed(stage, root, state, event);
+        state.mouseDraggedFilter = event -> handleMouseDragged(stage, root, state, event);
+        state.mouseReleasedFilter = event -> {
             state.operation = Operation.NONE;
             state.resizeCursor = Cursor.DEFAULT;
-            root.setCursor(Cursor.DEFAULT);
-        });
-        root.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
+            scene.setCursor(Cursor.DEFAULT);
+        };
+        state.mouseClickedFilter = event -> {
             if (event.getButton() == MouseButton.PRIMARY
                     && event.getClickCount() == 2
                     && !isInteractiveTarget(event.getTarget())
@@ -73,15 +99,25 @@ public final class ResizeHelper {
                 }
                 event.consume();
             }
-        });
+        };
+
+        // Add filters to the scene
+        scene.addEventFilter(MouseEvent.MOUSE_MOVED, state.mouseMovedFilter);
+        scene.addEventFilter(MouseEvent.MOUSE_EXITED, state.mouseExitedFilter);
+        scene.addEventFilter(MouseEvent.MOUSE_PRESSED, state.mousePressedFilter);
+        scene.addEventFilter(MouseEvent.MOUSE_DRAGGED, state.mouseDraggedFilter);
+        scene.addEventFilter(MouseEvent.MOUSE_RELEASED, state.mouseReleasedFilter);
+        scene.addEventFilter(MouseEvent.MOUSE_CLICKED, state.mouseClickedFilter);
     }
 
     private static void handleMouseMoved(Stage stage, Parent root, WindowState state, MouseEvent event) {
+        Scene scene = stage.getScene();
+        if (scene == null) return;
         if (state.maximized || stage.isFullScreen() || !stage.isResizable()) {
-            root.setCursor(Cursor.DEFAULT);
+            scene.setCursor(Cursor.DEFAULT);
             return;
         }
-        root.setCursor(resolveResizeCursor(root, event.getSceneX(), event.getSceneY()));
+        scene.setCursor(resolveResizeCursor(root, event.getSceneX(), event.getSceneY()));
     }
 
     private static void handleMousePressed(Stage stage, Parent root, WindowState state, MouseEvent event) {
@@ -89,11 +125,14 @@ public final class ResizeHelper {
             return;
         }
 
+        Scene scene = stage.getScene();
         if (!state.maximized && stage.isResizable()) {
             Cursor cursor = resolveResizeCursor(root, event.getSceneX(), event.getSceneY());
             if (cursor != Cursor.DEFAULT) {
                 captureInitialBounds(stage, state, event, cursor, Operation.RESIZE);
-                root.setCursor(cursor);
+                if (scene != null) {
+                    scene.setCursor(cursor);
+                }
                 event.consume();
                 return;
             }
@@ -372,5 +411,12 @@ public final class ResizeHelper {
         private double restoreY;
         private double restoreWidth;
         private double restoreHeight;
+
+        private javafx.event.EventHandler<MouseEvent> mouseMovedFilter;
+        private javafx.event.EventHandler<MouseEvent> mouseExitedFilter;
+        private javafx.event.EventHandler<MouseEvent> mousePressedFilter;
+        private javafx.event.EventHandler<MouseEvent> mouseDraggedFilter;
+        private javafx.event.EventHandler<MouseEvent> mouseReleasedFilter;
+        private javafx.event.EventHandler<MouseEvent> mouseClickedFilter;
     }
 }

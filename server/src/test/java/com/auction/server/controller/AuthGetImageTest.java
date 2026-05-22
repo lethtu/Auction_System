@@ -18,6 +18,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import com.auction.server.util.SessionManager;
+import org.springframework.boot.test.mock.mockito.MockBean;
+
 @WebMvcTest(AuthGetImage.class)
 public class AuthGetImageTest {
 
@@ -27,12 +30,15 @@ public class AuthGetImageTest {
     @Autowired
     private AuthGetImage authGetImageController;
 
+    @MockBean
+    private SessionManager sessionManager;
+
     @TempDir
     Path tempDir;
 
     @BeforeEach
     public void setup() {
-        ReflectionTestUtils.setField(authGetImageController, "rootLocation", tempDir);
+        System.setProperty("auction.upload.dir", tempDir.toAbsolutePath().toString());
     }
 
     @Test
@@ -89,7 +95,7 @@ public class AuthGetImageTest {
     @Test
     @DisplayName("API GetImage: Lỗi I/O nội bộ -> Trả về 500")
     public void testServeFileInternalServerError() throws Exception {
-        ReflectionTestUtils.setField(authGetImageController, "rootLocation", null);
+        System.setProperty("auction.upload.dir", "invalid\0dir");
 
         mockMvc.perform(get("/api/files/images/test.jpg"))
                 .andExpect(status().isInternalServerError());

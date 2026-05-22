@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
 
-<ScrollPane fx:id="sidebarContainer" fitToWidth="true" hbarPolicy="NEVER" styleClass="app-sidebar-scroll" minWidth="200.0" prefWidth="200.0" maxWidth="200.0" minHeight="336.0" prefHeight="336.0" maxHeight="336.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.SidebarController">
+<ScrollPane fx:id="sidebarContainer" fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" styleClass="app-sidebar-scroll" minWidth="200.0" prefWidth="200.0" maxWidth="200.0" minHeight="336.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.SidebarController">
     <VBox fx:id="sidebarContent" spacing="4.0" styleClass="app-sidebar-content">
         <!-- Main Menu -->
         <Label text="MAIN MENU" style="-fx-text-fill: #907898; -fx-font-family: 'DM Sans'; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 0 0 4px 16px;" />

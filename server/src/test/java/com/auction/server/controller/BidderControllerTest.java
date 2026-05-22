@@ -7,6 +7,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import com.auction.server.util.SessionManager;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Map;
@@ -20,6 +21,9 @@ public class BidderControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockBean
+    private SessionManager sessionManager;
 
     // Mock toàn bộ tầng service và repository để controller test chạy độc lập
     @MockBean
@@ -40,11 +44,15 @@ public class BidderControllerTest {
     @Test
     @DisplayName("POST /up-to-seller: BIDDER hợp lệ -> HTTP 200 và success = true")
     public void testUpToSeller_API_ThanhCong() throws Exception {
+        Mockito.when(sessionManager.getSession("valid_token"))
+                .thenReturn(new SessionManager.SessionUser(10, "bidder_10", "bidder"));
+
         // Giả lập service trả về kết quả thành công
         Mockito.when(bidderService.upToSeller(10))
                 .thenReturn(Map.of("success", true, "message", "Account upgraded successfully"));
 
         mockMvc.perform(post("/api/bidder/up-to-seller")
+                        .header("X-Auth-Token", "valid_token")
                         .param("userId", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(200))
@@ -58,10 +66,14 @@ public class BidderControllerTest {
     @Test
     @DisplayName("POST /up-to-seller: userId không tồn tại -> HTTP 200 với status 400 trong body")
     public void testUpToSeller_API_KhongTimThayUser() throws Exception {
+        Mockito.when(sessionManager.getSession("valid_token"))
+                .thenReturn(new SessionManager.SessionUser(999, "bidder_999", "bidder"));
+
         Mockito.when(bidderService.upToSeller(999))
                 .thenReturn(Map.of("success", false, "message", "User does not exist"));
 
         mockMvc.perform(post("/api/bidder/up-to-seller")
+                        .header("X-Auth-Token", "valid_token")
                         .param("userId", "999"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(400))
@@ -75,10 +87,14 @@ public class BidderControllerTest {
     @Test
     @DisplayName("POST /up-to-seller: User đã là SELLER -> HTTP 200 với status 400 trong body")
     public void testUpToSeller_API_DaLaSeller() throws Exception {
+        Mockito.when(sessionManager.getSession("valid_token"))
+                .thenReturn(new SessionManager.SessionUser(14, "bidder_14", "bidder"));
+
         Mockito.when(bidderService.upToSeller(14))
                 .thenReturn(Map.of("success", false, "message", "Account is not a BIDDER or is already a SELLER"));
 
         mockMvc.perform(post("/api/bidder/up-to-seller")
+                        .header("X-Auth-Token", "valid_token")
                         .param("userId", "14"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(400))
