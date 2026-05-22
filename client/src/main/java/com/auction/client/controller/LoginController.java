@@ -86,51 +86,6 @@ public class LoginController {
         loadActiveProducts();
     }
 
-    private void loadPublicStats() {
-        if (lblLiveAuctions == null || lblActiveBidders == null) return;
-
-        lblLiveAuctions.setText("Live Auctions Now");
-        lblActiveBidders.setText("Auction activity is loading...");
-
-        new Thread(() -> {
-            try {
-                HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(Config.API_URL + "/api/auctions/stats"))
-                        .GET()
-                        .build();
-
-                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-                if (response != null && response.statusCode() == 200) {
-                    JSONObject resJson = new JSONObject(response.body());
-                    if (resJson.getInt("status") == 200) {
-                        JSONObject data = resJson.getJSONObject("data");
-                        long activeBidders = data.optLong("activeBidders", 12000);
-                        long liveAuctions = data.optLong("liveAuctions", 8);
-
-                        Platform.runLater(() -> {
-                            lblLiveAuctions.setText(liveAuctions + " auctions live");
-                            lblActiveBidders.setText("Join " + String.format("%,d", activeBidders) + "+ active bidders");
-                        });
-                        return;
-                    }
-                }
-                
-                Platform.runLater(this::setFallbackStats);
-                
-            } catch (Exception e) {
-                logger.error("Failed to load public stats", e);
-                Platform.runLater(this::setFallbackStats);
-            }
-        }).start();
-    }
-
-    private void setFallbackStats() {
-        if (lblLiveAuctions == null || lblActiveBidders == null) return;
-        lblLiveAuctions.setText("Live Auctions Now");
-        lblActiveBidders.setText("Join 12,000+ active bidders");
-    }
-
     private void loadActiveProducts() {
         if (activeProductCarousel == null || activeProductImage == null) return;
 
