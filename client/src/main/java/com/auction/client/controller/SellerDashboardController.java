@@ -396,7 +396,9 @@ public class SellerDashboardController {
             protected void updateItem(String status, boolean empty) {
                 super.updateItem(status, empty);
                 if (empty || status == null) {
+                    setText(null);
                     setGraphic(null);
+                    setContentDisplay(ContentDisplay.TEXT_ONLY);
                 } else {
                     Label lblStatus = new Label(status.toUpperCase());
                     lblStatus.getStyleClass().add("badge");
@@ -414,7 +416,17 @@ public class SellerDashboardController {
                         }
                         default -> lblStatus.setStyle("-fx-background-color: #f2e8f2; -fx-text-fill: #604868;");
                     }
-                    setGraphic(lblStatus);
+
+                    StackPane wrapper = new StackPane(lblStatus);
+                    wrapper.setMaxWidth(Double.MAX_VALUE);
+                    wrapper.prefWidthProperty().bind(widthProperty().subtract(20));
+                    wrapper.setAlignment(Pos.CENTER);
+
+                    setText(null);
+                    setGraphic(wrapper);
+                    setAlignment(Pos.CENTER);
+                    setStyle("-fx-alignment: CENTER; -fx-padding: 0 10 0 10;");
+                    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
                 }
             }
         });
@@ -426,17 +438,26 @@ public class SellerDashboardController {
             @Override
             protected void updateItem(BigDecimal price, boolean empty) {
                 super.updateItem(price, empty);
+                setText(null);
+                setAlignment(Pos.CENTER);
+                setStyle("-fx-alignment: CENTER; -fx-padding: 0 10 0 10;");
+                setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+
                 if (empty || price == null) {
-                    setText(null);
-                } else {
-                    if (price.compareTo(BigDecimal.ZERO) == 0) {
-                        setText("--");
-                        setStyle("-fx-text-fill: #604868; -fx-font-weight: bold; -fx-alignment: center-right;");
-                    } else {
-                        setText("$" + df.format(price));
-                        setStyle("-fx-text-fill: #e040a0; -fx-font-weight: 900; -fx-alignment: center-right;");
-                    }
+                    setGraphic(null);
+                    return;
                 }
+
+                Label priceLabel = new Label(price.compareTo(BigDecimal.ZERO) == 0 ? "--" : "$" + df.format(price));
+                priceLabel.setStyle(price.compareTo(BigDecimal.ZERO) == 0
+                        ? "-fx-text-fill: #604868; -fx-font-weight: bold;"
+                        : "-fx-text-fill: #e040a0; -fx-font-weight: 900;");
+
+                StackPane wrapper = new StackPane(priceLabel);
+                wrapper.setMaxWidth(Double.MAX_VALUE);
+                wrapper.prefWidthProperty().bind(widthProperty().subtract(20));
+                wrapper.setAlignment(Pos.CENTER);
+                setGraphic(wrapper);
             }
         });
 
@@ -445,25 +466,41 @@ public class SellerDashboardController {
             @Override
             protected void updateItem(String endTime, boolean empty) {
                 super.updateItem(endTime, empty);
+                setText(null);
+                setAlignment(Pos.CENTER);
+                setStyle("-fx-alignment: CENTER; -fx-padding: 0 10 0 10;");
+                setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+
                 if (empty || endTime == null || endTime.isEmpty()) {
-                    setText(null);
-                } else {
-                    try {
-                        LocalDateTime end = LocalDateTime.parse(endTime);
-                        if (end.isBefore(LocalDateTime.now())) {
-                            setText("Ended");
-                            setStyle("-fx-text-fill: #e53e3e; -fx-font-weight: bold; -fx-alignment: center-right;");
-                        } else {
-                            Duration d = Duration.between(LocalDateTime.now(), end);
-                            long hours = d.toHours();
-                            long minutes = d.toMinutesPart();
-                            setText(String.format("%02dh %02dm", hours, minutes));
-                            setStyle("-fx-text-fill: #604868; -fx-font-weight: bold; -fx-alignment: center-right;");
-                        }
-                    } catch (Exception e) {
-                        setText(endTime);
-                    }
+                    setGraphic(null);
+                    return;
                 }
+
+                String displayText;
+                String textColor = "#604868";
+                try {
+                    LocalDateTime end = LocalDateTime.parse(endTime);
+                    if (end.isBefore(LocalDateTime.now())) {
+                        displayText = "Ended";
+                        textColor = "#e53e3e";
+                    } else {
+                        Duration d = Duration.between(LocalDateTime.now(), end);
+                        long hours = d.toHours();
+                        long minutes = d.toMinutesPart();
+                        displayText = String.format("%02dh %02dm", hours, minutes);
+                    }
+                } catch (Exception e) {
+                    displayText = endTime;
+                }
+
+                Label timeLabel = new Label(displayText);
+                timeLabel.setStyle("-fx-text-fill: " + textColor + "; -fx-font-weight: bold;");
+
+                StackPane wrapper = new StackPane(timeLabel);
+                wrapper.setMaxWidth(Double.MAX_VALUE);
+                wrapper.prefWidthProperty().bind(widthProperty().subtract(20));
+                wrapper.setAlignment(Pos.CENTER);
+                setGraphic(wrapper);
             }
         });
 
@@ -473,10 +510,12 @@ public class SellerDashboardController {
             protected void updateItem(SessionItem item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null) {
+                    setText(null);
                     setGraphic(null);
+                    setContentDisplay(ContentDisplay.TEXT_ONLY);
                 } else {
                     HBox hbox = new HBox(8);
-                    hbox.setAlignment(Pos.CENTER_LEFT);
+                    hbox.setAlignment(Pos.CENTER);
 
                     Button btnView;
                     if ("DRAFT".equalsIgnoreCase(item.status)) {
@@ -512,7 +551,17 @@ public class SellerDashboardController {
                     }
 
                     hbox.getChildren().addAll(btnView, btnEdit, btnDelete);
-                    setGraphic(hbox);
+
+                    StackPane wrapper = new StackPane(hbox);
+                    wrapper.setMaxWidth(Double.MAX_VALUE);
+                    wrapper.prefWidthProperty().bind(widthProperty().subtract(20));
+                    wrapper.setAlignment(Pos.CENTER);
+
+                    setText(null);
+                    setGraphic(wrapper);
+                    setAlignment(Pos.CENTER);
+                    setStyle("-fx-alignment: CENTER; -fx-padding: 0 10 0 10;");
+                    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
                 }
             }
         });

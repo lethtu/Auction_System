@@ -1167,7 +1167,7 @@ public class MainController implements Initializable {
         HBox.setHgrow(hSpacer, Priority.ALWAYS);
 
         HBox actionBox = new HBox(10);
-        actionBox.setAlignment(Pos.CENTER);
+        actionBox.setAlignment(Pos.CENTER_RIGHT);
         actionBox.setMinWidth(102.0);
         actionBox.setPrefWidth(102.0);
         actionBox.setMaxWidth(102.0);
@@ -1180,6 +1180,8 @@ public class MainController implements Initializable {
         mainPlusIcon.setMinSize(44.0, 44.0);
         mainPlusIcon.setPrefSize(44.0, 44.0);
         mainPlusIcon.setMaxSize(44.0, 44.0);
+        mainPlusIcon.setTranslateY(-1.5);
+        mainPlusIcon.setTranslateX(0.0);
         mainBtn.setGraphic(mainPlusIcon);
         mainBtn.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         mainBtn.setMinSize(44.0, 44.0);
@@ -1294,6 +1296,8 @@ public class MainController implements Initializable {
             // Non-running / invalid cards show a single action button
             mainPlusIcon.setText("\uE8F4"); // Eye icon
             mainPlusIcon.setFont(Font.font("Material Symbols Outlined", FontWeight.NORMAL, 24));
+            mainPlusIcon.setTranslateY(2.5);
+            mainPlusIcon.setTranslateX(0.0);
             
             if ("UPCOMING".equals(normalizedStatus)) {
                 mainPlusIcon.setTextFill(Color.web("#ffffff"));

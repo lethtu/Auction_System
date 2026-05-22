@@ -156,8 +156,8 @@
                             <columns>
                                 <TableColumn fx:id="colItem" text="ITEM" prefWidth="350"/>
                                 <TableColumn fx:id="colStatus" text="STATUS" prefWidth="120"/>
-                                <TableColumn fx:id="colBid" text="CURRENT BID" prefWidth="150" styleClass="right-align"/>
-                                <TableColumn fx:id="colTimeLeft" text="TIME LEFT" prefWidth="150" styleClass="right-align"/>
+                                <TableColumn fx:id="colBid" text="CURRENT BID" prefWidth="150"/>
+                                <TableColumn fx:id="colTimeLeft" text="TIME LEFT" prefWidth="150"/>
                                 <TableColumn fx:id="colActions" text="ACTIONS" prefWidth="150"/>
                             </columns>
                             <columnResizePolicy>
