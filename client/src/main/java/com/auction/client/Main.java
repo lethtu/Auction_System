@@ -14,6 +14,7 @@ import java.util.Objects;
 
 public class Main extends Application {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
+
     @Override
     public void start(Stage primaryStage) throws Exception {
         logger.info("Đã khởi động Client thành công");

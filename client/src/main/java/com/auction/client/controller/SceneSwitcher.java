@@ -21,7 +21,6 @@ public class SceneSwitcher {
     public static final double MIN_WIDTH = 900;
     public static final double MIN_HEIGHT = 600;
 
-    
     public static Stage getStage(javafx.event.Event event) {
         Object source = event.getSource();
         if (source instanceof Node node) {
@@ -53,7 +52,8 @@ public class SceneSwitcher {
         }
     }
 
-    public static FXMLLoader Switch(Event event, String fxmlFile, Integer targetWidth, Integer targetHeight) throws IOException {
+    public static FXMLLoader Switch(Event event, String fxmlFile, Integer targetWidth, Integer targetHeight)
+            throws IOException {
         String path = "/com/auction/client/view/" + fxmlFile;
         URL xmlResource = SceneSwitcher.class.getResource(path);
 
@@ -80,7 +80,8 @@ public class SceneSwitcher {
 
         boolean wasMaximized = stage.isMaximized();
         boolean wasFullScreen = stage.isFullScreen();
-        boolean isAuthScene = fxmlFile.equals("Login.fxml") || fxmlFile.equals("SignUp.fxml") || fxmlFile.equals("ForgotPassword.fxml");
+        boolean isAuthScene = fxmlFile.equals("Login.fxml") || fxmlFile.equals("SignUp.fxml")
+                || fxmlFile.equals("ForgotPassword.fxml");
 
         double currentWidth = stage.getWidth() > MIN_WIDTH ? stage.getWidth() : DEFAULT_WIDTH;
         double currentHeight = stage.getHeight() > MIN_HEIGHT ? stage.getHeight() : DEFAULT_HEIGHT;
@@ -127,7 +128,8 @@ public class SceneSwitcher {
         return Switch(event, fxmlFile, null, null);
     }
 
-    public static FXMLLoader switchScene(Event event, String fxmlFile, Integer width, Integer height) throws IOException {
+    public static FXMLLoader switchScene(Event event, String fxmlFile, Integer width, Integer height)
+            throws IOException {
         return Switch(event, fxmlFile, width, height);
     }
 }

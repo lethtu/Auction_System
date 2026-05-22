@@ -51,8 +51,8 @@
     -fx-background-color: linear-gradient(to bottom right, #fffbff 0%, #fff6fb 52%, #fffaf6 100%);
     -fx-background-radius: 32;
     -fx-border-radius: 32;
-    -fx-border-color: rgba(224, 64, 160, 0.24);
-    -fx-border-width: 1.2;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
     -fx-effect: dropshadow(gaussian, rgba(46, 26, 40, 0.22), 34, 0.16, 0, 10);
 }
 

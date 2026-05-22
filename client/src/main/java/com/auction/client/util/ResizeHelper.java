@@ -16,9 +16,11 @@ import java.util.WeakHashMap;
 /**
  * Window chrome for a JavaFX StageStyle.TRANSPARENT stage.
  *
- * <p>The stage itself stays transparent. Rounded corners are drawn only by CSS
+ * <p>
+ * The stage itself stays transparent. Rounded corners are drawn only by CSS
  * on the page surface (.auth-shell / .rounded-window-content). This class is
- * responsible solely for border hit-testing, drag-to-move and custom maximize.</p>
+ * responsible solely for border hit-testing, drag-to-move and custom maximize.
+ * </p>
  */
 public final class ResizeHelper {
     private static final double RESIZE_BORDER = 10.0;
@@ -145,7 +147,7 @@ public final class ResizeHelper {
     }
 
     private static void captureInitialBounds(Stage stage, WindowState state, MouseEvent event,
-                                             Cursor cursor, Operation operation) {
+            Cursor cursor, Operation operation) {
         state.operation = operation;
         state.resizeCursor = cursor;
         state.startScreenX = event.getScreenX();
@@ -169,14 +171,22 @@ public final class ResizeHelper {
         boolean top = sceneY <= RESIZE_BORDER;
         boolean bottom = sceneY >= height - RESIZE_BORDER;
 
-        if (top && left) return Cursor.NW_RESIZE;
-        if (top && right) return Cursor.NE_RESIZE;
-        if (bottom && left) return Cursor.SW_RESIZE;
-        if (bottom && right) return Cursor.SE_RESIZE;
-        if (left) return Cursor.W_RESIZE;
-        if (right) return Cursor.E_RESIZE;
-        if (top) return Cursor.N_RESIZE;
-        if (bottom) return Cursor.S_RESIZE;
+        if (top && left)
+            return Cursor.NW_RESIZE;
+        if (top && right)
+            return Cursor.NE_RESIZE;
+        if (bottom && left)
+            return Cursor.SW_RESIZE;
+        if (bottom && right)
+            return Cursor.SE_RESIZE;
+        if (left)
+            return Cursor.W_RESIZE;
+        if (right)
+            return Cursor.E_RESIZE;
+        if (top)
+            return Cursor.N_RESIZE;
+        if (bottom)
+            return Cursor.S_RESIZE;
         return Cursor.DEFAULT;
     }
 
@@ -225,7 +235,10 @@ public final class ResizeHelper {
         return state != null && state.maximized;
     }
 
-    /** Custom maximize; never call Stage#setMaximized(true) on the transparent main stage. */
+    /**
+     * Custom maximize; never call Stage#setMaximized(true) on the transparent main
+     * stage.
+     */
     public static void maximize(Stage stage) {
         if (stage == null) {
             return;
