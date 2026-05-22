@@ -180,8 +180,8 @@
                             <columns>
                                 <TableColumn fx:id="colItem" text="ITEM" prefWidth="350"/>
                                 <TableColumn fx:id="colStatus" text="STATUS" prefWidth="120"/>
-                                <TableColumn fx:id="colBid" text="CURRENT BID" prefWidth="150" styleClass="right-align"/>
-                                <TableColumn fx:id="colTimeLeft" text="TIME LEFT" prefWidth="150" styleClass="right-align"/>
+                                <TableColumn fx:id="colBid" text="CURRENT BID" prefWidth="150"/>
+                                <TableColumn fx:id="colTimeLeft" text="TIME LEFT" prefWidth="150"/>
                                 <TableColumn fx:id="colActions" text="ACTIONS" prefWidth="150"/>
                             </columns>
                             <columnResizePolicy>
@@ -193,15 +193,7 @@
                         <HBox alignment="CENTER_LEFT" styleClass="seller-listings-footer">
                             <Label text="Showing 1-10 of many items" style="-fx-text-fill: #604868; -fx-font-size: 14px;"/>
                             <Region HBox.hgrow="ALWAYS" />
-                            <HBox spacing="4.0">
-                                <Button text="1" style="-fx-background-color: #f080c0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 999; -fx-min-width: 40px; -fx-min-height: 40px;"/>
-                                <Button text="2" style="-fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 999; -fx-min-width: 40px; -fx-min-height: 40px;"/>
-                                <Button text="3" style="-fx-background-color: transparent; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 999; -fx-min-width: 40px; -fx-min-height: 40px;"/>
-                                <Button style="-fx-background-color: transparent; -fx-background-radius: 999; -fx-min-width: 40px; -fx-min-height: 40px;">
-                                    <graphic><FontIcon iconLiteral="mdi2c-chevron-right" iconSize="24" iconColor="#604868"/></graphic>
-                                </Button>
                             </HBox>
-                        </HBox>
 
                     </VBox>
                     </VBox>
@@ -226,24 +218,17 @@
             <ScrollPane fitToWidth="true" styleClass="scroll-pane" vbarPolicy="AS_NEEDED" VBox.vgrow="ALWAYS" style="-fx-padding: 32px; -fx-background-color: transparent;">
                 <VBox spacing="24">
                     
+                    
                     <VBox spacing="8">
                         <Label text="Item Title" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
-                        <TextField fx:id="productNameField" promptText="What are you selling?" styleClass="custom-text-input"/>
+                        <TextField fx:id="productNameField" promptText="Enter product title" styleClass="custom-text-input"/>
                         <HBox fx:id="errorTitle" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
                             <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" iconColor="#e040a0"/>
-                            <Label text="Tên sản phẩm không được để trống" style="-fx-text-fill: #e040a0; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                            <Label text="Product name cannot be empty" style="-fx-text-fill: #e040a0; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                         </HBox>
                     </VBox>
-                    
+
                     <HBox spacing="16">
-                        <VBox spacing="8" HBox.hgrow="ALWAYS" prefWidth="250">
-                            <Label text="Item Title" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
-                            <TextField fx:id="productNameField" promptText="What are you selling?" styleClass="custom-text-input"/>
-                            <HBox fx:id="errorTitle" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
-                                <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" iconColor="#e040a0"/>
-                                <Label text="Product name cannot be empty" style="-fx-text-fill: #e040a0; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
-                            </HBox>
-                        </VBox>
                         <VBox spacing="8" HBox.hgrow="ALWAYS" prefWidth="250">
                             <Label text="Category" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
                             <ComboBox fx:id="productTypeCombo" maxWidth="Infinity" styleClass="custom-combo-box" style="-fx-padding: 8px 16px;"/>
@@ -269,6 +254,7 @@
                             </HBox>
                         </VBox>
                     </HBox>
+
 
                     <HBox spacing="16">
                         <VBox spacing="8" HBox.hgrow="ALWAYS" prefWidth="250">

@@ -29,9 +29,12 @@ public class AuthGetImage {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthGetImage.class);
 
-    private static final String UPLOAD_ROOT_DIRECTORY = "upload/images";
+    private static final String DEFAULT_UPLOAD_ROOT_DIRECTORY = "upload/images";
+    private static final String UPLOAD_DIR_SYSTEM_PROPERTY = "auction.upload.dir";
+    private static final String UPLOAD_DIR_ENV_NAME = "AUCTION_UPLOAD_DIR";
     private static final String FILE_REQUEST_PARAM = "file";
     private static final String IMAGE_PATH_KEY = "imagePath";
+    private static final String IMAGE_URL_KEY = "imageUrl";
 
     private static final String DEFAULT_EXTENSION = ".png";
     private static final String DEFAULT_CONTENT_TYPE = "application/octet-stream";
@@ -44,8 +47,6 @@ public class AuthGetImage {
 
     private static final int BAD_REQUEST_STATUS = 400;
     private static final int MAX_EXTENSION_LENGTH = 10;
-
-    private Path rootLocation = Paths.get(UPLOAD_ROOT_DIRECTORY).toAbsolutePath().normalize();
 
     @PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Map<String, String>>> uploadImage(
@@ -72,7 +73,10 @@ public class AuthGetImage {
 
             return ResponseEntity.ok(ApiResponse.success(
                     UPLOAD_SUCCESS_MESSAGE,
-                    Map.of(IMAGE_PATH_KEY, imagePath)
+                    Map.of(
+                            IMAGE_PATH_KEY, imagePath,
+                            IMAGE_URL_KEY, "/api/files/images/" + imagePath
+                    )
             ));
 
         } catch (IllegalArgumentException e) {
@@ -98,11 +102,12 @@ public class AuthGetImage {
         }
     }
 
-    @GetMapping("/images/avatar/{filename:.+}")
+    @GetMapping("/avatar/{filename:.+}")
     public ResponseEntity<Resource> serveAvatar(@PathVariable String filename) {
         try {
-            Path file = getRootLocation().resolve("avatar").resolve(filename).normalize();
-            return serve(file);
+            Path avatarRoot = Paths.get("upload/avatar").toAbsolutePath().normalize();
+            Path file = avatarRoot.resolve(filename).normalize();
+            return serveFrom(file, avatarRoot);
         } catch (Exception e) {
             logger.error("Error processing avatar path: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
@@ -173,8 +178,12 @@ public class AuthGetImage {
     }
 
     private ResponseEntity<Resource> serve(Path file) {
+        return serveFrom(file, getRootLocation());
+    }
+
+    private ResponseEntity<Resource> serveFrom(Path file, Path allowedRoot) {
         try {
-            if (!isInsideRootLocation(file)) {
+            if (file == null || !file.normalize().startsWith(allowedRoot)) {
                 return ResponseEntity.badRequest().build();
             }
 
@@ -225,11 +234,21 @@ public class AuthGetImage {
     }
 
     private Path getRootLocation() {
-        if (rootLocation == null) {
-            throw new IllegalStateException("Image upload directory has not been initialized");
+        return Paths.get(resolveUploadRootDirectory()).toAbsolutePath().normalize();
+    }
+
+    private String resolveUploadRootDirectory() {
+        String propertyValue = System.getProperty(UPLOAD_DIR_SYSTEM_PROPERTY);
+        if (hasText(propertyValue)) {
+            return propertyValue.trim();
         }
 
-        return rootLocation;
+        String envValue = System.getenv(UPLOAD_DIR_ENV_NAME);
+        if (hasText(envValue)) {
+            return envValue.trim();
+        }
+
+        return DEFAULT_UPLOAD_ROOT_DIRECTORY;
     }
 
     private boolean hasText(String value) {

@@ -61,6 +61,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.time.LocalDateTime;
 
+import javafx.scene.control.ScrollPane;
 public class MainController implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(MainController.class);
 
@@ -104,6 +105,7 @@ public class MainController implements Initializable {
     @FXML private Button btnStartSelling;
     @FXML private Label lblPageTitle;
     @FXML private HBox filterControlsBox;
+    @FXML private Button btnToggleProductView;
     @FXML private StackPane topBarAvatarPane;
     @FXML private VBox toastContainer;
 
@@ -115,6 +117,7 @@ public class MainController implements Initializable {
     private Timeline countdownTimeline;
     private boolean showingAccountScreen = false;
     private boolean showingCompactListScreen = false;
+    private boolean compactProductListMode = false;
     public static boolean initialShowWatchlist = false;
     public static boolean initialShowAccount = false;
     public static String initialHomeFilterMode = "ALL";
@@ -145,6 +148,7 @@ public class MainController implements Initializable {
         fakeTestBtn.setOnAction(e -> {});
 
         productContainer.getChildren().add(fakeTestBtn);
+        applyAuctionScrollPolicy();
 
         if (btnNotificationBell != null && notificationBadge != null) {
             NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
@@ -167,6 +171,8 @@ public class MainController implements Initializable {
         cbStatus.getItems().addAll("All", "Ongoing", "Starting Soon", "Ended");
         cbStatus.setValue("All");
 
+        updateViewToggleButton(false);
+
         // Listen for real-time filter events
         txtSearch.textProperty().addListener((observable, oldValue, newValue) -> filterAndRenderProducts());
         cbCategory.setOnAction(event -> filterAndRenderProducts());
@@ -178,7 +184,8 @@ public class MainController implements Initializable {
         scrollPane.viewportBoundsProperty().addListener((obs, oldBounds, newBounds) -> {
             updateGridLayout();
         });
-        scheduleStableGridLayout();
+        updateGridLayout();
+        Platform.runLater(this::updateGridLayout);
 
         if (sidebarController != null) {
             sidebarController.setSidebarListener(new SidebarController.SidebarListener() {
@@ -239,33 +246,58 @@ public class MainController implements Initializable {
         }
     }
 
+    private void applyAuctionScrollPolicy() {
+        if (scrollPane != null) {
+            scrollPane.setFitToWidth(true);
+            scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        }
+        if (productContainer != null) {
+            productContainer.setMinWidth(0);
+            productContainer.setMaxWidth(Double.MAX_VALUE);
+        }
+    }
+
     private void updateGridLayout() {
         if (scrollPane == null || productContainer == null) return;
 
+        applyAuctionScrollPolicy();
+
         if (showingAccountScreen || showingCompactListScreen) {
-            productContainer.setAlignment(Pos.TOP_CENTER);
+            productContainer.setAlignment(Pos.TOP_LEFT);
+            productContainer.setMinWidth(0);
+            productContainer.setPrefWidth(Math.max(0, scrollPane.getViewportBounds().getWidth()));
+            productContainer.setMaxWidth(Double.MAX_VALUE);
             return;
         }
 
-        // Stable layout: do not recalculate dynamic spacing for very small viewport changes.
-        // JavaFX sometimes refreshes viewport on background click / app focus change, causing dynamic gap to toggle.
-        // So we keep gap fixed and let FlowPane center the product row.
         double viewportWidth = scrollPane.getViewportBounds().getWidth();
-        if (viewportWidth <= 0) return;
+        if (viewportWidth <= 0 && scrollPane.getWidth() > 0) {
+            viewportWidth = scrollPane.getWidth();
+        }
+        if (viewportWidth <= 0) {
+            return;
+        }
 
-        double stableWidth = Math.max(0, Math.floor(viewportWidth) - 24.0);
+        final double cardWidth = 240.0;
+        final double hgap = 28.0;
+        final int maxColumns = 3;
 
-        productContainer.setAlignment(Pos.TOP_LEFT);
-        productContainer.setPrefWrapLength(stableWidth);
-        productContainer.setMinWidth(stableWidth);
-        productContainer.setPrefWidth(stableWidth);
-        productContainer.setMaxWidth(stableWidth);
-        productContainer.setHgap(44.0);
+        int columns = Math.max(1, Math.min(maxColumns, (int) Math.floor((viewportWidth + hgap) / (cardWidth + hgap))));
+        double gridWidth = columns * cardWidth + Math.max(0, columns - 1) * hgap;
+
+        boolean emptyState = productContainer.getChildren().stream()
+                .anyMatch(node -> node.getStyleClass().contains("empty-state-card"));
+
+        productContainer.setAlignment(emptyState ? Pos.CENTER : Pos.TOP_LEFT);
+        productContainer.setPrefWrapLength(gridWidth);
+        productContainer.setMinWidth(gridWidth);
+        productContainer.setPrefWidth(gridWidth);
+        productContainer.setMaxWidth(gridWidth);
+        productContainer.setHgap(hgap);
         productContainer.setVgap(28.0);
-        productContainer.setPadding(new Insets(10.0, 18.0, 10.0, 18.0));
+        productContainer.setPadding(new Insets(10.0, 0.0, 24.0, 0.0));
     }
-
-    private void scheduleStableGridLayout() {
+ {
         Platform.runLater(this::updateGridLayout);
         PauseTransition delay = new PauseTransition(Duration.millis(150));
         delay.setOnFinished(event -> updateGridLayout());
@@ -380,7 +412,11 @@ public class MainController implements Initializable {
                     allProducts.clear();
                     allProducts.addAll(newProducts);
 
-                    Platform.runLater(this::filterAndRenderProducts);
+                    Platform.runLater(() -> {
+                        if (!showingAccountScreen && !showingCompactListScreen) {
+                            filterAndRenderProducts();
+                        }
+                    });
                 }
             } else {
                 logger.error("Server error: {}", response.statusCode());
@@ -400,542 +436,40 @@ public class MainController implements Initializable {
             new Thread(this::fetchProductsData).start();
         }
     }
-
     private void showOfflineMode(String message) {
         if (productContainer == null) return;
-        if (!allProducts.isEmpty()) return; // If old data exists, keep display intact
+        if (!allProducts.isEmpty()) return;
 
+        stopCountdownTimeline();
         productContainer.getChildren().clear();
         productContainer.getChildren().add(fakeTestBtn);
         currentRenderedIds.clear();
 
-        VBox offlineBox = new VBox(16);
-        offlineBox.setAlignment(Pos.CENTER);
-        offlineBox.setPadding(new Insets(40));
-        offlineBox.setPrefWidth(productContainer.getPrefWidth() > 0 ? productContainer.getPrefWidth() : 600);
-
-        Label iconLabel = new Label("\uE000"); // Warning/error icon in Material Icons
-        iconLabel.setStyle("-fx-font-family: 'Material Icons'; -fx-font-size: 64px; -fx-text-fill: #adb5bd;");
-
-        Label titleLabel = new Label("Server Connection Lost");
-        titleLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
-
-        Label msgLabel = new Label(message);
-        msgLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868; -fx-wrap-text: true; -fx-text-alignment: center;");
-        msgLabel.setMaxWidth(400);
-
-        Button retryBtn = new Button("Retry Connection");
-        retryBtn.setStyle("-fx-background-color: linear-gradient(to right, #e040a0, #f06292); -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-padding: 8 24; -fx-background-radius: 999; -fx-cursor: hand;");
-        retryBtn.setOnAction(e -> {
-            retryBtn.setText("Retrying...");
-            retryBtn.setDisable(true);
-            loadProductsFromServer();
-        });
-
-        offlineBox.getChildren().addAll(iconLabel, titleLabel, msgLabel, retryBtn);
-        productContainer.getChildren().add(offlineBox);
+        VBox emptyBox = createEmptyStateBox(message == null || message.isBlank()
+                ? getEmptyStateMessage()
+                : message);
+        productContainer.getChildren().add(emptyBox);
+        updateGridLayout();
     }
 
-    /**
-     * Core Data-Driven UI handler: Filter buffer (RAM) and redraw screen
-     */
-    private void filterAndRenderProducts() {
-        if (showingAccountScreen || showingCompactListScreen) {
-            return;
-        }
-
-        String keyword = txtSearch.getText() != null ? txtSearch.getText().toLowerCase().trim() : "";
-        String selectedCategory = cbCategory.getValue();
-        String selectedStatus = cbStatus.getValue();
-
-        Platform.runLater(() -> {
-            sortProducts(allProducts);
-
-            List<Integer> newIdsToRender = new ArrayList<>();
-
-            // Step 1: Calculate the list of IDs to display after filtering
-            for (JSONObject sessionObj : allProducts) {
-                JSONObject itemObj = getItemObject(sessionObj);
-
-                String name = itemObj.optString("name", "");
-                String type = itemObj.optString("type", "");
-                String status = normalizeSession(sessionObj);
-
-                // Only block canceled or paid sessions
-                if ("CLOSED".equalsIgnoreCase(status)) {
-                    continue;
-                }
-
-                // 3-layer filtering logic
-                boolean matchKeyword = keyword.isEmpty() || name.toLowerCase().contains(keyword);
-                boolean matchCategory = "All".equals(selectedCategory) || type.equalsIgnoreCase(selectedCategory);
-                boolean matchWatchlist = !showingWatchlistOnly || User.watchlistIds.contains(sessionObj.optInt("id"));
-                boolean matchMySessions = !showingMySessionsOnly || isSessionOwnedByCurrentUser(sessionObj);
-
-                boolean matchStatus = false;
-                if ("All".equals(selectedStatus) || selectedStatus == null) {
-                    matchStatus = true;
-                } else if ("Ongoing".equals(selectedStatus)) {
-                    matchStatus = "RUNNING".equalsIgnoreCase(status);
-                } else if ("Starting Soon".equals(selectedStatus)) {
-                    matchStatus = "UPCOMING".equalsIgnoreCase(status);
-                } else if ("Ended".equals(selectedStatus)) {
-                    matchStatus = "ENDED".equalsIgnoreCase(status);
-                }
-
-                if (matchKeyword && matchCategory && matchStatus && matchWatchlist && matchMySessions) {
-                    newIdsToRender.add(sessionObj.optInt("id"));
-                }
-            }
-
-            // Step 2: Check if the display list has changed (add/remove/change filters)
-            if (forceRenderProducts || !currentRenderedIds.equals(newIdsToRender)) {
-                forceRenderProducts = false;
-                // Changes detected => Redraw everything
-                productContainer.getChildren().clear();
-                currentRenderedIds.clear();
-
-                productContainer.getChildren().add(fakeTestBtn);
-
-                if (newIdsToRender.isEmpty()) {
-                    productContainer.getChildren().add(createEmptyStateBox());
-                    updateGridLayout();
-                    return;
-                }
-
-                sessionCardMap.clear();
-
-                for (JSONObject sessionObj : allProducts) {
-                    JSONObject itemObj = getItemObject(sessionObj);
-
-                    String name = itemObj.optString("name", "");
-                    String type = itemObj.optString("type", "");
-                    String status = normalizeSession(sessionObj);
-
-                    if ("CLOSED".equalsIgnoreCase(status)) {
-                        continue;
-                    }
-
-                    boolean matchKeyword = keyword.isEmpty() || name.toLowerCase().contains(keyword);
-                    boolean matchCategory = "All".equals(selectedCategory) || type.equalsIgnoreCase(selectedCategory);
-                    
-                    boolean matchStatus = false;
-                    if ("All".equals(selectedStatus) || selectedStatus == null) {
-                        matchStatus = true;
-                    } else if ("Ongoing".equals(selectedStatus)) {
-                        matchStatus = "RUNNING".equalsIgnoreCase(status);
-                    } else if ("Starting Soon".equals(selectedStatus)) {
-                        matchStatus = "UPCOMING".equalsIgnoreCase(status);
-                    } else if ("Ended".equals(selectedStatus)) {
-                        matchStatus = "ENDED".equalsIgnoreCase(status);
-                    }
-                    
-                    boolean matchWatchlist = !showingWatchlistOnly || User.watchlistIds.contains(sessionObj.optInt("id"));
-                    boolean matchMySessions = !showingMySessionsOnly || isSessionOwnedByCurrentUser(sessionObj);
-
-                    if (matchKeyword && matchCategory && matchStatus && matchWatchlist && matchMySessions) {
-                        VBox card = createProductCard(sessionObj, itemObj);
-                        productContainer.getChildren().add(card);
-                        currentRenderedIds.add(sessionObj.optInt("id"));
-
-                        sessionCardMap.put(sessionObj.optInt("id"), card);
-                    }
-                }
-                updateGridLayout();
-            } else {
-                // Structure unchanged (polling only got new price) => Update Label in place to avoid UI jitter
-                for (JSONObject sessionObj : allProducts) {
-                    int id = sessionObj.optInt("id");
-                    if (currentRenderedIds.contains(id)) {
-                        BigDecimal currentPrice = sessionObj.optBigDecimal("currentPrice", BigDecimal.ZERO);
-                        javafx.scene.Node priceNode = productContainer.lookup("#priceLabel_" + id);
-                        if (priceNode instanceof Label) {
-                            ((Label) priceNode).setText("₫ " + formatPrice(currentPrice));
-                        }
-                    }
-                }
-            }
-            startCountdownTimeline();
-        });
-    }
-
-    private String getRawTimeField(JSONObject sessionObj, JSONObject itemObj, String... keys) {
-        if (sessionObj == null) return null;
-        for (String key : keys) {
-            if (sessionObj.has(key) && !sessionObj.isNull(key)) {
-                return sessionObj.optString(key);
-            }
-        }
-        String[] nestedKeys = {"auctionSession", "session", "auction"};
-        for (String nKey : nestedKeys) {
-            if (sessionObj.has(nKey) && !sessionObj.isNull(nKey)) {
-                JSONObject nestedObj = sessionObj.optJSONObject(nKey);
-                if (nestedObj != null) {
-                    for (String key : keys) {
-                        if (nestedObj.has(key) && !nestedObj.isNull(key)) {
-                            return nestedObj.optString(key);
-                        }
-                    }
-                }
-            }
-        }
-        if (itemObj != null) {
-            for (String key : keys) {
-                if (itemObj.has(key) && !itemObj.isNull(key)) {
-                    return itemObj.optString(key);
-                }
-            }
-            for (String nKey : nestedKeys) {
-                if (itemObj.has(nKey) && !itemObj.isNull(nKey)) {
-                    JSONObject nestedObj = itemObj.optJSONObject(nKey);
-                    if (nestedObj != null) {
-                        for (String key : keys) {
-                            if (nestedObj.has(key) && !nestedObj.isNull(key)) {
-                                return nestedObj.optString(key);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private LocalDateTime parseDateTime(String rawVal, int id, String name, String rawStatus, String fieldName) {
-        if (rawVal == null || rawVal.isBlank()) {
-            return null;
-        }
-        rawVal = rawVal.trim();
-        try {
-            return LocalDateTime.parse(rawVal);
-        } catch (Exception e) {
-            try {
-                if (rawVal.contains(" ") && rawVal.indexOf(" ") == 10) {
-                    return LocalDateTime.parse(rawVal.replace(" ", "T"));
-                }
-            } catch (Exception ex) {}
-        }
-        
-        try {
-            long millis = Long.parseLong(rawVal);
-            return LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(millis), java.time.ZoneId.systemDefault());
-        } catch (NumberFormatException e) {
-        }
-        
-        String[] formats = {
-            "yyyy-MM-dd HH:mm:ss",
-            "yyyy-MM-dd HH:mm",
-            "dd/MM/yyyy HH:mm:ss",
-            "dd/MM/yyyy HH:mm",
-            "yyyy/MM/dd HH:mm:ss",
-            "yyyy/MM/dd HH:mm"
-        };
-        for (String format : formats) {
-            try {
-                java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern(format);
-                return LocalDateTime.parse(rawVal, formatter);
-            } catch (Exception e) {
-            }
-        }
-        
-        logger.warn("parseDateTime failed for product id={}, name='{}', rawStatus='{}', field='{}', raw value='{}'",
-                id, name, rawStatus, fieldName, rawVal);
-        return null;
-    }
-
-    private String normalizeSession(JSONObject sessionObj) {
-        if (sessionObj == null) return "UNKNOWN_TIME";
-        JSONObject itemObj = getItemObject(sessionObj);
-        int id = sessionObj.optInt("id");
-        String name = itemObj.optString("name");
-        String rawStatus = sessionObj.optString("status", "");
-        
-        String startTimeRaw = getRawTimeField(sessionObj, itemObj, "startTime", "start_time", "auctionStartTime");
-        String endTimeRaw = getRawTimeField(sessionObj, itemObj, "endTime", "end_time", "auctionEndTime", "endDate", "endDateTime");
-        
-        LocalDateTime startDT = parseDateTime(startTimeRaw, id, name, rawStatus, "startTime");
-        LocalDateTime endDT = parseDateTime(endTimeRaw, id, name, rawStatus, "endTime");
-        
-        return normalizeStatus(rawStatus, startDT, endDT);
-    }
-
-    private String normalizeStatus(String rawStatus, LocalDateTime startDT, LocalDateTime endDT) {
-        if (rawStatus == null) rawStatus = "";
-        rawStatus = rawStatus.toUpperCase().trim();
-
-        if (rawStatus.equals("FINISHED") || rawStatus.equals("ENDED") || 
-            rawStatus.equals("CANCELED") || rawStatus.equals("PAID") || 
-            rawStatus.equals("CLOSED")) {
-            return "ENDED";
-        }
-
-        if (startDT != null && endDT != null) {
-            LocalDateTime now = LocalDateTime.now();
-            if (now.isBefore(startDT)) {
-                return "UPCOMING";
-            } else if (!now.isBefore(startDT) && now.isBefore(endDT)) {
-                return "RUNNING";
-            } else {
-                return "ENDED";
-            }
-        }
-
-        if ((rawStatus.equals("RUNNING") || rawStatus.equals("ACTIVE")) && endDT == null) {
-            return "UNKNOWN_TIME";
-        }
-
-        if (rawStatus.equals("OPEN")) {
-            LocalDateTime now = LocalDateTime.now();
-            if (startDT != null && endDT != null) {
-                if (!now.isBefore(startDT) && now.isBefore(endDT)) {
-                    return "RUNNING";
-                }
-            }
-        }
-
-        LocalDateTime now = LocalDateTime.now();
-        if (endDT != null && (now.isAfter(endDT) || now.isEqual(endDT))) {
-            return "ENDED";
-        }
-        if (startDT != null && now.isBefore(startDT)) {
-            return "UPCOMING";
-        }
-        if (rawStatus.equals("RUNNING") || rawStatus.equals("ACTIVE") || rawStatus.equals("OPEN")) {
-            if (endDT != null) {
-                return "RUNNING";
-            } else {
-                return "UNKNOWN_TIME";
-            }
-        }
-
-        return "UNKNOWN_TIME";
-    }
-
-    private void sortProducts(List<JSONObject> list) {
-        list.sort((o1, o2) -> {
-            String status1 = normalizeSession(o1);
-            String status2 = normalizeSession(o2);
-
-            int p1 = getStatusPriority(status1);
-            int p2 = getStatusPriority(status2);
-            if (p1 != p2) return Integer.compare(p1, p2);
-
-            JSONObject item1 = getItemObject(o1);
-            JSONObject item2 = getItemObject(o2);
-            
-            String st1Raw = getRawTimeField(o1, item1, "startTime", "start_time", "auctionStartTime");
-            String et1Raw = getRawTimeField(o1, item1, "endTime", "end_time", "auctionEndTime", "endDate", "endDateTime");
-            String st2Raw = getRawTimeField(o2, item2, "startTime", "start_time", "auctionStartTime");
-            String et2Raw = getRawTimeField(o2, item2, "endTime", "end_time", "auctionEndTime", "endDate", "endDateTime");
-
-            LocalDateTime st1 = parseDateTime(st1Raw, o1.optInt("id"), item1.optString("name"), o1.optString("status", ""), "startTime");
-            LocalDateTime et1 = parseDateTime(et1Raw, o1.optInt("id"), item1.optString("name"), o1.optString("status", ""), "endTime");
-            LocalDateTime st2 = parseDateTime(st2Raw, o2.optInt("id"), item2.optString("name"), o2.optString("status", ""), "startTime");
-            LocalDateTime et2 = parseDateTime(et2Raw, o2.optInt("id"), item2.optString("name"), o2.optString("status", ""), "endTime");
-
-            if (p1 == 1) { // RUNNING: sort by endTime asc
-                if (et1 == null && et2 == null) return 0;
-                if (et1 == null) return 1;
-                if (et2 == null) return -1;
-                return et1.compareTo(et2);
-            } else if (p1 == 2) { // UPCOMING: sort by startTime asc
-                if (st1 == null && st2 == null) return 0;
-                if (st1 == null) return 1;
-                if (st2 == null) return -1;
-                return st1.compareTo(st2);
-            } else if (p1 == 3) { // ENDED: sort by endTime desc
-                if (et1 == null && et2 == null) return 0;
-                if (et1 == null) return 1;
-                if (et2 == null) return -1;
-                return et2.compareTo(et1);
-            }
-            return 0;
-        });
-    }
-
-    private int getStatusPriority(String status) {
-        switch (status) {
-            case "RUNNING": return 1;
-            case "UPCOMING": return 2;
-            case "ENDED": return 3;
-            case "CLOSED": return 4;
-            default: return 5;
-        }
-    }
-
-    private void showCategoryChooser() {
-        ChoiceDialog<String> dialog = new ChoiceDialog<>(
-                cbCategory.getValue() == null ? "All" : cbCategory.getValue(),
-                "All", "Electronics", "Art", "Vehicle"
-        );
-        dialog.setTitle("Category");
-        dialog.setHeaderText("Select category to view");
-        dialog.setContentText("Category:");
-
-        Optional<String> result = dialog.showAndWait();
-        if (result.isEmpty()) {
-            return;
-        }
-
-        showAllSessions();
-        cbCategory.setValue(result.get());
-        filterAndRenderProducts();
-    }
-
-    @FXML
-    private void handleApplyFilter(ActionEvent event) {
-        filterAndRenderProducts();
-    }
-
-    @FXML
-    private void handleResetFilter(ActionEvent event) {
-        resetFiltersAndShowAll();
-    }
-
-
-    private void showAllSessions() {
-        showingAccountScreen = false;
-        showingCompactListScreen = false;
-        showingWatchlistOnly = false;
-        showingMyBidsOnly = false;
-        showingMySessionsOnly = false;
-        hideFilterControlsForAccountPage(false);
-        forceRenderProducts = true;
-        loadProductsFromServer();
-        filterAndRenderProducts();
-    }
-
-    private void showWatchlistSessions() {
-        showingAccountScreen = false;
-        showingCompactListScreen = false;
-        showingWatchlistOnly = true;
-        showingMyBidsOnly = false;
-        showingMySessionsOnly = false;
-        hideFilterControlsForAccountPage(false);
-        forceRenderProducts = true;
-        filterAndRenderProducts();
-    }
-
-    private void showMySessions() {
-        showingAccountScreen = false;
-        showingCompactListScreen = false;
-        hideFilterControlsForAccountPage(false);
-        if (User.getId() == null) {
-            showWarning("Login Required", "Please log in to view your auction sessions.");
-            return;
-        }
-        showingWatchlistOnly = false;
-        showingMyBidsOnly = false;
-        showingMySessionsOnly = true;
-        forceRenderProducts = true;
-        loadProductsFromServer();
-        filterAndRenderProducts();
-    }
-
-    private void showMyBiddingSessions() {
-        showingAccountScreen = false;
-        showingCompactListScreen = false;
-        hideFilterControlsForAccountPage(false);
-        if (User.getId() == null) {
-            showWarning("Login Required", "Please log in to view your active bids.");
-            return;
-        }
-
-        showingWatchlistOnly = false;
-        showingMyBidsOnly = true;
-        showingMySessionsOnly = false;
-        forceRenderProducts = true;
-        loadMyBiddingSessionsFromServer();
-    }
-
-    private void loadMyBiddingSessionsFromServer() {
-        Integer bidderId = User.getId();
-        if (bidderId == null) return;
-
-        new Thread(() -> {
-            try {
-                HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(Config.API_URL + "/api/bidder/my-bidding-sessions?bidderId=" + bidderId))
-                        .GET()
-                        .build();
-
-                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-                if (response.statusCode() != 200) {
-                    Platform.runLater(() -> showError("Cannot Load My Bids", "Server responded with error code: " + response.statusCode()));
-                    return;
-                }
-
-                JSONObject responseJson = new JSONObject(response.body());
-                if (responseJson.optInt("status", 500) != 200) {
-                    Platform.runLater(() -> showError("Cannot Load My Bids", responseJson.optString("message", "Unknown error.")));
-                    return;
-                }
-
-                List<JSONObject> sessions = parseSessionList(responseJson.get("data"));
-                Platform.runLater(() -> {
-                    allProducts.clear();
-                    allProducts.addAll(sessions);
-                    forceRenderProducts = true;
-                    filterAndRenderProducts();
-                });
-            } catch (Exception e) {
-                logger.error("Error loading bids for user {}: {}", bidderId, e.getMessage(), e);
-                Platform.runLater(() -> showError("Cannot Load My Bids", "Cannot connect to server or invalid data returned."));
-            }
-        }, "load-my-bidding-sessions").start();
-    }
-
-    private List<JSONObject> parseSessionList(Object dataObj) {
-        JSONArray jsonArray = new JSONArray();
-        if (dataObj instanceof JSONObject) {
-            JSONObject dataJson = (JSONObject) dataObj;
-            if (dataJson.has("content")) {
-                jsonArray = dataJson.getJSONArray("content");
-            }
-        } else if (dataObj instanceof JSONArray) {
-            jsonArray = (JSONArray) dataObj;
-        }
-
-        List<JSONObject> sessions = new ArrayList<>();
-        for (int i = 0; i < jsonArray.length(); i++) {
-            sessions.add(jsonArray.getJSONObject(i));
-        }
-        return sessions;
-    }
-
-    private boolean isSessionOwnedByCurrentUser(JSONObject sessionObj) {
-        Integer currentUserId = User.getId();
-        if (currentUserId == null) return false;
-        return getSellerId(sessionObj) == currentUserId;
-    }
-
-    private int getSellerId(JSONObject sessionObj) {
-        if (sessionObj == null) return -1;
-        if (sessionObj.has("sellerId") && !sessionObj.isNull("sellerId")) {
-            return sessionObj.optInt("sellerId", -1);
-        }
-        JSONObject sellerObj = sessionObj.optJSONObject("seller");
-        if (sellerObj != null) {
-            return sellerObj.optInt("id", -1);
-        }
-        return -1;
-    }
-
-    private VBox createEmptyStateBox() {
-        VBox emptyBox = new VBox(10);
+    private VBox createEmptyStateBox(String message) {
+        VBox emptyBox = new VBox(16);
+        emptyBox.getStyleClass().add("empty-state-card");
         emptyBox.setAlignment(Pos.CENTER);
-        emptyBox.setPadding(new Insets(50));
-        emptyBox.setPrefWidth(600);
+        emptyBox.setPadding(new Insets(70, 40, 70, 40));
+        emptyBox.setMinWidth(0);
+        emptyBox.setMaxWidth(Double.MAX_VALUE);
+        emptyBox.setPrefWidth(Math.max(520, scrollPane != null ? scrollPane.getViewportBounds().getWidth() - 120 : 720));
 
-        Label iconLabel = new Label("\uE88B");
-        iconLabel.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 56px; -fx-text-fill: #c8b6cf;");
+        Label iconLabel = new Label(showingWatchlistOnly ? "♡" : "∅");
+        iconLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 54px; -fx-font-weight: 900; -fx-text-fill: #e040a0; -fx-opacity: 0.72;");
 
         Label titleLabel = new Label(getEmptyStateTitle());
-        titleLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
+        titleLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
 
-        Label msgLabel = new Label(getEmptyStateMessage());
+        Label msgLabel = new Label(message == null || message.isBlank() ? getEmptyStateMessage() : message);
         msgLabel.setWrapText(true);
-        msgLabel.setMaxWidth(480);
+        msgLabel.setMaxWidth(520);
         msgLabel.setAlignment(Pos.CENTER);
         msgLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;");
 
@@ -956,7 +490,321 @@ public class MainController implements Initializable {
         if (showingWatchlistOnly) return "Click the heart icon on an auction to add it to your Watchlist.";
         return "Try changing search keywords, category or status filters.";
     }
+    private void forceMainTitle(String title) {
+        if (lblPageTitle == null) {
+            return;
+        }
+        lblPageTitle.setVisible(true);
+        lblPageTitle.setManaged(true);
+        lblPageTitle.setOpacity(1.0);
+        lblPageTitle.setText(title);
+        lblPageTitle.setTextFill(Color.web("#e040a0"));
+        lblPageTitle.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: #e040a0;");
+    }
 
+    private void filterAndRenderProducts() {
+        if (showingAccountScreen) {
+            return;
+        }
+        if (productContainer == null) return;
+
+        if (!showingAccountScreen && !showingCompactListScreen) {
+            hideFilterControlsForAccountPage(false);
+        }
+
+        String keyword = txtSearch == null || txtSearch.getText() == null
+                ? ""
+                : txtSearch.getText().trim().toLowerCase();
+
+        String selectedCategory = cbCategory == null || cbCategory.getValue() == null
+                ? "All"
+                : cbCategory.getValue();
+
+        String selectedStatus = cbStatus == null || cbStatus.getValue() == null
+                ? "All"
+                : cbStatus.getValue();
+
+        List<JSONObject> filtered = new ArrayList<>();
+
+        for (JSONObject sessionObj : allProducts) {
+            JSONObject itemObj = getItemObject(sessionObj);
+            int sessionId = sessionObj.optInt("id", -1);
+
+            if (showingWatchlistOnly && !User.watchlistIds.contains(sessionId)) {
+                continue;
+            }
+            if (showingMyBidsOnly && !hasCurrentUserBid(sessionObj)) {
+                continue;
+            }
+            if (showingMySessionsOnly && !isSessionOwnedByCurrentUser(sessionObj)) {
+                continue;
+            }
+
+            String itemName = itemObj.optString("name", sessionObj.optString("productName", ""));
+            String itemType = itemObj.optString("type", sessionObj.optString("productType", ""));
+            String rawStatus = sessionObj.optString("status", "");
+
+            String startTimeRaw = getRawTimeField(sessionObj, itemObj, "startTime", "start_time", "auctionStartTime");
+            String endTimeRaw = getRawTimeField(sessionObj, itemObj, "endTime", "end_time", "auctionEndTime", "endDate", "endDateTime");
+
+            LocalDateTime startDT = parseDateTime(startTimeRaw, sessionId, itemName, rawStatus, "startTime");
+            LocalDateTime endDT = parseDateTime(endTimeRaw, sessionId, itemName, rawStatus, "endTime");
+            String normalizedStatus = normalizeStatus(rawStatus, startDT, endDT);
+
+            boolean matchesKeyword = keyword.isBlank()
+                    || itemName.toLowerCase().contains(keyword)
+                    || itemType.toLowerCase().contains(keyword)
+                    || String.valueOf(sessionId).contains(keyword);
+
+            boolean matchesCategory = "All".equalsIgnoreCase(selectedCategory)
+                    || itemType.equalsIgnoreCase(selectedCategory);
+
+            boolean matchesStatus = "All".equalsIgnoreCase(selectedStatus)
+                    || ("Ongoing".equalsIgnoreCase(selectedStatus) && "RUNNING".equals(normalizedStatus))
+                    || ("Starting Soon".equalsIgnoreCase(selectedStatus) && "UPCOMING".equals(normalizedStatus))
+                    || ("Ended".equalsIgnoreCase(selectedStatus) && ("ENDED".equals(normalizedStatus) || "CLOSED".equals(normalizedStatus)));
+
+            if (matchesKeyword && matchesCategory && matchesStatus) {
+                filtered.add(sessionObj);
+            }
+        }
+
+        stopCountdownTimeline();
+        productContainer.getChildren().clear();
+        productContainer.getChildren().add(fakeTestBtn);
+        currentRenderedIds.clear();
+        sessionCardMap.clear();
+
+        if (filtered.isEmpty()) {
+            productContainer.getChildren().add(createEmptyStateBox(getEmptyStateMessage()));
+        } else {
+            for (JSONObject sessionObj : filtered) {
+                JSONObject itemObj = getItemObject(sessionObj);
+                VBox card = createProductCard(sessionObj, itemObj);
+                int id = sessionObj.optInt("id", -1);
+                if (id != -1) {
+                    currentRenderedIds.add(id);
+                    sessionCardMap.put(id, card);
+                }
+                productContainer.getChildren().add(card);
+            }
+            startCountdownTimeline();
+        }
+
+        updateGridLayout();
+        Platform.runLater(this::updateGridLayout);
+    }
+
+    private void showWatchlistSessions() {
+        forceMainTitle("Watchlist");
+        showingWatchlistOnly = true;
+        showingMyBidsOnly = false;
+        showingMySessionsOnly = false;
+        showingAccountScreen = false;
+        showingCompactListScreen = false;
+        compactProductListMode = false;
+        updateViewToggleButton(false);
+        if (lblPageTitle != null) lblPageTitle.setText("Watchlist");
+        filterAndRenderProducts();
+    }
+
+    private void showMyBiddingSessions() {
+        forceMainTitle("My Bids");
+        showingWatchlistOnly = false;
+        showingMyBidsOnly = true;
+        showingMySessionsOnly = false;
+        showingAccountScreen = false;
+        showingCompactListScreen = false;
+        compactProductListMode = false;
+        updateViewToggleButton(false);
+        if (lblPageTitle != null) lblPageTitle.setText("My Bids");
+        filterAndRenderProducts();
+    }
+
+    private void showMySessions() {
+        forceMainTitle("My Listings");
+        showingWatchlistOnly = false;
+        showingMyBidsOnly = false;
+        showingMySessionsOnly = true;
+        showingAccountScreen = false;
+        showingCompactListScreen = false;
+        compactProductListMode = false;
+        updateViewToggleButton(false);
+        if (lblPageTitle != null) lblPageTitle.setText("My Sessions");
+        filterAndRenderProducts();
+    }
+
+    private void showAllSessions() {
+        forceMainTitle("Live Auctions");
+        showingWatchlistOnly = false;
+        showingMyBidsOnly = false;
+        showingMySessionsOnly = false;
+        showingAccountScreen = false;
+        showingCompactListScreen = false;
+        compactProductListMode = false;
+        updateViewToggleButton(false);
+        if (lblPageTitle != null) lblPageTitle.setText("Live Auctions");
+        hideFilterControlsForAccountPage(false);
+        filterAndRenderProducts();
+    }
+
+    private void showCategoryChooser() {
+        if (cbCategory != null) {
+            cbCategory.requestFocus();
+            cbCategory.show();
+        }
+    }
+
+    private boolean hasCurrentUserBid(JSONObject sessionObj) {
+        Integer currentUserId = User.getId();
+        if (currentUserId == null) return false;
+
+        if (sessionObj.optBoolean("myBid", false)
+                || sessionObj.optBoolean("hasBid", false)
+                || sessionObj.optBoolean("isBidding", false)) {
+            return true;
+        }
+
+        int bidderId = sessionObj.optInt("bidderId", -1);
+        int buyerId = sessionObj.optInt("buyerId", -1);
+        int winnerId = sessionObj.optInt("winnerId", -1);
+        if (bidderId == currentUserId || buyerId == currentUserId || winnerId == currentUserId) {
+            return true;
+        }
+
+        JSONArray bids = sessionObj.optJSONArray("bids");
+        if (bids != null) {
+            for (int i = 0; i < bids.length(); i++) {
+                JSONObject bid = bids.optJSONObject(i);
+                if (bid == null) continue;
+                if (bid.optInt("userId", -1) == currentUserId || bid.optInt("bidderId", -1) == currentUserId) {
+                    return true;
+                }
+                JSONObject bidder = bid.optJSONObject("bidder");
+                if (bidder != null && bidder.optInt("id", -1) == currentUserId) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private boolean isSessionOwnedByCurrentUser(JSONObject sessionObj) {
+        Integer currentUserId = User.getId();
+        if (currentUserId == null || sessionObj == null) return false;
+
+        int[] directIds = new int[] {
+                sessionObj.optInt("sellerId", -1),
+                sessionObj.optInt("userId", -1),
+                sessionObj.optInt("ownerId", -1),
+                sessionObj.optInt("createdById", -1)
+        };
+
+        for (int id : directIds) {
+            if (id == currentUserId) return true;
+        }
+
+        JSONObject seller = sessionObj.optJSONObject("seller");
+        if (seller != null && seller.optInt("id", -1) == currentUserId) return true;
+
+        JSONObject item = sessionObj.optJSONObject("item");
+        if (item != null) {
+            if (item.optInt("sellerId", -1) == currentUserId || item.optInt("userId", -1) == currentUserId) {
+                return true;
+            }
+            JSONObject itemSeller = item.optJSONObject("seller");
+            if (itemSeller != null && itemSeller.optInt("id", -1) == currentUserId) return true;
+        }
+
+        return false;
+    }
+
+    private String normalizeSession(JSONObject sessionObj) {
+        if (sessionObj == null) return "UNKNOWN_TIME";
+        JSONObject itemObj = getItemObject(sessionObj);
+        int id = sessionObj.optInt("id", -1);
+        String rawStatus = sessionObj.optString("status", "");
+        String name = itemObj.optString("name", "");
+        String startTimeRaw = getRawTimeField(sessionObj, itemObj, "startTime", "start_time", "auctionStartTime");
+        String endTimeRaw = getRawTimeField(sessionObj, itemObj, "endTime", "end_time", "auctionEndTime", "endDate", "endDateTime");
+        LocalDateTime startDT = parseDateTime(startTimeRaw, id, name, rawStatus, "startTime");
+        LocalDateTime endDT = parseDateTime(endTimeRaw, id, name, rawStatus, "endTime");
+        return normalizeStatus(rawStatus, startDT, endDT);
+    }
+
+    private String normalizeStatus(String rawStatus, LocalDateTime startDT, LocalDateTime endDT) {
+        String status = rawStatus == null ? "" : rawStatus.trim().toUpperCase();
+
+        if (status.equals("CANCELLED") || status.equals("CANCELED") || status.equals("HIDDEN")) {
+            return "CLOSED";
+        }
+        if (status.equals("ENDED") || status.equals("FINISHED") || status.equals("PAID") || status.equals("SOLD") || status.equals("COMPLETED")) {
+            return "ENDED";
+        }
+        if (status.equals("UPCOMING") || status.equals("PENDING") || status.equals("SCHEDULED")) {
+            return "UPCOMING";
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        if (startDT != null && now.isBefore(startDT)) {
+            return "UPCOMING";
+        }
+        if (endDT != null && (now.isAfter(endDT) || now.isEqual(endDT))) {
+            return "ENDED";
+        }
+        if (status.equals("ACTIVE") || status.equals("RUNNING") || status.equals("APPROVED") || status.isBlank()) {
+            return endDT == null ? "UNKNOWN_TIME" : "RUNNING";
+        }
+
+        return endDT == null && startDT == null ? "UNKNOWN_TIME" : "RUNNING";
+    }
+
+    private LocalDateTime parseDateTime(String raw, int sessionId, String itemName, String rawStatus, String fieldName) {
+        if (raw == null || raw.isBlank() || "null".equalsIgnoreCase(raw.trim())) {
+            return null;
+        }
+
+        String value = raw.trim();
+        try {
+            if (value.endsWith("Z")) {
+                return java.time.OffsetDateTime.parse(value).toLocalDateTime();
+            }
+            if (value.matches(".*[+-][0-9]{2}:[0-9]{2}$")) {
+                return java.time.OffsetDateTime.parse(value).toLocalDateTime();
+            }
+            if (value.contains("T")) {
+                return LocalDateTime.parse(value.replace(" ", "T"));
+            }
+            return LocalDateTime.parse(value.replace(" ", "T"));
+        } catch (Exception ignored) {
+            try {
+                return LocalDateTime.parse(value, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            } catch (Exception ignored2) {
+                try {
+                    return LocalDateTime.parse(value, java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+                } catch (Exception ex) {
+                    logger.warn("Cannot parse {} for session {} {}: {}", fieldName, sessionId, itemName, value);
+                    return null;
+                }
+            }
+        }
+    }
+
+    private String getRawTimeField(JSONObject sessionObj, JSONObject itemObj, String... keys) {
+        if (keys == null) return "";
+        for (String key : keys) {
+            if (sessionObj != null && sessionObj.has(key) && !sessionObj.isNull(key)) {
+                String value = sessionObj.optString(key, "");
+                if (!value.isBlank() && !"null".equalsIgnoreCase(value)) return value;
+            }
+            if (itemObj != null && itemObj.has(key) && !itemObj.isNull(key)) {
+                String value = itemObj.optString(key, "");
+                if (!value.isBlank() && !"null".equalsIgnoreCase(value)) return value;
+            }
+        }
+        return "";
+    }
     private VBox createProductCard(JSONObject sessionObj, JSONObject itemObj) {
         int id = sessionObj.getInt("id");
 
@@ -1149,7 +997,7 @@ public class MainController implements Initializable {
         HBox.setHgrow(hSpacer, Priority.ALWAYS);
 
         HBox actionBox = new HBox(10);
-        actionBox.setAlignment(Pos.CENTER);
+        actionBox.setAlignment(Pos.CENTER_RIGHT);
         actionBox.setMinWidth(102.0);
         actionBox.setPrefWidth(102.0);
         actionBox.setMaxWidth(102.0);
@@ -1162,6 +1010,8 @@ public class MainController implements Initializable {
         mainPlusIcon.setMinSize(44.0, 44.0);
         mainPlusIcon.setPrefSize(44.0, 44.0);
         mainPlusIcon.setMaxSize(44.0, 44.0);
+        mainPlusIcon.setTranslateY(-1.5);
+        mainPlusIcon.setTranslateX(0.0);
         mainBtn.setGraphic(mainPlusIcon);
         mainBtn.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         mainBtn.setMinSize(44.0, 44.0);
@@ -1276,6 +1126,8 @@ public class MainController implements Initializable {
             // Non-running / invalid cards show a single action button
             mainPlusIcon.setText("\uE8F4"); // Eye icon
             mainPlusIcon.setFont(Font.font("Material Symbols Outlined", FontWeight.NORMAL, 24));
+            mainPlusIcon.setTranslateY(2.5);
+            mainPlusIcon.setTranslateX(0.0);
             
             if ("UPCOMING".equals(normalizedStatus)) {
                 mainPlusIcon.setTextFill(Color.web("#ffffff"));
@@ -1332,7 +1184,40 @@ public class MainController implements Initializable {
 
     @FXML
     private void handleListView(ActionEvent event) {
+        compactProductListMode = true;
         showCompactAuctionList();
+        updateViewToggleButton(true);
+    }
+
+    @FXML
+    private void handleToggleProductView(ActionEvent event) {
+        compactProductListMode = !compactProductListMode;
+        if (compactProductListMode) {
+            showCompactAuctionList();
+        } else {
+            returnToAuctionGrid();
+        }
+        updateViewToggleButton(compactProductListMode);
+    }
+
+    private void updateViewToggleButton(boolean compactMode) {
+        if (btnToggleProductView == null) {
+            return;
+        }
+
+        btnToggleProductView.getStyleClass().remove("view-toggle-button-active");
+        if (compactMode) {
+            if (!btnToggleProductView.getStyleClass().contains("view-toggle-button-active")) {
+                btnToggleProductView.getStyleClass().add("view-toggle-button-active");
+            }
+            btnToggleProductView.setTooltip(new Tooltip("List view is active. Click to return to grid view."));
+        } else {
+            btnToggleProductView.setTooltip(new Tooltip("Show compact list view"));
+        }
+
+        btnToggleProductView.setText("");
+        btnToggleProductView.setAlignment(Pos.CENTER);
+        btnToggleProductView.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
     }
 
     private void showAccountScreen() {
@@ -1343,6 +1228,8 @@ public class MainController implements Initializable {
 
         showingAccountScreen = true;
         showingCompactListScreen = false;
+        compactProductListMode = false;
+        updateViewToggleButton(false);
         renderAccountScreen(false);
         loadLatestAccountProfileForScreen();
     }
@@ -1350,6 +1237,10 @@ public class MainController implements Initializable {
     @FXML
     public void handleResetDashboard(ActionEvent event) {
         logger.info("Resetting dashboard filters and search text...");
+        showingAccountScreen = false;
+        showingCompactListScreen = false;
+        compactProductListMode = false;
+        updateViewToggleButton(false);
         if (txtSearch != null) {
             txtSearch.clear();
         }
@@ -1359,6 +1250,7 @@ public class MainController implements Initializable {
         if (cbStatus != null) {
             cbStatus.setValue("All");
         }
+        forceRenderProducts = true;
         filterAndRenderProducts();
     }
 
@@ -1375,7 +1267,7 @@ public class MainController implements Initializable {
         productContainer.getChildren().clear();
         productContainer.getChildren().add(fakeTestBtn);
         currentRenderedIds.clear();
-        productContainer.setAlignment(Pos.TOP_CENTER);
+        productContainer.setAlignment(Pos.TOP_LEFT);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
         // Selective hiding: only hide page title and filter controls
@@ -1960,16 +1852,46 @@ public class MainController implements Initializable {
                 + "\nCurrent balance: ₫ " + formatPrice(User.getBalance());
     }
 
+
+    private void showSettingsDialog() {
+        Alert dialog = new Alert(Alert.AlertType.CONFIRMATION);
+        dialog.setTitle("Quick Settings");
+        dialog.setHeaderText("Choose an action");
+        dialog.setContentText("What do you want to do with the auction list screen?");
+
+        ButtonType resetFilters = new ButtonType("Reset Filters");
+        ButtonType reloadData = new ButtonType("Reload Data");
+        ButtonType close = new ButtonType("Close", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getButtonTypes().setAll(resetFilters, reloadData, close);
+
+        Optional<ButtonType> result = dialog.showAndWait();
+        if (result.isEmpty() || result.get() == close) {
+            return;
+        }
+
+        if (result.get() == resetFilters) {
+            resetFiltersAndShowAll();
+            showInfo("Settings", "Filters have been reset to default.");
+        } else if (result.get() == reloadData) {
+            forceRenderProducts = true;
+            loadProductsFromServer();
+            showInfo("Settings", "Data reload has been requested from the server.");
+        }
+    }
+
+
     private void showCompactAuctionList() {
         stopCountdownTimeline();
         showingCompactListScreen = true;
+        compactProductListMode = true;
+        updateViewToggleButton(true);
         showingAccountScreen = false;
 
         List<JSONObject> sessionsToShow = getCurrentlyDisplayedSessions();
 
         productContainer.getChildren().clear();
         productContainer.getChildren().add(fakeTestBtn);
-        productContainer.setAlignment(Pos.TOP_CENTER);
+        productContainer.setAlignment(Pos.TOP_LEFT);
 
         VBox wrapper = new VBox(16);
         wrapper.setAlignment(Pos.TOP_CENTER);
@@ -2032,8 +1954,12 @@ public class MainController implements Initializable {
 
     private HBox createCompactAuctionRow(int index, JSONObject sessionObj) {
         JSONObject itemObj = getItemObject(sessionObj);
+        int sessionId = sessionObj.optInt("id");
+        String itemName = itemObj.optString("name", "Unknown");
+        String itemType = itemObj.optString("type", "Unknown category");
         BigDecimal currentPrice = getMoney(sessionObj, "currentPrice", getMoney(sessionObj, "startingPrice", BigDecimal.ZERO));
-        String status = sessionObj.optString("status", "UNKNOWN");
+        String status = normalizeSession(sessionObj);
+        boolean canBid = "RUNNING".equalsIgnoreCase(status);
 
         HBox row = new HBox(14);
         row.setAlignment(Pos.CENTER_LEFT);
@@ -2050,9 +1976,9 @@ public class MainController implements Initializable {
         order.setStyle("-fx-background-color: #ffd6ee; -fx-background-radius: 17px; -fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: 900; -fx-text-fill: #e040a0;");
 
         VBox infoBox = new VBox(3);
-        Label name = new Label("#" + sessionObj.optInt("id") + " · " + itemObj.optString("name", "Unknown"));
+        Label name = new Label("#" + sessionId + " · " + itemName);
         name.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
-        Label type = new Label(itemObj.optString("type", "Unknown category"));
+        Label type = new Label(itemType);
         type.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-text-fill: #907898;");
         infoBox.getChildren().addAll(name, type);
 
@@ -2067,16 +1993,32 @@ public class MainController implements Initializable {
         price.setAlignment(Pos.CENTER_RIGHT);
         price.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: #e040a0;");
 
-        row.getChildren().addAll(order, infoBox, rowSpacer, statusBadge, price);
+        Button bidButton = new Button(canBid ? "Bid" : "Ended");
+        bidButton.setMinWidth(92);
+        bidButton.setPrefHeight(38);
+        bidButton.setDisable(!canBid);
+        if (canBid) {
+            bidButton.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 999; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: 900; -fx-padding: 8 18 8 18; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224,64,160,0.25), 10, 0, 0, 3);");
+            bidButton.setOnAction(event -> {
+                event.consume();
+                openAuctionPage(event, sessionObj, itemObj, itemName, sessionId, currentPrice);
+            });
+        } else {
+            bidButton.setStyle("-fx-background-color: #f2e8f2; -fx-background-radius: 999; -fx-text-fill: #907898; -fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: 900; -fx-padding: 8 18 8 18;");
+        }
+
+        row.getChildren().addAll(order, infoBox, rowSpacer, statusBadge, price, bidButton);
         return row;
     }
 
     private void returnToAuctionGrid() {
         showingAccountScreen = false;
         showingCompactListScreen = false;
+        compactProductListMode = false;
+        updateViewToggleButton(false);
         forceRenderProducts = true;
         filterAndRenderProducts();
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
     }
 
     private String readTrimmed(TextField field) {
@@ -2320,8 +2262,12 @@ public class MainController implements Initializable {
         }
 
         String path = rawPath.trim().replace("\\", "/");
-        if (path.startsWith("http://") || path.startsWith("https://")) {
+        if ((path.startsWith("http://") || path.startsWith("https://")) && !path.contains("/api/files/images/")) {
             return path;
+        }
+        int apiIndex = path.indexOf("/api/files/images/");
+        if (apiIndex >= 0) {
+            path = path.substring(apiIndex + "/api/files/images/".length());
         }
 
         while (path.startsWith("/")) {
@@ -2451,3 +2397,4 @@ public class MainController implements Initializable {
         SceneSwitcher.handleClose(event);
     }
 }
+

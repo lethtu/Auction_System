@@ -39,12 +39,32 @@ public final class AlertUtil {
         show(Alert.AlertType.INFORMATION, DEFAULT_INFO_TITLE, message);
     }
 
+    public static void showInfo(String title, String message) {
+        show(Alert.AlertType.INFORMATION, title, message);
+    }
+
+    public static void showSuccess(String message) {
+        showInfo(DEFAULT_INFO_TITLE, message);
+    }
+
+    public static void showSuccess(String title, String message) {
+        showInfo(title, message);
+    }
+
+    public static void showWarning(String message) {
+        show(Alert.AlertType.WARNING, DEFAULT_WARNING_TITLE, message);
+    }
+
     public static void showWarning(String title, String message) {
         show(Alert.AlertType.WARNING, title, message);
     }
 
     public static void showError(String message) {
         show(Alert.AlertType.ERROR, DEFAULT_ERROR_TITLE, message);
+    }
+
+    public static void showError(String title, String message) {
+        show(Alert.AlertType.ERROR, title, message);
     }
 
     public static void showError(Exception e, String defaultMessage) {
@@ -119,6 +139,31 @@ public final class AlertUtil {
                 + " -fx-padding: 10px 14px;"
                 + " -fx-font-size: 14px;"));
         pane.lookupAll(".button").forEach(AlertUtil::styleDialogButton);
+    }
+
+    public static void styleAndShow(Alert alert) {
+        if (alert == null) {
+            return;
+        }
+
+        String title = alert.getTitle();
+        String message = alert.getContentText();
+
+        if (isBlank(title)) {
+            if (alert.getAlertType() == Alert.AlertType.ERROR) {
+                title = DEFAULT_ERROR_TITLE;
+            } else if (alert.getAlertType() == Alert.AlertType.WARNING) {
+                title = DEFAULT_WARNING_TITLE;
+            } else {
+                title = DEFAULT_INFO_TITLE;
+            }
+        }
+
+        if (isBlank(message)) {
+            message = DEFAULT_ERROR_MESSAGE;
+        }
+
+        show(alert.getAlertType(), title, message);
     }
 
     private static void showCardModal(String title, String message, Alert.AlertType type) {

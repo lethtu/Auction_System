@@ -303,6 +303,8 @@ public class AuctionPageController {
             return;
         }
 
+        logger.info("Place Bid clicked: auctionId={}, bidderId={}, amount={}, socketReady={}", currentSessionId, User.getId(), bidAmount, isSocketReady());
+
         myLastBidAmount = bidAmount;
         sendBidRequest(bidAmount);
         showBidProcessing();
@@ -922,17 +924,30 @@ public class AuctionPageController {
     public void setRemainingTime(String endTimeStr) {
         stopTimeline();
 
-        LocalDateTime endTime = LocalDateTime.parse(endTimeStr);
+        if (endTimeStr == null || endTimeStr.isBlank()) {
+            remainingTimeLabel.setText("Loading...");
+            return;
+        }
 
-        timeline = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1), event -> updateRemainingTime(endTime)));
-        timeline.setCycleCount(Timeline.INDEFINITE);
-        timeline.play();
+        try {
+            LocalDateTime endTime = LocalDateTime.parse(endTimeStr.trim());
+
+            // Update immediately so the UI never shows a fake 00:00:00 value.
+            updateRemainingTime(endTime);
+
+            timeline = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1), event -> updateRemainingTime(endTime)));
+            timeline.setCycleCount(Timeline.INDEFINITE);
+            timeline.play();
+        } catch (Exception e) {
+            remainingTimeLabel.setText("Unknown time");
+            logger.warn("Invalid auction end time: {}", endTimeStr);
+        }
     }
 
     private void initDefaultView() {
         productNameLabel.setText("Loading...");
         currentPriceLabel.setText("...");
-        remainingTimeLabel.setText("00:00:00");
+        remainingTimeLabel.setText("Loading...");
 
         setLabelText(minIncrementLabel, "Min increment ₫ 0");
         setLabelText(highestBidderLabel, DEFAULT_HIGHEST_BIDDER);
@@ -1222,6 +1237,7 @@ public class AuctionPageController {
     }
 
     private void handleServerMessage(String serverResponse) {
+        logger.info("Received raw message from server: {}", serverResponse);
         try {
             if (serverResponse.startsWith(NOTICE_PREFIX)) {
                 handleNoticeMessage(serverResponse.substring(NOTICE_PREFIX.length()));
@@ -1229,9 +1245,13 @@ public class AuctionPageController {
                 handleBidResponseMessage(serverResponse.substring(RESPONSE_PREFIX.length()));
             } else if (serverResponse.startsWith(ROOM_COUNT_PREFIX)) {
                 handleRoomCountMessage(serverResponse.substring(ROOM_COUNT_PREFIX.length()));
+            } else if (serverResponse.startsWith("WATCHING:")) {
+                // Ignore WATCHING log clutter, it's handled or we don't care here if it's not implemented
+            } else {
+                logger.warn("Unknown message prefix: {}", serverResponse);
             }
         } catch (Exception e) {
-            logger.warn("Cannot handle socket message: {}", serverResponse, e);
+            logger.error("Error parsing/handling server message: raw={}, error={}", serverResponse, e.getMessage(), e);
         }
     }
 
@@ -1408,7 +1428,18 @@ public class AuctionPageController {
         jsonBid.put("bidderId", User.getId());
         jsonBid.put("amount", bidAmount);
 
-        out.println(BID_PREFIX + jsonBid);
+        String payload = BID_PREFIX + jsonBid;
+        logger.info("Sending BID request: {}", payload);
+        out.println(payload);
+        out.flush();
+        if (out.checkError()) {
+            logger.error("Failed to send BID request to server (out.checkError() is true)!");
+            Platform.runLater(() -> {
+                finishBidProcessing();
+                showError("Không gửi được yêu cầu đặt giá tới server");
+            });
+            return;
+        }
     }
 
     private void showBidProcessing() {
@@ -1420,6 +1451,11 @@ public class AuctionPageController {
 
     private void startBidTimeout() {
         stopBidTimeout();
+
+        logger.warn("Starting bid timeout for auctionId={}, bidderId={}, socket null/closed={}, out null/checkError={}", 
+            currentSessionId, User.getId(), 
+            socket == null || socket.isClosed(), 
+            out == null || out.checkError());
 
         bidTimeout = new Timeline(new KeyFrame(javafx.util.Duration.seconds(BID_TIMEOUT_SECONDS), event -> {
             placeBidBtn.setDisable(false);
@@ -1612,8 +1648,12 @@ public class AuctionPageController {
 
         String path = rawPath.trim().replace("\\", "/");
 
-        if (path.startsWith("http://") || path.startsWith("https://")) {
+        if ((path.startsWith("http://") || path.startsWith("https://")) && !path.contains("/api/files/images/")) {
             return path;
+        }
+        int apiIndex = path.indexOf("/api/files/images/");
+        if (apiIndex >= 0) {
+            path = path.substring(apiIndex + "/api/files/images/".length());
         }
 
         path = removeLeadingSlashes(path);

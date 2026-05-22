@@ -40,8 +40,8 @@ public class UserController {
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "webp");
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
             "image/jpeg", "image/png", "image/webp");
-    private static final String AVATAR_UPLOAD_DIR = "upload/images/avatar";
-    private static final String AVATAR_PUBLIC_PREFIX = "/api/files/images/avatar/";
+    private static final String AVATAR_UPLOAD_DIR = "upload/avatar";
+    private static final String AVATAR_PUBLIC_PREFIX = "/api/files/avatar/";
 
     private final UserService userService;
 
@@ -139,7 +139,7 @@ public class UserController {
             }
 
             // 6. Generate safe filename
-            String safeFileName = "user_" + id + "_" + UUID.randomUUID() + "." + extension;
+            String safeFileName = UUID.randomUUID().toString().replace("-", "") + "." + extension;
 
             // 7. Ensure avatar directory exists
             Path avatarDir = Paths.get(AVATAR_UPLOAD_DIR).toAbsolutePath().normalize();
@@ -163,7 +163,10 @@ public class UserController {
             // 11. Delete old avatar file (only after successful DB update)
             deleteOldAvatar(oldAvatarUrl, avatarDir);
 
-            logger.info("Avatar uploaded for user {}: {}", id, publicUrl);
+            logger.info("Avatar uploaded for user {}: originalFilename={}, contentType={}, extension={}, safeFileName={}", 
+                    id, file.getOriginalFilename(), contentType, extension, safeFileName);
+            logger.info("Avatar saved to absolute path: {}", destination.toAbsolutePath());
+            logger.info("Avatar URL returned to client: {}", publicUrl);
             return ResponseEntity.ok(new ApiResponse<>(SUCCESS_STATUS,
                     "Avatar updated successfully.",
                     Map.of("avatarUrl", publicUrl)));

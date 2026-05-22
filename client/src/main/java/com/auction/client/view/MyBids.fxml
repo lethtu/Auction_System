@@ -16,7 +16,7 @@
                     </graphic>
                 </Button>
             </StackPane>
-            <Label text="BidPop" textFill="#e040a0" style="-fx-cursor: hand;" onMouseClicked="#handleGoToDashboard">
+            <Label text="BidPop" style="-fx-cursor: hand; -fx-text-fill: #e040a0; -fx-font-weight: 900; -fx-font-size: 28px;" onMouseClicked="#handleGoToDashboard">
                 <font>
                     <Font name="System Bold" size="28.0" />
                 </font>
@@ -85,12 +85,12 @@
             </BorderPane.margin>
             <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-padding: 0 0 0 0;">
                 <VBox spacing="4.0">
-                    <Label text="My Bids" textFill="#2e1a28">
+                    <Label text="My Bids" style="-fx-text-fill: #e040a0; -fx-font-weight: 900; -fx-font-size: 32px;">
                         <font>
                             <Font name="System Bold" size="32.0" />
                         </font>
                     </Label>
-                    <Label text="Track and manage your active auction participation." textFill="#604868" style="-fx-font-size: 15px; -fx-font-weight: 500;" />
+                    <Label text="Track and manage your active auction participation." style="-fx-font-size: 15px; -fx-font-weight: 500; -fx-text-fill: #604868; -fx-font-weight: 700; -fx-font-size: 15px;" />
                 </VBox>
             </HBox>
             
@@ -125,11 +125,21 @@
                 </Button>
             </HBox>
             
-            <ScrollPane fx:id="scrollPane" fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
-                <FlowPane fx:id="productContainer" alignment="TOP_LEFT" hgap="25.0" vgap="25.0" style="-fx-padding: 10px 0 10px 0;">
+            <ScrollPane fx:id="scrollPane"
+                        fitToWidth="true"
+                        hbarPolicy="NEVER"
+                        style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;"
+                        VBox.vgrow="ALWAYS">
+                <StackPane alignment="TOP_CENTER" style="-fx-background-color: transparent;">
+                    <FlowPane fx:id="productContainer"
+                              alignment="TOP_LEFT"
+                              hgap="25.0"
+                              vgap="25.0"
+                              style="-fx-padding: 10px 0 18px 0;">
                     </FlowPane>
+                </StackPane>
             </ScrollPane>
-        </VBox>
+            </VBox>
     </center>
     
 </BorderPane>
