@@ -1,13 +1,6 @@
 package com.auction.client.controller;
 
-
-
-
-
 import com.auction.client.util.AlertUtil;
-import javafx.scene.Scene;
-import javafx.scene.Parent;
-import javafx.fxml.FXMLLoader;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -15,7 +8,6 @@ import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -34,36 +26,67 @@ import java.util.Map;
 
 public class SidebarController {
     private static final Logger logger = LoggerFactory.getLogger(SidebarController.class);
+    private static final int APP_WIDTH = 1200;
+    private static final int APP_HEIGHT = 800;
 
-    @FXML private ScrollPane sidebarContainer;
-    @FXML private VBox sidebarContent;
-    @FXML private Button btnSidebarDashboard;
-    @FXML private Button btnMyBids;
-    @FXML private Button btnSelling;
-    @FXML private Button btnSidebarWatchlist;
-    @FXML private Button btnSupport;
-    @FXML private Button btnSettings;
-    @FXML private Button btnStartSelling;
+    @FXML
+    private ScrollPane sidebarContainer;
+    @FXML
+    private VBox sidebarContent;
+    @FXML
+    private Button btnSidebarDashboard;
+    @FXML
+    private Button btnMyBids;
+    @FXML
+    private Button btnSelling;
+    @FXML
+    private Button btnSidebarWatchlist;
+    @FXML
+    private Button btnSupport;
+    @FXML
+    private Button btnSettings;
+    @FXML
+    private Button btnStartSelling;
     private Button currentActiveButton;
 
     public static boolean isSidebarCollapsed = false;
     private final Map<Button, String> sidebarButtonTextMap = new HashMap<>();
 
     public interface SidebarListener {
-        default void onFilterWatchlist() {}
-        default void onFilterWatchlist(ActionEvent event) { onFilterWatchlist(); }
+        default void onFilterWatchlist() {
+        }
 
-        default void onFilterMyBids() {}
-        default void onFilterMyBids(ActionEvent event) { onFilterMyBids(); }
+        default void onFilterWatchlist(ActionEvent event) {
+            onFilterWatchlist();
+        }
 
-        default void onFilterMySessions() {}
-        default void onFilterMySessions(ActionEvent event) { onFilterMySessions(); }
+        default void onFilterMyBids() {
+        }
 
-        default void onResetFilter() {}
-        default void onResetFilter(ActionEvent event) { onResetFilter(); }
+        default void onFilterMyBids(ActionEvent event) {
+            onFilterMyBids();
+        }
 
-        default void onShowCategories() {}
-        default void onShowCategories(ActionEvent event) { onShowCategories(); }
+        default void onFilterMySessions() {
+        }
+
+        default void onFilterMySessions(ActionEvent event) {
+            onFilterMySessions();
+        }
+
+        default void onResetFilter() {
+        }
+
+        default void onResetFilter(ActionEvent event) {
+            onResetFilter();
+        }
+
+        default void onShowCategories() {
+        }
+
+        default void onShowCategories(ActionEvent event) {
+            onShowCategories();
+        }
     }
 
     private SidebarListener listener;
@@ -79,6 +102,7 @@ public class SidebarController {
 
     @FXML
     public void initialize() {
+        isSidebarCollapsed = false;
         // Save default text
         for (javafx.scene.Node node : sidebarContent.getChildren()) {
             if (node instanceof Button) {
@@ -92,6 +116,7 @@ public class SidebarController {
             if (btnStartSelling != null) {
                 btnStartSelling.setVisible(false);
                 btnStartSelling.setManaged(false);
+                btnStartSelling.setDisable(true);
             }
             if (btnSelling != null) {
                 btnSelling.setVisible(true);
@@ -101,6 +126,8 @@ public class SidebarController {
             if (btnStartSelling != null) {
                 btnStartSelling.setVisible(true);
                 btnStartSelling.setManaged(true);
+                btnStartSelling.setDisable(false);
+                btnStartSelling.setOnAction(this::handleStartSelling);
             }
             if (btnSelling != null) {
                 btnSelling.setVisible(false);
@@ -108,17 +135,18 @@ public class SidebarController {
             }
         }
 
-        boolean persistedCollapse = java.util.prefs.Preferences.userNodeForPackage(com.auction.client.util.SettingsDialog.class)
+        boolean persistedCollapse = java.util.prefs.Preferences
+                .userNodeForPackage(com.auction.client.util.SettingsDialog.class)
                 .getBoolean(com.auction.client.util.SettingsDialog.KEY_AUTO_COLLAPSE, false);
+
+        isSidebarCollapsed = false;
+        applyExpandedSidebar();
         if (persistedCollapse) {
-            isSidebarCollapsed = false;
-            toggleSidebar();
-        } else if (isSidebarCollapsed) {
-            isSidebarCollapsed = false;
             toggleSidebar();
         }
+
         Platform.runLater(() -> {
-            if (sidebarContainer.getScene() != null) {
+            if (sidebarContainer != null && sidebarContainer.getScene() != null) {
                 sidebarContainer.getScene().widthProperty().addListener((obs, oldV, newV) -> {
                     if (newV.doubleValue() < 1100 && !isSidebarCollapsed) {
                         toggleSidebar();
@@ -127,10 +155,22 @@ public class SidebarController {
             }
         });
     }
-
     private void autoCollapse() {
-        if (!isSidebarCollapsed) {
-            toggleSidebar();
+        // Keep the full bordered sidebar visible after navigation.
+        // Users can still collapse it manually with the hamburger button.
+        ensureExpandedSidebarChrome();
+    }
+
+    private void ensureExpandedSidebarChrome() {
+        if (sidebarContainer != null && !isSidebarCollapsed) {
+            sidebarContainer.setMinWidth(200);
+            sidebarContainer.setPrefWidth(200);
+            sidebarContainer.setMaxWidth(200);
+        }
+        if (sidebarContent != null && !isSidebarCollapsed) {
+            sidebarContent.setPadding(new Insets(24, 8, 24, 8));
+            sidebarContent.setAlignment(Pos.TOP_LEFT);
+            sidebarContent.setStyle("-fx-background-color: rgba(255,255,255,0.96); -fx-background-radius: 28; -fx-border-color: #f2a6d8; -fx-border-radius: 28; -fx-border-width: 1.8; -fx-effect: dropshadow(gaussian, rgba(224,64,160,0.10), 18, 0.12, 0, 6);");
         }
     }
 
@@ -143,6 +183,15 @@ public class SidebarController {
 
         if (isSidebarCollapsed) {
             // Collapse
+            sidebarContainer.getStyleClass().remove("app-sidebar-scroll");
+            if (!sidebarContainer.getStyleClass().contains("app-sidebar-scroll-collapsed")) {
+                sidebarContainer.getStyleClass().add("app-sidebar-scroll-collapsed");
+            }
+            sidebarContent.getStyleClass().remove("app-sidebar-content");
+            if (!sidebarContent.getStyleClass().contains("app-sidebar-content-collapsed")) {
+                sidebarContent.getStyleClass().add("app-sidebar-content-collapsed");
+            }
+
             sidebarContainer.setMinWidth(70);
             sidebarContainer.setPrefWidth(70);
             sidebarContainer.setMaxWidth(70);
@@ -155,8 +204,9 @@ public class SidebarController {
                     String tooltipText = sidebarButtonTextMap.get(btn);
                     if (tooltipText != null && !tooltipText.isEmpty()) {
                         Tooltip tooltip = new Tooltip(tooltipText);
-                        tooltip.setStyle("-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 6px 12px; -fx-font-size: 13px;");
-                        
+                        tooltip.setStyle(
+                                "-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 6px 12px; -fx-font-size: 13px;");
+
                         PauseTransition pause = new PauseTransition(Duration.millis(300));
                         pause.setOnFinished(e -> {
                             if (btn.isHover()) {
@@ -185,7 +235,8 @@ public class SidebarController {
                         btn.getGraphic().setTranslateX(0);
                     }
                     if (btn == btnStartSelling) {
-                        btn.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 22px; -fx-padding: 0px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.3), 16, 0, 0, 4);");
+                        btn.setStyle(
+                                "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 22px; -fx-padding: 0px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.3), 16, 0, 0, 4);");
                     }
                 } else if (node instanceof Label) {
                     node.setVisible(false);
@@ -194,38 +245,51 @@ public class SidebarController {
             }
             setActiveButton(currentActiveButton);
         } else {
-            // Expand
-            sidebarContainer.setMinWidth(200);
-            sidebarContainer.setPrefWidth(200);
-            sidebarContainer.setMaxWidth(200);
-            sidebarContent.setPadding(new Insets(24, 8, 24, 8));
-            sidebarContent.setAlignment(Pos.TOP_LEFT);
-
-            for (javafx.scene.Node node : sidebarContent.getChildren()) {
-                if (node instanceof Button) {
-                    Button btn = (Button) node;
-                    btn.setTooltip(null);
-                    btn.setOnMouseEntered(null);
-                    btn.setOnMouseExited(null);
-                    String originalText = sidebarButtonTextMap.getOrDefault(btn, "");
-                    btn.setText(originalText);
-                    btn.setPrefWidth(165);
-                    btn.setMinWidth(165);
-                    btn.setMaxWidth(165);
-                    btn.setPrefHeight(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
-                    btn.setMinHeight(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
-                    btn.setMaxHeight(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
-                    btn.setAlignment(Pos.CENTER_LEFT);
-                    if (btn == btnStartSelling) {
-                        btn.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 12px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.3), 16, 0, 0, 4);");
-                    }
-                } else if (node instanceof Label) {
-                    node.setVisible(true);
-                    node.setManaged(true);
-                }
-            }
-            setActiveButton(currentActiveButton);
+            applyExpandedSidebar();
         }
+    }
+
+    private void applyExpandedSidebar() {
+        sidebarContainer.getStyleClass().remove("app-sidebar-scroll-collapsed");
+        if (!sidebarContainer.getStyleClass().contains("app-sidebar-scroll")) {
+            sidebarContainer.getStyleClass().add("app-sidebar-scroll");
+        }
+        sidebarContent.getStyleClass().remove("app-sidebar-content-collapsed");
+        if (!sidebarContent.getStyleClass().contains("app-sidebar-content")) {
+            sidebarContent.getStyleClass().add("app-sidebar-content");
+        }
+
+        sidebarContainer.setMinWidth(200);
+        sidebarContainer.setPrefWidth(200);
+        sidebarContainer.setMaxWidth(200);
+        sidebarContent.setPadding(new Insets(24, 8, 24, 8));
+        sidebarContent.setAlignment(Pos.TOP_LEFT);
+
+        for (javafx.scene.Node node : sidebarContent.getChildren()) {
+            if (node instanceof Button) {
+                Button btn = (Button) node;
+                btn.setTooltip(null);
+                btn.setOnMouseEntered(null);
+                btn.setOnMouseExited(null);
+                String originalText = sidebarButtonTextMap.getOrDefault(btn, "");
+                btn.setText(originalText);
+                btn.setPrefWidth(165);
+                btn.setMinWidth(165);
+                btn.setMaxWidth(165);
+                btn.setPrefHeight(btn == btnStartSelling ? 44 : 40);
+                btn.setMinHeight(btn == btnStartSelling ? 44 : 40);
+                btn.setMaxHeight(btn == btnStartSelling ? 44 : 40);
+                btn.setAlignment(Pos.CENTER_LEFT);
+                if (btn == btnStartSelling) {
+                    btn.setStyle(
+                            "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 0 12px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.3), 16, 0, 0, 4);");
+                }
+            } else if (node instanceof Label) {
+                node.setVisible(true);
+                node.setManaged(true);
+            }
+        }
+        setActiveButton(currentActiveButton);
     }
 
     public void setActiveWatchlist() {
@@ -263,7 +327,8 @@ public class SidebarController {
     }
 
     private void applySidebarButtonStyle(Button button, boolean active) {
-        if (button == null) return;
+        if (button == null)
+            return;
 
         String textColor = active ? "#e040a0" : "#604868";
         String backgroundColor = active ? "rgba(224, 64, 160, 0.15)" : "transparent";
@@ -274,12 +339,19 @@ public class SidebarController {
                 + backgroundColor
                 + "; -fx-text-fill: "
                 + textColor
-                + "; -fx-font-weight: bold; -fx-background-radius: " + radius + "; -fx-padding: " + padding + "; -fx-cursor: hand;");
+                + "; -fx-font-weight: bold; -fx-background-radius: " + radius + "; -fx-padding: " + padding
+                + "; -fx-cursor: hand;");
+        if (!isSidebarCollapsed) {
+            button.setMinHeight(40);
+            button.setPrefHeight(40);
+            button.setMaxHeight(40);
+        }
 
         if (button.getGraphic() instanceof Label) {
-            ((Label) button.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: "
-                    + textColor
-                    + ";");
+            ((Label) button.getGraphic()).setStyle(
+                    "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: "
+                            + textColor
+                            + ";");
         }
     }
 
@@ -289,26 +361,16 @@ public class SidebarController {
         setActiveDashboard();
         if (listener != null) {
             listener.onResetFilter(event);
-            return;
-        }
-
-        try {
-            Stage stage = resolveStage(event);
-            boolean wasMaximized = stage != null && stage.isMaximized();
-            int currentWidth = stage == null ? 1280 : Math.max(1280, (int) Math.round(stage.getWidth()));
-            int currentHeight = stage == null ? 800 : Math.max(800, (int) Math.round(stage.getHeight()));
-
-            if (onBeforeNavigate != null) onBeforeNavigate.run();
-            MainController.initialShowWatchlist = false;
-            MainController.initialHomeFilterMode = "ALL";
-            switchSceneKeepingStage(event, "MainTemplate.fxml", currentWidth, currentHeight);
-
-            if (stage != null && wasMaximized) {
-                Platform.runLater(() -> stage.setMaximized(true));
+        } else {
+            try {
+                if (onBeforeNavigate != null)
+                    onBeforeNavigate.run();
+                MainController.initialShowWatchlist = false;
+                MainController.initialHomeFilterMode = "ALL";
+                SceneSwitcher.switchScene(event, "MainTemplate.fxml", APP_WIDTH, APP_HEIGHT);
+            } catch (IOException e) {
+                logger.error("Error switching to MainTemplate: ", e);
             }
-        } catch (IOException e) {
-            logger.error("Error switching to Dashboard: ", e);
-            showInfo("Dashboard", "Cannot open Dashboard. Please try again.");
         }
     }
 
@@ -318,26 +380,16 @@ public class SidebarController {
         setActiveWatchlist();
         if (listener != null) {
             listener.onFilterWatchlist(event);
-            return;
-        }
-
-        try {
-            Stage stage = resolveStage(event);
-            boolean wasMaximized = stage != null && stage.isMaximized();
-            int currentWidth = stage == null ? 1280 : Math.max(1280, (int) Math.round(stage.getWidth()));
-            int currentHeight = stage == null ? 800 : Math.max(800, (int) Math.round(stage.getHeight()));
-
-            if (onBeforeNavigate != null) onBeforeNavigate.run();
-            MainController.initialShowWatchlist = true;
-            MainController.initialHomeFilterMode = "WATCHLIST";
-            switchSceneKeepingStage(event, "MainTemplate.fxml", currentWidth, currentHeight);
-
-            if (stage != null && wasMaximized) {
-                Platform.runLater(() -> stage.setMaximized(true));
+        } else {
+            try {
+                if (onBeforeNavigate != null)
+                    onBeforeNavigate.run();
+                MainController.initialShowWatchlist = true;
+                MainController.initialHomeFilterMode = "WATCHLIST";
+                SceneSwitcher.switchScene(event, "MainTemplate.fxml", APP_WIDTH, APP_HEIGHT);
+            } catch (IOException e) {
+                logger.error("Error switching to MainTemplate: ", e);
             }
-        } catch (IOException e) {
-            logger.error("Error switching to Watchlist: ", e);
-            showInfo("Watchlist", "Cannot open Watchlist. Please try again.");
         }
     }
 
@@ -345,8 +397,9 @@ public class SidebarController {
     public void handleStartSelling(ActionEvent event) {
         autoCollapse();
         try {
-            if (onBeforeNavigate != null) onBeforeNavigate.run();
-            switchSceneKeepingStage(event, "UpToSeller.fxml", 1280, 800);
+            if (onBeforeNavigate != null)
+                onBeforeNavigate.run();
+            SceneSwitcher.switchScene(event, "UpToSeller.fxml", APP_WIDTH, APP_HEIGHT);
         } catch (IOException e) {
             logger.error("Error switching to UpToSeller: ", e);
         }
@@ -358,16 +411,12 @@ public class SidebarController {
         setActiveMyBids();
         try {
             Stage stage = resolveStage(event);
-            boolean wasMaximized = stage != null && stage.isMaximized();
-            int currentWidth = stage == null ? 1280 : Math.max(1280, (int) Math.round(stage.getWidth()));
-            int currentHeight = stage == null ? 800 : Math.max(800, (int) Math.round(stage.getHeight()));
+            int currentWidth = stage == null ? APP_WIDTH : Math.max(APP_WIDTH, (int) Math.round(stage.getWidth()));
+            int currentHeight = stage == null ? APP_HEIGHT : Math.max(APP_HEIGHT, (int) Math.round(stage.getHeight()));
 
-            if (onBeforeNavigate != null) onBeforeNavigate.run();
-            switchSceneKeepingStage(event, "MyBids.fxml", currentWidth, currentHeight);
-
-            if (stage != null && wasMaximized) {
-                Platform.runLater(() -> stage.setMaximized(true));
-            }
+            if (onBeforeNavigate != null)
+                onBeforeNavigate.run();
+            SceneSwitcher.switchScene(event, "MyBids.fxml", currentWidth, currentHeight);
         } catch (IOException e) {
             logger.error("Error switching to MyBids.fxml: ", e);
             showInfo("My Bids", "Cannot open My Bids screen. Please try again.");
@@ -380,38 +429,30 @@ public class SidebarController {
         setActiveSelling();
         try {
             Stage stage = resolveStage(event);
-            boolean wasMaximized = stage != null && stage.isMaximized();
-            int currentWidth = stage == null ? 1280 : Math.max(1280, (int) Math.round(stage.getWidth()));
-            int currentHeight = stage == null ? 800 : Math.max(800, (int) Math.round(stage.getHeight()));
+            int currentWidth = stage == null ? APP_WIDTH : Math.max(APP_WIDTH, (int) Math.round(stage.getWidth()));
+            int currentHeight = stage == null ? APP_HEIGHT : Math.max(APP_HEIGHT, (int) Math.round(stage.getHeight()));
 
-            if (onBeforeNavigate != null) onBeforeNavigate.run();
-            switchSceneKeepingStage(event, "SellerDashboard.fxml", currentWidth, currentHeight);
-
-            if (stage != null && wasMaximized) {
-                Platform.runLater(() -> stage.setMaximized(true));
-            }
+            if (onBeforeNavigate != null)
+                onBeforeNavigate.run();
+            SceneSwitcher.switchScene(event, "SellerDashboard.fxml", currentWidth, currentHeight);
         } catch (IOException e) {
             logger.error("Error switching to SellerDashboard: ", e);
             showInfo("Selling", "Cannot open Seller Dashboard. Please try again.");
         }
     }
 
-        @FXML
+    @FXML
     public void handleSupport(ActionEvent event) {
         autoCollapse();
         setActiveSupport();
         try {
             Stage stage = resolveStage(event);
-            boolean wasMaximized = stage != null && stage.isMaximized();
-            int currentWidth = stage == null ? 1280 : Math.max(1280, (int) Math.round(stage.getWidth()));
-            int currentHeight = stage == null ? 800 : Math.max(800, (int) Math.round(stage.getHeight()));
+            int currentWidth = stage == null ? APP_WIDTH : Math.max(APP_WIDTH, (int) Math.round(stage.getWidth()));
+            int currentHeight = stage == null ? APP_HEIGHT : Math.max(APP_HEIGHT, (int) Math.round(stage.getHeight()));
 
-            if (onBeforeNavigate != null) onBeforeNavigate.run();
-            switchSceneKeepingStage(event, "Support.fxml", currentWidth, currentHeight);
-
-            if (stage != null && wasMaximized) {
-                Platform.runLater(() -> stage.setMaximized(true));
-            }
+            if (onBeforeNavigate != null)
+                onBeforeNavigate.run();
+            SceneSwitcher.switchScene(event, "Support.fxml", currentWidth, currentHeight);
         } catch (IOException e) {
             logger.error("Error switching to Support.fxml: ", e);
             showInfo("Support", "Cannot open support screen. Please try again.");
@@ -424,46 +465,17 @@ public class SidebarController {
         setActiveSettings();
         try {
             Stage stage = resolveStage(event);
-            boolean wasMaximized = stage != null && stage.isMaximized();
-            int currentWidth = stage == null ? 1280 : Math.max(1280, (int) Math.round(stage.getWidth()));
-            int currentHeight = stage == null ? 800 : Math.max(800, (int) Math.round(stage.getHeight()));
+            int currentWidth = stage == null ? APP_WIDTH : Math.max(APP_WIDTH, (int) Math.round(stage.getWidth()));
+            int currentHeight = stage == null ? APP_HEIGHT : Math.max(APP_HEIGHT, (int) Math.round(stage.getHeight()));
 
-            if (onBeforeNavigate != null) onBeforeNavigate.run();
-            switchSceneKeepingStage(event, "Settings.fxml", currentWidth, currentHeight);
-
-            if (stage != null && wasMaximized) {
-                Platform.runLater(() -> stage.setMaximized(true));
-            }
+            if (onBeforeNavigate != null)
+                onBeforeNavigate.run();
+            SceneSwitcher.switchScene(event, "Settings.fxml", currentWidth, currentHeight);
         } catch (IOException e) {
             logger.error("Error switching to Settings.fxml: ", e);
             showInfo("Settings", "Cannot open settings screen. Please try again.");
         }
     }
-    private void switchSceneKeepingStage(ActionEvent event, String fxmlName, int width, int height) throws IOException {
-        Stage stage = resolveStage(event);
-        if (stage == null) {
-            SceneSwitcher.switchScene(event, fxmlName, width, height);
-            return;
-        }
-
-        boolean wasMaximized = stage.isMaximized();
-        int targetWidth = Math.max(900, width);
-        int targetHeight = Math.max(650, height);
-
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/auction/client/view/" + fxmlName));
-        Parent root = loader.load();
-        root = SceneSwitcher.prepareSceneRoot(root);
-        Scene scene = new Scene(root, targetWidth, targetHeight);
-        scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
-        stage.setScene(scene);
-        stage.show();
-
-        if (wasMaximized) {
-            Platform.runLater(() -> stage.setMaximized(true));
-        }
-    }
-
-
 
     private Stage resolveStage(ActionEvent event) {
         if (event == null || !(event.getSource() instanceof Node)) {

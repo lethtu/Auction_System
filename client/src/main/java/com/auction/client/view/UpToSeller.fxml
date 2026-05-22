@@ -48,7 +48,7 @@
                 </Button>
                 <MenuButton fx:id="userMenuButton" id="profile-menu" minWidth="58.0" prefWidth="58.0" maxWidth="58.0" minHeight="44.0" prefHeight="44.0" maxHeight="44.0" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0; -fx-alignment: center; -fx-background-insets: 0;">
                     <graphic>
-                        <StackPane minWidth="44" maxWidth="44" minHeight="44" maxHeight="44" prefWidth="44" prefHeight="44" style="-fx-background-color: #1a1a3a; -fx-background-radius: 22px;">
+                        <StackPane fx:id="topBarAvatarPane" minWidth="44" maxWidth="44" minHeight="44" maxHeight="44" prefWidth="44" prefHeight="44" style="-fx-background-color: #1a1a3a; -fx-background-radius: 22px;">
                             <Label text="&#xe7fd;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: white;" />
                         </StackPane>
                     </graphic>
@@ -79,16 +79,21 @@
     </left>
 
     <center>
-        <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: transparent;">
-            <VBox alignment="CENTER" spacing="35.0" style="-fx-padding: 40px 60px;">
-                <!-- Hero Banner / Title -->
-                <VBox alignment="CENTER" spacing="12.0">
-                    <StackPane minWidth="80" maxWidth="80" minHeight="80" maxHeight="80" style="-fx-background-color: #ffd6ee; -fx-background-radius: 40px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 15, 0, 0, 4);">
-                        <Label text="&#xe8d1;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 42px; -fx-text-fill: #e040a0;" />
-                    </StackPane>
-                    <Label text="BECOME A SELLER" style="-fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;" />
-                    <Label text="Unlock professional selling tools, reach thousands of potential customers and achieve outstanding revenue growth." wrapText="true" maxWidth="700" style="-fx-font-size: 16px; -fx-text-fill: #604868; -fx-text-alignment: center;" alignment="CENTER" />
-                </VBox>
+        <VBox spacing="20.0" styleClass="app-content-panel">
+            <BorderPane.margin>
+                <Insets top="14.0" right="14.0" bottom="14.0" left="14.0" />
+            </BorderPane.margin>
+            <!-- Hero Banner / Title -->
+            <VBox alignment="CENTER" spacing="12.0" style="-fx-padding: 0 0 10px 0;">
+                <StackPane minWidth="80" maxWidth="80" minHeight="80" maxHeight="80" style="-fx-background-color: #ffd6ee; -fx-background-radius: 40px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 15, 0, 0, 4);">
+                    <Label text="&#xe8d1;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 42px; -fx-text-fill: #e040a0;" />
+                </StackPane>
+                <Label text="BECOME A SELLER" style="-fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;" />
+                <Label text="Unlock professional selling tools, reach thousands of potential customers and achieve outstanding revenue growth." wrapText="true" maxWidth="700" style="-fx-font-size: 16px; -fx-text-fill: #604868; -fx-text-alignment: center;" alignment="CENTER" />
+            </VBox>
+            
+            <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS" hbarPolicy=\"NEVER\">
+                <VBox alignment="CENTER" spacing="35.0" style="-fx-padding: 10px 0px;">
 
                 <!-- 3 Benefits Cards -->
                 <HBox alignment="CENTER" spacing="30.0" maxWidth="1000">
@@ -122,7 +127,7 @@
 
                 <!-- Action / Form Card -->
                 <VBox alignment="CENTER" spacing="20.0" maxWidth="600" style="-fx-background-color: #ffffff; -fx-padding: 35px 40px; -fx-background-radius: 24px; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.12), 25, 0, 0, 8);">
-                    <CheckBox fx:id="chkAgree" text="I agree to the terms and seller policies of HY Auction." style="-fx-font-size: 15px; -fx-text-fill: #2e1a28; -fx-cursor: hand;" />
+                    <CheckBox fx:id="chkAgree" text="I agree to the terms and seller policies of HY Auction." style="-fx-font-size: 15px; -fx-text-fill: #2e1a28; -fx-cursor: hand;"  styleClass="seller-policy-check"/>
                     
                     <Label fx:id="lblMessage" text="" style="-fx-font-size: 14px;" visible="false" managed="false" />
 
@@ -130,8 +135,9 @@
                         <graphic><Label text="&#xe876;" translateY="2.0" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px; -fx-text-fill: white;" /></graphic>
                     </Button>
                 </VBox>
-            </VBox>
+                </VBox>
         </ScrollPane>
+        </VBox>
     </center>
 </BorderPane>
 </StackPane>

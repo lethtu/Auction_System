@@ -356,11 +356,12 @@ public class LoginController {
             String role = saveUserSession(data, loginField);
             saveRememberedLoginChoice(loginField, password);
 
-            showAlert(Alert.AlertType.INFORMATION, "Success", "Welcome back!");
             logger.info("Login successful");
 
             if (!isTestEnvironment()) {
                 switchSceneByRole(event, role);
+            } else {
+                showAlert(Alert.AlertType.INFORMATION, "Success", "Welcome back!");
             }
             
         } catch (Exception e) {
@@ -418,11 +419,11 @@ public class LoginController {
         String normalizedRole = normalizeRole(role);
 
         if (SELLER_ROLE.equals(normalizedRole)) {
-            SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1280, 800);
+            SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1200, 800);
         } else if (ADMIN_ROLE.equals(normalizedRole)) {
-            SceneSwitcher.switchScene(event, "AdminDashboard.fxml", 1000, 650);
+            SceneSwitcher.switchScene(event, "AdminDashboard.fxml", 1200, 800);
         } else {
-            SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
+            SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1200, 800);
         }
     }
 

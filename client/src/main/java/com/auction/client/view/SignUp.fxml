@@ -80,7 +80,7 @@
                 <Insets bottom="30.0" left="50.0" right="50.0" top="30.0"/>
             </padding>
             
-            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
+            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" hbarPolicy=\"NEVER\" vbarPolicy="AS_NEEDED">
                 <VBox maxWidth="450.0" spacing="20.0" alignment="CENTER" VBox.vgrow="ALWAYS" style="-fx-padding: 10;">
                     
                     <VBox spacing="5.0" alignment="CENTER_LEFT" maxWidth="Infinity">
@@ -130,7 +130,7 @@
                     </VBox>
 
                     <HBox alignment="CENTER_LEFT" spacing="10.0" maxWidth="Infinity">
-                        <CheckBox fx:id="chkTerms" text="I agree to the Terms &amp; Conditions" style="-fx-font-family: 'DM Sans'; -fx-text-fill: #604868; -fx-font-size: 13px;"/>
+                        <CheckBox fx:id="chkTerms" text="I agree to the Terms &amp; Conditions" style="-fx-font-family: 'DM Sans'; -fx-text-fill: #604868; -fx-font-size: 13px;" styleClass="auth-check-box"/>
                     </HBox>
 
                     <Button fx:id="btnSignUp" text="Create Account" onAction="#handleSignUp" maxWidth="Infinity" prefHeight="50.0" styleClass="auth-primary-button"/>

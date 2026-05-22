@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Tab?>
@@ -12,6 +13,7 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.layout.StackPane?>
@@ -80,6 +82,9 @@
 
     <center>
         <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="admin-bidpop-scroll">
+            <BorderPane.margin>
+                <Insets top="14.0" right="14.0" bottom="14.0" left="14.0" />
+            </BorderPane.margin>
             <VBox spacing="22" styleClass="admin-bidpop-content">
                 <HBox alignment="CENTER_LEFT" spacing="18">
                     <VBox spacing="4">
@@ -130,12 +135,12 @@
 
                     <VBox spacing="8" maxWidth="Infinity" styleClass="admin-bidpop-metric-card" GridPane.columnIndex="3" GridPane.rowIndex="0">
                         <HBox alignment="CENTER_LEFT" spacing="10">
-                            <Label text="Starting Price" styleClass="admin-bidpop-metric-title"/>
+                            <Label text="Platform Fee" styleClass="admin-bidpop-metric-title"/>
                             <Region HBox.hgrow="ALWAYS"/>
-                            <Label text="VND" styleClass="admin-metric-badge"/>
+                            <Label text="5%" styleClass="admin-metric-badge"/>
                         </HBox>
                         <Label fx:id="lblTotalStartingPrice" text="0 VND" styleClass="admin-bidpop-metric-value"/>
-                        <Label text="Total based on current sessions." wrapText="true" styleClass="admin-bidpop-metric-desc"/>
+                        <Label text="5% of completed seller sales." wrapText="true" styleClass="admin-bidpop-metric-desc"/>
                     </VBox>
                 </GridPane>
 

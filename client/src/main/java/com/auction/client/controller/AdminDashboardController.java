@@ -30,6 +30,7 @@ public class AdminDashboardController {
     private static final int LOGIN_HEIGHT = 500;
 
     private static final String CURRENCY_SUFFIX = " VND";
+    private static final BigDecimal PLATFORM_FEE_RATE = new BigDecimal("0.05");
     private static final String USER_BANNED_TEXT = "Banned";
     private static final String USER_ACTIVE_TEXT = "Active";
     private static final String PRODUCT_VISIBLE_TEXT = "Visible";
@@ -444,7 +445,7 @@ public class AdminDashboardController {
         setMetricText(lblPendingCount, String.valueOf(itemCount(tablePending)));
         setMetricText(lblUserCount, String.valueOf(itemCount(tableUsers)));
         setMetricText(lblSessionCount, String.valueOf(itemCount(tableSessions)));
-        setMetricText(lblTotalStartingPrice, formatMetricCurrency(calculateTotalStartingPrice()));
+        setMetricText(lblTotalStartingPrice, formatMetricCurrency(calculateTotalPlatformFee()));
     }
 
     private void setMetricText(Label label, String value) {
@@ -461,30 +462,57 @@ public class AdminDashboardController {
         return table.getItems().size();
     }
 
-    private BigDecimal calculateTotalStartingPrice() {
+    private BigDecimal calculateTotalPlatformFee() {
         if (tableSessions == null || tableSessions.getItems() == null) {
             return BigDecimal.ZERO;
         }
 
         return tableSessions.getItems()
                 .stream()
-                .map(AdminSessionRow::getStartingPrice)
-                .filter(price -> price != null)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .filter(this::isCompletedSellerSale)
+                .map(AdminSessionRow::getCurrentPrice)
+                .filter(price -> price != null && price.compareTo(BigDecimal.ZERO) > 0)
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .multiply(PLATFORM_FEE_RATE);
+    }
+
+    private boolean isCompletedSellerSale(AdminSessionRow row) {
+        if (row == null || row.getStatus() == null) {
+            return false;
+        }
+
+        String status = row.getStatus().trim().toUpperCase(Locale.ROOT);
+        return "ENDED".equals(status)
+                || "PAID".equals(status)
+                || "SOLD".equals(status)
+                || "COMPLETED".equals(status);
     }
 
     private String formatMetricCurrency(BigDecimal price) {
-        if (price == null) {
+        if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) {
             return "0 VND";
         }
 
+        BigDecimal billion = BigDecimal.valueOf(1_000_000_000L);
         BigDecimal million = BigDecimal.valueOf(1_000_000L);
+        BigDecimal thousand = BigDecimal.valueOf(1_000L);
+
+        if (price.abs().compareTo(billion) >= 0) {
+            return compactMoney(price, billion, "B VND");
+        }
         if (price.abs().compareTo(million) >= 0) {
-            BigDecimal compact = price.divide(million, 1, RoundingMode.HALF_UP).stripTrailingZeros();
-            return compact.toPlainString().replace('.', ',') + " million VND";
+            return compactMoney(price, million, "M VND");
+        }
+        if (price.abs().compareTo(thousand) >= 0) {
+            return compactMoney(price, thousand, "K VND");
         }
 
         return formatCurrency(price);
+    }
+
+    private String compactMoney(BigDecimal price, BigDecimal unit, String suffix) {
+        BigDecimal compact = price.divide(unit, 1, RoundingMode.HALF_UP).stripTrailingZeros();
+        return compact.toPlainString().replace('.', ',') + suffix;
     }
 
     private void loadPendingSessions() {

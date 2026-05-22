@@ -131,9 +131,12 @@
 
     <center>
         <VBox spacing="20.0" styleClass="app-content-panel">
+            <BorderPane.margin>
+                <Insets top="14.0" right="14.0" bottom="14.0" left="14.0" />
+            </BorderPane.margin>
             <!-- Header Section inside Center -->
             <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-padding: 0 0 0 0;">
-                <Label fx:id="lblPageTitle" text="Live Auctions" textFill="#2e1a28">
+                <Label fx:id="lblPageTitle" id="mainPageTitle" text="Live Auctions" style="-fx-text-fill: #e040a0; -fx-font-weight: 900; -fx-font-size: 32px;">
 
                     <font>
 
@@ -172,7 +175,7 @@
 
             
 
-            <ScrollPane fx:id="scrollPane" fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
+            <ScrollPane fx:id="scrollPane" fitToWidth="true" hbarPolicy=\"NEVER\" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
 
                 <FlowPane fx:id="productContainer" alignment="TOP_LEFT" hgap="25.0" vgap="25.0" style="-fx-padding: 10px 28px 24px 28px;">
 

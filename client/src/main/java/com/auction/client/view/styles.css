@@ -34,10 +34,10 @@
     -fx-faint-focus-color: rgba(224, 64, 160, 0.12);
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É
    Shared rounded application shell
-   DÃ¹ng chung cho MainTemplate/Seller/Settings/Support/... Ä‘á»ƒ má»i trang cÃ¹ng má»™t template.
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   D├â┬╣ng chung cho MainTemplate/Seller/Settings/Support/... ├äΓÇÿ├í┬╗╞Æ m├í┬╗┬ìi trang c├â┬╣ng m├í┬╗Γäót template.
+   ├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É */
 .rounded-window-root {
     /* Stage/Scene stays transparent; this gutter is the hit-area used by ResizeHelper. */
     -fx-background-color: transparent;
@@ -156,7 +156,7 @@
 
 
 
-/* â”€â”€ Thanh cuá»™n máº£nh mai, mÃ u há»“ng â”€â”€ */
+/* ├óΓÇ¥Γé¼├óΓÇ¥Γé¼ Thanh cu├í┬╗Γäón m├í┬║┬únh mai, m├â┬áu h├í┬╗ΓÇ£ng ├óΓÇ¥Γé¼├óΓÇ¥Γé¼ */
 
 .scroll-bar:vertical {
 
@@ -224,7 +224,16 @@
 
 
 
-/* áº¨n tab header khi sidebar Ä‘Ã£ lÃ  nÆ¡i Ä‘iá»u hÆ°á»›ng chÃ­nh. */
+/* ├í┬║┬¿n tab header khi sidebar ├äΓÇÿ├â┬ú l├â┬á n├å┬íi ├äΓÇÿi├í┬╗┬üu h├å┬░├í┬╗ΓÇ║ng ch├â┬¡nh. */
+
+/* Hide auction page scroll bars when the page is nested in the main shell. */
+.auction-page-scroll>.scroll-bar:vertical,
+.auction-page-scroll>.scroll-bar:horizontal {
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
+    -fx-opacity: 0;
+    -fx-padding: 0;
+}
 
 .navigationless-tab-pane>.tab-header-area {
 
@@ -256,11 +265,11 @@
 
 
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É
 
-   Bid Trajectory AreaChart â€” Premium Styling
+   Bid Trajectory AreaChart ├óΓé¼ΓÇ¥ Premium Styling
 
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É */
 
 
 
@@ -306,7 +315,7 @@
 
 
 
-/* Axis styling â€” hidden but functional */
+/* Axis styling ├óΓé¼ΓÇ¥ hidden but functional */
 
 .axis {
 
@@ -332,7 +341,7 @@
 
 
 
-/* Area line â€” vibrant gradient stroke with glow */
+/* Area line ├óΓé¼ΓÇ¥ vibrant gradient stroke with glow */
 
 .default-color0.chart-series-area-line {
 
@@ -350,7 +359,7 @@
 
 
 
-/* Area fill â€” smooth gradient */
+/* Area fill ├óΓé¼ΓÇ¥ smooth gradient */
 
 .default-color0.chart-series-area-fill {
 
@@ -368,7 +377,7 @@
 
 
 
-/* Data point symbols â€” glowing circles */
+/* Data point symbols ├óΓé¼ΓÇ¥ glowing circles */
 
 .default-color0.chart-area-symbol {
 
@@ -386,7 +395,7 @@
 
 
 
-/* Legend â€” hide it */
+/* Legend ├óΓé¼ΓÇ¥ hide it */
 
 .chart-legend {
 
@@ -398,11 +407,11 @@
 
 
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É
 
-   Bid History Row â€” Premium List Items
+   Bid History Row ├óΓé¼ΓÇ¥ Premium List Items
 
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É */
 
 
 
@@ -947,7 +956,7 @@
 
 
 
-/* 2. Äá»‹nh dáº¡ng cho class cÃ¡i cÃºp cá»§a báº¡n */
+/* 2. ├ä┬É├í┬╗ΓÇ╣nh d├í┬║┬íng cho class c├â┬íi c├â┬║p c├í┬╗┬ºa b├í┬║┬ín */
 
 .award-trophy {
 
@@ -955,11 +964,11 @@
 
     -fx-font-size: 24px;
 
-    /* Äiá»u chá»‰nh kÃ­ch thÆ°á»›c */
+    /* ├ä┬Éi├í┬╗┬üu ch├í┬╗ΓÇ░nh k├â┬¡ch th├å┬░├í┬╗ΓÇ║c */
 
     -fx-text-fill: #FFD700;
 
-    /* MÃ u vÃ ng Gold */
+    /* M├â┬áu v├â┬áng Gold */
 
     -fx-padding: 0 8px 0 0;
 
@@ -967,11 +976,11 @@
 
 
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* ├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É
 
-   Admin Center polish â€” sidebar state + table theme
+   Admin Center polish ├óΓé¼ΓÇ¥ sidebar state + table theme
 
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+   ├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É├óΓÇó┬É */
 
 .admin-sidebar {
 
@@ -3638,3 +3647,181 @@
     -fx-font-weight: 800;
 }
 /* === ADMIN TABLE SELECT FIX V2 END === */
+
+
+/* === FINAL UI TASKS 20260522 START === */
+#mainPageTitle,
+#supportPageTitle {
+    -fx-text-fill: #e040a0;
+    -fx-font-family: "DM Sans", "Segoe UI", sans-serif;
+    -fx-font-weight: 900;
+    -fx-opacity: 1;
+}
+
+#supportPageSubtitle {
+    -fx-text-fill: #604868;
+    -fx-font-weight: 700;
+    -fx-opacity: 1;
+}
+
+.app-content-panel {
+    -fx-background-color: linear-gradient(to bottom right, #fffafd, #fff6fc);
+    -fx-background-radius: 34px;
+    -fx-border-radius: 34px;
+    -fx-border-color: #f6ddec;
+    -fx-border-width: 1.2px;
+}
+
+.app-content-panel .scroll-pane,
+.app-content-panel .scroll-pane > .viewport,
+.products-scroll,
+.products-scroll > .viewport {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-color: transparent;
+}
+
+.scroll-pane .scroll-bar:horizontal,
+.scroll-pane > .scroll-bar:horizontal,
+.products-scroll .scroll-bar:horizontal,
+.admin-bidpop-scroll .scroll-bar:horizontal {
+    -fx-pref-height: 0px;
+    -fx-max-height: 0px;
+    -fx-opacity: 0;
+    -fx-padding: 0;
+}
+
+.scroll-bar:vertical {
+    -fx-pref-width: 7px;
+    -fx-background-color: transparent;
+    -fx-padding: 0 1 0 1;
+}
+
+.scroll-bar:vertical .track {
+    -fx-background-color: transparent;
+    -fx-background-radius: 999px;
+}
+
+.scroll-bar:vertical .thumb {
+    -fx-background-color: linear-gradient(to bottom, #f07ac1, #e040a0);
+    -fx-background-radius: 999px;
+    -fx-opacity: 0.72;
+}
+
+.scroll-bar:vertical .thumb:hover {
+    -fx-opacity: 0.95;
+}
+
+.scroll-bar:vertical .increment-button,
+.scroll-bar:vertical .decrement-button,
+.scroll-bar:horizontal .increment-button,
+.scroll-bar:horizontal .decrement-button {
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+
+.scroll-bar:vertical .increment-arrow,
+.scroll-bar:vertical .decrement-arrow,
+.scroll-bar:horizontal .increment-arrow,
+.scroll-bar:horizontal .decrement-arrow {
+    -fx-padding: 0;
+    -fx-shape: "";
+}
+
+.empty-state-card {
+    -fx-background-color: rgba(255, 255, 255, 0.58);
+    -fx-background-radius: 28px;
+    -fx-border-color: rgba(244, 221, 235, 0.85);
+    -fx-border-radius: 28px;
+    -fx-border-width: 1px;
+}
+
+.admin-bidpop-metric-value {
+    -fx-font-size: 27px;
+    -fx-font-weight: 900;
+    -fx-text-fill: #211427;
+}
+
+.admin-bidpop-metric-title {
+    -fx-text-fill: #604868;
+    -fx-font-weight: 900;
+}
+
+.admin-bidpop-metric-desc {
+    -fx-text-fill: #907898;
+    -fx-font-weight: 650;
+}
+/* === FINAL UI TASKS 20260522 END === */
+
+/* === UI ROUND 2 POLISH 20260522 START === */
+#mainPageTitle, .main-page-title, .page-title, .auction-page-title {
+    -fx-text-fill: #e040a0;
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 32px;
+    -fx-font-weight: 900;
+    -fx-opacity: 1;
+}
+.app-sidebar-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 24 0 24 24;
+}
+.app-sidebar-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+.app-sidebar-content {
+    -fx-background-color: rgba(255,255,255,0.96);
+    -fx-background-radius: 28;
+    -fx-border-color: #f2a6d8;
+    -fx-border-radius: 28;
+    -fx-border-width: 1.8;
+    -fx-padding: 24 8 24 8;
+    -fx-effect: dropshadow(gaussian, rgba(224,64,160,0.10), 18, 0.12, 0, 6);
+}
+.scroll-pane .scroll-bar:horizontal {
+    -fx-opacity: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+}
+.scroll-pane .scroll-bar:horizontal .thumb,
+.scroll-pane .scroll-bar:horizontal .track {
+    -fx-background-color: transparent;
+}
+.scroll-pane .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 8;
+}
+.scroll-pane .scroll-bar:vertical .track {
+    -fx-background-color: rgba(242,166,216,0.18);
+    -fx-background-radius: 999;
+}
+.scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: rgba(224,64,160,0.62);
+    -fx-background-radius: 999;
+}
+.check-box, .seller-policy-check {
+    -fx-font-family: 'DM Sans';
+    -fx-text-fill: #604868;
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+}
+.check-box > .box, .seller-policy-check > .box {
+    -fx-background-color: #fff7fd;
+    -fx-border-color: #f2a6d8;
+    -fx-border-width: 1.6;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 4;
+    -fx-effect: dropshadow(gaussian, rgba(224,64,160,0.10), 8, 0.10, 0, 2);
+}
+.check-box:selected > .box, .seller-policy-check:selected > .box {
+    -fx-background-color: #e040a0;
+    -fx-border-color: #e040a0;
+}
+.check-box:selected > .box > .mark, .seller-policy-check:selected > .box > .mark {
+    -fx-background-color: white;
+}
+/* === UI ROUND 2 POLISH 20260522 END === */
