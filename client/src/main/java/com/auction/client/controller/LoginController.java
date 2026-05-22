@@ -412,6 +412,7 @@ public class LoginController {
         if ("null".equals(avatarUrl))
             avatarUrl = null;
 
+        User.setSessionToken(data.optString("sessionToken", null));
         User.setSession(id, username, fullname, email, dob, placeOfBirth, role, avatarUrl);
         return role;
     }

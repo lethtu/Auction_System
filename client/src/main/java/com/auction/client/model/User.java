@@ -21,6 +21,16 @@ public class User {
 
     private static String avatarUrl;
 
+    private static String sessionToken;
+
+    public static String getSessionToken() {
+        return sessionToken;
+    }
+
+    public static void setSessionToken(String token) {
+        sessionToken = token;
+    }
+
     public static final java.util.Set<Integer> watchlistIds = new java.util.concurrent.ConcurrentSkipListSet<>();
 
     public static void setSession(Integer Id, String Username, String Fullname, String Email, String Dob, String Place_of_birth, String Role, String AvatarUrl){
@@ -75,6 +85,7 @@ public class User {
         role = null;
         balance = BigDecimal.ZERO;
         avatarUrl = null;
+        sessionToken = null;
         watchlistIds.clear();
     }
 

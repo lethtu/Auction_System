@@ -222,10 +222,13 @@ public class MyBidsController implements Initializable {
                 return;
             }
             logger.info("[MyBids-DEBUG] Fetching my-bids for userId={}", userId);
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
                     .uri(URI.create(Config.API_URL + "/api/bidder/my-bids?bidderId=" + userId))
-                    .GET()
-                    .build();
+                    .GET();
+            if (User.getSessionToken() != null) {
+                builder.header("X-Auth-Token", User.getSessionToken());
+            }
+            HttpRequest request = builder.build();
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             logger.info("[MyBids-DEBUG] HTTP status={}, body length={}", response.statusCode(), response.body().length());

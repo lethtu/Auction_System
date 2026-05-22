@@ -936,7 +936,7 @@ public class SellerDashboardController {
                 body.put("endTime", endDT.toString());
             }
 
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest request = newRequestBuilder()
                     .uri(URI.create(Config.API_URL + "/api/seller/create-auction"))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
@@ -1194,7 +1194,7 @@ public class SellerDashboardController {
                 body.put("endTime", endDT.toString());
             }
 
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest request = newRequestBuilder()
                     .uri(URI.create(Config.API_URL + "/api/seller/update-session/" + editingSession.id + "?sellerId="
                             + sellerId))
                     .header("Content-Type", "application/json")
@@ -1454,7 +1454,7 @@ public class SellerDashboardController {
             }
             body.put("endTime", endDT.toString());
 
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest request = newRequestBuilder()
                     .uri(URI.create(Config.API_URL + "/api/seller/update-session/" + editingSession.id + "?sellerId="
                             + sellerId))
                     .header("Content-Type", "application/json")
@@ -1759,7 +1759,7 @@ public class SellerDashboardController {
             }
             body.put("endTime", endDT.toString());
 
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest request = newRequestBuilder()
                     .uri(URI.create(Config.API_URL + "/api/seller/create-auction"))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
@@ -1802,7 +1802,7 @@ public class SellerDashboardController {
         }
 
         try {
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest request = newRequestBuilder()
                     .uri(URI.create(
                             Config.API_URL + "/api/seller/cancel-session/" + selected.id + "?sellerId=" + sellerId))
                     .DELETE()
@@ -1915,7 +1915,7 @@ public class SellerDashboardController {
             body.put("startTime", startDT.toString());
             body.put("endTime", endDT.toString());
 
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest request = newRequestBuilder()
                     .uri(URI.create(
                             Config.API_URL + "/api/seller/update-session/" + selected.id + "?sellerId=" + sellerId))
                     .header("Content-Type", "application/json")
@@ -1953,7 +1953,7 @@ public class SellerDashboardController {
         }
 
         try {
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest request = newRequestBuilder()
                     .uri(URI.create(Config.API_URL + "/api/seller/my-sessions/" + sellerId))
                     .GET()
                     .build();
@@ -2619,5 +2619,14 @@ public class SellerDashboardController {
     @FXML
     private void handleClose(javafx.event.ActionEvent event) {
         SceneSwitcher.handleClose(event);
+    }
+
+    private HttpRequest.Builder newRequestBuilder() {
+        HttpRequest.Builder builder = HttpRequest.newBuilder();
+        String token = User.getSessionToken();
+        if (token != null && !token.isEmpty()) {
+            builder.header("X-Auth-Token", token);
+        }
+        return builder;
     }
 }

@@ -46,6 +46,21 @@ public class User {
     @Column(name = "avatar_url", length = 500)
     private String avatarUrl;
 
+    @Transient
+    private String sessionToken;
+
+    public String getSessionToken() {
+        return sessionToken;
+    }
+
+    public void setSessionToken(String sessionToken) {
+        this.sessionToken = sessionToken;
+    }
+
+    public String getRole() {
+        return getAccountType();
+    }
+
     public User() {
     }
 

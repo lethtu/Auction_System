@@ -1614,11 +1614,14 @@ public class MainController implements Initializable {
                 bos.write(lineEnd.getBytes());
                 bos.write((twoHyphens + boundary + twoHyphens + lineEnd).getBytes());
 
-                HttpRequest request = HttpRequest.newBuilder()
+                HttpRequest.Builder builder = HttpRequest.newBuilder()
                         .uri(URI.create(Config.API_URL + "/api/users/" + User.getId() + "/avatar"))
                         .header("Content-Type", "multipart/form-data; boundary=" + boundary)
-                        .POST(HttpRequest.BodyPublishers.ofByteArray(bos.toByteArray()))
-                        .build();
+                        .POST(HttpRequest.BodyPublishers.ofByteArray(bos.toByteArray()));
+                if (User.getSessionToken() != null) {
+                    builder.header("X-Auth-Token", User.getSessionToken());
+                }
+                HttpRequest request = builder.build();
 
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
                 JSONObject responseJson = new JSONObject(response.body());
@@ -1831,10 +1834,13 @@ public class MainController implements Initializable {
 
         new Thread(() -> {
             try {
-                HttpRequest request = HttpRequest.newBuilder()
+                HttpRequest.Builder builder = HttpRequest.newBuilder()
                         .uri(URI.create(Config.API_URL + "/api/users/" + User.getId()))
-                        .GET()
-                        .build();
+                        .GET();
+                if (User.getSessionToken() != null) {
+                    builder.header("X-Auth-Token", User.getSessionToken());
+                }
+                HttpRequest request = builder.build();
 
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
                 JSONObject responseJson = new JSONObject(response.body());
@@ -1881,11 +1887,14 @@ public class MainController implements Initializable {
 
         new Thread(() -> {
             try {
-                HttpRequest request = HttpRequest.newBuilder()
+                HttpRequest.Builder builder = HttpRequest.newBuilder()
                         .uri(URI.create(Config.API_URL + "/api/users/" + User.getId() + "/profile"))
                         .header("Content-Type", "application/json")
-                        .PUT(HttpRequest.BodyPublishers.ofString(payload.toString()))
-                        .build();
+                        .PUT(HttpRequest.BodyPublishers.ofString(payload.toString()));
+                if (User.getSessionToken() != null) {
+                    builder.header("X-Auth-Token", User.getSessionToken());
+                }
+                HttpRequest request = builder.build();
 
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
                 JSONObject responseJson = new JSONObject(response.body());

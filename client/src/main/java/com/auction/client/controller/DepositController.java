@@ -221,10 +221,13 @@ public class DepositController implements Initializable {
         
         new Thread(() -> {
             try {
-                HttpRequest request = HttpRequest.newBuilder()
+                HttpRequest.Builder builder = HttpRequest.newBuilder()
                         .uri(URI.create(Config.API_URL + "/api/users/" + User.getId()))
-                        .GET()
-                        .build();
+                        .GET();
+                if (User.getSessionToken() != null) {
+                    builder.header("X-Auth-Token", User.getSessionToken());
+                }
+                HttpRequest request = builder.build();
 
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() == 200) {
@@ -262,10 +265,13 @@ public class DepositController implements Initializable {
         new Thread(() -> {
             try {
                 String url = Config.API_URL + "/api/bidder/deposit?bidderId=" + User.getId() + "&amount=" + currentDepositAmount.toPlainString();
-                HttpRequest request = HttpRequest.newBuilder()
+                HttpRequest.Builder builder = HttpRequest.newBuilder()
                         .uri(URI.create(url))
-                        .POST(HttpRequest.BodyPublishers.noBody())
-                        .build();
+                        .POST(HttpRequest.BodyPublishers.noBody());
+                if (User.getSessionToken() != null) {
+                    builder.header("X-Auth-Token", User.getSessionToken());
+                }
+                HttpRequest request = builder.build();
                 
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
                 
