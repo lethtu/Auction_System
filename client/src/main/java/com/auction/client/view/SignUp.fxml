@@ -13,7 +13,7 @@
     </padding>
 
     <HBox styleClass="auth-shell" maxWidth="1050.0" maxHeight="680.0">
-        <!-- Cột trái: Branding -->
+        <!-- Left column: Branding -->
         <StackPane styleClass="auth-brand-panel" HBox.hgrow="ALWAYS" prefWidth="500.0">
             <!-- Background Decorative Circles -->
             <AnchorPane mouseTransparent="true">
@@ -63,7 +63,7 @@
                                     <Label fx:id="activeProductType" text="Featured auction" styleClass="auth-product-type"/>
                                 </HBox>
                                 <Label fx:id="activeProductName" text="Loading active products..." styleClass="auth-product-name"/>
-                                <Label fx:id="activeProductPrice" text="Kết thúc: --/--/---- --:--" styleClass="auth-product-price"/>
+                                <Label fx:id="activeProductPrice" text="Ends: --/--/---- --:--" styleClass="auth-product-price"/>
                             </VBox>
                         </VBox>
                     </StackPane>
@@ -71,7 +71,7 @@
             </VBox>
         </StackPane>
 
-        <!-- Cột phải: Form -->
+        <!-- Right column: Form -->
         <VBox alignment="CENTER" HBox.hgrow="ALWAYS" prefWidth="500.0">
             <padding>
                 <Insets bottom="30.0" left="50.0" right="50.0" top="30.0"/>
@@ -81,8 +81,8 @@
                 <VBox maxWidth="450.0" spacing="20.0" alignment="CENTER" VBox.vgrow="ALWAYS" style="-fx-padding: 10;">
                     
                     <VBox spacing="5.0" alignment="CENTER_LEFT" maxWidth="Infinity">
-                        <Label text="Tạo tài khoản" styleClass="auth-title"/>
-                        <Label text="Bắt đầu hành trình đấu giá của bạn" styleClass="auth-subtitle"/>
+                        <Label text="Create Account" styleClass="auth-title"/>
+                        <Label text="Start your auction journey" styleClass="auth-subtitle"/>
                     </VBox>
 
                     <GridPane hgap="15.0" vgap="15.0">
@@ -92,12 +92,12 @@
                         </columnConstraints>
                         
                         <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
-                            <Label text="Họ và tên" styleClass="auth-input-label"/>
+                            <Label text="Full Name" styleClass="auth-input-label"/>
                             <TextField fx:id="txtFullName" promptText="VD: Nguyen Van A" styleClass="auth-input"/>
                         </VBox>
 
                         <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
-                            <Label text="Tên đăng nhập" styleClass="auth-input-label"/>
+                            <Label text="Username" styleClass="auth-input-label"/>
                             <TextField fx:id="txtUsername" promptText="VD: nguyenvana" styleClass="auth-input"/>
                         </VBox>
 
@@ -107,12 +107,12 @@
                         </VBox>
 
                         <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="2">
-                            <Label text="Mật khẩu" styleClass="auth-input-label"/>
+                            <Label text="Password" styleClass="auth-input-label"/>
                             <PasswordField fx:id="txtPassword" promptText="••••••••" styleClass="auth-input"/>
                         </VBox>
 
                         <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
-                            <Label text="Xác nhận mật khẩu" styleClass="auth-input-label"/>
+                            <Label text="Confirm Password" styleClass="auth-input-label"/>
                             <PasswordField fx:id="txtConfirmPassword" promptText="••••••••" styleClass="auth-input"/>
                         </VBox>
                     </GridPane>
@@ -123,18 +123,18 @@
                             <Region fx:id="strength2" HBox.hgrow="ALWAYS" styleClass="strength-empty" style="-fx-background-radius: 3;"/>
                             <Region fx:id="strength3" HBox.hgrow="ALWAYS" styleClass="strength-empty" style="-fx-background-radius: 3;"/>
                         </HBox>
-                        <Label fx:id="lblStrength" text="Mật khẩu cần ít nhất 6 ký tự" style="-fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-text-fill: #907898;"/>
+                        <Label fx:id="lblStrength" text="Password must be at least 6 characters" style="-fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-text-fill: #907898;"/>
                     </VBox>
 
                     <HBox alignment="CENTER_LEFT" spacing="10.0" maxWidth="Infinity">
-                        <CheckBox fx:id="chkTerms" text="Tôi đồng ý với các điều khoản &amp; điều kiện" style="-fx-font-family: 'DM Sans'; -fx-text-fill: #604868; -fx-font-size: 13px;"/>
+                        <CheckBox fx:id="chkTerms" text="I agree to the Terms &amp; Conditions" style="-fx-font-family: 'DM Sans'; -fx-text-fill: #604868; -fx-font-size: 13px;"/>
                     </HBox>
 
-                    <Button fx:id="btnSignUp" text="Tạo tài khoản" onAction="#handleSignUp" maxWidth="Infinity" prefHeight="50.0" styleClass="auth-primary-button"/>
+                    <Button fx:id="btnSignUp" text="Create Account" onAction="#handleSignUp" maxWidth="Infinity" prefHeight="50.0" styleClass="auth-primary-button"/>
 
                     <HBox alignment="CENTER" spacing="5.0" maxWidth="Infinity">
-                        <Label text="Đã có tài khoản?" style="-fx-font-family: 'DM Sans'; -fx-text-fill: #604868; -fx-font-weight: 500;"/>
-                        <Hyperlink text="Quay lại đăng nhập" onAction="#goToLogin" styleClass="auth-secondary-link"/>
+                        <Label text="Already have an account?" style="-fx-font-family: 'DM Sans'; -fx-text-fill: #604868; -fx-font-weight: 500;"/>
+                        <Hyperlink text="Back to Login" onAction="#goToLogin" styleClass="auth-secondary-link"/>
                     </HBox>
                 </VBox>
             </ScrollPane>

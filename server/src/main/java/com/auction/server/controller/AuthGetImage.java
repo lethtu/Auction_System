@@ -36,11 +36,11 @@ public class AuthGetImage {
     private static final String DEFAULT_EXTENSION = ".png";
     private static final String DEFAULT_CONTENT_TYPE = "application/octet-stream";
 
-    private static final String UPLOAD_SUCCESS_MESSAGE = "Upload ảnh thành công.";
-    private static final String UPLOAD_FAILED_MESSAGE = "Upload ảnh thất bại.";
-    private static final String EMPTY_FILE_MESSAGE = "File ảnh đang trống.";
-    private static final String INVALID_IMAGE_TYPE_MESSAGE = "Chỉ chấp nhận file ảnh.";
-    private static final String INVALID_FILE_PATH_MESSAGE = "Đường dẫn file không hợp lệ.";
+    private static final String UPLOAD_SUCCESS_MESSAGE = "Image uploaded successfully.";
+    private static final String UPLOAD_FAILED_MESSAGE = "Image upload failed.";
+    private static final String EMPTY_FILE_MESSAGE = "Image file is empty.";
+    private static final String INVALID_IMAGE_TYPE_MESSAGE = "Only image files are accepted.";
+    private static final String INVALID_FILE_PATH_MESSAGE = "Invalid file path.";
 
     private static final int BAD_REQUEST_STATUS = 400;
     private static final int MAX_EXTENSION_LENGTH = 10;
@@ -68,7 +68,7 @@ public class AuthGetImage {
             file.transferTo(destination);
 
             String imagePath = toClientImagePath(destination);
-            logger.info("Đã upload file ảnh: {}", destination);
+            logger.info("Image file uploaded: {}", destination);
 
             return ResponseEntity.ok(ApiResponse.success(
                     UPLOAD_SUCCESS_MESSAGE,
@@ -79,7 +79,7 @@ public class AuthGetImage {
             return badRequest(e.getMessage());
 
         } catch (Exception e) {
-            logger.error("Lỗi khi upload ảnh: {}", e.getMessage(), e);
+            logger.error("Error uploading image: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().body(ApiResponse.error(UPLOAD_FAILED_MESSAGE));
         }
     }
@@ -93,7 +93,7 @@ public class AuthGetImage {
             Path file = getRootLocation().resolve(folder).resolve(filename).normalize();
             return serve(file);
         } catch (Exception e) {
-            logger.error("Lỗi khi xử lý đường dẫn ảnh: {}", e.getMessage(), e);
+            logger.error("Error processing image path: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -104,7 +104,7 @@ public class AuthGetImage {
             Path file = getRootLocation().resolve("avatar").resolve(filename).normalize();
             return serve(file);
         } catch (Exception e) {
-            logger.error("Lỗi khi xử lý đường dẫn avatar: {}", e.getMessage(), e);
+            logger.error("Error processing avatar path: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -115,7 +115,7 @@ public class AuthGetImage {
             Path file = getRootLocation().resolve(filename).normalize();
             return serve(file);
         } catch (Exception e) {
-            logger.error("Lỗi khi xử lý đường dẫn ảnh cũ: {}", e.getMessage(), e);
+            logger.error("Error processing legacy image path: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -179,10 +179,10 @@ public class AuthGetImage {
             }
 
             Resource resource = new UrlResource(file.toUri());
-            logger.info("Đường dẫn file thực tế đang tìm: {}", file.toAbsolutePath());
+            logger.info("Actual file path being accessed: {}", file.toAbsolutePath());
 
             if (!resource.exists() || !resource.isReadable()) {
-                logger.warn("Không tìm thấy file hoặc file không đọc được: {}", file);
+                logger.warn("File not found or not readable: {}", file);
                 return ResponseEntity.notFound().build();
             }
 
@@ -192,7 +192,7 @@ public class AuthGetImage {
                     .body(resource);
 
         } catch (Exception e) {
-            logger.error("Lỗi khi tìm file và trả về phản hồi: {}", e.getMessage(), e);
+            logger.error("Error finding file and returning response: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -226,7 +226,7 @@ public class AuthGetImage {
 
     private Path getRootLocation() {
         if (rootLocation == null) {
-            throw new IllegalStateException("Thư mục upload ảnh chưa được khởi tạo");
+            throw new IllegalStateException("Image upload directory has not been initialized");
         }
 
         return rootLocation;

@@ -51,7 +51,7 @@ public class SellerServiceTest {
         mockItem.setId(100);
         mockItem.setName("Laptop Gaming");
         mockItem.setType("electronics");
-        mockItem.setDescription("Máy còn tốt");
+        mockItem.setDescription("Good condition");
     }
 
     @Test
@@ -59,7 +59,7 @@ public class SellerServiceTest {
     public void testCreateSession_Status_Coming() {
         CreateAuctionRequest request = new CreateAuctionRequest();
         request.setSellerId(2);
-        request.setName("Sản phẩm Coming");
+        request.setName("Coming product");
         request.setType("electronics");
         request.setStartingPrice(new BigDecimal("1000000"));
         request.setStepPrice(new BigDecimal("50000"));
@@ -82,7 +82,7 @@ public class SellerServiceTest {
 
         assertNotNull(result);
         assertEquals("COMING", result.getStatus());
-        assertEquals("Sản phẩm Coming", result.getProductName());
+        assertEquals("Coming product", result.getProductName());
         assertEquals(new BigDecimal("1200000"), result.getReservePrice());
         
         verify(itemRepository, times(1)).save(any(Item.class));
@@ -223,7 +223,7 @@ public class SellerServiceTest {
     }
 
     @Test
-    @DisplayName("Hủy phiên thất bại khi trạng thái đã kết thúc")
+    @DisplayName("Hủy phiên thất bại khi trạng thái đã ended")
     public void testCancelSession_InvalidStatus() {
         AuctionSession existingSession = new AuctionSession();
         existingSession.setId(30);

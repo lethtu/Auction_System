@@ -72,10 +72,10 @@
                 
                 <!-- Filter controls mapping to cbCategory and cbStatus -->
                 <HBox fx:id="filterControlsBox" spacing="10.0" alignment="CENTER">
-                    <Label text="Lß╗ìc:" textFill="#604868" style="-fx-font-weight: bold;" />
-                    <ComboBox fx:id="cbCategory" promptText="Thß╗â loß║íi" prefWidth="150.0" style="-fx-background-color: #fef7ff; -fx-border-color: #ffe8e8; -fx-border-radius: 32px; -fx-background-radius: 32px; -fx-text-fill: #e040a0;" />
-                    <ComboBox fx:id="cbStatus" promptText="Trß║íng th├íi" prefWidth="150.0" style="-fx-background-color: #fef7ff; -fx-border-color: #ffe8e8; -fx-border-radius: 32px; -fx-background-radius: 32px; -fx-text-fill: #e040a0;" />
-                    <Button fx:id="btnResetFilter" onAction="#handleResetFilter" text="─Éß║╖t lß║íi" graphicTextGap="5.0" style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 999; -fx-background-radius: 999; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 6px 14px;">
+                    <Label text="Filter:" textFill="#604868" style="-fx-font-weight: bold;" />
+                    <ComboBox fx:id="cbCategory" promptText="Category" prefWidth="150.0" style="-fx-background-color: #fef7ff; -fx-border-color: #ffe8e8; -fx-border-radius: 32px; -fx-background-radius: 32px; -fx-text-fill: #e040a0;" />
+                    <ComboBox fx:id="cbStatus" promptText="Status" prefWidth="150.0" style="-fx-background-color: #fef7ff; -fx-border-color: #ffe8e8; -fx-border-radius: 32px; -fx-background-radius: 32px; -fx-text-fill: #e040a0;" />
+                    <Button fx:id="btnResetFilter" onAction="#handleResetFilter" text="Reset" graphicTextGap="5.0" style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 999; -fx-background-radius: 999; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 6px 14px;">
                         <graphic><Label text="&#xe9b0;" translateY="2.0" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #e040a0;" /></graphic>
                     </Button>
                     <Button onAction="#handleListView" style="-fx-background-color: #ffffff; -fx-border-color: #f2e8f2; -fx-border-radius: 999; -fx-background-radius: 999; -fx-cursor: hand; -fx-padding: 6px 8px;">

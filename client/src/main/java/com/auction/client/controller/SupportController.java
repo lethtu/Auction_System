@@ -42,7 +42,7 @@ public class SupportController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         if (User.getFullname() != null) {
-            createUserOption("Chào, " + User.getFullname());
+            createUserOption("Hello, " + User.getFullname());
         }
 
         if (btnNotificationBell != null && notificationBadge != null) {
@@ -54,7 +54,7 @@ public class SupportController implements Initializable {
                 try {
                     com.auction.client.controller.SceneSwitcher.switchScene(e, "Settings.fxml", 1280, 800);
                 } catch (IOException ex) {
-                    logger.error("Lỗi chuyển sang trang Settings.fxml: ", ex);
+                    logger.error("Error switching to Settings.fxml: ", ex);
                 }
             });
         }
@@ -82,7 +82,7 @@ public class SupportController implements Initializable {
                         MainController.initialShowWatchlist = true;
                         SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
                     } catch (IOException e) {
-                        logger.error("Lỗi điều hướng:", e);
+                        logger.error("Navigation error:", e);
                     }
                 }
 
@@ -91,7 +91,7 @@ public class SupportController implements Initializable {
                     try {
                         SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
                     } catch (IOException e) {
-                        logger.error("Lỗi điều hướng:", e);
+                        logger.error("Navigation error:", e);
                     }
                 }
             });
@@ -99,16 +99,16 @@ public class SupportController implements Initializable {
     }
 
     private void createUserOption(String text) {
-        MenuItem accountItem = new MenuItem("Tài Khoản Của Tôi");
-        MenuItem depositMoney = new MenuItem("Nạp tiền");
-        MenuItem logoutItem = new MenuItem("Đăng Xuất");
+        MenuItem accountItem = new MenuItem("My Account");
+        MenuItem depositMoney = new MenuItem("Deposit");
+        MenuItem logoutItem = new MenuItem("Logout");
 
         accountItem.setOnAction(event -> {
             try {
                 MainController.initialShowAccount = true;
                 SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
             } catch (IOException e) {
-                logger.error("Lỗi khi chuyển sang trang tài khoản: ", e);
+                logger.error("Error switching to account page: ", e);
             }
         });
 
@@ -116,7 +116,7 @@ public class SupportController implements Initializable {
             try {
                 SceneSwitcher.switchScene(event, "Deposit.fxml", 1280, 800);
             } catch (IOException e) {
-                logger.error("Lỗi khi chuyển sang trang nạp tiền: ", e);
+                logger.error("Error switching to deposit page: ", e);
             }
         });
 
@@ -124,7 +124,7 @@ public class SupportController implements Initializable {
             try {
                 handleLogout(event);
             } catch (IOException e) {
-                logger.error("Lỗi khi chuyển sang màn hình Login!", e);
+                logger.error("Error switching to Login screen!", e);
             }
         });
 
@@ -149,7 +149,7 @@ public class SupportController implements Initializable {
             ActionEvent actionEvent = new ActionEvent(event.getSource(), event.getTarget());
             SceneSwitcher.switchScene(actionEvent, "MainTemplate.fxml", 1280, 800);
         } catch (Exception e) {
-            logger.error("Lỗi khi chuyển về trang chính: ", e);
+            logger.error("Error switching to MainTemplate: ", e);
         }
     }
 
@@ -162,13 +162,13 @@ public class SupportController implements Initializable {
         String message = txtAreaMessage.getText().trim();
 
         if (email.isEmpty() || subject.isEmpty() || message.isEmpty()) {
-            showStatus("Vui lòng điền đầy đủ tất cả các thông tin có dấu *!", true);
+            showStatus("Please fill in all required fields marked with *!", true);
             return;
         }
 
         // Validate basic email format
         if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
-            showStatus("Định dạng Email không hợp lệ!", true);
+            showStatus("Invalid email format!", true);
             return;
         }
 
@@ -182,22 +182,22 @@ public class SupportController implements Initializable {
                     btnSendSupport.setDisable(false);
                     txtSubject.clear();
                     txtAreaMessage.clear();
-                    showStatus("Gửi yêu cầu thành công! Chúng tôi sẽ phản hồi bạn sớm nhất.", false);
+                    showStatus("Request sent successfully! We will respond as soon as possible.", false);
 
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Gửi thành công");
-                    alert.setHeaderText("Cảm ơn bạn đã liên hệ!");
-                    alert.setContentText("Yêu cầu hỗ trợ của bạn đã được ghi nhận. Chúng tôi sẽ phản hồi sớm nhất qua email: " + email);
+                    alert.setTitle("Send Success");
+                    alert.setHeaderText("Thank you for contacting us!");
+                    alert.setContentText("Your support request has been received. We will respond soon via email: " + email);
 
                     DialogPane dialogPane = alert.getDialogPane();
                     dialogPane.setStyle("-fx-font-family: 'DM Sans'; -fx-background-color: #fcf8ff; -fx-border-color: #e040a0; -fx-border-width: 2px; -fx-border-radius: 12px; -fx-background-radius: 12px;");
                     alert.showAndWait();
                 });
             } catch (InterruptedException e) {
-                logger.error("Lỗi gửi yêu cầu hỗ trợ:", e);
+                logger.error("Error sending support request:", e);
                 Platform.runLater(() -> {
                     btnSendSupport.setDisable(false);
-                    showStatus("Gặp lỗi khi gửi yêu cầu. Vui lòng thử lại sau!", true);
+                    showStatus("Error sending request. Please try again later!", true);
                 });
             }
         }).start();
@@ -216,7 +216,7 @@ public class SupportController implements Initializable {
 
     @FXML
     public void handleSettings(ActionEvent event) {
-        // Có thể navigate sang setting nếu cần
+        // Can navigate to settings if needed
     }
 
     private void updateTopBarAvatar(String avatarUrl) {
@@ -238,7 +238,7 @@ public class SupportController implements Initializable {
                 topBarAvatarPane.getChildren().add(icon);
             }
         } catch (Exception e) {
-            logger.warn("Không thể cập nhật avatar trên top bar: {}", e.getMessage());
+            logger.warn("Cannot update avatar on top bar: {}", e.getMessage());
         }
     }
 }

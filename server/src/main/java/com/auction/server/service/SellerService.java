@@ -95,7 +95,7 @@ public class SellerService {
         sellerSessionGuard.getSellerById(sellerId);
 
         AuctionSession session = sellerSessionGuard.getSessionById(sessionId);
-        sellerSessionGuard.validateSessionOwner(session, sellerId, "Bạn không có quyền xem phiên này");
+        sellerSessionGuard.validateSessionOwner(session, sellerId, "You do not have permission to view this session");
 
         return SessionResponseMapper.toDTO(session);
     }
@@ -106,10 +106,10 @@ public class SellerService {
         sellerSessionGuard.getSellerById(sellerId);
 
         AuctionSession session = sellerSessionGuard.getSessionById(sessionId);
-        sellerSessionGuard.validateSessionOwner(session, sellerId, "Bạn không có quyền sửa phiên này");
+        sellerSessionGuard.validateSessionOwner(session, sellerId, "You do not have permission to edit this session");
 
         if (session.getStatus() != AuctionStatus.ACTIVE && session.getStatus() != AuctionStatus.COMING && session.getStatus() != AuctionStatus.DRAFT) {
-            throw new IllegalArgumentException("Chỉ được sửa phiên chưa kết thúc hoặc bản nháp");
+            throw new IllegalArgumentException("Can only edit sessions that are not ended or drafts");
         }
 
         Item item = session.getItem();
@@ -141,9 +141,9 @@ public class SellerService {
         sellerSessionGuard.getSellerById(sellerId);
 
         AuctionSession session = sellerSessionGuard.getSessionById(sessionId);
-        sellerSessionGuard.validateSessionOwner(session, sellerId, "Bạn không có quyền hủy phiên này");
+        sellerSessionGuard.validateSessionOwner(session, sellerId, "You do not have permission to cancel this session");
         if (session.getStatus() != AuctionStatus.ACTIVE && session.getStatus() != AuctionStatus.COMING && session.getStatus() != AuctionStatus.DRAFT) {
-            throw new IllegalArgumentException("Chỉ được hủy phiên đang hoạt động, chuẩn bị diễn ra hoặc bản nháp");
+            throw new IllegalArgumentException("Can only cancel active, upcoming, or draft sessions");
         }
 
         session.setStatus(AuctionStatus.CANCELED);

@@ -2,13 +2,10 @@ package com.auction.server.mapper;
 
 import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.model.AuctionSession;
-import com.auction.server.model.AuctionStatus;
 import com.auction.server.model.Item;
-import com.auction.server.model.Seller;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;

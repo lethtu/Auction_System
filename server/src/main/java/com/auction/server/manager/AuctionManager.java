@@ -10,12 +10,8 @@ public class AuctionManager {
     // The single instance
     private static AuctionManager instance;
 
-    // Store active auctions to manage concurrency in-memory instead of hitting the DB
-    private ConcurrentHashMap<Integer, Object> activeAuctions;
-
     // Private constructor prevents instantiation from other classes
     private AuctionManager() {
-        activeAuctions = new ConcurrentHashMap<>();
     }
 
     // Public static method to get the instance

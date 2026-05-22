@@ -13,10 +13,10 @@ public class Main extends Application {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
     @Override
     public void start(Stage primaryStage) throws Exception {
-        logger.info("Đã khởi động Client thành công");
+        logger.info("Client started successfully");
         Parent root = FXMLLoader
                 .load(Objects.requireNonNull(getClass().getResource("/com/auction/client/view/Login.fxml")));
-        primaryStage.setTitle("Hệ thống đấu giá");
+        primaryStage.setTitle("Auction System");
         primaryStage.setScene(new Scene(root, 1100, 700));
         primaryStage.setMinWidth(900);
         primaryStage.setMinHeight(600);

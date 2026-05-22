@@ -17,29 +17,29 @@ public class AdminController {
 
     private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
 
-    private static final String LOG_GET_PENDING_SESSIONS = "Đang lấy danh sách chờ duyệt";
-    private static final String LOG_GET_ALL_SESSIONS = "Đang lấy danh sách phiên";
-    private static final String LOG_GET_SESSION_DETAIL = "Đang lấy chi tiết phiên ";
-    private static final String LOG_APPROVE_SESSION = "Đang phê duyệt phiên ";
-    private static final String LOG_REJECT_SESSION = "Đang từ chối phiên đấu giá ";
-    private static final String LOG_BAN_USER = "Đang khóa tài khoản user ";
-    private static final String LOG_RESTORE_USER = "Đang khôi phục tài khoản user ";
-    private static final String LOG_CANCEL_AUCTION = "Đang hủy phiên đấu giá ";
-    private static final String LOG_HIDE_PRODUCT = "Đang ẩn sản phẩm ";
-    private static final String LOG_SHOW_PRODUCT = "Đang hiện sản phẩm ";
-    private static final String LOG_GET_ALL_USERS = "Đang lấy danh sách người dùng";
+    private static final String LOG_GET_PENDING_SESSIONS = "Fetching pending sessions";
+    private static final String LOG_GET_ALL_SESSIONS = "Fetching session list";
+    private static final String LOG_GET_SESSION_DETAIL = "Fetching session details ";
+    private static final String LOG_APPROVE_SESSION = "Approving session ";
+    private static final String LOG_REJECT_SESSION = "Rejecting auction session ";
+    private static final String LOG_BAN_USER = "Banning user account ";
+    private static final String LOG_RESTORE_USER = "Restoring user account ";
+    private static final String LOG_CANCEL_AUCTION = "Canceling auction session ";
+    private static final String LOG_HIDE_PRODUCT = "Hiding product ";
+    private static final String LOG_SHOW_PRODUCT = "Showing product ";
+    private static final String LOG_GET_ALL_USERS = "Fetching user list";
 
-    private static final String SUCCESS_GET_PENDING_SESSIONS = "Lấy danh sách phiên chờ duyệt thành công";
-    private static final String SUCCESS_GET_ALL_SESSIONS = "Lấy danh sách phiên thành công";
-    private static final String SUCCESS_GET_SESSION_DETAIL = "Lấy chi tiết phiên thành công";
-    private static final String SUCCESS_APPROVE_SESSION = "Phê duyệt thành công! Phiên đấu giá đã bắt đầu.";
-    private static final String SUCCESS_REJECT_SESSION = "Đã từ chối phiên đấu giá.";
-    private static final String SUCCESS_BAN_USER = "Đã khóa tài khoản user.";
-    private static final String SUCCESS_RESTORE_USER = "Đã khôi phục tài khoản user.";
-    private static final String SUCCESS_CANCEL_AUCTION = "Đã hủy phiên đấu giá.";
-    private static final String SUCCESS_HIDE_PRODUCT = "Đã ẩn sản phẩm.";
-    private static final String SUCCESS_SHOW_PRODUCT = "Đã hiện sản phẩm.";
-    private static final String SUCCESS_GET_ALL_USERS = "Lấy danh sách người dùng thành công";
+    private static final String SUCCESS_GET_PENDING_SESSIONS = "Pending sessions retrieved successfully";
+    private static final String SUCCESS_GET_ALL_SESSIONS = "Session list retrieved successfully";
+    private static final String SUCCESS_GET_SESSION_DETAIL = "Session details retrieved successfully";
+    private static final String SUCCESS_APPROVE_SESSION = "Approved successfully! The auction session has started.";
+    private static final String SUCCESS_REJECT_SESSION = "Auction session rejected.";
+    private static final String SUCCESS_BAN_USER = "User account has been banned.";
+    private static final String SUCCESS_RESTORE_USER = "User account has been restored.";
+    private static final String SUCCESS_CANCEL_AUCTION = "Auction session has been canceled.";
+    private static final String SUCCESS_HIDE_PRODUCT = "Product has been hidden.";
+    private static final String SUCCESS_SHOW_PRODUCT = "Product is now visible.";
+    private static final String SUCCESS_GET_ALL_USERS = "User list retrieved successfully";
 
     private static final int BAD_REQUEST_STATUS = 400;
 
@@ -200,11 +200,11 @@ public class AdminController {
             return ApiResponse.success(successMessage, action.get());
 
         } catch (IllegalArgumentException e) {
-            logger.warn("{} thất bại: {}", logMessage, e.getMessage());
+            logger.warn("{} failed: {}", logMessage, e.getMessage());
             return ApiResponse.error(BAD_REQUEST_STATUS, e.getMessage());
 
         } catch (Exception e) {
-            logger.error("{} thất bại: {}", logMessage, e.getMessage(), e);
+            logger.error("{} failed: {}", logMessage, e.getMessage(), e);
             return ApiResponse.error(e.getMessage());
         }
     }

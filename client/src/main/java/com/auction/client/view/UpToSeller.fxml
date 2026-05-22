@@ -68,8 +68,8 @@
                     <StackPane minWidth="80" maxWidth="80" minHeight="80" maxHeight="80" style="-fx-background-color: #ffd6ee; -fx-background-radius: 40px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 15, 0, 0, 4);">
                         <Label text="&#xe8d1;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 42px; -fx-text-fill: #e040a0;" />
                     </StackPane>
-                    <Label text="TRỞ THÀNH NGƯỜI BÁN HÀNG" style="-fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;" />
-                    <Label text="Mở khóa các công cụ bán hàng chuyên nghiệp, tiếp cận hàng ngàn khách hàng tiềm năng và tăng trưởng doanh thu vượt bậc." wrapText="true" maxWidth="700" style="-fx-font-size: 16px; -fx-text-fill: #604868; -fx-text-alignment: center;" alignment="CENTER" />
+                    <Label text="BECOME A SELLER" style="-fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;" />
+                    <Label text="Unlock professional selling tools, reach thousands of potential customers and achieve outstanding revenue growth." wrapText="true" maxWidth="700" style="-fx-font-size: 16px; -fx-text-fill: #604868; -fx-text-alignment: center;" alignment="CENTER" />
                 </VBox>
 
                 <!-- 3 Benefits Cards -->
@@ -79,8 +79,8 @@
                         <StackPane minWidth="60" maxWidth="60" minHeight="60" maxHeight="60" style="-fx-background-color: #fef7ff; -fx-background-radius: 30px;">
                             <Label text="&#xe145;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 30px; -fx-text-fill: #e040a0;" />
                         </StackPane>
-                        <Label text="Đăng bán dễ dàng" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;" />
-                        <Label text="Tạo phiên đấu giá nhanh chóng với các tùy chọn giá khởi điểm, bước giá và thời gian linh hoạt." wrapText="true" style="-fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;" alignment="CENTER" />
+                        <Label text="Easy Listing" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;" />
+                        <Label text="Create auction sessions quickly with flexible starting price, step price and duration options." wrapText="true" style="-fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;" alignment="CENTER" />
                     </VBox>
 
                     <!-- Card 2 -->
@@ -88,8 +88,8 @@
                         <StackPane minWidth="60" maxWidth="60" minHeight="60" maxHeight="60" style="-fx-background-color: #fef7ff; -fx-background-radius: 30px;">
                             <Label text="&#xe8b8;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 30px; -fx-text-fill: #e040a0;" />
                         </StackPane>
-                        <Label text="Quản lý chuyên nghiệp" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;" />
-                        <Label text="Theo dõi trực tiếp diễn biến các phiên đấu giá, quản lý người mua và đơn hàng hiệu quả." wrapText="true" style="-fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;" alignment="CENTER" />
+                        <Label text="Professional Management" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;" />
+                        <Label text="Monitor auction progress in real-time, manage buyers and orders effectively." wrapText="true" style="-fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;" alignment="CENTER" />
                     </VBox>
 
                     <!-- Card 3 -->
@@ -97,18 +97,18 @@
                         <StackPane minWidth="60" maxWidth="60" minHeight="60" maxHeight="60" style="-fx-background-color: #fef7ff; -fx-background-radius: 30px;">
                             <Label text="&#xe227;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 30px; -fx-text-fill: #e040a0;" />
                         </StackPane>
-                        <Label text="Doanh thu vượt trội" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;" />
-                        <Label text="Tiếp cận cộng đồng người mua đông đảo trên HY Auction để đạt mức giá tốt nhất cho sản phẩm." wrapText="true" style="-fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;" alignment="CENTER" />
+                        <Label text="Outstanding Revenue" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;" />
+                        <Label text="Reach a large community of buyers on HY Auction to achieve the best price for your products." wrapText="true" style="-fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;" alignment="CENTER" />
                     </VBox>
                 </HBox>
 
                 <!-- Action / Form Card -->
                 <VBox alignment="CENTER" spacing="20.0" maxWidth="600" style="-fx-background-color: #ffffff; -fx-padding: 35px 40px; -fx-background-radius: 24px; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.12), 25, 0, 0, 8);">
-                    <CheckBox fx:id="chkAgree" text="Tôi đồng ý với các điều khoản và chính sách bán hàng của HY Auction." style="-fx-font-size: 15px; -fx-text-fill: #2e1a28; -fx-cursor: hand;" />
+                    <CheckBox fx:id="chkAgree" text="I agree to the terms and seller policies of HY Auction." style="-fx-font-size: 15px; -fx-text-fill: #2e1a28; -fx-cursor: hand;" />
                     
                     <Label fx:id="lblMessage" text="" style="-fx-font-size: 14px;" visible="false" managed="false" />
 
-                    <Button fx:id="btnUpgrade" onAction="#handleUpgrade" text="Nâng Cấp Ngay" prefWidth="300" prefHeight="50" style="-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold; -fx-background-radius: 25px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.4), 20, 0, 0, 6);">
+                    <Button fx:id="btnUpgrade" onAction="#handleUpgrade" text="Upgrade Now" prefWidth="300" prefHeight="50" style="-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold; -fx-background-radius: 25px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.4), 20, 0, 0, 6);">
                         <graphic><Label text="&#xe876;" translateY="2.0" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px; -fx-text-fill: white;" /></graphic>
                     </Button>
                 </VBox>

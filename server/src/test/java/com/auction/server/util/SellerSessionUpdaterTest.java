@@ -22,7 +22,7 @@ class SellerSessionUpdaterTest {
 
         assertEquals("Laptop Gaming", item.getName());
         assertEquals("electronics", item.getType());
-        assertEquals("Máy còn tốt", item.getDescription());
+        assertEquals("Good condition", item.getDescription());
     }
 
     @Test
@@ -44,7 +44,7 @@ class SellerSessionUpdaterTest {
         AuctionSession session = new AuctionSession();
         session.setApprovedAt(LocalDateTime.now());
         session.setRejectedAt(LocalDateTime.now());
-        session.setRejectReason("Sai thông tin");
+        session.setRejectReason("Incorrect info");
         session.setApprovedByAdminId(1);
         session.setRejectedByAdminId(2);
 
@@ -61,7 +61,7 @@ class SellerSessionUpdaterTest {
         CreateAuctionRequest request = new CreateAuctionRequest();
         request.setName("Laptop Gaming");
         request.setType("electronics");
-        request.setDescription("Máy còn tốt");
+        request.setDescription("Good condition");
         request.setStartingPrice(new BigDecimal("1000000"));
         request.setStepPrice(new BigDecimal("100000"));
         request.setStartTime(LocalDateTime.now().plusHours(1));

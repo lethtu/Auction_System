@@ -12,8 +12,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
-import org.testfx.matcher.base.NodeMatchers;
-import org.testfx.matcher.control.LabeledMatchers;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.testfx.api.FxAssert.verifyThat;

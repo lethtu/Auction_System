@@ -28,7 +28,7 @@ class SellerControllerTest {
         ApiResponse<SessionResponseDTO> response = controller.createAuction(request);
 
         assertEquals(200, response.getStatus());
-        assertEquals("Tạo phiên đấu giá thành công.", response.getMessage());
+        assertEquals("Auction session created successfully.", response.getMessage());
         assertSame(dto, response.getData());
         assertSame(request, service.createdRequest);
     }
@@ -60,7 +60,7 @@ class SellerControllerTest {
         ApiResponse<List<SessionResponseDTO>> response = controller.viewMySessions(10, "PENDING");
 
         assertEquals(200, response.getStatus());
-        assertEquals("Lấy danh sách thành công", response.getMessage());
+        assertEquals("Session list retrieved successfully", response.getMessage());
         assertEquals(1, response.getData().size());
         assertEquals("Phone", response.getData().get(0).getProductName());
         assertEquals(10, service.lastSellerId);
@@ -79,7 +79,7 @@ class SellerControllerTest {
         ApiResponse<SessionResponseDTO> response = controller.getSessionDetail(5, 10);
 
         assertEquals(200, response.getStatus());
-        assertEquals("Lấy chi tiết thành công", response.getMessage());
+        assertEquals("Session details retrieved successfully", response.getMessage());
         assertSame(dto, response.getData());
         assertEquals(5, service.lastSessionId);
         assertEquals(10, service.lastSellerId);
@@ -93,7 +93,7 @@ class SellerControllerTest {
         ApiResponse<Void> response = controller.cancelAuction(8, 10);
 
         assertEquals(200, response.getStatus());
-        assertEquals("Đã hủy phiên thành công", response.getMessage());
+        assertEquals("Session canceled successfully", response.getMessage());
         assertNull(response.getData());
         assertEquals(8, service.lastSessionId);
         assertEquals(10, service.lastSellerId);
@@ -122,7 +122,7 @@ class SellerControllerTest {
         ApiResponse<SellerStatsDTO> response = controller.getStats(10);
 
         assertEquals(200, response.getStatus());
-        assertEquals("Lấy thống kê thành công", response.getMessage());
+        assertEquals("Statistics retrieved successfully", response.getMessage());
         assertNull(response.getData());
         assertEquals(10, service.lastSellerId);
     }

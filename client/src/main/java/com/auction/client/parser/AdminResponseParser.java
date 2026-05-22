@@ -26,7 +26,7 @@ public final class AdminResponseParser {
     private static final String KEY_ACCOUNT_TYPE = "accountType";
     private static final String KEY_BANNED = "banned";
 
-    private static final String DEFAULT_UNKNOWN_TEXT = "Không rõ";
+    private static final String DEFAULT_UNKNOWN_TEXT = "Unknown";
     private static final String DEFAULT_EMPTY_TEXT = "";
     private static final String DEFAULT_UNKNOWN_STATUS = "UNKNOWN";
 

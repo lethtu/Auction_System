@@ -20,19 +20,19 @@ public class SellerController {
 
     private static final int BAD_REQUEST_STATUS = 400;
 
-    private static final String LOG_CREATE_AUCTION = "Đang tạo phiên đấu giá";
-    private static final String LOG_VIEW_MY_SESSIONS = "Đang lấy danh sách phiên của seller";
-    private static final String LOG_GET_SESSION_DETAIL = "Đang lấy chi tiết phiên";
-    private static final String LOG_UPDATE_PENDING_SESSION = "Đang sửa phiên đấu giá chờ duyệt";
-    private static final String LOG_CANCEL_AUCTION = "Đang hủy phiên đấu giá";
-    private static final String LOG_GET_STATS = "Đang thống kê seller";
+    private static final String LOG_CREATE_AUCTION = "Creating auction session";
+    private static final String LOG_VIEW_MY_SESSIONS = "Fetching seller's session list";
+    private static final String LOG_GET_SESSION_DETAIL = "Fetching session details";
+    private static final String LOG_UPDATE_PENDING_SESSION = "Updating pending auction session";
+    private static final String LOG_CANCEL_AUCTION = "Canceling auction session";
+    private static final String LOG_GET_STATS = "Fetching seller statistics";
 
-    private static final String SUCCESS_CREATE_AUCTION = "Tạo phiên đấu giá thành công.";
-    private static final String SUCCESS_VIEW_MY_SESSIONS = "Lấy danh sách thành công";
-    private static final String SUCCESS_GET_SESSION_DETAIL = "Lấy chi tiết thành công";
-    private static final String SUCCESS_UPDATE_PENDING_SESSION = "Đã cập nhật phiên chờ duyệt thành công.";
-    private static final String SUCCESS_CANCEL_AUCTION = "Đã hủy phiên thành công";
-    private static final String SUCCESS_GET_STATS = "Lấy thống kê thành công";
+    private static final String SUCCESS_CREATE_AUCTION = "Auction session created successfully.";
+    private static final String SUCCESS_VIEW_MY_SESSIONS = "Session list retrieved successfully";
+    private static final String SUCCESS_GET_SESSION_DETAIL = "Session details retrieved successfully";
+    private static final String SUCCESS_UPDATE_PENDING_SESSION = "Pending session updated successfully.";
+    private static final String SUCCESS_CANCEL_AUCTION = "Session canceled successfully";
+    private static final String SUCCESS_GET_STATS = "Statistics retrieved successfully";
 
     private final SellerService sellerService;
 
@@ -74,7 +74,7 @@ public class SellerController {
     }
 
     /**
-     * API Sửa phiên đấu giá
+     * API to update an auction session
      */
     @PutMapping("/update-session/{sessionId}")
     public ApiResponse<SessionResponseDTO> updateSession(
@@ -138,11 +138,11 @@ public class SellerController {
             return ApiResponse.success(successMessage, action.get());
 
         } catch (IllegalArgumentException e) {
-            logger.warn("{} thất bại: {}", logMessage, e.getMessage());
+            logger.warn("{} failed: {}", logMessage, e.getMessage());
             return ApiResponse.error(BAD_REQUEST_STATUS, e.getMessage());
 
         } catch (Exception e) {
-            logger.error("{} thất bại: {}", logMessage, e.getMessage(), e);
+            logger.error("{} failed: {}", logMessage, e.getMessage(), e);
             return ApiResponse.error(e.getMessage());
         }
     }

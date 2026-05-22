@@ -24,32 +24,32 @@ public class UserService {
 
     public User updateProfile(Integer id, Map<String, String> request) {
         if (id == null || id <= 0) {
-            throw new IllegalArgumentException("userId không hợp lệ");
+            throw new IllegalArgumentException("Invalid userId");
         }
 
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        String username = normalizeRequired(request.get("username"), "Tên đăng nhập không được để trống");
-        String fullname = normalizeRequired(request.get("fullname"), "Họ tên không được để trống");
-        String email = normalizeRequired(request.get("email"), "Email không được để trống");
+        String username = normalizeRequired(request.get("username"), "Username cannot be empty");
+        String fullname = normalizeRequired(request.get("fullname"), "Full name cannot be empty");
+        String email = normalizeRequired(request.get("email"), "Email cannot be empty");
         String dob = normalizeOptional(request.get("dob"));
         String placeOfBirth = normalizeOptional(firstNonBlank(request.get("placeOfBirth"), request.get("place_of_birth")));
 
         if (!email.contains("@")) {
-            throw new IllegalArgumentException("Email không hợp lệ");
+            throw new IllegalArgumentException("Invalid email");
         }
 
         userRepository.findByUsername(username)
                 .filter(existingUser -> !existingUser.getId().equals(id))
                 .ifPresent(existingUser -> {
-                    throw new IllegalArgumentException("Tên đăng nhập đã được sử dụng");
+                    throw new IllegalArgumentException("Username is already taken");
                 });
 
         userRepository.findByEmail(email)
                 .filter(existingUser -> !existingUser.getId().equals(id))
                 .ifPresent(existingUser -> {
-                    throw new IllegalArgumentException("Email đã được sử dụng");
+                    throw new IllegalArgumentException("Email is already taken");
                 });
 
         user.setUsername(username);
@@ -63,11 +63,11 @@ public class UserService {
 
     public User updateAvatarUrl(Integer userId, String avatarUrl) {
         if (userId == null || userId <= 0) {
-            throw new IllegalArgumentException("userId không hợp lệ");
+            throw new IllegalArgumentException("Invalid userId");
         }
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         user.setAvatarUrl(avatarUrl);
         return userRepository.save(user);

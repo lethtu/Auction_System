@@ -14,7 +14,7 @@ public class ApiResponse<T> {
         this.status = status;
         this.message = message;
         this.data = data;
-        logger.info("Trạng thái phản hồi: {}, tin nhắn: {}", status, message);
+        logger.info("Response status: {}, message: {}", status, message);
     }
 
     public static <T> ApiResponse<T> success(String message, T data) {

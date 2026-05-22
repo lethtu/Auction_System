@@ -77,10 +77,10 @@ public class LoginController {
     @FXML
     public void initialize() {
         if (btnGoogle != null) {
-            btnGoogle.setTooltip(new Tooltip("Tính năng đăng nhập bằng Google sẽ được bổ sung sau."));
+            btnGoogle.setTooltip(new Tooltip("Google login will be added in a future update."));
         }
         if (btnFacebook != null) {
-            btnFacebook.setTooltip(new Tooltip("Tính năng đăng nhập bằng Facebook sẽ được bổ sung sau."));
+            btnFacebook.setTooltip(new Tooltip("Facebook login will be added in a future update."));
         }
         showFallbackProduct();
         loadActiveProducts();
@@ -196,7 +196,7 @@ public class LoginController {
                 "Discover live auctions",
                 "Featured marketplace",
                 FALLBACK_PRODUCT_IMAGE,
-                "Kết thúc: đang cập nhật"
+                "Ends: updating"
         ));
     }
 
@@ -272,14 +272,14 @@ public class LoginController {
 
     private String formatEndTime(String value) {
         if (value == null || value.isBlank()) {
-            return "Kết thúc: đang cập nhật";
+            return "Ends: updating";
         }
 
         try {
             LocalDateTime endTime = LocalDateTime.parse(value.trim(), SERVER_DATE_TIME);
-            return "Kết thúc: " + DISPLAY_DATE_TIME.format(endTime);
+            return "Ends: " + DISPLAY_DATE_TIME.format(endTime);
         } catch (DateTimeParseException e) {
-            return "Kết thúc: " + value.trim();
+            return "Ends: " + value.trim();
         }
     }
 
@@ -297,7 +297,7 @@ public class LoginController {
         if (button == null) return;
         String originalText = button.getText();
         button.setDisable(true);
-        button.setText("Chưa hỗ trợ");
+        button.setText("Not supported");
         
         new Thread(() -> {
             try { Thread.sleep(2000); } catch (InterruptedException e) {}
@@ -314,7 +314,7 @@ public class LoginController {
         String password = txtPassword.getText().trim();
 
         if (loginField.isEmpty() || password.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Lỗi", "Vui lòng nhập Username/Email và Mật khẩu!");
+            showAlert(Alert.AlertType.WARNING, "Error", "Please enter Username/Email and Password!");
             return;
         }
 
@@ -323,32 +323,32 @@ public class LoginController {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
-                showAlert(Alert.AlertType.ERROR, "Lỗi đăng nhập", "Sai tài khoản hoặc mật khẩu!");
-                logger.error("Lỗi khi connect đến server");
+                showAlert(Alert.AlertType.ERROR, "Login Error", "Invalid account or password!");
+                logger.error("Error connecting to server");
                 return;
             }
 
             JSONObject responseJson = new JSONObject(response.body());
 
             if (responseJson.getInt("status") != 200) {
-                showAlert(Alert.AlertType.ERROR, "Lỗi đăng nhập", "Đăng nhập thất bại!");
-                logger.error("Lỗi đăng nhập thất bại - status code: {}", responseJson.getInt("status"));
+                showAlert(Alert.AlertType.ERROR, "Login Error", "Login failed!");
+                logger.error("Login failed - status code: {}", responseJson.getInt("status"));
                 return;
             }
 
             JSONObject data = responseJson.getJSONObject("data");
             String role = saveUserSession(data, loginField);
 
-            showAlert(Alert.AlertType.INFORMATION, "Thành công", "Chào mừng bạn đã quay lại!");
-            logger.info("Đăng nhập thành công");
+            showAlert(Alert.AlertType.INFORMATION, "Success", "Welcome back!");
+            logger.info("Login successful");
 
             if (!isTestEnvironment()) {
                 switchSceneByRole(event, role);
             }
             
         } catch (Exception e) {
-            logger.error("Không thể kết nối máy chủ: {}", e.getMessage(), e);
-            showAlert(Alert.AlertType.ERROR, "Lỗi mạng", "Không thể kết nối đến máy chủ!");
+            logger.error("Cannot connect to server: {}", e.getMessage(), e);
+            showAlert(Alert.AlertType.ERROR, "Network Error", "Cannot connect to the server!");
         }
     }
 

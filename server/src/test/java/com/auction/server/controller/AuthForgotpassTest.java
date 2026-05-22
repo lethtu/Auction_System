@@ -74,7 +74,7 @@ public class AuthForgotpassTest {
                         .content(requestJson))
                 .andExpect(status().isOk()) // HTTP 200
                 .andExpect(jsonPath("$.status").value(200)) // Logic status = 200
-                .andExpect(jsonPath("$.message").value("Đã gửi mã xác nhận"));
+                .andExpect(jsonPath("$.message").value("Verification code sent"));
 
         // KIỂM TRA CHÉO: Xác nhận xem Controller có thực sự ra lệnh cho EmailServer gửi mail đi không?
         Mockito.verify(emailServer).SendEmail(eq("test@gmail.com"), anyString(), anyString());
@@ -95,7 +95,7 @@ public class AuthForgotpassTest {
                         .content(requestJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.message").value("Không có tài khoản nào liên kết với Email này"));
+                .andExpect(jsonPath("$.message").value("No account is associated with this email"));
     }
 
     // TEST API 2: /api/check_code (ĐỔI MẬT KHẨU)
@@ -154,7 +154,7 @@ public class AuthForgotpassTest {
                         .content(requestJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").value("Code sai hoặc đã hết hạn, vui lòng kiểm tra lại"));
+                .andExpect(jsonPath("$.message").value("Invalid or expired code, please try again"));
     }
 
     @Test
@@ -174,6 +174,6 @@ public class AuthForgotpassTest {
                         .content(requestJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.message").value("Không có tài khoản nào liên kết với Email này"));
+                .andExpect(jsonPath("$.message").value("No account is associated with this email"));
     }
 }

@@ -6,5 +6,5 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Configuration
 @EnableScheduling
 public class SchedulerConfig {
-    // Chỉ cần 2 annotation trên là đủ để Spring Boot biết ứng dụng này có chạy ngầm
+    // These 2 annotations above are sufficient for Spring Boot to know this app runs background tasks
 }

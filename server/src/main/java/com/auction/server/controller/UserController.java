@@ -34,7 +34,7 @@ public class UserController {
 
     private static final int SUCCESS_STATUS = 200;
     private static final int ERROR_STATUS = 400;
-    private static final String SUCCESS_MESSAGE = "Thành công";
+    private static final String SUCCESS_MESSAGE = "Success";
 
     private static final long MAX_AVATAR_SIZE = 5L * 1024 * 1024; // 5MB
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "webp");
@@ -59,9 +59,9 @@ public class UserController {
     public ResponseEntity<ApiResponse<User>> getUserById(@PathVariable Integer id) {
         User user = userService.getUserById(id);
         if (user == null) {
-            return ResponseEntity.status(404).body(error("Không tìm thấy người dùng", null));
+            return ResponseEntity.status(404).body(error("User not found", null));
         }
-        return ResponseEntity.ok(success("Lấy thông tin tài khoản thành công", user));
+        return ResponseEntity.ok(success("Account information retrieved successfully", user));
     }
 
     @PutMapping("/{id}/profile")
@@ -70,7 +70,7 @@ public class UserController {
             @RequestBody Map<String, String> request) {
         try {
             User updatedUser = userService.updateProfile(id, request);
-            return ResponseEntity.ok(success("Cập nhật thông tin tài khoản thành công", updatedUser));
+            return ResponseEntity.ok(success("Account information updated successfully", updatedUser));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(error(e.getMessage(), null));
         }
@@ -85,19 +85,19 @@ public class UserController {
             User user = userService.getUserById(id);
             if (user == null) {
                 return ResponseEntity.status(404).body(
-                        new ApiResponse<>(404, "Không tìm thấy người dùng", null));
+                        new ApiResponse<>(404, "User not found", null));
             }
 
             // 2. Validate file not empty
             if (file == null || file.isEmpty()) {
                 return ResponseEntity.badRequest().body(
-                        new ApiResponse<>(ERROR_STATUS, "File ảnh đang trống.", null));
+                        new ApiResponse<>(ERROR_STATUS, "Image file is empty.", null));
             }
 
             // 3. Validate file size (5MB)
             if (file.getSize() > MAX_AVATAR_SIZE) {
                 return ResponseEntity.badRequest().body(
-                        new ApiResponse<>(ERROR_STATUS, "File ảnh vượt quá giới hạn 5MB.", null));
+                        new ApiResponse<>(ERROR_STATUS, "Image file exceeds the 5MB limit.", null));
             }
 
             // 4. Validate extension from original filename
@@ -105,7 +105,7 @@ public class UserController {
             if (extension == null || !ALLOWED_EXTENSIONS.contains(extension)) {
                 logger.warn("Avatar upload rejected: Invalid extension '{}' for file '{}'", extension, file.getOriginalFilename());
                 return ResponseEntity.badRequest().body(
-                        new ApiResponse<>(ERROR_STATUS, "File không hợp lệ. Vui lòng chọn ảnh PNG, JPG, JPEG hoặc WEBP dưới 5MB.", null));
+                        new ApiResponse<>(ERROR_STATUS, "Invalid file. Please select a PNG, JPG, JPEG or WEBP image under 5MB.", null));
             }
 
             // 5. Validate content-type or fallback to magic bytes
@@ -135,7 +135,7 @@ public class UserController {
             if (!isValidContent) {
                 logger.warn("Avatar upload rejected: Invalid content for file '{}', Content-Type: {}, Size: {}", file.getOriginalFilename(), contentType, file.getSize());
                 return ResponseEntity.badRequest().body(
-                        new ApiResponse<>(ERROR_STATUS, "File không hợp lệ. Vui lòng chọn ảnh PNG, JPG, JPEG hoặc WEBP dưới 5MB.", null));
+                        new ApiResponse<>(ERROR_STATUS, "Invalid file. Please select a PNG, JPG, JPEG or WEBP image under 5MB.", null));
             }
 
             // 6. Generate safe filename
@@ -149,7 +149,7 @@ public class UserController {
             Path destination = avatarDir.resolve(safeFileName).normalize();
             if (!destination.startsWith(avatarDir)) {
                 return ResponseEntity.badRequest().body(
-                        new ApiResponse<>(ERROR_STATUS, "Đường dẫn file không hợp lệ.", null));
+                        new ApiResponse<>(ERROR_STATUS, "Invalid file path.", null));
             }
 
             // 9. Save file to disk
@@ -165,16 +165,16 @@ public class UserController {
 
             logger.info("Avatar uploaded for user {}: {}", id, publicUrl);
             return ResponseEntity.ok(new ApiResponse<>(SUCCESS_STATUS,
-                    "Cập nhật ảnh đại diện thành công.",
+                    "Avatar updated successfully.",
                     Map.of("avatarUrl", publicUrl)));
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(
                     new ApiResponse<>(ERROR_STATUS, e.getMessage(), null));
         } catch (Exception e) {
-            logger.error("Lỗi khi upload avatar cho user {}: {}", id, e.getMessage(), e);
+            logger.error("Error uploading avatar for user {}: {}", id, e.getMessage(), e);
             return ResponseEntity.internalServerError().body(
-                    new ApiResponse<>(500, "Upload ảnh đại diện thất bại.", null));
+                    new ApiResponse<>(500, "Avatar upload failed.", null));
         }
     }
 
@@ -202,7 +202,7 @@ public class UserController {
                 logger.info("Deleted old avatar: {}", oldFile);
             }
         } catch (Exception e) {
-            logger.warn("Không thể xóa avatar cũ: {}", e.getMessage());
+            logger.warn("Could not delete old avatar: {}", e.getMessage());
         }
     }
 

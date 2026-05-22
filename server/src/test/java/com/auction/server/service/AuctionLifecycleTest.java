@@ -108,8 +108,8 @@ public class AuctionLifecycleTest {
         );
 
         assertEquals(1, exception.getSessionId(), "SessionId trong exception phải đúng");
-        assertTrue(exception.getMessage().contains("kết thúc hoặc bị hủy"),
-                "Message phải chứa thông báo kết thúc");
+        assertTrue(exception.getMessage().contains("ended") || exception.getMessage().contains("closed"),
+                "Message phải chứa thông báo ended");
 
         verify(bidRepository, never()).save(any(Bid.class));
         verify(auctionSessionRepository, never()).save(any(AuctionSession.class));
@@ -184,8 +184,8 @@ public class AuctionLifecycleTest {
         );
 
         assertEquals(1, exception.getSessionId());
-        assertTrue(exception.getMessage().contains("kết thúc hoặc bị hủy"),
-                "Message phải chứa thông báo hủy");
+        assertTrue(exception.getMessage().contains("canceled") || exception.getMessage().contains("hủy"),
+                "Message phải chứa thông báo canceled");
 
         verify(bidRepository, never()).save(any(Bid.class));
         verify(auctionSessionRepository, never()).save(any(AuctionSession.class));

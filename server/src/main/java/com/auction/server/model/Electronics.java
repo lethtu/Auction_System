@@ -9,6 +9,6 @@ public class Electronics extends Item {
 
     @Override
     public String getCategoryInfo() {
-        return "Electronics - sản phẩm công nghệ/điện tử";
+        return "Electronics";
     }
 }
