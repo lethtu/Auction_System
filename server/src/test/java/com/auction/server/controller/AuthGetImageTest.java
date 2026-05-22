@@ -19,6 +19,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.auction.server.util.SessionManager;
+import com.auction.server.service.CloudinaryService;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 @WebMvcTest(AuthGetImage.class)
@@ -32,6 +33,9 @@ public class AuthGetImageTest {
 
     @MockBean
     private SessionManager sessionManager;
+
+    @MockBean
+    private CloudinaryService cloudinaryService;
 
     @TempDir
     Path tempDir;
@@ -73,6 +77,22 @@ public class AuthGetImageTest {
     }
 
     @Test
+    @DisplayName("API UploadImage: File có Content-Type application/octet-stream nhưng đuôi .png -> Trả về 200")
+    public void testUploadImageOctetStreamWithImageExtension() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "avatar.png",
+                "application/octet-stream",
+                "fake_image_data_123".getBytes()
+        );
+
+        mockMvc.perform(multipart("/api/files/images").file(file))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.data.imagePath").isNotEmpty());
+    }
+
+    @Test
     @DisplayName("API GetImage: File tồn tại -> Trả về 200 và nội dung file")
     public void testServeFileSuccess() throws Exception {
         String fileName = "avatar.png";
@@ -99,5 +119,55 @@ public class AuthGetImageTest {
 
         mockMvc.perform(get("/api/files/images/test.jpg"))
                 .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    @DisplayName("API UploadImage: Upload ảnh thành công lên Cloudinary -> Trả về 200 và imagePath/imageUrl")
+    public void testUploadImageCloudinarySuccess() throws Exception {
+        org.mockito.Mockito.when(cloudinaryService.isConfigured()).thenReturn(true);
+        org.mockito.Mockito.when(cloudinaryService.uploadFileWithPublicId(
+                org.mockito.Mockito.any(),
+                org.mockito.Mockito.eq("auction_system/items/images"),
+                org.mockito.Mockito.anyString(),
+                org.mockito.Mockito.eq(false)
+        )).thenReturn("https://res.cloudinary.com/testcloud/image/upload/auction_system/items/images/test-uuid.jpg");
+
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "avatar.png",
+                "image/png",
+                "fake_image_data_123".getBytes()
+        );
+
+        mockMvc.perform(multipart("/api/files/images").file(file))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.data.imagePath").isNotEmpty())
+                .andExpect(jsonPath("$.data.imageUrl").value("https://res.cloudinary.com/testcloud/image/upload/auction_system/items/images/test-uuid.jpg"));
+    }
+
+    @Test
+    @DisplayName("API UploadModel3D: Upload file 3D thành công lên Cloudinary -> Trả về 200")
+    public void testUploadModel3DCloudinarySuccess() throws Exception {
+        org.mockito.Mockito.when(cloudinaryService.isConfigured()).thenReturn(true);
+        org.mockito.Mockito.when(cloudinaryService.uploadFileWithPublicId(
+                org.mockito.Mockito.any(),
+                org.mockito.Mockito.eq("auction_system/items/models_3d"),
+                org.mockito.Mockito.anyString(),
+                org.mockito.Mockito.eq(true)
+        )).thenReturn("https://res.cloudinary.com/testcloud/raw/upload/auction_system/items/models_3d/test-uuid.glb");
+
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "model.glb",
+                "application/octet-stream",
+                "fake_3d_data_123".getBytes()
+        );
+
+        mockMvc.perform(multipart("/api/files/models-3d").file(file))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.data.model3dPath").isNotEmpty())
+                .andExpect(jsonPath("$.data.model3dUrl").value("https://res.cloudinary.com/testcloud/raw/upload/auction_system/items/models_3d/test-uuid.glb"));
     }
 }

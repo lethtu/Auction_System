@@ -813,7 +813,7 @@ public class MyBidsController implements Initializable {
         }
         String path = rawPath.trim().replace("\\", "/");
         if ((path.startsWith("http://") || path.startsWith("https://")) && !path.contains("/api/files/images/")) {
-            return path;
+            return Config.applyCacheBuster(path);
         }
         int apiIndex = path.indexOf("/api/files/images/");
         if (apiIndex >= 0) {
@@ -831,7 +831,8 @@ public class MyBidsController implements Initializable {
         if (path.startsWith("images/")) {
             path = path.substring("images/".length());
         }
-        return path.isBlank() ? "" : Config.API_URL + "/api/files/images/" + path;
+        String url = path.isBlank() ? "" : Config.API_URL + "/api/files/images/" + path;
+        return Config.applyCacheBuster(url);
     }
 
     private String formatPrice(BigDecimal price) {

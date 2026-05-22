@@ -33,6 +33,43 @@ class SessionResponseMapperTest {
         assertEquals(7, dto.getBidCount());
     }
 
+    @Test
+    void toDTO_withItem_mapsImagePathAndLegacySafely() {
+        AuctionSession session = new AuctionSession();
+        TestItem item = new TestItem();
+        item.setId(5);
+        item.setName("iPhone");
+        item.setImagePath("iphone.jpg");
+        session.setItem(item);
+
+        // Test legacy image path (not equal to UUID)
+        SessionResponseDTO dto1 = SessionResponseMapper.toDTO(session);
+        assertEquals("iphone.jpg", dto1.getImagePath());
+
+        // Test new UUID-based image path (equal to UUID)
+        String uuid = java.util.UUID.randomUUID().toString();
+        item.setImagePath(uuid);
+        SessionResponseDTO dto2 = SessionResponseMapper.toDTO(session);
+        assertEquals("/api/files/images/" + uuid + "/" + uuid + ".png", dto2.getImagePath());
+    }
+
+    @Test
+    void toDTO_withValidUuidImagePath_automaticallyDeducesUuid() {
+        AuctionSession session = new AuctionSession();
+        TestItem item = new TestItem();
+        item.setId(6);
+        item.setName("MacBook");
+        
+        String clientUploadedUuid = java.util.UUID.randomUUID().toString();
+        item.setImagePath(clientUploadedUuid);
+        
+        assertEquals(clientUploadedUuid, item.getUuid());
+        
+        session.setItem(item);
+        SessionResponseDTO dto = SessionResponseMapper.toDTO(session);
+        assertEquals("/api/files/images/" + clientUploadedUuid + "/" + clientUploadedUuid + ".png", dto.getImagePath());
+    }
+
     private static class TestItem extends Item {
         @Override
         public String getCategoryInfo() {

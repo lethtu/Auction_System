@@ -146,6 +146,7 @@ public class TopbarController implements Initializable {
                     img = User.getCachedAvatarImage();
                 } else {
                     String fullUrl = avatarUrl.startsWith("http") ? avatarUrl : Config.API_URL + avatarUrl;
+                    fullUrl = Config.applyCacheBuster(fullUrl);
                     img = new Image(fullUrl, 36, 36, false, true, false); // load synchronously
                     if (!img.isError()) {
                         User.setCachedAvatarImage(img, avatarUrl);

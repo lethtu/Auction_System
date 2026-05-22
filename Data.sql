@@ -149,6 +149,7 @@ CREATE TABLE `items` (
   `category` varchar(31) NOT NULL,
   `description` text,
   `hidden` bit(1) NOT NULL,
+  `uuid` varchar(36) DEFAULT NULL UNIQUE,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -159,7 +160,7 @@ CREATE TABLE `items` (
 
 LOCK TABLES `items` WRITE;
 /*!40000 ALTER TABLE `items` DISABLE KEYS */;
-INSERT INTO `items` VALUES (1,15000000,'2026-04-30 23:59:59.000000','iphone.jpg','iPhone 13 128GB','2026-04-21 08:00:00.000000','ACTIVE','phone','electronics',NULL,_binary '\0'),(2,NULL,NULL,'iphone.jpg','One Piece Luffy Gear 5 Figure',NULL,NULL,NULL,'art',NULL,_binary '\0'),(3,NULL,NULL,'luffy.png','One Piece Luffy Gear 5 Figure',NULL,NULL,NULL,'art',NULL,_binary '\0'),(4,NULL,NULL,'luffy.png','One Piece Luffy Gear 5 Figure',NULL,NULL,NULL,'art',NULL,_binary '\0'),(5,NULL,NULL,'luffy.png','One Piece Luffy Gear 5 Figure',NULL,NULL,NULL,'art',NULL,_binary '\0'),(7,NULL,NULL,'https://suckhoedoisong.qltns.mediacdn.vn/324455921873985536/2022/4/25/trong-muop-huong-11-1650895342271997058777.jpg','Luffa',NULL,NULL,'Art','art','Baby Luffa',_binary '\0'),(8,NULL,NULL,'','cnocac',NULL,NULL,'Electronics','electronics','adawd',_binary '\0'),(9,NULL,NULL,'deoco','Phan get to work',NULL,NULL,'Electronics','electronics','Do not be lazy',_binary '\0');
+INSERT INTO `items` VALUES (1,15000000,'2026-04-30 23:59:59.000000','iphone.jpg','iPhone 13 128GB','2026-04-21 08:00:00.000000','ACTIVE','phone','electronics',NULL,_binary '\0','11111111-1111-1111-1111-111111111111'),(2,NULL,NULL,'iphone.jpg','One Piece Luffy Gear 5 Figure',NULL,NULL,NULL,'art',NULL,_binary '\0','22222222-2222-2222-2222-222222222222'),(3,NULL,NULL,'luffy.png','One Piece Luffy Gear 5 Figure',NULL,NULL,NULL,'art',NULL,_binary '\0','33333333-3333-3333-3333-333333333333'),(4,NULL,NULL,'luffy.png','One Piece Luffy Gear 5 Figure',NULL,NULL,NULL,'art',NULL,_binary '\0','44444444-4444-4444-4444-444444444444'),(5,NULL,NULL,'luffy.png','One Piece Luffy Gear 5 Figure',NULL,NULL,NULL,'art',NULL,_binary '\0','55555555-5555-5555-5555-555555555555'),(7,NULL,NULL,'https://suckhoedoisong.qltns.mediacdn.vn/324455921873985536/2022/4/25/trong-muop-huong-11-1650895342271997058777.jpg','Luffa',NULL,NULL,'Art','art','Baby Luffa',_binary '\0','77777777-7777-7777-7777-777777777777'),(8,NULL,NULL,'','cnocac',NULL,NULL,'Electronics','electronics','adawd',_binary '\0','88888888-8888-8888-8888-888888888888'),(9,NULL,NULL,'deoco','Phan get to work',NULL,NULL,'Electronics','electronics','Do not be lazy',_binary '\0','99999999-9999-9999-9999-999999999999');
 /*!40000 ALTER TABLE `items` ENABLE KEYS */;
 UNLOCK TABLES;
 
