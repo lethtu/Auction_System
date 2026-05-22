@@ -1376,6 +1376,7 @@ public class MainController implements Initializable {
         productContainer.getChildren().add(fakeTestBtn);
         currentRenderedIds.clear();
         productContainer.setAlignment(Pos.TOP_CENTER);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
         // Selective hiding: only hide page title and filter controls
         hideFilterControlsForAccountPage(true);
@@ -1383,7 +1384,7 @@ public class MainController implements Initializable {
         VBox wrapper = new VBox(22);
         wrapper.getStyleClass().add("account-page-wrapper");
         wrapper.setAlignment(Pos.TOP_CENTER);
-        wrapper.setMaxWidth(1250);
+        wrapper.setMaxWidth(Double.MAX_VALUE);
 
         VBox headerSection = buildAccountHeader();
         HBox topSection = buildAccountTopSection(saving);
@@ -1395,6 +1396,10 @@ public class MainController implements Initializable {
         // Responsive layout listener
         Platform.runLater(() -> {
             if (scrollPane.getScene() != null) {
+                wrapper.prefWidthProperty().bind(scrollPane.widthProperty().subtract(28));
+                headerSection.prefWidthProperty().bind(wrapper.widthProperty());
+                topSection.prefWidthProperty().bind(wrapper.widthProperty());
+                formCard.prefWidthProperty().bind(wrapper.widthProperty());
                 applyResponsiveAccountLayout(scrollPane.getWidth(), topSection);
                 scrollPane.widthProperty().addListener((obs, oldW, newW) -> {
                     if (showingAccountScreen) {
@@ -1422,15 +1427,11 @@ public class MainController implements Initializable {
 
     private VBox buildAccountHeader() {
         VBox headerBox = new VBox(4);
-        headerBox.setMaxWidth(1250);
+        headerBox.setMaxWidth(Double.MAX_VALUE);
         headerBox.setAlignment(Pos.TOP_LEFT);
 
-        HBox row = new HBox(14);
+        HBox row = new HBox(0);
         row.setAlignment(Pos.CENTER_LEFT);
-
-        Button backButton = new Button("← Back");
-        backButton.getStyleClass().add("account-back-btn");
-        backButton.setOnAction(e -> returnToAuctionGrid());
 
         VBox titleBox = new VBox(2);
         Label title = new Label("My Account");
@@ -1439,21 +1440,21 @@ public class MainController implements Initializable {
         subtitle.getStyleClass().add("account-page-subtitle");
         titleBox.getChildren().addAll(title, subtitle);
 
-        row.getChildren().addAll(backButton, titleBox);
+        row.getChildren().add(titleBox);
         headerBox.getChildren().add(row);
         return headerBox;
     }
 
     private HBox buildAccountTopSection(boolean saving) {
         HBox topSection = new HBox(22);
-        topSection.setMaxWidth(1250);
+        topSection.setMaxWidth(Double.MAX_VALUE);
         topSection.setAlignment(Pos.TOP_CENTER);
 
         VBox profileCard = buildProfileSummaryCard();
         HBox.setHgrow(profileCard, Priority.ALWAYS);
 
         VBox statsColumn = buildAccountStats();
-        HBox.setHgrow(statsColumn, Priority.ALWAYS);
+        HBox.setHgrow(statsColumn, Priority.NEVER);
 
         topSection.getChildren().addAll(profileCard, statsColumn);
         return topSection;
@@ -1464,6 +1465,7 @@ public class MainController implements Initializable {
         card.getStyleClass().add("profile-summary-card");
         card.setAlignment(Pos.CENTER);
         card.setMinWidth(280);
+        card.setMaxWidth(Double.MAX_VALUE);
 
         StackPane avatarPane = createAvatarView();
 
@@ -1682,6 +1684,8 @@ public class MainController implements Initializable {
         VBox statsColumn = new VBox(14);
         statsColumn.setAlignment(Pos.TOP_LEFT);
         statsColumn.setMinWidth(200);
+        statsColumn.setPrefWidth(280);
+        statsColumn.setMaxWidth(320);
 
         statsColumn.getChildren().addAll(
                 createProfileStatCard("Account Balance", "₫ " + formatPrice(User.getBalance()), "\uE227"),
@@ -1695,6 +1699,7 @@ public class MainController implements Initializable {
         VBox box = new VBox(6);
         box.getStyleClass().add("account-stat-card");
         box.setAlignment(Pos.CENTER_LEFT);
+        box.setMaxWidth(Double.MAX_VALUE);
 
         HBox row = new HBox(12);
         row.setAlignment(Pos.CENTER_LEFT);
@@ -1718,7 +1723,7 @@ public class MainController implements Initializable {
     private VBox buildPersonalInfoForm(boolean saving) {
         VBox card = new VBox(18);
         card.getStyleClass().add("account-form-card");
-        card.setMaxWidth(1250);
+        card.setMaxWidth(Double.MAX_VALUE);
 
         Label formTitle = new Label("Personal Information");
         formTitle.getStyleClass().add("account-form-title");
@@ -1741,11 +1746,11 @@ public class MainController implements Initializable {
 
         // Make fields stretch
         javafx.scene.layout.ColumnConstraints col0 = new javafx.scene.layout.ColumnConstraints();
-        col0.setMinWidth(100);
+        col0.setMinWidth(84);
         col0.setPrefWidth(130);
         javafx.scene.layout.ColumnConstraints col1 = new javafx.scene.layout.ColumnConstraints();
         col1.setHgrow(Priority.ALWAYS);
-        col1.setMinWidth(200);
+        col1.setMinWidth(0);
         form.getColumnConstraints().addAll(col0, col1);
 
         HBox actions = new HBox(14);
@@ -1793,6 +1798,7 @@ public class MainController implements Initializable {
         TextField field = new TextField(value);
         field.setPromptText(prompt);
         field.getStyleClass().add("account-input");
+        field.setMinWidth(0);
         field.setMaxWidth(Double.MAX_VALUE);
         return field;
     }
@@ -1812,12 +1818,11 @@ public class MainController implements Initializable {
         if (width < 900) {
             topSection.setSpacing(14);
             if (topSection.getChildren().size() == 2) {
-                topSection.setPrefWidth(Math.min(width - 40, 850));
+                topSection.setMaxWidth(Double.MAX_VALUE);
             }
         } else {
             topSection.setSpacing(22);
-            topSection.setPrefWidth(1250);
-            topSection.setMaxWidth(1250);
+            topSection.setMaxWidth(Double.MAX_VALUE);
         }
     }
 
@@ -2002,13 +2007,7 @@ public class MainController implements Initializable {
             }
         }
 
-        ScrollPane listScroll = new ScrollPane(listBox);
-        listScroll.setFitToWidth(true);
-        listScroll.setMaxWidth(920);
-        listScroll.setPrefHeight(460);
-        listScroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;");
-
-        wrapper.getChildren().addAll(header, listScroll);
+        wrapper.getChildren().addAll(header, listBox);
         productContainer.getChildren().add(wrapper);
     }
 
@@ -2030,7 +2029,10 @@ public class MainController implements Initializable {
         HBox row = new HBox(14);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(14, 18, 14, 18));
-        row.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 18px; -fx-border-color: #ffe8e8; -fx-border-width: 1.5px; -fx-border-radius: 18px;");
+        row.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 18px; -fx-border-color: #ffe8e8; -fx-border-width: 1.5px; -fx-border-radius: 18px; -fx-cursor: hand;");
+        row.setOnMouseClicked(event -> {
+            openAuctionPage(event, sessionObj, itemObj, itemObj.optString("name", "Unknown"), sessionObj.optInt("id"), currentPrice);
+        });
 
         Label order = new Label(String.valueOf(index));
         order.setAlignment(Pos.CENTER);
@@ -2065,6 +2067,7 @@ public class MainController implements Initializable {
         showingCompactListScreen = false;
         forceRenderProducts = true;
         filterAndRenderProducts();
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
     }
 
     private String readTrimmed(TextField field) {

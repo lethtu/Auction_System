@@ -79,8 +79,11 @@
     </left>
 
     <center>
-        <VBox spacing="20.0" style="-fx-background-color: transparent;">
-            <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-padding: 24px 24px 0 24px;">
+        <VBox spacing="20.0" styleClass="app-content-panel">
+            <BorderPane.margin>
+                <Insets top="14.0" right="14.0" bottom="14.0" left="14.0" />
+            </BorderPane.margin>
+            <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-padding: 0 0 0 0;">
                 <VBox spacing="4.0">
                     <Label text="My Bids" textFill="#2e1a28">
                         <font>
@@ -91,14 +94,14 @@
                 </VBox>
             </HBox>
             
-            <HBox spacing="12.0" style="-fx-padding: 0 24px;">
+            <HBox spacing="12.0" style="-fx-padding: 0 0 0 0;">
                 <Button fx:id="btnTabActive" text="Active Bids" onAction="#handleShowActive"
                         style="-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;">
                     <graphic>
                         <Label text="&#128498;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #ffffff; -fx-padding: 0 4px 0 0;" />
                     </graphic>
                 </Button>
-
+ 
                 <Button fx:id="btnTabWinning" text="Winning" onAction="#handleShowWinning"
                         style="-fx-background-color: #f8eef8; -fx-text-fill: #2e1a28; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px; -fx-graphic-text-gap: 8px;"
                         stylesheets="@styles.css">
@@ -106,14 +109,14 @@
                         <Label text="&#x1F3C6;" style="-fx-font-size: 24px; -fx-padding: 0 4px 0 0;" />
                     </graphic>
                 </Button>
-
+ 
                 <Button fx:id="btnTabOutbid" text="Outbid" onAction="#handleShowOutbid"
                         style="-fx-background-color: #f8eef8; -fx-text-fill: #2e1a28; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;">
                     <graphic>
                         <Label text="&#x1F4C9;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #ef4444; -fx-padding: 0 4px 0 0;" />
                     </graphic>
                 </Button>
-
+ 
                 <Button fx:id="btnTabEnded" text="Ended" onAction="#handleShowEnded"
                         style="-fx-background-color: #f8eef8; -fx-text-fill: #2e1a28; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;">
                     <graphic>
@@ -123,7 +126,7 @@
             </HBox>
             
             <ScrollPane fx:id="scrollPane" fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
-                <FlowPane fx:id="productContainer" alignment="TOP_LEFT" hgap="25.0" vgap="25.0" style="-fx-padding: 10px 24px;">
+                <FlowPane fx:id="productContainer" alignment="TOP_LEFT" hgap="25.0" vgap="25.0" style="-fx-padding: 10px 0 10px 0;">
                     </FlowPane>
             </ScrollPane>
         </VBox>

@@ -21,13 +21,13 @@ public class Main extends Application {
         Parent root = FXMLLoader
                 .load(Objects.requireNonNull(getClass().getResource("/com/auction/client/view/Login.fxml")));
         primaryStage.setTitle("Auction System");
-        Scene scene = new Scene(root, 1100, 700);
+        Scene scene = new Scene(root, 1000, 700);
         scene.setFill(Color.TRANSPARENT);
         primaryStage.initStyle(StageStyle.TRANSPARENT);
         primaryStage.setScene(scene);
-      
-        primaryStage.setMinWidth(900);
-        primaryStage.setMinHeight(600);
+
+        primaryStage.setMinWidth(Config.Width);
+        primaryStage.setMinHeight(Config.Height);
         primaryStage.setResizable(true);
         ResizeHelper.install(primaryStage, root);
         primaryStage.centerOnScreen();

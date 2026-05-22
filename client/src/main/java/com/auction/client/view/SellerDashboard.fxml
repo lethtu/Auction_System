@@ -82,7 +82,7 @@
                  and visually hides rounded corners. -->
             <StackPane styleClass="seller-dashboard-surface">
                 <BorderPane.margin>
-                    <Insets top="14.0" right="14.0" bottom="14.0" left="0.0" />
+                    <Insets top="14.0" right="14.0" bottom="14.0" left="14.0" />
                 </BorderPane.margin>
                 <ScrollPane fitToWidth="true" styleClass="seller-dashboard-scroll" pannable="true">
                     <VBox spacing="24.0" styleClass="seller-dashboard-body">

@@ -78,14 +78,18 @@
 
     <!-- Main Content Canvas -->
     <center>
-        <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: transparent;">
-            <VBox spacing="30.0" style="-fx-padding: 40px 60px;">
-                
-                <!-- Header -->
-                <VBox spacing="8.0">
-                    <Label text="Deposit" style="-fx-font-size: 42px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;" />
-                    <Label text="Add funds to your wallet to continue bidding on your favorite items." style="-fx-font-size: 16px; -fx-text-fill: #604868;" />
-                </VBox>
+        <VBox spacing="20.0" styleClass="app-content-panel">
+            <BorderPane.margin>
+                <Insets top="14.0" right="14.0" bottom="14.0" left="14.0" />
+            </BorderPane.margin>
+            <!-- Header -->
+            <VBox spacing="8.0" style="-fx-padding: 0 0 10px 0;">
+                <Label text="Deposit" style="-fx-font-size: 42px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;" />
+                <Label text="Add funds to your wallet to continue bidding on your favorite items." style="-fx-font-size: 16px; -fx-text-fill: #604868;" />
+            </VBox>
+            
+            <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
+                <VBox spacing="30.0" style="-fx-padding: 10px 0px;">
 
                 <!-- Two Column Layout -->
                 <HBox spacing="30.0" alignment="TOP_LEFT">
@@ -176,6 +180,7 @@
                 </HBox>
             </VBox>
         </ScrollPane>
+        </VBox>
     </center>
 
 </BorderPane>
