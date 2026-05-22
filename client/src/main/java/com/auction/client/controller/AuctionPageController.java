@@ -164,6 +164,12 @@ public class AuctionPageController {
         createUserOption("Avatar");
         initDefaultView();
         
+        if (productImageView != null && productImageView.getParent() instanceof javafx.scene.layout.Region) {
+            productImageView.setPreserveRatio(true);
+            javafx.scene.layout.Region parent = (javafx.scene.layout.Region) productImageView.getParent();
+            productImageView.fitWidthProperty().bind(parent.widthProperty().subtract(16));
+        }
+        
         if (btnNotificationBell != null && notificationBadge != null) {
             NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
         }

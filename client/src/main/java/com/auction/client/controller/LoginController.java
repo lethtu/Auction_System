@@ -62,17 +62,28 @@ public class LoginController {
     @FXML
     private PasswordField txtPassword;
 
-    @FXML private Label lblLiveAuctions;
-    @FXML private Label lblActiveBidders;
-    @FXML private Button btnGoogle;
-    @FXML private Button btnFacebook;
-    @FXML private StackPane activeProductCarousel;
-    @FXML private ImageView activeProductImage;
-    @FXML private Label activeProductType;
-    @FXML private Label activeProductName;
-    @FXML private Label activeProductPrice;
-    @FXML private javafx.scene.layout.HBox imageSliderHBox;
-    @FXML private javafx.scene.layout.VBox activeProductDetailsContainer;
+    @FXML
+    private Label lblLiveAuctions;
+    @FXML
+    private Label lblActiveBidders;
+    @FXML
+    private Button btnGoogle;
+    @FXML
+    private Button btnFacebook;
+    @FXML
+    private StackPane activeProductCarousel;
+    @FXML
+    private ImageView activeProductImage;
+    @FXML
+    private Label activeProductType;
+    @FXML
+    private Label activeProductName;
+    @FXML
+    private Label activeProductPrice;
+    @FXML
+    private javafx.scene.layout.HBox imageSliderHBox;
+    @FXML
+    private javafx.scene.layout.VBox activeProductDetailsContainer;
 
     @FXML
     public void initialize() {
@@ -87,7 +98,8 @@ public class LoginController {
     }
 
     private void loadActiveProducts() {
-        if (activeProductCarousel == null || activeProductImage == null) return;
+        if (activeProductCarousel == null || activeProductImage == null)
+            return;
 
         new Thread(() -> {
             try {
@@ -186,7 +198,8 @@ public class LoginController {
     }
 
     private void showNextProduct() {
-        if (featuredProducts.isEmpty()) return;
+        if (featuredProducts.isEmpty())
+            return;
         featuredProductIndex = (featuredProductIndex + 1) % featuredProducts.size();
         showFeaturedProduct(featuredProducts.get(featuredProductIndex));
     }
@@ -196,12 +209,12 @@ public class LoginController {
                 "Discover live auctions",
                 "Featured marketplace",
                 FALLBACK_PRODUCT_IMAGE,
-                "Ends: updating"
-        ));
+                "Ends: updating"));
     }
 
     private void showFeaturedProduct(FeaturedProduct product) {
-        if (product == null) return;
+        if (product == null)
+            return;
 
         if (isFirstProductShow) {
             String imageUrl = product.imageUrl().isBlank() ? FALLBACK_PRODUCT_IMAGE : product.imageUrl();
@@ -294,13 +307,17 @@ public class LoginController {
     }
 
     private void handleComingSoonButton(Button button) {
-        if (button == null) return;
+        if (button == null)
+            return;
         String originalText = button.getText();
         button.setDisable(true);
         button.setText("Not supported");
-        
+
         new Thread(() -> {
-            try { Thread.sleep(2000); } catch (InterruptedException e) {}
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+            }
             Platform.runLater(() -> {
                 button.setText(originalText);
                 button.setDisable(false);
@@ -339,13 +356,14 @@ public class LoginController {
             JSONObject data = responseJson.getJSONObject("data");
             String role = saveUserSession(data, loginField);
 
-            showAlert(Alert.AlertType.INFORMATION, "Success", "Welcome back!");
             logger.info("Login successful");
 
             if (!isTestEnvironment()) {
                 switchSceneByRole(event, role);
+            } else {
+                showAlert(Alert.AlertType.INFORMATION, "Success", "Welcome back!");
             }
-            
+
         } catch (Exception e) {
             logger.error("Cannot connect to server: {}", e.getMessage(), e);
             showAlert(Alert.AlertType.ERROR, "Network Error", "Cannot connect to the server!");
@@ -391,7 +409,8 @@ public class LoginController {
         String placeOfBirth = data.optString("place_of_birth", null);
         String role = normalizeRole(data.optString("role", data.optString("accountType", DEFAULT_ROLE)));
         String avatarUrl = data.optString("avatarUrl", data.optString("avatar_url", null));
-        if ("null".equals(avatarUrl)) avatarUrl = null;
+        if ("null".equals(avatarUrl))
+            avatarUrl = null;
 
         User.setSession(id, username, fullname, email, dob, placeOfBirth, role, avatarUrl);
         return role;
@@ -401,11 +420,11 @@ public class LoginController {
         String normalizedRole = normalizeRole(role);
 
         if (SELLER_ROLE.equals(normalizedRole)) {
-            SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1280, 800);
+            SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1200, 800);
         } else if (ADMIN_ROLE.equals(normalizedRole)) {
-            SceneSwitcher.switchScene(event, "AdminDashboard.fxml", 1000, 650);
+            SceneSwitcher.switchScene(event, "AdminDashboard.fxml", 1200, 800);
         } else {
-            SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
+            SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1200, 800);
         }
     }
 

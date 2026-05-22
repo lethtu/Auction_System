@@ -86,9 +86,13 @@
     </left>
     
     <center>
-        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
-            <content>
-                                <VBox spacing="24.0" style="-fx-padding: 24;" maxWidth="Infinity" alignment="TOP_CENTER">
+        <VBox spacing="20.0" styleClass="app-content-panel">
+            <BorderPane.margin>
+                <Insets top="14.0" right="14.0" bottom="14.0" left="14.0" />
+            </BorderPane.margin>
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="NEVER" styleClass="auction-page-scroll" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
+                <content>
+                                    <VBox spacing="24.0" style="-fx-padding: 12px 0;" maxWidth="Infinity" alignment="TOP_CENTER">
                                     <children>
                                         <GridPane fx:id="mainContentGrid" hgap="24.0" alignment="TOP_CENTER" maxWidth="1400.0">
                                             <columnConstraints>
@@ -276,6 +280,7 @@
                                 </VBox>
                             </content>
                         </ScrollPane>
+        </VBox>
     </center>
 </BorderPane>
 </StackPane>

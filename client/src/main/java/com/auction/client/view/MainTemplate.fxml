@@ -77,6 +77,9 @@
 
     <center>
         <VBox spacing="20.0" styleClass="app-content-panel">
+            <BorderPane.margin>
+                <Insets top="14.0" right="14.0" bottom="14.0" left="14.0" />
+            </BorderPane.margin>
             <!-- Header Section inside Center -->
             <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-padding: 0 0 0 0;">
                 <Label fx:id="lblPageTitle" text="Live Auctions" textFill="#2e1a28">
