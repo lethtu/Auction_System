@@ -444,17 +444,8 @@ public class LoginController {
         return role.trim().toLowerCase(Locale.ROOT);
     }
 
-    private void showAlert(Alert.AlertType alertType, String title, String message) {
-        if (isTestEnvironment()) {
-            Alert alert = new Alert(alertType);
-            alert.setTitle(title);
-            alert.setHeaderText(null);
-            alert.setContentText(message);
-            alert.showAndWait();
-            return;
-        }
-
-        AlertUtil.show(alertType, title, message);
+        private void showAlert(Alert.AlertType type, String title, String message) {
+        AlertUtil.show(type, title, message);
     }
 
     private record FeaturedProduct(String name, String type, String imageUrl, String priceText) {

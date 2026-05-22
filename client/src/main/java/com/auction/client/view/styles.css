@@ -4082,3 +4082,59 @@
     -fx-border-width: 2;
 }
 /* === END SAFE PATCH: unify shell border with seller dashboard === */
+
+/* global-dialog-polish-20260522-v2 */
+.dialog-pane {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 24px;
+    -fx-border-color: rgba(224, 64, 160, 0.42);
+    -fx-border-width: 1.3px;
+    -fx-border-radius: 24px;
+    -fx-padding: 20px 24px;
+    -fx-font-family: 'DM Sans';
+}
+.dialog-pane .content.label {
+    -fx-text-fill: #604868;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+}
+.dialog-pane .button {
+    -fx-background-color: #e040a0;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: 900;
+    -fx-background-radius: 999px;
+    -fx-padding: 9px 24px;
+    -fx-cursor: hand;
+}
+.dialog-pane .button:hover {
+    -fx-background-color: #d82d91;
+}
+/* ===== FINAL UI REPAIR V3: dialog fallback ===== */
+.dialog-pane {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 24px;
+    -fx-border-color: #f5a6d8;
+    -fx-border-width: 1.4px;
+    -fx-border-radius: 24px;
+    -fx-padding: 18px;
+    -fx-font-family: 'DM Sans';
+}
+
+.dialog-pane .header-panel {
+    -fx-background-color: transparent;
+}
+
+.dialog-pane .content.label {
+    -fx-text-fill: #6a4a72;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+}
+
+.dialog-pane .button {
+    -fx-background-color: #e040a0;
+    -fx-text-fill: white;
+    -fx-background-radius: 18px;
+    -fx-font-weight: 900;
+    -fx-padding: 9px 24px;
+}

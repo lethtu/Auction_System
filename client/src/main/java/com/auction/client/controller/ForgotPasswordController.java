@@ -142,13 +142,8 @@ public class ForgotPasswordController {
     public void goToLogin(ActionEvent event) throws Exception {
         SceneSwitcher.switchScene(event, "Login.fxml", 1100, 700);
     }
-    private void showAlert(Alert.AlertType type, String title, String content) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        AlertUtil.styleDialog(alert);
-        alert.showAndWait();
+        private void showAlert(Alert.AlertType type, String title, String message) {
+        AlertUtil.show(type, title, message);
     }
 
     @FXML

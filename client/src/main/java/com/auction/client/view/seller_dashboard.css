@@ -509,3 +509,110 @@
     -fx-background-radius: 999px;
     -fx-background-insets: 0 4 0 4;
 }
+
+/* video-ui-polish-20260522-v2 */
+.modal-overlay {
+    -fx-background-color: rgba(46, 26, 40, 0.36);
+}
+
+.modal-dialog {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 28px;
+    -fx-border-color: rgba(224, 64, 160, 0.38);
+    -fx-border-width: 1.4px;
+    -fx-border-radius: 28px;
+    -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.24), 40, 0.18, 0, 14);
+}
+
+.modal-dialog .scroll-pane,
+.modal-dialog .scroll-pane > .viewport,
+.modal-dialog .scroll-pane > .corner {
+    -fx-background-color: transparent;
+}
+
+.custom-text-input,
+.custom-combo-box,
+.custom-segmented-input {
+    -fx-background-color: #fff9fd;
+    -fx-border-color: rgba(224, 64, 160, 0.28);
+    -fx-border-width: 1.2px;
+    -fx-text-fill: #2e1a28;
+    -fx-prompt-text-fill: rgba(96, 72, 104, 0.72);
+}
+
+.custom-text-input:focused,
+.custom-combo-box:focused,
+.custom-segmented-input:focused-within {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e040a0;
+    -fx-border-width: 1.8px;
+    -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.16), 12, 0.12, 0, 3);
+}
+
+.transparent-time-picker {
+    -fx-text-fill: #2e1a28;
+    -fx-prompt-text-fill: rgba(96, 72, 104, 0.66);
+}
+
+.transparent-text-area {
+    -fx-background-color: #fff9fd;
+    -fx-border-color: rgba(224, 64, 160, 0.24);
+    -fx-border-width: 1.2px;
+    -fx-text-fill: #2e1a28;
+    -fx-prompt-text-fill: rgba(96, 72, 104, 0.68);
+}
+
+.transparent-text-area:focused {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e040a0;
+    -fx-border-width: 1.8px;
+}
+
+.button {
+    -fx-cursor: hand;
+}
+/* ===== FINAL UI REPAIR V3: seller modal polish ===== */
+.modal-overlay {
+    -fx-background-color: rgba(33, 20, 39, 0.30);
+}
+
+.modal-dialog {
+    -fx-background-color: linear-gradient(to bottom right, #ffffff, #fff8fd);
+    -fx-background-radius: 30px;
+    -fx-border-color: rgba(224, 64, 160, 0.45);
+    -fx-border-width: 1.5px;
+    -fx-border-radius: 30px;
+    -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.24), 36, 0.18, 0, 12);
+    -fx-padding: 30px;
+}
+
+.modal-dialog .label {
+    -fx-text-fill: #2e1a28;
+}
+
+.custom-text-input,
+.custom-combo-box,
+.custom-segmented-input,
+.transparent-text-area {
+    -fx-background-color: #fff7fd;
+    -fx-border-color: rgba(224, 64, 160, 0.30);
+    -fx-border-width: 1.2px;
+    -fx-text-fill: #2e1a28;
+    -fx-prompt-text-fill: rgba(96, 72, 104, 0.58);
+}
+
+.custom-text-input:focused,
+.custom-combo-box:focused,
+.custom-segmented-input:focused-within,
+.transparent-text-area:focused {
+    -fx-border-color: #e040a0;
+    -fx-border-width: 1.8px;
+    -fx-background-color: #ffffff;
+    -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.14), 12, 0.12, 0, 3);
+}
+
+.transparent-date-picker > .text-field,
+.transparent-time-picker {
+    -fx-text-fill: #2e1a28;
+    -fx-prompt-text-fill: rgba(96, 72, 104, 0.58);
+}

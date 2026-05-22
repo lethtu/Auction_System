@@ -201,18 +201,11 @@ public class SignUpController {
     @FXML
     public void goToLogin(ActionEvent event) throws IOException {
         SceneSwitcher.switchScene(event, "Login.fxml", 1100, 700);
-    }    private void showAlert(Alert.AlertType alertType, String title, String message) {
-        if (!Platform.isFxApplicationThread()) {
-            Platform.runLater(() -> showAlert(alertType, title, message));
-            return;
-        }
-
-        Alert alert = new Alert(alertType);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
     }
+        private void showAlert(Alert.AlertType type, String title, String message) {
+        AlertUtil.show(type, title, message);
+    }
+
     private void loadActiveProducts() {
         if (activeProductCarousel == null || activeProductImage == null) return;
 

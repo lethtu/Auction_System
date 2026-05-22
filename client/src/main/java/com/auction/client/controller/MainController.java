@@ -1,5 +1,7 @@
 package com.auction.client.controller;
 
+
+import com.auction.client.util.AlertUtil;
 import javafx.scene.control.*;
 import javafx.fxml.FXMLLoader;
 import org.slf4j.Logger;
@@ -1099,7 +1101,7 @@ public class MainController implements Initializable {
                     alert.setTitle("Login Required");
                     alert.setHeaderText(null);
                     alert.setContentText("Please log in to use the Favorites feature!");
-                    alert.show();
+                    AlertUtil.styleAndShow(alert);
                     return;
                 }
                 if (User.watchlistIds.contains(id)) {
@@ -1880,6 +1882,8 @@ public class MainController implements Initializable {
         ButtonType close = new ButtonType("Close", ButtonBar.ButtonData.CANCEL_CLOSE);
         dialog.getButtonTypes().setAll(resetFilters, reloadData, close);
 
+        AlertUtil.styleDialog(dialog);
+
         Optional<ButtonType> result = dialog.showAndWait();
         if (result.isEmpty() || result.get() == close) {
             return;
@@ -2172,12 +2176,8 @@ public class MainController implements Initializable {
         showToast(title, message, ToastType.ERROR);
     }
 
-    private void showAlert(Alert.AlertType type, String title, String message) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        private void showAlert(Alert.AlertType type, String title, String message) {
+        AlertUtil.show(type, title, message);
     }
 
     public void handleLogout(ActionEvent event) throws IOException {

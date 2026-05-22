@@ -318,7 +318,11 @@ public class DepositController implements Initializable {
         showAlert(Alert.AlertType.ERROR, "Error", message);
     }
 
-    private void showAlert(Alert.AlertType type, String title, String message) {
+        private void showAlert(Alert.AlertType type, String title, String message) {
+        if (!Platform.isFxApplicationThread()) {
+            Platform.runLater(() -> showAlert(type, title, message));
+            return;
+        }
         AlertUtil.show(type, title, message);
     }
 

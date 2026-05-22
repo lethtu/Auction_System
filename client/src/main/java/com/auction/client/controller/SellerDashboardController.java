@@ -1,5 +1,7 @@
 package com.auction.client.controller;
 
+
+import com.auction.client.util.AlertUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
@@ -1861,6 +1863,7 @@ public class SellerDashboardController {
         confirm.setTitle("Confirmation");
         confirm.setHeaderText(null);
         confirm.setContentText("Are you sure you want to cancel session #" + selected.id + "?");
+        AlertUtil.styleDialog(confirm);
         if (confirm.showAndWait().orElse(ButtonType.CANCEL) != ButtonType.OK) {
             return;
         }
@@ -2639,6 +2642,8 @@ public class SellerDashboardController {
         stage.initStyle(javafx.stage.StageStyle.TRANSPARENT);
         dialogPane.getScene().setFill(Color.TRANSPARENT);
 
+        AlertUtil.styleDialog(dialog);
+
         java.util.Optional<ButtonType> result = dialog.showAndWait();
         return result.isPresent() && result.get() == ButtonType.OK;
     }
@@ -2710,70 +2715,14 @@ public class SellerDashboardController {
         stage.initStyle(javafx.stage.StageStyle.TRANSPARENT);
         dialogPane.getScene().setFill(Color.TRANSPARENT);
 
+        AlertUtil.styleDialog(dialog);
+
         java.util.Optional<ButtonType> result = dialog.showAndWait();
         return result.isPresent() && result.get() == ButtonType.OK;
     }
 
-    private void showAlert(Alert.AlertType type, String title, String content) {
-        if (type == Alert.AlertType.INFORMATION) {
-            Dialog<ButtonType> dialog = new Dialog<>();
-            DialogPane dialogPane = dialog.getDialogPane();
-            dialogPane.getButtonTypes().clear();
-            dialogPane.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
-
-            VBox container = new VBox(20);
-            container.setAlignment(Pos.CENTER);
-            container.setPadding(new javafx.geometry.Insets(32));
-            container.setPrefWidth(360);
-            container.setStyle(
-                    "-fx-background-color: white; -fx-background-radius: 16px; -fx-border-color: #ffe8f2; -fx-border-width: 1px; -fx-border-radius: 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 30, 0, 0, 10);");
-
-            StackPane iconCircle = new StackPane();
-            iconCircle.setPrefSize(64, 64);
-            iconCircle.setMaxSize(64, 64);
-            iconCircle.setStyle("-fx-background-color: rgba(16, 185, 129, 0.1); -fx-background-radius: 32px;");
-
-            FontIcon checkIcon = new FontIcon("mdi2c-check-decagram");
-            checkIcon.setIconSize(36);
-            checkIcon.setIconColor(Color.valueOf("#10b981"));
-            iconCircle.getChildren().add(checkIcon);
-
-            Label titleLabel = new Label(title != null ? title : "Success");
-            titleLabel.setStyle(
-                    "-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
-
-            Label descLabel = new Label(content);
-            descLabel.setStyle(
-                    "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;");
-            descLabel.setWrapText(true);
-
-            Button btnOk = new Button("Đồng ý");
-            btnOk.setPrefHeight(44);
-            btnOk.setMaxWidth(Double.MAX_VALUE);
-            btnOk.setStyle(
-                    "-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand;");
-
-            container.getChildren().addAll(iconCircle, titleLabel, descLabel, btnOk);
-            dialogPane.setContent(container);
-
-            btnOk.setOnAction(e -> {
-                dialog.setResult(ButtonType.OK);
-                dialog.close();
-            });
-
-            javafx.stage.Stage stage = (javafx.stage.Stage) dialogPane.getScene().getWindow();
-            stage.initStyle(javafx.stage.StageStyle.TRANSPARENT);
-            dialogPane.getScene().setFill(Color.TRANSPARENT);
-
-            dialog.showAndWait();
-            return;
-        }
-
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
+    private void showAlert(Alert.AlertType type, String title, String message) {
+        AlertUtil.show(type, title, message);
     }
 
     static class SessionItem {
