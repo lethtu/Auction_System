@@ -4,6 +4,7 @@ import com.auction.server.model.User;
 import com.auction.server.dto.ApiResponse;
 import com.auction.server.view.EmailServer;
 import com.auction.server.view.RqLoginSignup;
+import com.auction.server.util.EmailTemplateBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,10 +47,7 @@ public class AuthLoginSignup {
         logger.info("Email: {}, Fullname: {}, Password: {}", newUser.getEmail(), newUser.getFullname(), newUser.getPassword());
         boolean check = rq.signup(newUser);
         if (!check) {
-            String body = "Hello " + newUser.getFullname() + ",\n\n"
-                    + "Your account (" + newUser.getUsername() + ") has been created successfully.\n"
-                    + "We wish you great auction experiences!\n\n"
-                    + "Best regards,\nThe Admin Team.";
+            String body = EmailTemplateBuilder.buildWelcomeEmail(newUser.getFullname(), newUser.getUsername());
             emailServer.SendEmail(newUser.getEmail(), "Account Registration Successful", body);
             logger.info("User {} registered successfully", newUser.getUsername());
             return new ApiResponse<User>(200, "Registration successful", newUser);

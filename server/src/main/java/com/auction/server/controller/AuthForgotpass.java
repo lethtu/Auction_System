@@ -18,6 +18,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.auction.server.util.PasswordUtil;
+import com.auction.server.util.EmailTemplateBuilder;
+
 class OTPGenerator {
     private static final String DATA = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
     private static SecureRandom random = new SecureRandom();
@@ -58,10 +61,7 @@ public class AuthForgotpass {
             } else {
                 otpStorage.put(email, newOTP);
             }
-            String body = "Hello " + customer.get().getFullname() + ",\n\n"
-                    + "Here is your password recovery code: (" + newOTP + ").\n"
-                    + "DO NOT SHARE THIS CODE WITH ANYONE\n\n"
-                    + "Best regards,\nThe Admin Team.";
+            String body = EmailTemplateBuilder.buildForgotPassEmail(customer.get().getFullname(), newOTP);
             emailServer.SendEmail(email, "Password Reset Verification Code", body);
             logger.info("Request from {} processed successfully", email);
             return new ApiResponse<String>(200, "Verification code sent", "");
@@ -83,7 +83,7 @@ public class AuthForgotpass {
             if (saveOTP.equals(code)) {
                 otpStorage.remove(email);
                 if (customer.isPresent()) {
-                    customer.get().setPassword(pass);
+                    customer.get().setPassword(PasswordUtil.hashPassword(pass));
                     Save.save(customer.get());
                     logger.info("Verification and password change successful for: {}", email);
                     return new ApiResponse<String>(200, "Verification successful, password has been changed", "");
