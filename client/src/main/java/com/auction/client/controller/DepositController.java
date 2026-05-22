@@ -58,7 +58,7 @@ public class DepositController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         if (User.getFullname() != null) {
-            createUserOption("Chào, " + User.getFullname());
+            createUserOption("Hello, " + User.getFullname());
         }
 
         
@@ -72,7 +72,7 @@ public class DepositController implements Initializable {
                 try {
                     com.auction.client.controller.SceneSwitcher.switchScene(e, "Settings.fxml", 1280, 800);
                 } catch (IOException ex) {
-                    logger.error("Lỗi chuyển sang trang Settings.fxml: ", ex);
+                    logger.error("Error switching to Settings.fxml: ", ex);
                 }
             });
         }
@@ -94,16 +94,16 @@ public class DepositController implements Initializable {
     }
 
     private void createUserOption(String text) {
-        MenuItem accountItem = new MenuItem("Tài Khoản Của Tôi");
-        MenuItem depositMoney = new MenuItem("Nạp tiền");
-        MenuItem logoutItem = new MenuItem("Đăng Xuất");
+        MenuItem accountItem = new MenuItem("My Account");
+        MenuItem depositMoney = new MenuItem("Deposit");
+        MenuItem logoutItem = new MenuItem("Logout");
 
         accountItem.setOnAction(event -> {
             try {
                 MainController.initialShowAccount = true;
                 SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
             } catch (IOException e) {
-                logger.error("Lỗi khi chuyển sang trang tài khoản: ", e);
+                logger.error("Error switching to account page: ", e);
             }
         });
 
@@ -111,7 +111,7 @@ public class DepositController implements Initializable {
             try {
                 handleLogout(event);
             } catch (IOException e) {
-                logger.error("Lỗi khi chuyển sang màn hình Login!", e);
+                logger.error("Error switching to Login screen!", e);
             }
         });
 
@@ -143,7 +143,7 @@ public class DepositController implements Initializable {
             ActionEvent actionEvent = new ActionEvent(event.getSource(), event.getTarget());
             SceneSwitcher.switchScene(actionEvent, "MainTemplate.fxml", 1280, 800);
         } catch (Exception e) {
-            logger.error("Lỗi quay lại trang chính: ", e);
+            logger.error("Error returning to main page: ", e);
         }
     }
 
@@ -239,7 +239,7 @@ public class DepositController implements Initializable {
                     }
                 }
             } catch (Exception e) {
-                logger.warn("Không thể lấy số dư mới nhất: {}", e.getMessage());
+                logger.warn("Cannot get latest balance: {}", e.getMessage());
             }
         }).start();
     }
@@ -247,17 +247,17 @@ public class DepositController implements Initializable {
     @FXML
     public void handleConfirmDeposit(ActionEvent event) {
         if (User.getId() == null) {
-            showError("Vui lòng đăng nhập trước khi nạp tiền.");
+            showError("Please log in before depositing.");
             return;
         }
 
         if (currentDepositAmount.compareTo(BigDecimal.ZERO) <= 0) {
-            showWarning("Số tiền không hợp lệ", "Vui lòng chọn hoặc nhập số tiền lớn hơn 0 để nạp.");
+            showWarning("Invalid amount", "Please select or enter an amount greater than 0 to deposit.");
             return;
         }
 
         btnConfirmDeposit.setDisable(true);
-        btnConfirmDeposit.setText("Đang xử lý...");
+        btnConfirmDeposit.setText("Processing...");
 
         new Thread(() -> {
             try {
@@ -271,10 +271,10 @@ public class DepositController implements Initializable {
                 
                 Platform.runLater(() -> {
                     btnConfirmDeposit.setDisable(false);
-                    btnConfirmDeposit.setText("Xác nhận nạp tiền");
+                    btnConfirmDeposit.setText("Confirm Deposit");
                     
                     if (response.statusCode() == 200) {
-                        showInfo("Nạp tiền thành công", "Bạn đã nạp thành công " + formatPrice(currentDepositAmount) + " ₫ vào ví.");
+                        showInfo("Deposit Successful", "You have successfully deposited " + formatPrice(currentDepositAmount) + " ₫ to your wallet.");
                         // Reload balance after successful deposit
                         fetchLatestBalance();
                         // Reset form
@@ -283,15 +283,15 @@ public class DepositController implements Initializable {
                         currentDepositAmount = BigDecimal.ZERO;
                         updateSummary(currentDepositAmount);
                     } else {
-                        showError("Nạp tiền thất bại. Server trả về lỗi: " + response.statusCode());
+                        showError("Deposit failed. Server returned error: " + response.statusCode());
                     }
                 });
             } catch (Exception e) {
-                logger.error("Lỗi khi nạp tiền: {}", e.getMessage(), e);
+                logger.error("Error during deposit: {}", e.getMessage(), e);
                 Platform.runLater(() -> {
                     btnConfirmDeposit.setDisable(false);
-                    btnConfirmDeposit.setText("Xác nhận nạp tiền");
-                    showError("Không thể kết nối đến máy chủ.");
+                    btnConfirmDeposit.setText("Confirm Deposit");
+                    showError("Cannot connect to the server.");
                 });
             }
         }, "deposit-money").start();
@@ -306,7 +306,7 @@ public class DepositController implements Initializable {
     }
 
     private void showError(String message) {
-        showAlert(Alert.AlertType.ERROR, "Lỗi", message);
+        showAlert(Alert.AlertType.ERROR, "Error", message);
     }
 
     private void showAlert(Alert.AlertType type, String title, String message) {
@@ -340,7 +340,7 @@ public class DepositController implements Initializable {
                 topBarAvatarPane.getChildren().add(icon);
             }
         } catch (Exception e) {
-            logger.warn("Không thể cập nhật avatar trên top bar: {}", e.getMessage());
+            logger.warn("Cannot update avatar on top bar: {}", e.getMessage());
         }
     }
 

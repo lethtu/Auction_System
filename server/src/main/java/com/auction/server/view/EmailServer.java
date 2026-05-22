@@ -21,7 +21,7 @@ public class EmailServer {
     @Value("${spring.mail.username}")
     private String senderEmail;
 
-    // Cập nhật tự set số luồng
+    // Auto-detect available processor count for thread pool
     private final int coreCount = Runtime.getRuntime().availableProcessors();
     private final ExecutorService executorService = Executors.newFixedThreadPool(coreCount);
 
@@ -32,19 +32,19 @@ public class EmailServer {
             try {
                 MimeMessage message = mailSender.createMimeMessage();
                 MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-                helper.setFrom(senderEmail, "Hệ thống Đấu giá");
+                helper.setFrom(senderEmail, "Auction System");
                 helper.setTo(toEmail);
                 helper.setSubject(subject);
 
-                // false = gửi dạng chữ (text) bình thường.
-                // Sau này muốn gửi giao diện HTML đẹp mắt thì chỉ cần đổi thành true
+                // false = send as plain text.
+                // To send with beautiful HTML layout, just change to true
                 helper.setText(body, false);
                 mailSender.send(message);
-                logger.info("Đã gửi email thành công tới: {}", toEmail);
+                logger.info("Email sent successfully to: {}", toEmail);
 
             }
             catch (Exception e) {
-                logger.error("Lỗi khi đóng gói và gửi email: {}", e.getMessage(), e);
+                logger.error("Error packaging and sending email: {}", e.getMessage(), e);
             }
         });
     }

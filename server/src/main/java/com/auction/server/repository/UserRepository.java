@@ -16,8 +16,8 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByEmail(String email);
 
     /**
-     * Lọc user theo cột discriminator "role" dùng native SQL.
-     * Không thể dùng derived query (findByRole) vì "role" là discriminator column, không phải Java field.
+     * Filter users by discriminator "role" column using native SQL.
+     * Cannot use derived query (findByRole) because "role" is a discriminator column, not a Java field.
      */
     @Query(value = "SELECT * FROM users WHERE role = :role", nativeQuery = true)
     List<User> findAllByRole(@Param("role") String role);
@@ -26,8 +26,8 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     long countAllByRole(@Param("role") String role);
 
     /**
-     * Cập nhật trực tiếp cột discriminator "role" trong DB.
-     * Cần thiết vì Hibernate không cho phép thay đổi discriminator qua JPA entity thông thường.
+     * Update discriminator "role" column directly in DB.
+     * Required because Hibernate does not allow changing discriminator via normal JPA entity.
      */
     @Modifying
     @Query(value = "UPDATE users SET role = :newRole WHERE id = :userId", nativeQuery = true)

@@ -28,12 +28,12 @@ public class ForgotPasswordController {
     public void handleGetOTP(ActionEvent event) {
         String email = txtEmail.getText().trim();
         if (email.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Lỗi", "Vui lòng nhập Email!");
+            showAlert(Alert.AlertType.WARNING, "Error", "Please enter your email!");
             return;
         }
 
         btnGetOTP.setDisable(true);
-        btnGetOTP.setText("Đang xử lý...");
+        btnGetOTP.setText("Processing...");
 
         new Thread(() -> {
             try {
@@ -58,19 +58,19 @@ public class ForgotPasswordController {
                             lblStep2.setStyle("-fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-text-fill: #e040a0;");
                         }
                         
-                        showAlert(Alert.AlertType.INFORMATION, "Thành công", rq.getString("message"));
-                        logger.info("Gửi yêu cầu gửi OTP thành công");
+                        showAlert(Alert.AlertType.INFORMATION, "Success", rq.getString("message"));
+                        logger.info("OTP request sent successfully");
                     }
                     else {
-                        showAlert(Alert.AlertType.ERROR, "Lỗi", rq.getString("message"));
+                        showAlert(Alert.AlertType.ERROR, "Error", rq.getString("message"));
                         btnGetOTP.setDisable(false);
-                        btnGetOTP.setText("Gửi lại mã");
-                        logger.info("Gửi yêu cầu thất bại, message trả về: {}", rq.getString("message"));
+                        btnGetOTP.setText("Resend code");
+                        logger.info("Request failed, server message: {}", rq.getString("message"));
                     }
                 });
             }
             catch (Exception e) {
-                logger.error("Lỗi khi gửi yêu cầu đến server: {}", e.getMessage(), e);
+                logger.error("Error sending request to server: {}", e.getMessage(), e);
                 Platform.runLater(() -> btnGetOTP.setDisable(false));
             }
         }).start();
@@ -84,7 +84,7 @@ public class ForgotPasswordController {
         String confirmPass = txtConfirmNewPassword.getText();
 
         if (code.isEmpty() || newPass.isEmpty() || !newPass.equals(confirmPass)) {
-            showAlert(Alert.AlertType.ERROR, "Lỗi", "Thông tin không hợp lệ hoặc mật khẩu không khớp!");
+            showAlert(Alert.AlertType.ERROR, "Error", "Invalid information or passwords do not match!");
             return;
         }
 
@@ -106,28 +106,28 @@ public class ForgotPasswordController {
                 Platform.runLater(() -> {
                     if (response.statusCode() == 200) {
                         if (rq.getInt("status") == 200){
-                            showAlert(Alert.AlertType.INFORMATION, "Thành công", rq.getString("message"));
-                            logger.info("Đổi mật khẩu thành công");
+                            showAlert(Alert.AlertType.INFORMATION, "Success", rq.getString("message"));
+                            logger.info("Password changed successfully");
                             try {
                                 goToLogin(event);
                             }
                             catch (Exception e) {
-                                logger.error("Lỗi khi chuyển giao diện: {}", e.getMessage(), e);
+                                logger.error("Error switching view: {}", e.getMessage(), e);
                             }
                         }
                         else{
-                            showAlert(Alert.AlertType.ERROR, "Thất bại", rq.getString("message"));
-                            logger.info("Yêu cầu đổi mật khẩu thất bại");
+                            showAlert(Alert.AlertType.ERROR, "Failed", rq.getString("message"));
+                            logger.info("Password change request failed");
                         }
                     }
                     else {
-                        showAlert(Alert.AlertType.ERROR, "Lỗi", "Lỗi mạng");
-                        logger.info("Lỗi phản hồi từ server - status: {}", response.statusCode());
+                        showAlert(Alert.AlertType.ERROR, "Error", "Network error");
+                        logger.info("Server response error - status: {}", response.statusCode());
                     }
                 });
             }
             catch (Exception e) {
-                logger.error("Lỗi trong quá trình thực thi: {}", e.getMessage(), e);
+                logger.error("Error during execution: {}", e.getMessage(), e);
             }
         }).start();
     }

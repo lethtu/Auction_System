@@ -25,7 +25,7 @@ class AdminControllerTest {
         ApiResponse<List<SessionResponseDTO>> response = controller.getPendingSessions();
 
         assertEquals(200, response.getStatus());
-        assertEquals("Lấy danh sách phiên chờ duyệt thành công", response.getMessage());
+        assertEquals("Pending sessions retrieved successfully", response.getMessage());
         assertEquals(1, response.getData().size());
         assertEquals("Laptop", response.getData().get(0).getProductName());
     }
@@ -42,7 +42,7 @@ class AdminControllerTest {
         ApiResponse<List<SessionResponseDTO>> response = controller.getAllSessions("ACTIVE");
 
         assertEquals(200, response.getStatus());
-        assertEquals("Lấy danh sách phiên thành công", response.getMessage());
+        assertEquals("Session list retrieved successfully", response.getMessage());
         assertEquals(1, response.getData().size());
         assertEquals("ACTIVE", service.lastStatus);
     }
@@ -59,7 +59,7 @@ class AdminControllerTest {
         ApiResponse<SessionResponseDTO> response = controller.getSessionDetail(5);
 
         assertEquals(200, response.getStatus());
-        assertEquals("Lấy chi tiết phiên thành công", response.getMessage());
+        assertEquals("Session details retrieved successfully", response.getMessage());
         assertSame(dto, response.getData());
         assertEquals(5, service.lastSessionId);
     }
@@ -72,7 +72,7 @@ class AdminControllerTest {
         ApiResponse<Void> response = controller.approveSession(10, 1);
 
         assertEquals(200, response.getStatus());
-        assertEquals("Phê duyệt thành công! Phiên đấu giá đã bắt đầu.", response.getMessage());
+        assertEquals("Approved successfully! The auction session has started.", response.getMessage());
         assertNull(response.getData());
         assertEquals(10, service.lastSessionId);
         assertEquals(1, service.lastAdminId);
@@ -84,12 +84,12 @@ class AdminControllerTest {
         FakeAdminService service = new FakeAdminService();
         AdminController controller = new AdminController(service);
 
-        service.rejectException = new IllegalArgumentException("Vui lòng nhập lý do từ chối");
+        service.rejectException = new IllegalArgumentException("Please enter a rejection reason");
 
         ApiResponse<Void> response = controller.rejectSession(10, 1, "");
 
         assertEquals(400, response.getStatus());
-        assertEquals("Vui lòng nhập lý do từ chối", response.getMessage());
+        assertEquals("Please enter a rejection reason", response.getMessage());
         assertNull(response.getData());
     }
 
@@ -98,13 +98,13 @@ class AdminControllerTest {
         FakeAdminService service = new FakeAdminService();
         AdminController controller = new AdminController(service);
 
-        ApiResponse<Void> response = controller.rejectSession(10, 1, "Sai thông tin");
+        ApiResponse<Void> response = controller.rejectSession(10, 1, "Incorrect info");
 
         assertEquals(200, response.getStatus());
-        assertEquals("Đã từ chối phiên đấu giá.", response.getMessage());
+        assertEquals("Auction session rejected.", response.getMessage());
         assertEquals(10, service.lastSessionId);
         assertEquals(1, service.lastAdminId);
-        assertEquals("Sai thông tin", service.lastReason);
+        assertEquals("Incorrect info", service.lastReason);
         assertTrue(service.rejectCalled);
     }
 
@@ -113,12 +113,12 @@ class AdminControllerTest {
         FakeAdminService service = new FakeAdminService();
         AdminController controller = new AdminController(service);
 
-        service.banException = new RuntimeException("Không được khóa tài khoản Admin khác");
+        service.banException = new RuntimeException("Cannot ban another Admin account");
 
         ApiResponse<Void> response = controller.banUser(2, 1);
 
         assertEquals(500, response.getStatus());
-        assertEquals("Không được khóa tài khoản Admin khác", response.getMessage());
+        assertEquals("Cannot ban another Admin account", response.getMessage());
         assertNull(response.getData());
     }
 
@@ -130,7 +130,7 @@ class AdminControllerTest {
         ApiResponse<Void> response = controller.cancelAuction(20, 1);
 
         assertEquals(200, response.getStatus());
-        assertEquals("Đã hủy phiên đấu giá.", response.getMessage());
+        assertEquals("Auction session has been canceled.", response.getMessage());
         assertNull(response.getData());
         assertEquals(20, service.lastSessionId);
         assertEquals(1, service.lastAdminId);
@@ -150,7 +150,7 @@ class AdminControllerTest {
         ApiResponse<List<UserResponseDTO>> response = controller.getAllUsers("SELLER");
 
         assertEquals(200, response.getStatus());
-        assertEquals("Lấy danh sách người dùng thành công", response.getMessage());
+        assertEquals("User list retrieved successfully", response.getMessage());
         assertEquals(1, response.getData().size());
         assertEquals("seller01", response.getData().get(0).getUsername());
         assertEquals("SELLER", service.lastRole);

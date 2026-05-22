@@ -59,7 +59,7 @@
                                     <Label fx:id="activeProductType" text="Featured auction" styleClass="auth-product-type"/>
                                 </HBox>
                                 <Label fx:id="activeProductName" text="Loading active products..." styleClass="auth-product-name"/>
-                                <Label fx:id="activeProductPrice" text="Kết thúc: --/--/---- --:--" styleClass="auth-product-price"/>
+                                <Label fx:id="activeProductPrice" text="Ends: --/--/---- --:--" styleClass="auth-product-price"/>
                             </VBox>
                         </VBox>
                     </StackPane>

@@ -41,7 +41,7 @@ public class BidChartPoint {
     public void setRelativeTime(String relativeTime) { this.relativeTime = relativeTime; }
 
     /**
-     * Display name cho UI: "You" nếu mine, ngược lại maskedBidderCode.
+     * Display name for UI: "You" if mine, otherwise maskedBidderCode.
      */
     public String getDisplayName() {
         return mine ? "You" : maskedBidderCode;

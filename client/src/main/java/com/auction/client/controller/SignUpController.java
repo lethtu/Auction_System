@@ -93,19 +93,19 @@ public class SignUpController {
             strength1.getStyleClass().add("strength-weak");
             strength2.getStyleClass().add("strength-empty");
             strength3.getStyleClass().add("strength-empty");
-            lblStrength.setText("Mật khẩu quá yếu (cần ít nhất 6 ký tự)");
+            lblStrength.setText("Password too weak (at least 6 characters required)");
             lblStrength.setStyle("-fx-text-fill: #e53e3e; -fx-font-family: 'DM Sans'; -fx-font-size: 11px;");
         } else if (password.length() < 10 || !password.matches(".*\\d.*") || !password.matches(".*[a-zA-Z].*")) {
             strength1.getStyleClass().add("strength-medium");
             strength2.getStyleClass().add("strength-medium");
             strength3.getStyleClass().add("strength-empty");
-            lblStrength.setText("Mật khẩu trung bình (thêm số & ký tự)");
+            lblStrength.setText("Medium password (add numbers & symbols)");
             lblStrength.setStyle("-fx-text-fill: #eab308; -fx-font-family: 'DM Sans'; -fx-font-size: 11px;");
         } else {
             strength1.getStyleClass().add("strength-strong");
             strength2.getStyleClass().add("strength-strong");
             strength3.getStyleClass().add("strength-strong");
-            lblStrength.setText("Mật khẩu mạnh");
+            lblStrength.setText("Strong password");
             lblStrength.setStyle("-fx-text-fill: #22c55e; -fx-font-family: 'DM Sans'; -fx-font-size: 11px;");
         }
     }
@@ -119,22 +119,22 @@ public class SignUpController {
         String confirmPassword = txtConfirmPassword.getText();
 
         if (fullname.isEmpty() || username.isEmpty() || email.isEmpty() || password.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Thông báo", "Vui lòng điền đầy đủ các trường!");
+            showAlert(Alert.AlertType.WARNING, "Notice", "Please fill in all fields!");
             return;
         }
 
         if (chkTerms != null && !chkTerms.isSelected()) {
-            showAlert(Alert.AlertType.WARNING, "Cảnh báo", "Bạn phải đồng ý với các điều khoản!");
+            showAlert(Alert.AlertType.WARNING, "Warning", "You must agree to the terms!");
             return;
         }
 
         if (password.length() < 6) {
-            showAlert(Alert.AlertType.WARNING, "Lỗi", "Mật khẩu phải có ít nhất 6 ký tự!");
+            showAlert(Alert.AlertType.WARNING, "Error", "Password must be at least 6 characters!");
             return;
         }
 
         if (!password.equals(confirmPassword)) {
-            showAlert(Alert.AlertType.ERROR, "Lỗi mật khẩu", "Mật khẩu xác nhận không khớp!");
+            showAlert(Alert.AlertType.ERROR, "Password Error", "Confirm password does not match!");
             return;
         }
 
@@ -145,7 +145,7 @@ public class SignUpController {
         json.put("fullname", fullname);
         String jsonBody = json.toString();
         logger.info(jsonBody);
-        //Chạy luồng riêng để không làm đơ giao diện
+        //Run on separate thread to avoid freezing UI
         new Thread(() -> {
             try {
                 HttpRequest request = HttpRequest.newBuilder()
@@ -161,34 +161,34 @@ public class SignUpController {
                     String message = resObj.optString("message", "");
 
                     Platform.runLater(() -> {
-                        if (message.contains("thành công")) {
-                            showAlert(Alert.AlertType.INFORMATION, "Thành công", "Đăng ký tài khoản thành công!");
-                            logger.info("Đăng ký tài khoản thành công");
+                        if (message.contains("success") || message.contains("success")) {
+                            showAlert(Alert.AlertType.INFORMATION, "Success", "Account registered successfully!");
+                            logger.info("Account registration successful");
                             try {
                                 goToLogin(event);
                             }
                             catch (IOException e) {
-                                logger.error("Lỗi khi chuyển giao diện: {}", e.getMessage(), e);
+                                logger.error("Error switching view: {}", e.getMessage(), e);
                             }
 
                         }
                         else {
-                            showAlert(Alert.AlertType.ERROR, "Thất bại", message);
-                            logger.info("Đăng ký thất bại");
+                            showAlert(Alert.AlertType.ERROR, "Failed", message);
+                            logger.info("Registration failed");
                         }
                     });
                 }
                 else {
                     Platform.runLater(
-                            () -> showAlert(Alert.AlertType.ERROR, "Lỗi Server", "Mã lỗi: " + response.statusCode()));
-                    logger.info("Lỗi đăng ký thất bại - status: {}", response.statusCode());
+                            () -> showAlert(Alert.AlertType.ERROR, "Server Error", "Error code: " + response.statusCode()));
+                    logger.info("Registration failed - status: {}", response.statusCode());
                 }
 
             }
             catch (Exception e) {
                 Platform.runLater(
-                        () -> showAlert(Alert.AlertType.ERROR, "Lỗi kết nối", "Không thể kết nối tới máy chủ!"));
-                logger.error("Lỗi trong quá trình kết nối đến máy chủ: {}", e.getMessage(), e);
+                        () -> showAlert(Alert.AlertType.ERROR, "Connection Error", "Cannot connect to the server!"));
+                logger.error("Error connecting to server: {}", e.getMessage(), e);
             }
         }).start();
     }
@@ -203,7 +203,7 @@ public class SignUpController {
     }
 
     private void showAlert(Alert.AlertType alertType, String title, String message) {
-        //Alert luôn chạy trên luồng giao diện (UI Thread)
+        //Alert always runs on UI Thread
         if (!Platform.isFxApplicationThread()) {
             Platform.runLater(() -> showAlert(alertType, title, message));
             return;
@@ -325,7 +325,7 @@ public class SignUpController {
                 "Discover live auctions",
                 "Featured marketplace",
                 FALLBACK_PRODUCT_IMAGE,
-                "Kết thúc: đang cập nhật"
+                "Ends: updating"
         ));
     }
 
@@ -399,15 +399,15 @@ public class SignUpController {
 
     private String formatEndTime(String value) {
         if (value == null || value.isBlank()) {
-            return "Kết thúc: đang cập nhật";
+            return "Ends: updating";
         }
 
         try {
             LocalDateTime endTime = LocalDateTime.parse(value.trim(), SERVER_DATE_TIME);
-            return "Kết thúc: " + DISPLAY_DATE_TIME.format(endTime);
+            return "Ends: " + DISPLAY_DATE_TIME.format(endTime);
         } catch (DateTimeParseException e) {
             logger.warn("Failed to parse end time: {}", value);
-            return "Kết thúc: " + value;
+            return "Ends: " + value;
         }
     }
 

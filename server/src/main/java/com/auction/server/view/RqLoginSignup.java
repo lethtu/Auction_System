@@ -23,13 +23,13 @@ public class RqLoginSignup {
 
     public boolean signup(User newUser) {
         if (!loginSignup.existsByUsernameOrEmail(newUser.getUsername(), newUser.getEmail())) {
-            logger.info("Đang thêm user: {}", newUser.getUsername());
+            logger.info("Adding user: {}", newUser.getUsername());
             if (newUser.getPassword() == null) {
-                logger.info("Lỗi password user {} bị null", newUser.getUsername());
-                throw new RuntimeException("Lỗi: Password gửi lên bị null!");
+                logger.info("Error: password for user {} is null", newUser.getUsername());
+                throw new RuntimeException("Error: Password sent is null!");
             }
 
-            // Luôn tạo Bidder khi đăng ký để Hibernate ghi discriminator "BIDDER" vào DB
+            // Always create Bidder on signup so Hibernate writes "BIDDER" discriminator to DB
             Bidder bidder = new Bidder();
             bidder.setUsername(newUser.getUsername());
             bidder.setPassword(newUser.getPassword());
@@ -40,10 +40,10 @@ public class RqLoginSignup {
             bidder.setBalance(newUser.getBalance() != null ? newUser.getBalance() : java.math.BigDecimal.ZERO);
 
             loginSignup.save(bidder);
-            logger.info("Đã thêm thành công user: {} vào DB với role BIDDER", newUser.getUsername());
+            logger.info("Successfully added user: {} to DB with role BIDDER", newUser.getUsername());
             return false;
         }
-        logger.info("Username: {} hoặc Email: {} đã tồn tại trong DB", newUser.getUsername(), newUser.getEmail());
+        logger.info("Username: {} or Email: {} already exists in DB", newUser.getUsername(), newUser.getEmail());
         return true;
     }
 }

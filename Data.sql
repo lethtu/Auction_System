@@ -39,7 +39,7 @@ CREATE TABLE `auction_item` (
 
 LOCK TABLES `auction_item` WRITE;
 /*!40000 ALTER TABLE `auction_item` DISABLE KEYS */;
-INSERT INTO `auction_item` VALUES (1,'Bình gốm cổ','Đồ gốm thời Nguyễn',1000000,1200000,'2026-03-20 20:00:00'),(2,'Tranh sơn dầu','Tranh phong cảnh',500000,700000,'2026-03-22 18:00:00');
+INSERT INTO `auction_item` VALUES (1,'Antique Ceramic Vase','Nguyen Dynasty Ceramics',1000000,1200000,'2026-03-20 20:00:00'),(2,'Oil Painting','Landscape Painting',500000,700000,'2026-03-22 18:00:00');
 /*!40000 ALTER TABLE `auction_item` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -159,7 +159,7 @@ CREATE TABLE `items` (
 
 LOCK TABLES `items` WRITE;
 /*!40000 ALTER TABLE `items` DISABLE KEYS */;
-INSERT INTO `items` VALUES (1,15000000,'2026-04-30 23:59:59.000000','iphone.jpg','iPhone 13 128GB','2026-04-21 08:00:00.000000','ACTIVE','phone','electronics',NULL,_binary '\0'),(2,NULL,NULL,'iphone.jpg','Mô hình One Piece Luffy Gear 5',NULL,NULL,NULL,'art',NULL,_binary '\0'),(3,NULL,NULL,'luffy.png','Mô hình One Piece Luffy Gear 5',NULL,NULL,NULL,'art',NULL,_binary '\0'),(4,NULL,NULL,'luffy.png','Mô hình One Piece Luffy Gear 5',NULL,NULL,NULL,'art',NULL,_binary '\0'),(5,NULL,NULL,'luffy.png','Mô hình One Piece Luffy Gear 5',NULL,NULL,NULL,'art',NULL,_binary '\0'),(7,NULL,NULL,'https://suckhoedoisong.qltns.mediacdn.vn/324455921873985536/2022/4/25/trong-muop-huong-11-1650895342271997058777.jpg','muop',NULL,NULL,'Art','art','muop con',_binary '\0'),(8,NULL,NULL,'','cnocac',NULL,NULL,'Electronics','electronics','adawd',_binary '\0'),(9,NULL,NULL,'deoco','phanlamviecdi',NULL,NULL,'Electronics','electronics','dungluoi',_binary '\0');
+INSERT INTO `items` VALUES (1,15000000,'2026-04-30 23:59:59.000000','iphone.jpg','iPhone 13 128GB','2026-04-21 08:00:00.000000','ACTIVE','phone','electronics',NULL,_binary '\0'),(2,NULL,NULL,'iphone.jpg','One Piece Luffy Gear 5 Figure',NULL,NULL,NULL,'art',NULL,_binary '\0'),(3,NULL,NULL,'luffy.png','One Piece Luffy Gear 5 Figure',NULL,NULL,NULL,'art',NULL,_binary '\0'),(4,NULL,NULL,'luffy.png','One Piece Luffy Gear 5 Figure',NULL,NULL,NULL,'art',NULL,_binary '\0'),(5,NULL,NULL,'luffy.png','One Piece Luffy Gear 5 Figure',NULL,NULL,NULL,'art',NULL,_binary '\0'),(7,NULL,NULL,'https://suckhoedoisong.qltns.mediacdn.vn/324455921873985536/2022/4/25/trong-muop-huong-11-1650895342271997058777.jpg','Luffa',NULL,NULL,'Art','art','Baby Luffa',_binary '\0'),(8,NULL,NULL,'','cnocac',NULL,NULL,'Electronics','electronics','adawd',_binary '\0'),(9,NULL,NULL,'deoco','Phan get to work',NULL,NULL,'Electronics','electronics','Do not be lazy',_binary '\0');
 /*!40000 ALTER TABLE `items` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -187,7 +187,7 @@ CREATE TABLE `products` (
 
 LOCK TABLES `products` WRITE;
 /*!40000 ALTER TABLE `products` DISABLE KEYS */;
-INSERT INTO `products` VALUES (1,'iphone.jpg','Laptop Lenovo Legion 5','Electronics',NULL,NULL),(2,'upload/images/luffy.png','Mô hình One Piece Luffy Gear 5','toy',NULL,NULL),(3,NULL,'Laptop Dell XPS 13','Electronics','Máy còn mới, pin tốt','https://example.com/laptop.jpg');
+INSERT INTO `products` VALUES (1,'iphone.jpg','Lenovo Legion 5 Laptop','Electronics',NULL,NULL),(2,'upload/images/luffy.png','One Piece Luffy Gear 5 Figure','toy',NULL,NULL),(3,NULL,'Dell XPS 13 Laptop','Electronics','Like new, good battery','https://example.com/laptop.jpg');
 /*!40000 ALTER TABLE `products` ENABLE KEYS */;
 UNLOCK TABLES;
 

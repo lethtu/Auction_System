@@ -7,7 +7,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
@@ -24,10 +23,10 @@ import javafx.stage.Window;
 import java.util.Optional;
 
 public final class AlertUtil {
-    private static final String DEFAULT_INFO_TITLE = "Thành công";
-    private static final String DEFAULT_ERROR_TITLE = "Lỗi";
-    private static final String DEFAULT_WARNING_TITLE = "Cảnh báo";
-    private static final String DEFAULT_ERROR_MESSAGE = "Đã xảy ra lỗi. Vui lòng thử lại.";
+    private static final String DEFAULT_INFO_TITLE = "Success";
+    private static final String DEFAULT_ERROR_TITLE = "Error";
+    private static final String DEFAULT_WARNING_TITLE = "Warning";
+    private static final String DEFAULT_ERROR_MESSAGE = "An error occurred. Please try again.";
 
     private AlertUtil() {
     }
@@ -56,7 +55,7 @@ public final class AlertUtil {
         Stage dialog = createBaseStage(title);
 
         TextField input = new TextField();
-        input.setPromptText("Nhập nội dung...");
+        input.setPromptText("Enter content...");
         input.setMaxWidth(330);
         input.setStyle("-fx-background-color: #fff5fb;"
                 + " -fx-border-color: #f4addb;"
@@ -69,8 +68,8 @@ public final class AlertUtil {
 
         final String[] value = {null};
 
-        Button cancelButton = secondaryButton("Hủy");
-        Button okButton = primaryButton("Đồng ý");
+        Button cancelButton = secondaryButton("Cancel");
+        Button okButton = primaryButton("OK");
         cancelButton.setOnAction(event -> dialog.close());
         okButton.setOnAction(event -> {
             value[0] = input.getText();
@@ -126,7 +125,7 @@ public final class AlertUtil {
         Stage dialog = createBaseStage(title);
         VBox card = baseCard(type, title, message);
 
-        Button okButton = primaryButton("Đồng ý");
+        Button okButton = primaryButton("OK");
         okButton.setDefaultButton(true);
         okButton.setOnAction(event -> dialog.close());
         card.getChildren().add(okButton);
@@ -235,7 +234,7 @@ public final class AlertUtil {
     private static void styleDialogButton(Node node) {
         if (node instanceof Button button) {
             boolean primary = ButtonBar.getButtonData(button) != null && ButtonBar.getButtonData(button).isDefaultButton();
-            if (primary || "Đồng ý".equals(button.getText()) || "OK".equalsIgnoreCase(button.getText())) {
+            if (primary || "OK".equalsIgnoreCase(button.getText())) {
                 button.setMinWidth(112);
                 button.setMinHeight(40);
                 button.setStyle("-fx-background-color: #e040a0;"

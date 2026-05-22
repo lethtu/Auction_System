@@ -14,13 +14,13 @@ public class PriceUpdateNotification implements Serializable {
         this.message = message;
     }
 
-    // Getters và Setters
+    // Getters and Setters
     public Integer getAuctionSessionId() { return auctionSessionId; }
     public BigDecimal getNewPrice() { return newPrice; }
     public String getMessage() { return message; }
 
     @Override
     public String toString() {
-        return "THÔNG BÁO CHUNG: Phiên " + auctionSessionId + " vừa có giá mới: " + newPrice;
+        return "NOTIFICATION: Session " + auctionSessionId + " has a new price: " + newPrice;
     }
 }

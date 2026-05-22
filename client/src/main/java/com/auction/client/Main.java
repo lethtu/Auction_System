@@ -17,14 +17,15 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        logger.info("Đã khởi động Client thành công");
+        logger.info("Client started successfully");
         Parent root = FXMLLoader
                 .load(Objects.requireNonNull(getClass().getResource("/com/auction/client/view/Login.fxml")));
-        primaryStage.setTitle("Hệ thống đấu giá");
+        primaryStage.setTitle("Auction System");
         Scene scene = new Scene(root, 1100, 700);
         scene.setFill(Color.TRANSPARENT);
         primaryStage.initStyle(StageStyle.TRANSPARENT);
         primaryStage.setScene(scene);
+      
         primaryStage.setMinWidth(900);
         primaryStage.setMinHeight(600);
         primaryStage.setResizable(true);

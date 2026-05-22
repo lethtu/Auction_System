@@ -47,27 +47,27 @@ public class AuthForgotpass {
     @PostMapping("/forgot_pass")
     public ApiResponse<String> forgot_pass(@RequestBody Map<String, String> requests) {
         String email = requests.get("email");
-        logger.info("Có yêu cầu quên mật khẩu từ {}", email);
+        logger.info("Forgot password request received from {}", email);
         Optional<User> customer = forgotPass.forgot_pass(email);
         if (customer.isPresent()) {
-            logger.info("Email {} tồn tại trong hệ thống", email);
-            logger.info("Đang tạo mã OTP cho {}", email);
+            logger.info("Email {} exists in the system", email);
+            logger.info("Generating OTP for {}", email);
             String newOTP = OTPGenerator.generateOTP(6);
             if (otpStorage.get(email) != null) {
                 newOTP = otpStorage.get(email);
             } else {
                 otpStorage.put(email, newOTP);
             }
-            String body = "Xin chào " + customer.get().getFullname() + ",\n\n"
-                    + "Đây là mã để bạn khôi phục lại mật khẩu: (" + newOTP + ").\n"
-                    + "KHÔNG CUNG CẤP MÃ NÀY CHO BẤT CỨ AI\n\n"
-                    + "Trân trọng,\nBan Quản Trị.";
-            emailServer.SendEmail(email, "Mã xác thực để đổi mật khẩu", body);
-            logger.info("Xử lý thành công yêu cầu từ {}", email);
-            return new ApiResponse<String>(200, "Đã gửi mã xác nhận", "");
+            String body = "Hello " + customer.get().getFullname() + ",\n\n"
+                    + "Here is your password recovery code: (" + newOTP + ").\n"
+                    + "DO NOT SHARE THIS CODE WITH ANYONE\n\n"
+                    + "Best regards,\nThe Admin Team.";
+            emailServer.SendEmail(email, "Password Reset Verification Code", body);
+            logger.info("Request from {} processed successfully", email);
+            return new ApiResponse<String>(200, "Verification code sent", "");
         } else {
-            logger.error("Không có tài khoản liên kết với {}", email);
-            return new ApiResponse<String>(404, "Không có tài khoản nào liên kết với Email này", "");
+            logger.error("No account associated with {}", email);
+            return new ApiResponse<String>(404, "No account is associated with this email", "");
         }
     }
 
@@ -77,7 +77,7 @@ public class AuthForgotpass {
         String code = requests.get("code");
         String pass = requests.get("password");
         Optional<User> customer = forgotPass.forgot_pass(email);
-//        Thay đổi logic mói
+//        Updated logic
         String saveOTP = otpStorage.getOrDefault(email, "");
         if (!saveOTP.isEmpty()) {
             if (saveOTP.equals(code)) {
@@ -85,22 +85,22 @@ public class AuthForgotpass {
                 if (customer.isPresent()) {
                     customer.get().setPassword(pass);
                     Save.save(customer.get());
-                    logger.info("Xác thực và đổi mật khẩu thành công cho: {}", email);
-                    return new ApiResponse<String>(200, "Xác thực thành công, đã thay đổi mật khẩu thành công", "");
+                    logger.info("Verification and password change successful for: {}", email);
+                    return new ApiResponse<String>(200, "Verification successful, password has been changed", "");
                 }
                 else{
-                    logger.error("Không tìm thấy customer");
-                    return new ApiResponse<String>(404, "Không có tài khoản nào liên kết với Email này", "");
+                    logger.error("Customer not found");
+                    return new ApiResponse<String>(404, "No account is associated with this email", "");
                 }
             }
             else {
-                logger.error("Xác thực lỗi code cho: {}", email);
-                return new ApiResponse<String>(400, "Code sai hoặc đã hết hạn, vui lòng kiểm tra lại", "");
+                logger.error("Code verification failed for: {}", email);
+                return new ApiResponse<String>(400, "Invalid or expired code, please try again", "");
             }
         }
         else {
-            logger.error("Không có tài khoản nào liên kết với: {}", email);
-            return new ApiResponse<String>(404, "Không có tài khoản nào liên kết với Email này", "");
+            logger.error("No account associated with: {}", email);
+            return new ApiResponse<String>(404, "No account is associated with this email", "");
         }
     }
 }

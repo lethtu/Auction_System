@@ -1,7 +1,7 @@
 package com.auction.server.pattern.observer;
 
 /**
- * Interface cho Subject (chứa danh sách các Observer)
+ * Interface for Subject (maintains a list of Observers)
  */
 public interface Subject {
     void addObserver(Observer o);

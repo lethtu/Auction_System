@@ -9,6 +9,6 @@ public class Vehicle extends Item {
 
     @Override
     public String getCategoryInfo() {
-        return "Vehicle - phương tiện xe cộ";
+        return "Vehicle";
     }
 }

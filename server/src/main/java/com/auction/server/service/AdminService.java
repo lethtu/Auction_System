@@ -28,19 +28,19 @@ public class AdminService {
 
     private static final String DEFAULT_ROLE = "user";
 
-    private static final String ERROR_ADMIN_NOT_FOUND = "Không tìm thấy admin";
-    private static final String ERROR_NOT_ADMIN = "Người này không phải là Quản trị viên";
-    private static final String ERROR_SESSION_NOT_FOUND = "Không tìm thấy phiên đấu giá";
-    private static final String ERROR_TARGET_USER_NOT_FOUND = "Không tìm thấy user cần khóa";
-    private static final String ERROR_RESTORE_USER_NOT_FOUND = "Không tìm thấy user cần khôi phục";
-    private static final String ERROR_PRODUCT_NOT_FOUND = "Không tìm thấy sản phẩm";
-    private static final String ERROR_ITEM_REPOSITORY_NOT_READY = "Chưa cấu hình kho dữ liệu sản phẩm";
-    private static final String ERROR_SELF_BAN = "Không thể khóa chính tài khoản admin hiện tại";
-    private static final String ERROR_BAN_ADMIN = "Không được khóa tài khoản Admin khác";
-    private static final String ERROR_REJECT_REASON_REQUIRED = "Vui lòng nhập lý do từ chối";
-    private static final String ERROR_APPROVE_NOT_PENDING = "Phiên này đã được xử lý hoặc không ở trạng thái chờ duyệt";
-    private static final String ERROR_REJECT_NOT_PENDING = "Chỉ được từ chối các phiên đang ở trạng thái chờ duyệt";
-    private static final String ERROR_CANCEL_FINISHED_SESSION = "Phiên này đã kết thúc hoặc đã bị hủy";
+    private static final String ERROR_ADMIN_NOT_FOUND = "Admin not found";
+    private static final String ERROR_NOT_ADMIN = "This user is not an Administrator";
+    private static final String ERROR_SESSION_NOT_FOUND = "Auction session not found";
+    private static final String ERROR_TARGET_USER_NOT_FOUND = "Target user not found";
+    private static final String ERROR_RESTORE_USER_NOT_FOUND = "User to restore not found";
+    private static final String ERROR_PRODUCT_NOT_FOUND = "Product not found";
+    private static final String ERROR_ITEM_REPOSITORY_NOT_READY = "Product data repository not configured";
+    private static final String ERROR_SELF_BAN = "Cannot ban your own admin account";
+    private static final String ERROR_BAN_ADMIN = "Cannot ban another Admin account";
+    private static final String ERROR_REJECT_REASON_REQUIRED = "Please enter a rejection reason";
+    private static final String ERROR_APPROVE_NOT_PENDING = "This session has already been processed or is not in pending status";
+    private static final String ERROR_REJECT_NOT_PENDING = "Can only reject sessions in pending status";
+    private static final String ERROR_CANCEL_FINISHED_SESSION = "This session has already ended or been canceled";
 
     private final AuctionSessionRepository sessionRepository;
     private final UserRepository userRepository;
@@ -262,7 +262,7 @@ public class AdminService {
         User user = getUserById(adminId, ERROR_ADMIN_NOT_FOUND);
 
         if (!(user instanceof Admin admin)) {
-            logger.warn("{} không phải là quản trị viên", adminId);
+            logger.warn("{} is not an administrator", adminId);
             throw new IllegalArgumentException(ERROR_NOT_ADMIN);
         }
 

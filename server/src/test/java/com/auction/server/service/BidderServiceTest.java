@@ -59,7 +59,7 @@ public class BidderServiceTest {
         Map<String, Object> result = bidderService.upToSeller(10);
 
         assertTrue((Boolean) result.get("success"), "Phải trả về success = true");
-        assertEquals("Đã nâng cấp tài khoản thành công", result.get("message"));
+        assertEquals("Account upgraded successfully", result.get("message"));
 
         verify(userRepository, times(1)).updateRoleById(10, "seller");
     }
@@ -72,7 +72,7 @@ public class BidderServiceTest {
         Map<String, Object> result = bidderService.upToSeller(999);
 
         assertFalse((Boolean) result.get("success"), "Phải trả về success = false");
-        assertEquals("Người dùng không tồn tại", result.get("message"));
+        assertEquals("User does not exist", result.get("message"));
 
         verify(userRepository, never()).updateRoleById(anyInt(), anyString());
     }
@@ -85,7 +85,7 @@ public class BidderServiceTest {
         Map<String, Object> result = bidderService.upToSeller(14);
 
         assertFalse((Boolean) result.get("success"), "Phải trả về success = false");
-        assertEquals("Tài khoản không phải là BIDDER hoặc đã là SELLER", result.get("message"));
+        assertEquals("Account is not a BIDDER or is already a SELLER", result.get("message"));
 
         verify(userRepository, never()).updateRoleById(anyInt(), anyString());
     }
@@ -99,7 +99,7 @@ public class BidderServiceTest {
         Map<String, Object> result = bidderService.upToSeller(10);
 
         assertFalse((Boolean) result.get("success"), "Phải trả về success = false khi UPDATE thất bại");
-        assertEquals("Cập nhật thất bại", result.get("message"));
+        assertEquals("Upgrade failed", result.get("message"));
 
         verify(userRepository, times(1)).updateRoleById(10, "seller");
     }
@@ -116,7 +116,7 @@ public class BidderServiceTest {
         Map<String, Object> result = bidderService.upToSeller(15);
 
         assertFalse((Boolean) result.get("success"));
-        assertEquals("Tài khoản không phải là BIDDER hoặc đã là SELLER", result.get("message"));
+        assertEquals("Account is not a BIDDER or is already a SELLER", result.get("message"));
 
         verify(userRepository, never()).updateRoleById(anyInt(), anyString());
     }

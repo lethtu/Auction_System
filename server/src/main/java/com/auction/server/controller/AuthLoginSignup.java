@@ -28,35 +28,35 @@ public class AuthLoginSignup {
         Optional<User> res = rq.login(username, password);
         if (res.isPresent()) {
             if (res.get().isBanned()) {
-                logger.warn("User {} bị khóa tài khoản", username);
-                return new ApiResponse<String>(403, "Tài khoản đã bị khóa", "");
+                logger.warn("User {} account is banned", username);
+                return new ApiResponse<String>(403, "Account has been banned", "");
             }
-            logger.info("User {} đăng nhập thành công", username);
-            return new ApiResponse<Optional<User>>(200, "Đăng nhập thành công", res);
+            logger.info("User {} logged in successfully", username);
+            return new ApiResponse<Optional<User>>(200, "Login successful", res);
         }
         else {
-            logger.error("User {} đăng nhập thất bại", username);
-            return new ApiResponse<String>(400, "Đăng nhập thất bại", "");
+            logger.error("User {} login failed", username);
+            return new ApiResponse<String>(400, "Login failed", "");
         }
     }
 
     @PostMapping("/signup")
     public ApiResponse<?> Signup(@RequestBody User newUser) {
-        logger.info("Thông tin User mới tạo: {}", newUser);
+        logger.info("New user registration info: {}", newUser);
         logger.info("Email: {}, Fullname: {}, Password: {}", newUser.getEmail(), newUser.getFullname(), newUser.getPassword());
         boolean check = rq.signup(newUser);
         if (!check) {
-            String body = "Xin chào " + newUser.getFullname() + ",\n\n"
-                    + "Tài khoản của bạn (" + newUser.getUsername() + ") đã được tạo thành công.\n"
-                    + "Chúc bạn  có những phiên đấu giá tuyệt vời!\n\n"
-                    + "Trân trọng,\nBan Quản Trị.";
-            emailServer.SendEmail(newUser.getEmail(), "Đăng ký tài khoản thành công", body);
-            logger.info("User {} đăng ký thành công", newUser.getUsername());
-            return new ApiResponse<User>(200, "Đăng ký thành công", newUser);
+            String body = "Hello " + newUser.getFullname() + ",\n\n"
+                    + "Your account (" + newUser.getUsername() + ") has been created successfully.\n"
+                    + "We wish you great auction experiences!\n\n"
+                    + "Best regards,\nThe Admin Team.";
+            emailServer.SendEmail(newUser.getEmail(), "Account Registration Successful", body);
+            logger.info("User {} registered successfully", newUser.getUsername());
+            return new ApiResponse<User>(200, "Registration successful", newUser);
         }
         else {
-            logger.error("Lỗi đăng ký, username: {} hoặc email: {} đã tồn tại", newUser.getUsername(), newUser.getEmail());
-            return new ApiResponse<User>(400, "Email hoặc Username đã tồn tại", newUser);
+            logger.error("Registration error, username: {} or email: {} already exists", newUser.getUsername(), newUser.getEmail());
+            return new ApiResponse<User>(400, "Email or Username already exists", newUser);
         }
     }
 }

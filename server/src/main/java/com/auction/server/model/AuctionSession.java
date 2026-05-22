@@ -17,7 +17,7 @@ public class AuctionSession implements Serializable{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    // Sợi dây liên kết 1 Sản phẩm - Nhiều Phiên đấu giá
+    // Relationship: One Item - Many Auction Sessions
     @ManyToOne
     @JoinColumn(name = "item_id")
     private Item item;
@@ -70,7 +70,7 @@ public class AuctionSession implements Serializable{
     @Enumerated(EnumType.STRING)
     private AuctionStatus status;
 
-    // TỐI ƯU HÓA QUAN HỆ 1-N (AUCTION_SESSION - BIDS)
+    // OPTIMIZED 1-N RELATIONSHIP (AUCTION_SESSION - BIDS)
     @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Bid> bids = new ArrayList<>();
 
@@ -84,7 +84,7 @@ public class AuctionSession implements Serializable{
         }
     }
 
-    // HELPER METHODS: ĐỒNG BỘ HAI CHIỀU
+    // HELPER METHODS: BIDIRECTIONAL SYNC
     public void addBid(Bid bid) {
         bids.add(bid);
         bid.setSession(this);

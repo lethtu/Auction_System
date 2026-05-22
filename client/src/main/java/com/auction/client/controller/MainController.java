@@ -120,12 +120,12 @@ public class MainController implements Initializable {
     public static String initialHomeFilterMode = "ALL";
     private final Button fakeTestBtn = new Button();
 
-    // Kho lưu trữ Caching cục bộ, giúp Real-time filter không bị trễ
+    // Local caching store for real-time filter performance
     private final List<JSONObject> allProducts = new ArrayList<>();
 
-    // Map lưu tham chiếu Card theo sessionId - lookup O(1) cho real-time update
+    // Map storing Card references by sessionId - O(1) lookup for real-time update
     private final Map<Integer, VBox> sessionCardMap = new HashMap<>();
-    // Cache ảnh để tránh tải lại mỗi lần render
+    // Image cache to avoid reloading on each render
     private final Map<String, Image> imageCache = new ConcurrentHashMap<>();
 
     // Executor cho Polling
@@ -137,12 +137,11 @@ public class MainController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         btnHamburger.setId("btnHamburger");
 
-        Button fakeBtn = new Button();
         fakeTestBtn.setId("btnSidebarCategories");
         fakeTestBtn.setVisible(false);
         fakeTestBtn.setManaged(false);
 
-        // QUAN TRỌNG
+        // IMPORTANT
         fakeTestBtn.setOnAction(e -> {});
 
         productContainer.getChildren().add(fakeTestBtn);
@@ -151,31 +150,31 @@ public class MainController implements Initializable {
             NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
         }
 
-        // QUAN TRỌNG
+        // IMPORTANT
         btnHamburger.setOnAction(this::handleToggleSidebar);
 
         if (User.getFullname() != null) {
-            createUserOption("Chào, " + User.getFullname());
+            createUserOption("Hello, " + User.getFullname());
         }
 
 
 
-        // Khởi tạo ComboBox
-        cbCategory.getItems().addAll("Tất cả", "Electronics", "Art", "Vehicle");
-        cbCategory.setValue("Tất cả");
+        // Initialize ComboBox
+        cbCategory.getItems().addAll("All", "Electronics", "Art", "Vehicle");
+        cbCategory.setValue("All");
 
-        // Khởi tạo các trạng thái hiển thị trên sàn chính
-        cbStatus.getItems().addAll("Tất cả", "Đang diễn ra", "Sắp bắt đầu", "Đã kết thúc");
-        cbStatus.setValue("Tất cả");
+        // Initialize display status on main market
+        cbStatus.getItems().addAll("All", "Ongoing", "Starting Soon", "Ended");
+        cbStatus.setValue("All");
 
-        // Lắng nghe sự kiện để lọc Real-time
+        // Listen for real-time filter events
         txtSearch.textProperty().addListener((observable, oldValue, newValue) -> filterAndRenderProducts());
         cbCategory.setOnAction(event -> filterAndRenderProducts());
         cbStatus.setOnAction(event -> filterAndRenderProducts());
 
         loadProductsFromServer();
         connectHomeSocket();
-        // Thuật toán Space-Evenly động cho danh sách sản phẩm
+        // Dynamic Space-Evenly algorithm for product list
         scrollPane.viewportBoundsProperty().addListener((obs, oldBounds, newBounds) -> {
             updateGridLayout();
         });
@@ -248,9 +247,9 @@ public class MainController implements Initializable {
             return;
         }
 
-        // Layout ổn định: không tính lại khoảng cách động theo từng thay đổi rất nhỏ của viewport.
-        // JavaFX đôi lúc refresh viewport khi click nền / đổi focus app, khiến gap động đổi qua lại.
-        // Vì vậy ta giữ gap cố định và để FlowPane căn giữa hàng sản phẩm.
+        // Stable layout: do not recalculate dynamic spacing for very small viewport changes.
+        // JavaFX sometimes refreshes viewport on background click / app focus change, causing dynamic gap to toggle.
+        // So we keep gap fixed and let FlowPane center the product row.
         double viewportWidth = scrollPane.getViewportBounds().getWidth();
         if (viewportWidth <= 0) return;
 
@@ -274,25 +273,25 @@ public class MainController implements Initializable {
     }
 
     private void createUserOption(String text) {
-        // userMenuButton.setText(text); // Đã ẩn tên để chỉ hiện Avatar
+        // userMenuButton.setText(text); // Hidden name to show only Avatar
 
-        MenuItem accountItem = new MenuItem("Tài Khoản Của Tôi");
+        MenuItem accountItem = new MenuItem("My Account");
         accountItem.setId("menuAccount");
-        MenuItem depositMoney = new MenuItem("Nạp tiền");
+        MenuItem depositMoney = new MenuItem("Deposit");
         depositMoney.setId("menuDeposit");
-        MenuItem logoutItem = new MenuItem("Đăng Xuất");
+        MenuItem logoutItem = new MenuItem("Logout");
         logoutItem.setId("menuLogout");
 
         accountItem.setOnAction(e -> showAccountScreen());
         depositMoney.setOnAction(e -> handleDepositMoney(e));
-        logoutItem.setOnAction(e -> System.out.println("Thực hiện Đăng xuất..."));
+        logoutItem.setOnAction(e -> System.out.println("Performing logout..."));
 
         logoutItem.setOnAction(event -> {
             try {
-                handleLogout(event); // Gọi cái hàm có sẵn của bạn
+                handleLogout(event); // Call existing logout handler
             } catch (IOException e) {
                 e.printStackTrace();
-                System.out.println("Lỗi khi chuyển sang màn hình Login!");
+                System.out.println("Error switching to Login screen!");
             }
         });
 
@@ -303,11 +302,11 @@ public class MainController implements Initializable {
     private void startPolling() {
         pollingScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r);
-            t.setDaemon(true); // Đảm bảo thread tắt khi tắt app
+            t.setDaemon(true); // Ensure thread stops when app closes
             return t;
         });
 
-        // Gọi API 5 giây 1 lần
+        // Call API every 5 seconds
         pollingScheduler.scheduleAtFixedRate(this::fetchProductsData, 0, 5, TimeUnit.SECONDS);
     }
 
@@ -353,14 +352,14 @@ public class MainController implements Initializable {
                                     String name = getItemObject(newObj).optString("name", "");
                                     if (newPrice.compareTo(oldPrice) > 0) {
                                         AppNotification notif = new AppNotification(NotificationType.NEW_BID, NotificationSeverity.INFO,
-                                                "Có giá mới", "Sản phẩm " + name + " vừa có bid mới: ₫ " + formatPrice(newPrice));
+                                                "New bid", "Product " + name + " has a new bid: ₫ " + formatPrice(newPrice));
                                         notif.setAuctionId(auctionId);
                                         notif.setItemName(name);
                                         NotificationCenterService.getInstance().addNotification(notif);
                                     }
                                     if (!"ENDED".equalsIgnoreCase(oldStatus) && !oldStatus.equals(newStatus) && ("ENDED".equalsIgnoreCase(newStatus) || "FINISHED".equalsIgnoreCase(newStatus))) {
                                         AppNotification notif = new AppNotification(NotificationType.AUCTION_END_LOSE, NotificationSeverity.INFO,
-                                                "Phiên đấu giá kết thúc", "Sản phẩm " + name + " đã kết thúc.");
+                                                "Auction ended", "Product " + name + " has ended.");
                                         notif.setAuctionId(auctionId);
                                         notif.setItemName(name);
                                         NotificationCenterService.getInstance().addNotification(notif);
@@ -384,13 +383,13 @@ public class MainController implements Initializable {
                     Platform.runLater(this::filterAndRenderProducts);
                 }
             } else {
-                logger.error("Lỗi từ Server: {}", response.statusCode());
-                Platform.runLater(() -> showOfflineMode("Máy chủ phản hồi mã lỗi: " + response.statusCode()));
+                logger.error("Server error: {}", response.statusCode());
+                Platform.runLater(() -> showOfflineMode("Server responded with error code: " + response.statusCode()));
             }
 
         } catch (Exception e) {
-            logger.error("Lỗi hệ thống khi tải sản phẩm!: {}", e.getMessage(), e);
-            Platform.runLater(() -> showOfflineMode("Không thể kết nối đến máy chủ. Đang ở chế độ ngoại tuyến (Offline)."));
+            logger.error("System error loading products!: {}", e.getMessage(), e);
+            Platform.runLater(() -> showOfflineMode("Cannot connect to server. Running in offline mode."));
         }
     }
 
@@ -404,7 +403,7 @@ public class MainController implements Initializable {
 
     private void showOfflineMode(String message) {
         if (productContainer == null) return;
-        if (!allProducts.isEmpty()) return; // Nếu đã có dữ liệu cũ thì giữ nguyên hiển thị cũ, không làm mất giao diện
+        if (!allProducts.isEmpty()) return; // If old data exists, keep display intact
 
         productContainer.getChildren().clear();
         productContainer.getChildren().add(fakeTestBtn);
@@ -415,20 +414,20 @@ public class MainController implements Initializable {
         offlineBox.setPadding(new Insets(40));
         offlineBox.setPrefWidth(productContainer.getPrefWidth() > 0 ? productContainer.getPrefWidth() : 600);
 
-        Label iconLabel = new Label("\uE000"); // Biểu tượng cảnh báo / lỗi trong Material Icons
+        Label iconLabel = new Label("\uE000"); // Warning/error icon in Material Icons
         iconLabel.setStyle("-fx-font-family: 'Material Icons'; -fx-font-size: 64px; -fx-text-fill: #adb5bd;");
 
-        Label titleLabel = new Label("Mất kết nối máy chủ");
+        Label titleLabel = new Label("Server Connection Lost");
         titleLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
 
         Label msgLabel = new Label(message);
         msgLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868; -fx-wrap-text: true; -fx-text-alignment: center;");
         msgLabel.setMaxWidth(400);
 
-        Button retryBtn = new Button("Thử lại kết nối");
-        retryBtn.setStyle("-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 10 24 10 24; -fx-background-radius: 20; -fx-cursor: hand;");
+        Button retryBtn = new Button("Retry Connection");
+        retryBtn.setStyle("-fx-background-color: linear-gradient(to right, #e040a0, #f06292); -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-padding: 8 24; -fx-background-radius: 999; -fx-cursor: hand;");
         retryBtn.setOnAction(e -> {
-            retryBtn.setText("Đang thử lại...");
+            retryBtn.setText("Retrying...");
             retryBtn.setDisable(true);
             loadProductsFromServer();
         });
@@ -438,7 +437,7 @@ public class MainController implements Initializable {
     }
 
     /**
-     * Hàm trung tâm xử lý Data-Driven UI: Lọc bộ đệm (RAM) và vẽ lại màn hình
+     * Core Data-Driven UI handler: Filter buffer (RAM) and redraw screen
      */
     private void filterAndRenderProducts() {
         if (showingAccountScreen || showingCompactListScreen) {
@@ -454,7 +453,7 @@ public class MainController implements Initializable {
 
             List<Integer> newIdsToRender = new ArrayList<>();
 
-            // Bước 1: Tính toán danh sách ID sẽ hiển thị sau khi lọc
+            // Step 1: Calculate the list of IDs to display after filtering
             for (JSONObject sessionObj : allProducts) {
                 JSONObject itemObj = getItemObject(sessionObj);
 
@@ -462,25 +461,25 @@ public class MainController implements Initializable {
                 String type = itemObj.optString("type", "");
                 String status = normalizeSession(sessionObj);
 
-                // Chỉ chặn đứng các phiên bị hủy hoặc đã thanh toán
+                // Only block canceled or paid sessions
                 if ("CLOSED".equalsIgnoreCase(status)) {
                     continue;
                 }
 
-                // Logic lọc 3 lớp
+                // 3-layer filtering logic
                 boolean matchKeyword = keyword.isEmpty() || name.toLowerCase().contains(keyword);
-                boolean matchCategory = "Tất cả".equals(selectedCategory) || type.equalsIgnoreCase(selectedCategory);
+                boolean matchCategory = "All".equals(selectedCategory) || type.equalsIgnoreCase(selectedCategory);
                 boolean matchWatchlist = !showingWatchlistOnly || User.watchlistIds.contains(sessionObj.optInt("id"));
                 boolean matchMySessions = !showingMySessionsOnly || isSessionOwnedByCurrentUser(sessionObj);
 
                 boolean matchStatus = false;
-                if ("Tất cả".equals(selectedStatus) || selectedStatus == null) {
+                if ("All".equals(selectedStatus) || selectedStatus == null) {
                     matchStatus = true;
-                } else if ("Đang diễn ra".equals(selectedStatus)) {
+                } else if ("Ongoing".equals(selectedStatus)) {
                     matchStatus = "RUNNING".equalsIgnoreCase(status);
-                } else if ("Sắp bắt đầu".equals(selectedStatus)) {
+                } else if ("Starting Soon".equals(selectedStatus)) {
                     matchStatus = "UPCOMING".equalsIgnoreCase(status);
-                } else if ("Đã kết thúc".equals(selectedStatus)) {
+                } else if ("Ended".equals(selectedStatus)) {
                     matchStatus = "ENDED".equalsIgnoreCase(status);
                 }
 
@@ -489,10 +488,10 @@ public class MainController implements Initializable {
                 }
             }
 
-            // Bước 2: So sánh xem danh sách hiển thị có bị đổi không (thêm/bớt/đổi bộ lọc)
+            // Step 2: Check if the display list has changed (add/remove/change filters)
             if (forceRenderProducts || !currentRenderedIds.equals(newIdsToRender)) {
                 forceRenderProducts = false;
-                // Có sự thay đổi => Vẽ lại toàn bộ
+                // Changes detected => Redraw everything
                 productContainer.getChildren().clear();
                 currentRenderedIds.clear();
 
@@ -518,16 +517,16 @@ public class MainController implements Initializable {
                     }
 
                     boolean matchKeyword = keyword.isEmpty() || name.toLowerCase().contains(keyword);
-                    boolean matchCategory = "Tất cả".equals(selectedCategory) || type.equalsIgnoreCase(selectedCategory);
+                    boolean matchCategory = "All".equals(selectedCategory) || type.equalsIgnoreCase(selectedCategory);
                     
                     boolean matchStatus = false;
-                    if ("Tất cả".equals(selectedStatus) || selectedStatus == null) {
+                    if ("All".equals(selectedStatus) || selectedStatus == null) {
                         matchStatus = true;
-                    } else if ("Đang diễn ra".equals(selectedStatus)) {
+                    } else if ("Ongoing".equals(selectedStatus)) {
                         matchStatus = "RUNNING".equalsIgnoreCase(status);
-                    } else if ("Sắp bắt đầu".equals(selectedStatus)) {
+                    } else if ("Starting Soon".equals(selectedStatus)) {
                         matchStatus = "UPCOMING".equalsIgnoreCase(status);
-                    } else if ("Đã kết thúc".equals(selectedStatus)) {
+                    } else if ("Ended".equals(selectedStatus)) {
                         matchStatus = "ENDED".equalsIgnoreCase(status);
                     }
                     
@@ -544,7 +543,7 @@ public class MainController implements Initializable {
                 }
                 updateGridLayout();
             } else {
-                // Cấu trúc không đổi (chỉ là Polling lấy được giá mới) => Cập nhật Label tại chỗ để không giật UI
+                // Structure unchanged (polling only got new price) => Update Label in place to avoid UI jitter
                 for (JSONObject sessionObj : allProducts) {
                     int id = sessionObj.optInt("id");
                     if (currentRenderedIds.contains(id)) {
@@ -766,12 +765,12 @@ public class MainController implements Initializable {
 
     private void showCategoryChooser() {
         ChoiceDialog<String> dialog = new ChoiceDialog<>(
-                cbCategory.getValue() == null ? "Tất cả" : cbCategory.getValue(),
-                "Tất cả", "Electronics", "Art", "Vehicle"
+                cbCategory.getValue() == null ? "All" : cbCategory.getValue(),
+                "All", "Electronics", "Art", "Vehicle"
         );
-        dialog.setTitle("Danh mục");
-        dialog.setHeaderText("Chọn danh mục muốn xem");
-        dialog.setContentText("Danh mục:");
+        dialog.setTitle("Category");
+        dialog.setHeaderText("Select category to view");
+        dialog.setContentText("Category:");
 
         Optional<String> result = dialog.showAndWait();
         if (result.isEmpty()) {
@@ -822,7 +821,7 @@ public class MainController implements Initializable {
         showingCompactListScreen = false;
         hideFilterControlsForAccountPage(false);
         if (User.getId() == null) {
-            showWarning("Yêu cầu đăng nhập", "Vui lòng đăng nhập để xem phiên đấu giá của bạn.");
+            showWarning("Login Required", "Please log in to view your auction sessions.");
             return;
         }
         showingWatchlistOnly = false;
@@ -838,7 +837,7 @@ public class MainController implements Initializable {
         showingCompactListScreen = false;
         hideFilterControlsForAccountPage(false);
         if (User.getId() == null) {
-            showWarning("Yêu cầu đăng nhập", "Vui lòng đăng nhập để xem các phiên bạn đang đấu giá.");
+            showWarning("Login Required", "Please log in to view your active bids.");
             return;
         }
 
@@ -862,13 +861,13 @@ public class MainController implements Initializable {
 
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() != 200) {
-                    Platform.runLater(() -> showError("Không thể tải My Bids", "Server phản hồi mã lỗi: " + response.statusCode()));
+                    Platform.runLater(() -> showError("Cannot Load My Bids", "Server responded with error code: " + response.statusCode()));
                     return;
                 }
 
                 JSONObject responseJson = new JSONObject(response.body());
                 if (responseJson.optInt("status", 500) != 200) {
-                    Platform.runLater(() -> showError("Không thể tải My Bids", responseJson.optString("message", "Lỗi không xác định.")));
+                    Platform.runLater(() -> showError("Cannot Load My Bids", responseJson.optString("message", "Unknown error.")));
                     return;
                 }
 
@@ -880,8 +879,8 @@ public class MainController implements Initializable {
                     filterAndRenderProducts();
                 });
             } catch (Exception e) {
-                logger.error("Lỗi khi tải phiên đang đấu giá của user {}: {}", bidderId, e.getMessage(), e);
-                Platform.runLater(() -> showError("Không thể tải My Bids", "Không thể kết nối đến máy chủ hoặc dữ liệu trả về không hợp lệ."));
+                logger.error("Error loading bids for user {}: {}", bidderId, e.getMessage(), e);
+                Platform.runLater(() -> showError("Cannot Load My Bids", "Cannot connect to server or invalid data returned."));
             }
         }, "load-my-bidding-sessions").start();
     }
@@ -945,17 +944,17 @@ public class MainController implements Initializable {
     }
 
     private String getEmptyStateTitle() {
-        if (showingMyBidsOnly) return "Chưa có phiên đang đấu giá";
-        if (showingMySessionsOnly) return "Chưa có phiên của bạn";
-        if (showingWatchlistOnly) return "Watchlist đang trống";
-        return "Không có phiên phù hợp";
+        if (showingMyBidsOnly) return "No active bids";
+        if (showingMySessionsOnly) return "No sessions created by you";
+        if (showingWatchlistOnly) return "Watchlist is empty";
+        return "No matching sessions found";
     }
 
     private String getEmptyStateMessage() {
-        if (showingMyBidsOnly) return "Các phiên bạn đã từng đặt giá sẽ xuất hiện tại đây.";
-        if (showingMySessionsOnly) return "Các phiên đấu giá do bạn tạo sẽ xuất hiện tại đây.";
-        if (showingWatchlistOnly) return "Hãy bấm biểu tượng yêu thích trên phiên đấu giá để thêm vào Watchlist.";
-        return "Thử đổi từ khóa tìm kiếm, thể loại hoặc trạng thái lọc.";
+        if (showingMyBidsOnly) return "Sessions you bid on will appear here.";
+        if (showingMySessionsOnly) return "Auctions created by you will appear here.";
+        if (showingWatchlistOnly) return "Click the heart icon on an auction to add it to your Watchlist.";
+        return "Try changing search keywords, category or status filters.";
     }
 
     private VBox createProductCard(JSONObject sessionObj, JSONObject itemObj) {
@@ -1026,7 +1025,7 @@ public class MainController implements Initializable {
         }
 
         if ("ENDED".equals(normalizedStatus) || "CLOSED".equals(normalizedStatus)) {
-            // Chỉ làm mờ ảnh để dễ nhận biết, chữ giá và tên vẫn sáng rõ
+            // Slightly blur image to indicate ended, text remains visible
             imageWrapper.setOpacity(0.5);
         }
 
@@ -1048,13 +1047,13 @@ public class MainController implements Initializable {
             timerIcon.setStyle("-fx-text-fill: #ffffff; -fx-font-size: 14px;");
             timerText.setStyle("-fx-font-weight: 900; -fx-font-size: 11px; -fx-text-fill: #ffffff; -fx-text-alignment: center;");
             
-            String displayStart = "Sắp mở";
+            String displayStart = "Opening Soon";
             if (startDT != null) {
                 LocalDateTime now = LocalDateTime.now();
                 if (startDT.toLocalDate().equals(now.toLocalDate())) {
-                    displayStart = "Sắp mở\nBắt đầu: " + startDT.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
+                    displayStart = "Opening Soon\nStarts: " + startDT.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
                 } else {
-                    displayStart = "Sắp mở\nBắt đầu: " + startDT.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM HH:mm"));
+                    displayStart = "Opening Soon\nStarts: " + startDT.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM HH:mm"));
                 }
             }
             timerText.setText(displayStart);
@@ -1069,7 +1068,7 @@ public class MainController implements Initializable {
             timerText.setStyle("-fx-font-weight: 900; -fx-font-size: 11px; -fx-text-fill: #e040a0;");
             
             // Calculate remaining time immediately on creation
-            String displayRemaining = "Đang diễn ra";
+            String displayRemaining = "Ongoing";
             if (endDT != null) {
                 LocalDateTime now = LocalDateTime.now();
                 java.time.Duration dur = java.time.Duration.between(now, endDT);
@@ -1078,13 +1077,13 @@ public class MainController implements Initializable {
                 long minutes = dur.toMinutesPart();
                 long seconds = dur.toSecondsPart();
                 if (days > 0) {
-                    displayRemaining = "Còn " + days + "d " + hours + "h";
+                    displayRemaining = "Ends in " + days + "d " + hours + "h";
                 } else if (hours > 0) {
-                    displayRemaining = "Còn " + hours + "h " + minutes + "m";
+                    displayRemaining = "Ends in " + hours + "h " + minutes + "m";
                 } else if (minutes > 0 || seconds > 0) {
-                    displayRemaining = "Còn " + minutes + "m " + seconds + "s";
+                    displayRemaining = "Ends in " + minutes + "m " + seconds + "s";
                 } else {
-                    displayRemaining = "Đã kết thúc";
+                    displayRemaining = "Ended";
                 }
             }
             timerText.setText(displayRemaining);
@@ -1098,11 +1097,11 @@ public class MainController implements Initializable {
             timerIcon.setStyle("-fx-text-fill: #ffffff; -fx-font-size: 14px;");
             timerText.setStyle("-fx-font-weight: 900; -fx-font-size: 11px; -fx-text-fill: #ffffff;");
             
-            String endLabel = "Đã kết thúc";
+            String endLabel = "Ended";
             if ("CANCELED".equalsIgnoreCase(rawStatus)) {
-                endLabel = "Đã hủy";
+                endLabel = "Canceled";
             } else if ("PAID".equalsIgnoreCase(rawStatus)) {
-                endLabel = "Đã thanh toán";
+                endLabel = "Paid";
             }
             timerText.setText(endLabel);
             
@@ -1115,7 +1114,7 @@ public class MainController implements Initializable {
             timerBadge.setStyle("-fx-background-color: rgba(220, 53, 69, 0.9); -fx-background-radius: 15px; -fx-padding: 4px 8px;");
             timerIcon.setStyle("-fx-text-fill: #ffffff; -fx-font-size: 14px;");
             timerText.setStyle("-fx-font-weight: 900; -fx-font-size: 11px; -fx-text-fill: #ffffff;");
-            timerText.setText("Không rõ thời gian");
+            timerText.setText("Unknown time");
             
             timerBadge.getChildren().addAll(timerIcon, timerText);
             StackPane.setAlignment(timerBadge, Pos.TOP_RIGHT);
@@ -1142,7 +1141,7 @@ public class MainController implements Initializable {
         Label lblCurrentBid = new Label("CURRENT BID");
         lblCurrentBid.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #907898;");
         Label priceLabel = new Label("₫ " + formatPrice(currentPrice));
-        priceLabel.setId("priceLabel_" + id); // Đặt ID để cập nhật nhanh
+        priceLabel.setId("priceLabel_" + id); // Set ID for fast updating
         priceLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 18px; -fx-text-fill: #e040a0;");
         priceBox.getChildren().addAll(lblCurrentBid, priceLabel);
 
@@ -1171,7 +1170,7 @@ public class MainController implements Initializable {
         mainBtn.setPadding(Insets.EMPTY);
         mainBtn.setAlignment(Pos.CENTER);
         mainBtn.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
-        Tooltip.install(mainBtn, new Tooltip("Tùy chọn"));
+        Tooltip.install(mainBtn, new Tooltip("Options"));
 
         Button btnWatch = new Button();
         Label watchIcon = new Label(User.watchlistIds.contains(id) ? "\uE87D" : "\uE87E"); // heart filled or outline
@@ -1189,7 +1188,7 @@ public class MainController implements Initializable {
         btnWatch.setPadding(Insets.EMPTY);
         btnWatch.setAlignment(Pos.CENTER);
         btnWatch.setStyle("-fx-background-color: #f2e8f2; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
-        Tooltip.install(btnWatch, new Tooltip(User.watchlistIds.contains(id) ? "Đã yêu thích" : "Thêm vào yêu thích"));
+        Tooltip.install(btnWatch, new Tooltip(User.watchlistIds.contains(id) ? "Favorited" : "Add to favorites"));
 
         Button btnBid = new Button();
         Label bidIcon = new Label("\uE8CC"); // shopping cart / bid
@@ -1208,7 +1207,7 @@ public class MainController implements Initializable {
         btnBid.setPadding(Insets.EMPTY);
         btnBid.setAlignment(Pos.CENTER);
         btnBid.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224,64,160,0.3), 8, 0, 0, 2);");
-        Tooltip.install(btnBid, new Tooltip("Đấu giá ngay"));
+        Tooltip.install(btnBid, new Tooltip("Bid Now"));
 
         btnWatch.setVisible(false); btnWatch.setManaged(false);
         btnBid.setVisible(false); btnBid.setManaged(false);
@@ -1228,9 +1227,9 @@ public class MainController implements Initializable {
                 event.consume();
                 if (User.getId() == null) {
                     Alert alert = new Alert(Alert.AlertType.WARNING);
-                    alert.setTitle("Yêu cầu đăng nhập");
+                    alert.setTitle("Login Required");
                     alert.setHeaderText(null);
-                    alert.setContentText("Vui lòng đăng nhập để sử dụng tính năng Yêu thích!");
+                    alert.setContentText("Please log in to use the Favorites feature!");
                     alert.show();
                     return;
                 }
@@ -1239,14 +1238,14 @@ public class MainController implements Initializable {
                     watchIcon.setText("\uE87E");
                     watchIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #604868;");
                     watchIcon.setTranslateY(1.5);
-                    Tooltip.install(btnWatch, new Tooltip("Thêm vào yêu thích"));
+                    Tooltip.install(btnWatch, new Tooltip("Add to favorites"));
                     ClientLogger.logFavorite(User.getUsername(), name, id, false);
                 } else {
                     User.watchlistIds.add(id);
                     watchIcon.setText("\uE87D");
                     watchIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #e040a0;");
                     watchIcon.setTranslateY(1.5);
-                    Tooltip.install(btnWatch, new Tooltip("Đã yêu thích"));
+                    Tooltip.install(btnWatch, new Tooltip("Favorited"));
                     ClientLogger.logFavorite(User.getUsername(), name, id, true);
                 }
                 if (showingWatchlistOnly) {
@@ -1281,7 +1280,7 @@ public class MainController implements Initializable {
             if ("UPCOMING".equals(normalizedStatus)) {
                 mainPlusIcon.setTextFill(Color.web("#ffffff"));
                 mainBtn.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
-                Tooltip.install(mainBtn, new Tooltip("Xem chi tiết"));
+                Tooltip.install(mainBtn, new Tooltip("View details"));
                 mainBtn.setDisable(false);
                 mainBtn.setOnAction(e -> {
                     e.consume();
@@ -1290,7 +1289,7 @@ public class MainController implements Initializable {
             } else if ("ENDED".equals(normalizedStatus)) {
                 mainPlusIcon.setTextFill(Color.web("#ffffff"));
                 mainBtn.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
-                Tooltip.install(mainBtn, new Tooltip("Xem kết quả"));
+                Tooltip.install(mainBtn, new Tooltip("View results"));
                 mainBtn.setDisable(false);
                 mainBtn.setOnAction(e -> {
                     e.consume();
@@ -1300,7 +1299,7 @@ public class MainController implements Initializable {
                 // UNKNOWN_TIME
                 mainPlusIcon.setTextFill(Color.web("#888888"));
                 mainBtn.setStyle("-fx-background-color: #cccccc; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: default;");
-                Tooltip.install(mainBtn, new Tooltip("Không rõ thời gian đấu giá"));
+                Tooltip.install(mainBtn, new Tooltip("Auction time unknown"));
                 mainBtn.setDisable(true);
                 mainBtn.setOnAction(e -> {
                     e.consume(); // prevent click from propagating
@@ -1319,7 +1318,7 @@ public class MainController implements Initializable {
 
     @FXML
     private void handleNotifications(ActionEvent event) {
-        showInfo("Thông báo", buildNotificationSummary());
+        showInfo("Notification", buildNotificationSummary());
     }
 
     @FXML
@@ -1327,7 +1326,7 @@ public class MainController implements Initializable {
         try {
             SceneSwitcher.switchScene(event, "Settings.fxml", 1280, 800);
         } catch (IOException e) {
-            logger.error("Lỗi chuyển sang trang Settings.fxml: ", e);
+            logger.error("Error switching to Settings.fxml: ", e);
         }
     }
 
@@ -1338,7 +1337,7 @@ public class MainController implements Initializable {
 
     private void showAccountScreen() {
         if (User.getId() == null) {
-            showWarning("Yêu cầu đăng nhập", "Vui lòng đăng nhập để xem và sửa thông tin tài khoản.");
+            showWarning("Login Required", "Please log in to view and edit account information.");
             return;
         }
 
@@ -1355,10 +1354,10 @@ public class MainController implements Initializable {
             txtSearch.clear();
         }
         if (cbCategory != null) {
-            cbCategory.setValue("Tất cả");
+            cbCategory.setValue("All");
         }
         if (cbStatus != null) {
-            cbStatus.setValue("Tất cả");
+            cbStatus.setValue("All");
         }
         filterAndRenderProducts();
     }
@@ -1417,7 +1416,7 @@ public class MainController implements Initializable {
                 filterControlsBox.setManaged(!hide);
             }
         } catch (Exception e) {
-            logger.warn("Không thể ẩn/hiện filter controls: {}", e.getMessage());
+            logger.warn("Cannot hide/show filter controls: {}", e.getMessage());
         }
     }
 
@@ -1429,14 +1428,14 @@ public class MainController implements Initializable {
         HBox row = new HBox(14);
         row.setAlignment(Pos.CENTER_LEFT);
 
-        Button backButton = new Button("← Quay lại");
+        Button backButton = new Button("← Back");
         backButton.getStyleClass().add("account-back-btn");
         backButton.setOnAction(e -> returnToAuctionGrid());
 
         VBox titleBox = new VBox(2);
-        Label title = new Label("Tài khoản của tôi");
+        Label title = new Label("My Account");
         title.getStyleClass().add("account-page-title");
-        Label subtitle = new Label("Quản lý hồ sơ, ảnh đại diện và thông tin cá nhân.");
+        Label subtitle = new Label("Manage profile, avatar, and personal information.");
         subtitle.getStyleClass().add("account-page-subtitle");
         titleBox.getChildren().addAll(title, subtitle);
 
@@ -1468,7 +1467,7 @@ public class MainController implements Initializable {
 
         StackPane avatarPane = createAvatarView();
 
-        Label nameLabel = new Label(safeText(User.getFullname(), "Người dùng"));
+        Label nameLabel = new Label(safeText(User.getFullname(), "User"));
         nameLabel.getStyleClass().add("profile-name");
 
         Label emailLabel = new Label(safeText(User.getEmail(), ""));
@@ -1477,7 +1476,7 @@ public class MainController implements Initializable {
         Label roleBadge = new Label(safeText(User.getRole(), "user").toUpperCase());
         roleBadge.getStyleClass().add("profile-role-badge");
 
-        Button btnChangeAvatar = new Button("Đổi ảnh đại diện");
+        Button btnChangeAvatar = new Button("Change Avatar");
         btnChangeAvatar.getStyleClass().add("btn-avatar-change");
         btnChangeAvatar.setOnAction(e -> handleAvatarUpload(btnChangeAvatar));
 
@@ -1568,9 +1567,9 @@ public class MainController implements Initializable {
 
     private void handleAvatarUpload(Button btnChangeAvatar) {
         javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
-        chooser.setTitle("Chọn ảnh đại diện");
+        chooser.setTitle("Select Avatar Image");
         chooser.getExtensionFilters().add(
-                new javafx.stage.FileChooser.ExtensionFilter("Ảnh", "*.jpg", "*.jpeg", "*.png", "*.webp"));
+                new javafx.stage.FileChooser.ExtensionFilter("Image Files", "*.jpg", "*.jpeg", "*.png", "*.webp"));
 
         javafx.stage.Window window = scrollPane.getScene().getWindow();
         java.io.File file = chooser.showOpenDialog(window);
@@ -1578,14 +1577,14 @@ public class MainController implements Initializable {
 
         // Client-side size validation
         if (file.length() > 5 * 1024 * 1024) {
-            showWarning("File quá lớn", "Ảnh đại diện không được vượt quá 5MB.");
+            showWarning("File Too Large", "Avatar image must not exceed 5MB.");
             return;
         }
 
         // Disable button + loading state
         if (btnChangeAvatar != null) {
             btnChangeAvatar.setDisable(true);
-            btnChangeAvatar.setText("Đang tải lên...");
+            btnChangeAvatar.setText("Uploading...");
         }
 
         // Upload on background thread
@@ -1631,17 +1630,17 @@ public class MainController implements Initializable {
                             updateTopBarAvatar(newAvatarUrl);
                         }
                         renderAccountScreen(false);
-                        showInfo("Thành công", "Ảnh đại diện đã được cập nhật.");
+                        showInfo("Success", "Avatar updated successfully.");
                     } else {
-                        String msg = responseJson.optString("message", "Upload thất bại.");
-                        showError("Upload thất bại", msg);
+                        String msg = responseJson.optString("message", "Upload failed.");
+                        showError("Upload Failed", msg);
                         resetAvatarButton(btnChangeAvatar);
                     }
                 });
             } catch (Exception e) {
-                logger.error("Lỗi upload avatar: {}", e.getMessage(), e);
+                logger.error("Avatar upload error: {}", e.getMessage(), e);
                 Platform.runLater(() -> {
-                    showError("Upload thất bại", "Không thể kết nối đến máy chủ.");
+                    showError("Upload Failed", "Cannot connect to server.");
                     resetAvatarButton(btnChangeAvatar);
                 });
             }
@@ -1651,7 +1650,7 @@ public class MainController implements Initializable {
     private void resetAvatarButton(Button btn) {
         if (btn != null) {
             btn.setDisable(false);
-            btn.setText("Đổi ảnh đại diện");
+            btn.setText("Change Avatar");
         }
     }
 
@@ -1675,7 +1674,7 @@ public class MainController implements Initializable {
                 topBarAvatarPane.getChildren().add(icon);
             }
         } catch (Exception e) {
-            logger.warn("Không thể cập nhật avatar trên top bar: {}", e.getMessage());
+            logger.warn("Cannot update avatar on top bar: {}", e.getMessage());
         }
     }
 
@@ -1685,8 +1684,8 @@ public class MainController implements Initializable {
         statsColumn.setMinWidth(200);
 
         statsColumn.getChildren().addAll(
-                createProfileStatCard("Số dư tài khoản", "₫ " + formatPrice(User.getBalance()), "\uE227"),
-                createProfileStatCard("Vai trò", safeText(User.getRole(), "Chưa rõ"), "\uE7FD"),
+                createProfileStatCard("Account Balance", "₫ " + formatPrice(User.getBalance()), "\uE227"),
+                createProfileStatCard("Role", safeText(User.getRole(), "Unknown"), "\uE7FD"),
                 createProfileStatCard("User ID", String.valueOf(User.getId()), "\uE838")
         );
         return statsColumn;
@@ -1721,24 +1720,24 @@ public class MainController implements Initializable {
         card.getStyleClass().add("account-form-card");
         card.setMaxWidth(1250);
 
-        Label formTitle = new Label("Thông tin cá nhân");
+        Label formTitle = new Label("Personal Information");
         formTitle.getStyleClass().add("account-form-title");
 
         GridPane form = new GridPane();
         form.setHgap(20);
         form.setVgap(16);
 
-        TextField usernameField = createAccountField(safeText(User.getUsername(), ""), "Tên đăng nhập");
-        TextField fullnameField = createAccountField(safeText(User.getFullname(), ""), "Họ tên hiển thị");
+        TextField usernameField = createAccountField(safeText(User.getUsername(), ""), "Username");
+        TextField fullnameField = createAccountField(safeText(User.getFullname(), ""), "Full Name");
         TextField emailField = createAccountField(safeText(User.getEmail(), ""), "email@example.com");
-        TextField dobField = createAccountField(safeText(User.getDob(), ""), "YYYY-MM-DD hoặc để trống");
-        TextField placeField = createAccountField(safeText(User.getPlace_of_birth(), ""), "Nơi sinh");
+        TextField dobField = createAccountField(safeText(User.getDob(), ""), "YYYY-MM-DD or leave blank");
+        TextField placeField = createAccountField(safeText(User.getPlace_of_birth(), ""), "Place of Birth");
 
-        addAccountFormRow(form, 0, "Tên đăng nhập", usernameField);
-        addAccountFormRow(form, 1, "Họ tên", fullnameField);
+        addAccountFormRow(form, 0, "Username", usernameField);
+        addAccountFormRow(form, 1, "Full Name", fullnameField);
         addAccountFormRow(form, 2, "Email", emailField);
-        addAccountFormRow(form, 3, "Ngày sinh", dobField);
-        addAccountFormRow(form, 4, "Nơi sinh", placeField);
+        addAccountFormRow(form, 3, "Date of Birth", dobField);
+        addAccountFormRow(form, 4, "Place of Birth", placeField);
 
         // Make fields stretch
         javafx.scene.layout.ColumnConstraints col0 = new javafx.scene.layout.ColumnConstraints();
@@ -1753,12 +1752,12 @@ public class MainController implements Initializable {
         actions.setAlignment(Pos.CENTER_RIGHT);
         actions.setPadding(new Insets(8, 0, 0, 0));
 
-        Button reloadButton = new Button("Tải lại thông tin");
+        Button reloadButton = new Button("Reload Information");
         reloadButton.setDisable(saving);
         reloadButton.getStyleClass().add("btn-account-secondary");
         reloadButton.setOnAction(e -> loadLatestAccountProfileForScreen());
 
-        Button saveButton = new Button(saving ? "Đang lưu..." : "Lưu thay đổi");
+        Button saveButton = new Button(saving ? "Saving..." : "Save Changes");
         saveButton.setDisable(saving);
         saveButton.getStyleClass().add("btn-account-primary");
         saveButton.setOnAction(e -> {
@@ -1769,15 +1768,15 @@ public class MainController implements Initializable {
             String placeOfBirth = readTrimmed(placeField);
 
             if (username.isBlank()) {
-                showWarning("Thiếu tên đăng nhập", "Tên đăng nhập không được để trống.");
+                showWarning("Username Required", "Username cannot be empty.");
                 return;
             }
             if (fullname.isBlank()) {
-                showWarning("Thiếu họ tên", "Họ tên không được để trống.");
+                showWarning("Full Name Required", "Full Name cannot be empty.");
                 return;
             }
             if (email.isBlank() || !email.contains("@")) {
-                showWarning("Email không hợp lệ", "Vui lòng nhập email hợp lệ.");
+                showWarning("Invalid Email", "Please enter a valid email.");
                 return;
             }
 
@@ -1847,7 +1846,7 @@ public class MainController implements Initializable {
                     }
                 }
             } catch (Exception e) {
-                logger.warn("Không thể tải lại thông tin tài khoản: {}", e.getMessage());
+                logger.warn("Cannot reload account info: {}", e.getMessage());
             }
         }, "load-account-profile").start();
     }
@@ -1886,7 +1885,7 @@ public class MainController implements Initializable {
                 HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
                 JSONObject responseJson = new JSONObject(response.body());
                 int status = responseJson.optInt("status", response.statusCode());
-                String message = responseJson.optString("message", "Cập nhật thông tin hoàn tất.");
+                String message = responseJson.optString("message", "Profile updated successfully.");
 
                 if (response.statusCode() == 200 && status == 200) {
                     JSONObject data = responseJson.optJSONObject("data");
@@ -1897,19 +1896,19 @@ public class MainController implements Initializable {
                     }
                     Platform.runLater(() -> {
                         renderAccountScreen(false);
-                        showInfo("Tài khoản", message);
+                        showInfo("Account", message);
                     });
                 } else {
                     Platform.runLater(() -> {
                         renderAccountScreen(false);
-                        showError("Cập nhật thất bại", message);
+                        showError("Update Failed", message);
                     });
                 }
             } catch (Exception e) {
-                logger.error("Lỗi khi cập nhật tài khoản: {}", e.getMessage(), e);
+                logger.error("Error updating account: {}", e.getMessage(), e);
                 Platform.runLater(() -> {
                     renderAccountScreen(false);
-                    showError("Cập nhật thất bại", "Không thể kết nối đến máy chủ hoặc dữ liệu trả về không hợp lệ.");
+                    showError("Update Failed", "Cannot connect to server or invalid data returned.");
                 });
             }
         }, "update-account-profile").start();
@@ -1939,12 +1938,12 @@ public class MainController implements Initializable {
             }
         }
 
-        return "Tổng số phiên đang tải: " + total
-                + "\nPhiên đang hoạt động: " + active
-                + "\nPhiên đã kết thúc: " + ended
-                + "\nPhiên trong Watchlist: " + watchlist
-                + "\nPhiên của tôi: " + mySessions
-                + "\nSố dư hiện tại: ₫ " + formatPrice(User.getBalance());
+        return "Total sessions loading: " + total
+                + "\nActive sessions: " + active
+                + "\nEnded sessions: " + ended
+                + "\nWatchlist sessions: " + watchlist
+                + "\nMy sessions: " + mySessions
+                + "\nCurrent balance: ₫ " + formatPrice(User.getBalance());
     }
 
     private void showCompactAuctionList() {
@@ -1968,16 +1967,16 @@ public class MainController implements Initializable {
         header.setMaxWidth(900);
 
         VBox titleBox = new VBox(2);
-        Label title = new Label("Danh sách phiên rút gọn");
+        Label title = new Label("Compact Session List");
         title.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 26px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
-        Label subtitle = new Label("Các phiên đang hiển thị theo bộ lọc hiện tại.");
+        Label subtitle = new Label("Sessions currently displayed based on filters.");
         subtitle.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #907898;");
         titleBox.getChildren().addAll(title, subtitle);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Button backButton = new Button("Quay lại dạng lưới");
+        Button backButton = new Button("Back to Grid");
         backButton.setStyle("-fx-background-color: #e040a0; -fx-background-radius: 999; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-padding: 9 22 9 22; -fx-cursor: hand;");
         backButton.setOnAction(e -> returnToAuctionGrid());
         header.getChildren().addAll(titleBox, spacer, backButton);
@@ -1990,9 +1989,9 @@ public class MainController implements Initializable {
             empty.setAlignment(Pos.CENTER);
             empty.setPadding(new Insets(60));
             empty.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 22px; -fx-border-color: #ffe8e8; -fx-border-radius: 22px; -fx-border-width: 2px;");
-            Label emptyTitle = new Label("Không có phiên nào trong bộ lọc hiện tại");
+            Label emptyTitle = new Label("No sessions found with current filters");
             emptyTitle.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
-            Label emptyMsg = new Label("Hãy đổi bộ lọc hoặc quay lại dạng lưới.");
+            Label emptyMsg = new Label("Try changing filters or return to grid view.");
             emptyMsg.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #907898;");
             empty.getChildren().addAll(emptyTitle, emptyMsg);
             listBox.getChildren().add(empty);
@@ -2040,9 +2039,9 @@ public class MainController implements Initializable {
         order.setStyle("-fx-background-color: #ffd6ee; -fx-background-radius: 17px; -fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: 900; -fx-text-fill: #e040a0;");
 
         VBox infoBox = new VBox(3);
-        Label name = new Label("#" + sessionObj.optInt("id") + " · " + itemObj.optString("name", "Không tên"));
+        Label name = new Label("#" + sessionObj.optInt("id") + " · " + itemObj.optString("name", "Unknown"));
         name.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
-        Label type = new Label(itemObj.optString("type", "Không rõ danh mục"));
+        Label type = new Label(itemObj.optString("type", "Unknown category"));
         type.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-text-fill: #907898;");
         infoBox.getChildren().addAll(name, type);
 
@@ -2085,8 +2084,8 @@ public class MainController implements Initializable {
 
     private void resetFiltersAndShowAll() {
         txtSearch.clear();
-        cbCategory.setValue("Tất cả");
-        cbStatus.setValue("Tất cả");
+        cbCategory.setValue("All");
+        cbStatus.setValue("All");
         showAllSessions();
         if (sidebarController != null) {
             sidebarController.setActiveDashboard();
@@ -2101,8 +2100,8 @@ public class MainController implements Initializable {
         try {
             SceneSwitcher.switchScene(event, "Deposit.fxml", 1280, 800);
         } catch (IOException e) {
-            logger.error("Lỗi khi chuyển sang trang nạp tiền: ", e);
-            showError("Lỗi", "Không thể tải trang Nạp tiền.");
+            logger.error("Error switching to deposit page: ", e);
+            showError("Error", "Cannot load Deposit page.");
         }
     }
 
@@ -2182,7 +2181,7 @@ public class MainController implements Initializable {
     }
 
     private void showInfo(String title, String message) {
-        if (title.toLowerCase().contains("thành công")) {
+        if (title.toLowerCase().contains("success")) {
             showToast(title, message, ToastType.SUCCESS);
         } else {
             showToast(title, message, ToastType.INFO);
@@ -2215,17 +2214,16 @@ public class MainController implements Initializable {
     }
 
     /**
-     * Kết nối Socket để nhận event real-time từ server (VD: AUCTION_ENDED)
-     * Reuse hạ tầng Socket của nhphan0505, gửi command JOIN_HOME để đăng ký nhận event global.
+     * Connect Socket to receive real-time events from server (e.g. AUCTION_ENDED)
+     * Reuse Socket infrastructure, send JOIN_HOME command to register for global events.
      */
     private void connectHomeSocket() {
         Thread homeSocketThread = new Thread(() -> {
-            try {
-                Socket socket = new Socket(Config.SOCKET_HOST, Config.PORT_SOCKET);
+            try (Socket socket = new Socket(Config.SOCKET_HOST, Config.PORT_SOCKET)) {
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 java.io.PrintWriter out = new java.io.PrintWriter(socket.getOutputStream(), true);
 
-                // Đăng ký với server rằng đây là client Home
+                // Register with server that this is Home client
                 out.println("JOIN_HOME");
 
                 String line;
@@ -2248,7 +2246,7 @@ public class MainController implements Initializable {
     }
 
     /**
-     * Cập nhật giao diện Card khi phiên đấu giá kết thúc: xám nhạt + vô hiệu hóa nút.
+     * Update Card UI when auction ends: gray out + disable button.
      */
     private void markCardAsEnded(int sessionId) {
         VBox card = sessionCardMap.get(sessionId);
@@ -2256,13 +2254,13 @@ public class MainController implements Initializable {
             card.setOpacity(0.6);
             card.setStyle("-fx-border-color: #dee2e6; -fx-border-radius: 5px; -fx-padding: 10px; -fx-background-color: #f4f4f4;");
 
-            // Tìm Button trong Card và cập nhật
+            // Find Button in Card and update
             card.getChildren().stream()
                     .filter(node -> node instanceof Button)
                     .map(node -> (Button) node)
                     .findFirst()
                     .ifPresent(btn -> {
-                        btn.setText("Hết giờ");
+                        btn.setText("Time's Up");
                         btn.setDisable(true);
                         btn.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white;");
                     });
@@ -2274,7 +2272,7 @@ public class MainController implements Initializable {
         try {
             SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1280, 800);
         } catch (Exception e) {
-            logger.error("Lỗi khi chuyển về trang Quản lý Seller: ", e);
+            logger.error("Error switching back to Seller Dashboard: ", e);
         }
     }
 
@@ -2396,11 +2394,11 @@ public class MainController implements Initializable {
                                 
                                 String text;
                                 if (days > 0) {
-                                    text = "Còn " + days + "d " + hours + "h";
+                                    text = "Ends in " + days + "d " + hours + "h";
                                 } else if (hours > 0) {
-                                    text = "Còn " + hours + "h " + minutes + "m";
+                                    text = "Ends in " + hours + "h " + minutes + "m";
                                 } else {
-                                    text = "Còn " + minutes + "m " + seconds + "s";
+                                    text = "Ends in " + minutes + "m " + seconds + "s";
                                 }
                                 ((Label) node).setText(text);
                             }

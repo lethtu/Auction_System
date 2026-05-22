@@ -58,7 +58,7 @@ public class SceneSwitcher {
         URL xmlResource = SceneSwitcher.class.getResource(path);
 
         if (xmlResource == null) {
-            throw new RuntimeException("Không tìm thấy file FXML: " + path);
+            throw new RuntimeException("FXML file not found: " + path);
         }
 
         FXMLLoader loader = new FXMLLoader(xmlResource);
@@ -75,7 +75,7 @@ public class SceneSwitcher {
         }
 
         if (stage == null) {
-            throw new RuntimeException("Không thể xác định được Stage hiện tại để chuyển cảnh!");
+            throw new RuntimeException("Cannot determine current Stage for scene switching!");
         }
 
         boolean wasMaximized = stage.isMaximized();
@@ -120,7 +120,7 @@ public class SceneSwitcher {
             finalStage.setFullScreen(wasFullScreen);
         });
 
-        logger.info("Đang chuyển sang: {}", fxmlFile);
+        logger.info("Switching to: {}", fxmlFile);
         return loader;
     }
 

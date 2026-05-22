@@ -71,7 +71,7 @@ public class SidebarController {
 
     @FXML
     public void initialize() {
-        // Lưu lại text mặc định
+        // Save default text
         for (javafx.scene.Node node : sidebarContent.getChildren()) {
             if (node instanceof Button) {
                 Button btn = (Button) node;
@@ -79,7 +79,7 @@ public class SidebarController {
             }
         }
 
-        // Kiểm tra xem đã là seller chưa
+        // Check if already a seller
         if (User.getRole() != null && User.getRole().equalsIgnoreCase("seller")) {
             if (btnStartSelling != null) {
                 btnStartSelling.setVisible(false);
@@ -286,7 +286,7 @@ public class SidebarController {
                 if (onBeforeNavigate != null) onBeforeNavigate.run();
                 SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
             } catch (IOException e) {
-                logger.error("Lỗi chuyển cảnh về MainTemplate: ", e);
+                logger.error("Error switching to MainTemplate: ", e);
             }
         }
     }
@@ -303,7 +303,7 @@ public class SidebarController {
                 MainController.initialShowWatchlist = true;
                 SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
             } catch (IOException e) {
-                logger.error("Lỗi chuyển cảnh về MainTemplate: ", e);
+                logger.error("Error switching to MainTemplate: ", e);
             }
         }
     }
@@ -315,7 +315,7 @@ public class SidebarController {
             if (onBeforeNavigate != null) onBeforeNavigate.run();
             SceneSwitcher.switchScene(event, "UpToSeller.fxml", 1280, 800);
         } catch (IOException e) {
-            logger.error("Lỗi chuyển cảnh sang UpToSeller: ", e);
+            logger.error("Error switching to UpToSeller: ", e);
         }
     }
 
@@ -336,8 +336,8 @@ public class SidebarController {
                 Platform.runLater(() -> stage.setMaximized(true));
             }
         } catch (IOException e) {
-            logger.error("Lỗi chuyển cảnh sang MyBids.fxml: ", e);
-            showInfo("My Bids", "Không thể mở màn My Bids. Vui lòng thử lại.");
+            logger.error("Error switching to MyBids.fxml: ", e);
+            showInfo("My Bids", "Cannot open My Bids screen. Please try again.");
         }
     }
 
@@ -358,8 +358,8 @@ public class SidebarController {
                 Platform.runLater(() -> stage.setMaximized(true));
             }
         } catch (IOException e) {
-            logger.error("Lỗi chuyển cảnh sang SellerDashboard: ", e);
-            showInfo("Selling", "Không thể mở Seller Dashboard. Vui lòng thử lại.");
+            logger.error("Error switching to SellerDashboard: ", e);
+            showInfo("Selling", "Cannot open Seller Dashboard. Please try again.");
         }
     }
 
@@ -380,8 +380,8 @@ public class SidebarController {
                 Platform.runLater(() -> stage.setMaximized(true));
             }
         } catch (IOException e) {
-            logger.error("Lỗi chuyển cảnh sang Support.fxml: ", e);
-            showInfo("Support", "Không thể mở màn hỗ trợ. Vui lòng thử lại.");
+            logger.error("Error switching to Support.fxml: ", e);
+            showInfo("Support", "Cannot open support screen. Please try again.");
         }
     }
 
@@ -402,8 +402,8 @@ public class SidebarController {
                 Platform.runLater(() -> stage.setMaximized(true));
             }
         } catch (IOException e) {
-            logger.error("Lỗi chuyển cảnh sang Settings.fxml: ", e);
-            showInfo("Settings", "Không thể mở màn cài đặt. Vui lòng thử lại.");
+            logger.error("Error switching to Settings.fxml: ", e);
+            showInfo("Settings", "Cannot open settings screen. Please try again.");
         }
     }
 

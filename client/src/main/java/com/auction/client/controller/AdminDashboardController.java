@@ -30,17 +30,17 @@ public class AdminDashboardController {
     private static final int LOGIN_HEIGHT = 500;
 
     private static final String CURRENCY_SUFFIX = " VND";
-    private static final String USER_BANNED_TEXT = "Đã khóa";
-    private static final String USER_ACTIVE_TEXT = "Hoạt động";
-    private static final String PRODUCT_VISIBLE_TEXT = "Đang hiện";
-    private static final String PRODUCT_HIDDEN_TEXT = "Đang ẩn";
+    private static final String USER_BANNED_TEXT = "Banned";
+    private static final String USER_ACTIVE_TEXT = "Active";
+    private static final String PRODUCT_VISIBLE_TEXT = "Visible";
+    private static final String PRODUCT_HIDDEN_TEXT = "Hidden";
     private static final String ACTIVE_NAV_CLASS = "active-admin-nav";
 
-    private static final String NO_SESSION_SELECTED_TITLE = "Chưa chọn phiên";
-    private static final String NO_USER_SELECTED_TITLE = "Chưa chọn user";
+    private static final String NO_SESSION_SELECTED_TITLE = "No session selected";
+    private static final String NO_USER_SELECTED_TITLE = "No user selected";
 
-    private static final String INVALID_ADMIN_ID_MESSAGE = "Không lấy được ID admin hiện tại.";
-    private static final String INVALID_API_RESULT_MESSAGE = "Server không trả về kết quả hợp lệ.";
+    private static final String INVALID_ADMIN_ID_MESSAGE = "Cannot get current admin ID.";
+    private static final String INVALID_API_RESULT_MESSAGE = "Server did not return a valid result.";
 
     private final AdminDashboardService adminDashboardService = new AdminDashboardService();
     private final NumberFormat currencyFormat = NumberFormat.getNumberInstance(Locale.forLanguageTag("vi-VN"));
@@ -92,9 +92,9 @@ public class AdminDashboardController {
 
 
     private void setupAdminTablePolish() {
-        polishTable(tablePending, "Chưa có phiên nào đang chờ duyệt.");
-        polishTable(tableUsers, "Chưa có người dùng nào để hiển thị.");
-        polishTable(tableSessions, "Chưa có phiên đấu giá nào để hiển thị.");
+        polishTable(tablePending, "No sessions pending review.");
+        polishTable(tableUsers, "No users to display.");
+        polishTable(tableSessions, "No auction sessions to display.");
     }
 
     private void polishTable(TableView<?> table, String emptyMessage) {
@@ -217,7 +217,7 @@ public class AdminDashboardController {
         runSelectedAdminAction(
                 tablePending,
                 NO_SESSION_SELECTED_TITLE,
-                "Hãy chọn một phiên để phê duyệt.",
+                "Please select a session to approve.",
                 (selected, adminId) -> adminDashboardService.approveSession(selected.getId(), adminId)
         );
     }
@@ -227,7 +227,7 @@ public class AdminDashboardController {
         PendingSessionRow selected = getSelectedItem(
                 tablePending,
                 NO_SESSION_SELECTED_TITLE,
-                "Hãy chọn một phiên để từ chối."
+                "Please select a session to reject."
         );
 
         if (selected == null) {
@@ -254,7 +254,7 @@ public class AdminDashboardController {
         runSelectedAdminAction(
                 tableUsers,
                 NO_USER_SELECTED_TITLE,
-                "Hãy chọn user cần khóa.",
+                "Please select a user to ban.",
                 (selected, adminId) -> adminDashboardService.banUser(selected.getId(), adminId)
         );
     }
@@ -264,7 +264,7 @@ public class AdminDashboardController {
         AdminUserRow selected = getSelectedItem(
                 tableUsers,
                 NO_USER_SELECTED_TITLE,
-                "Hãy chọn user cần khôi phục."
+                "Please select a user to restore."
         );
 
         if (selected == null) {
@@ -272,7 +272,7 @@ public class AdminDashboardController {
         }
 
         if (!selected.isBanned()) {
-            AlertUtil.showInfo("Tài khoản này đang hoạt động, không cần khôi phục.");
+            AlertUtil.showInfo("This account is already active, no need to restore.");
             return;
         }
 
@@ -291,7 +291,7 @@ public class AdminDashboardController {
         runSelectedAdminAction(
                 tableSessions,
                 NO_SESSION_SELECTED_TITLE,
-                "Hãy chọn phiên cần hủy.",
+                "Please select a session to cancel.",
                 (selected, adminId) -> adminDashboardService.cancelAuction(selected.getId(), adminId)
         );
     }
@@ -301,7 +301,7 @@ public class AdminDashboardController {
         runSelectedAdminAction(
                 tableSessions,
                 NO_SESSION_SELECTED_TITLE,
-                "Hãy chọn sản phẩm cần ẩn.",
+                "Please select a product to hide.",
                 (selected, adminId) -> adminDashboardService.hideProduct(selected.getProductId(), adminId)
         );
     }
@@ -311,7 +311,7 @@ public class AdminDashboardController {
         runSelectedAdminAction(
                 tableSessions,
                 NO_SESSION_SELECTED_TITLE,
-                "Hãy chọn sản phẩm cần hiện.",
+                "Please select a product to show.",
                 (selected, adminId) -> adminDashboardService.showProduct(selected.getProductId(), adminId)
         );
     }
@@ -342,7 +342,7 @@ public class AdminDashboardController {
             User.clearSession();
             SceneSwitcher.switchScene(event, LOGIN_FXML, LOGIN_WIDTH, LOGIN_HEIGHT);
         } catch (Exception e) {
-            AlertUtil.showError(e, "Không thể đăng xuất.");
+            AlertUtil.showError(e, "Cannot log out.");
         }
     }
 
@@ -395,12 +395,12 @@ public class AdminDashboardController {
     }
 
     private String askRejectReason() {
-        String reason = AlertUtil.promptText("Từ chối phiên", "Nhập lý do từ chối:")
+        String reason = AlertUtil.promptText("Reject Session", "Enter rejection reason:")
                 .orElse("")
                 .trim();
 
         if (reason.isEmpty()) {
-            AlertUtil.showWarning("Thiếu lý do", "Vui lòng nhập lý do từ chối.");
+            AlertUtil.showWarning("Missing reason", "Please enter a rejection reason.");
             return null;
         }
 
@@ -414,7 +414,7 @@ public class AdminDashboardController {
         } catch (IllegalStateException e) {
             AlertUtil.showError(e.getMessage());
         } catch (Exception e) {
-            AlertUtil.showError(e, "Không thể thực hiện thao tác admin.");
+            AlertUtil.showError(e, "Cannot perform admin operation.");
         }
     }
 
@@ -481,7 +481,7 @@ public class AdminDashboardController {
         BigDecimal million = BigDecimal.valueOf(1_000_000L);
         if (price.abs().compareTo(million) >= 0) {
             BigDecimal compact = price.divide(million, 1, RoundingMode.HALF_UP).stripTrailingZeros();
-            return compact.toPlainString().replace('.', ',') + " triệu VND";
+            return compact.toPlainString().replace('.', ',') + " million VND";
         }
 
         return formatCurrency(price);
@@ -491,7 +491,7 @@ public class AdminDashboardController {
         loadTableData(
                 tablePending,
                 adminDashboardService::getPendingSessions,
-                "Không thể tải dữ liệu pending từ server."
+                "Cannot load pending data from server."
         );
     }
 
@@ -499,7 +499,7 @@ public class AdminDashboardController {
         loadTableData(
                 tableUsers,
                 adminDashboardService::getAllUsers,
-                "Không thể tải danh sách user từ server."
+                "Cannot load user list from server."
         );
     }
 
@@ -507,7 +507,7 @@ public class AdminDashboardController {
         loadTableData(
                 tableSessions,
                 adminDashboardService::getAllSessions,
-                "Không thể tải danh sách phiên từ server."
+                "Cannot load session list from server."
         );
     }
 

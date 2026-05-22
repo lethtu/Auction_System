@@ -38,8 +38,8 @@ public class PublicAuctionController {
         );
     }
 
-    // Endpoint public cho phép mọi người xem danh sách phiên đấu giá trên màn hình chính.
-    // Trả DTO thay vì entity để tránh lỗi serialize quan hệ JPA và để client đọc ổn định hơn.
+    // Public endpoint allowing everyone to view auction sessions on the main screen.
+    // Returns DTO instead of entity to avoid JPA relationship serialization errors and for stable client reading.
     @GetMapping("/all")
     public ResponseEntity<ApiResponse<List<SessionResponseDTO>>> getAllSessions() {
         List<SessionResponseDTO> sessions = auctionSessionRepository.findAll()
@@ -48,7 +48,7 @@ public class PublicAuctionController {
                 .map(SessionResponseMapper::toDTO)
                 .toList();
 
-        return ResponseEntity.ok(ApiResponse.success("Lấy toàn bộ phiên đấu giá thành công", sessions));
+        return ResponseEntity.ok(ApiResponse.success("All auction sessions retrieved successfully", sessions));
     }
 
     @GetMapping("/stats")

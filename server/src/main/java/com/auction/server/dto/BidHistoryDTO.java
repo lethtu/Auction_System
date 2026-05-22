@@ -3,8 +3,8 @@ package com.auction.server.dto;
 import java.math.BigDecimal;
 
 /**
- * DTO gọn cho Bid History / Chart data.
- * Tránh trả entity Bid trực tiếp (nguy cơ JSON recursion & lazy loading).
+ * Compact DTO for Bid History / Chart data.
+ * Avoids returning Bid entity directly (risk of JSON recursion & lazy loading).
  */
 public class BidHistoryDTO {
 
