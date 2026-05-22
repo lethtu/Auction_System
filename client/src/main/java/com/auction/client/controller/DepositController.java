@@ -64,7 +64,7 @@ public class DepositController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         if (User.getFullname() != null) {
-            createUserOption("Ch\u00e0o, " + User.getFullname());
+            createUserOption("Hello, " + User.getFullname());
         }
 
         
@@ -78,7 +78,7 @@ public class DepositController implements Initializable {
                 try {
                     com.auction.client.controller.SceneSwitcher.switchScene(e, "Settings.fxml", 1280, 800);
                 } catch (IOException ex) {
-                    logger.error("L\u1ed7i chuy\u1ec3n sang trang Settings.fxml: ", ex);
+                    logger.error("Error switching to Settings.fxml: ", ex);
                 }
             });
         }
@@ -100,9 +100,9 @@ public class DepositController implements Initializable {
     }
 
     private void createUserOption(String text) {
-        MenuItem accountItem = new MenuItem("T\u00e0i kho\u1ea3n c\u1ee7a t\u00f4i");
-        MenuItem depositMoney = new MenuItem("N\u1ea1p ti\u1ec1n");
-        MenuItem logoutItem = new MenuItem("\u0110\u0103ng xu\u1ea5t");
+        MenuItem accountItem = new MenuItem("My Account");
+        MenuItem depositMoney = new MenuItem("Deposit");
+        MenuItem logoutItem = new MenuItem("Logout");
 
         accountItem.setOnAction(event -> {
             try {
@@ -111,8 +111,8 @@ public class DepositController implements Initializable {
                 MainController.initialHomeFilterMode = "ACCOUNT";
                 openMainTemplateFromCurrentWindow();
             } catch (IOException e) {
-                logger.error("L\u1ed7i khi chuy\u1ec3n sang trang t\u00e0i kho\u1ea3n: ", e);
-                AlertUtil.showInfo("T\u00e0i kho\u1ea3n", "Kh\u00f4ng th\u1ec3 m\u1edf trang t\u00e0i kho\u1ea3n. Vui l\u00f2ng th\u1eed l\u1ea1i.");
+                logger.error("Error switching to account page: ", e);
+                AlertUtil.showInfo("My Account", "Cannot open account page. Please try again.");
             }
         });
 
@@ -120,7 +120,7 @@ public class DepositController implements Initializable {
             try {
                 handleLogout(event);
             } catch (IOException e) {
-                logger.error("L\u1ed7i khi chuy\u1ec3n sang m\u00e0n h\u00ecnh Login!", e);
+                logger.error("Error switching to Login screen!", e);
             }
         });
 
@@ -152,7 +152,7 @@ public class DepositController implements Initializable {
             ActionEvent actionEvent = new ActionEvent(event.getSource(), event.getTarget());
             SceneSwitcher.switchScene(actionEvent, "MainTemplate.fxml", 1280, 800);
         } catch (Exception e) {
-            logger.error("L\u1ed7i quay l\u1ea1i trang ch\u00ednh: ", e);
+            logger.error("Error returning to main page: ", e);
         }
     }
 
@@ -248,7 +248,7 @@ public class DepositController implements Initializable {
                     }
                 }
             } catch (Exception e) {
-                logger.warn("Kh\u00f4ng th\u1ec3 l\u1ea5y s\u1ed1 d\u01b0 m\u1edbi nh\u1ea5t: {}", e.getMessage());
+                logger.warn("Cannot get latest balance: {}", e.getMessage());
             }
         }).start();
     }
@@ -256,17 +256,17 @@ public class DepositController implements Initializable {
     @FXML
     public void handleConfirmDeposit(ActionEvent event) {
         if (User.getId() == null) {
-            showError("Vui l\u00f2ng \u0111\u0103ng nh\u1eadp tr\u01b0\u1edbc khi n\u1ea1p ti\u1ec1n.");
+            showError("Please log in before depositing.");
             return;
         }
 
         if (currentDepositAmount.compareTo(BigDecimal.ZERO) <= 0) {
-            showWarning("S\u1ed1 ti\u1ec1n kh\u00f4ng h\u1ee3p l\u1ec7", "Vui l\u00f2ng ch\u1ecdn ho\u1eb7c nh\u1eadp s\u1ed1 ti\u1ec1n l\u1edbn h\u01a1n 0 \u0111\u1ec3 n\u1ea1p.");
+            showWarning("Invalid amount", "Please select or enter an amount greater than 0 to deposit.");
             return;
         }
 
         btnConfirmDeposit.setDisable(true);
-        btnConfirmDeposit.setText("\u0110ang x\u1eed l\u00fd...");
+        btnConfirmDeposit.setText("Processing...");
 
         new Thread(() -> {
             try {
@@ -280,10 +280,10 @@ public class DepositController implements Initializable {
                 
                 Platform.runLater(() -> {
                     btnConfirmDeposit.setDisable(false);
-                    btnConfirmDeposit.setText("X\u00e1c nh\u1eadn n\u1ea1p ti\u1ec1n");
+                    btnConfirmDeposit.setText("Confirm Deposit");
                     
                     if (response.statusCode() == 200) {
-                        showInfo("N\u1ea1p ti\u1ec1n th\u00e0nh c\u00f4ng", "B\u1ea1n \u0111\u00e3 n\u1ea1p th\u00e0nh c\u00f4ng " + formatPrice(currentDepositAmount) + " \u20ab v\u00e0o v\u00ed.");
+                        showInfo("Deposit Successful", "You have successfully deposited " + formatPrice(currentDepositAmount) + " ₫ to your wallet.");
                         // Reload balance after successful deposit
                         fetchLatestBalance();
                         // Reset form
@@ -292,15 +292,15 @@ public class DepositController implements Initializable {
                         currentDepositAmount = BigDecimal.ZERO;
                         updateSummary(currentDepositAmount);
                     } else {
-                        showError("N\u1ea1p ti\u1ec1n th\u1ea5t b\u1ea1i. Server tr\u1ea3 v\u1ec1 l\u1ed7i: " + response.statusCode());
+                        showError("Deposit failed. Server returned error: " + response.statusCode());
                     }
                 });
             } catch (Exception e) {
-                logger.error("L\u1ed7i khi n\u1ea1p ti\u1ec1n: {}", e.getMessage(), e);
+                logger.error("Error during deposit: {}", e.getMessage(), e);
                 Platform.runLater(() -> {
                     btnConfirmDeposit.setDisable(false);
-                    btnConfirmDeposit.setText("X\u00e1c nh\u1eadn n\u1ea1p ti\u1ec1n");
-                    showError("Kh\u00f4ng th\u1ec3 k\u1ebft n\u1ed1i \u0111\u1ebfn m\u00e1y ch\u1ee7.");
+                    btnConfirmDeposit.setText("Confirm Deposit");
+                    showError("Cannot connect to the server.");
                 });
             }
         }, "deposit-money").start();
@@ -315,7 +315,7 @@ public class DepositController implements Initializable {
     }
 
     private void showError(String message) {
-        showAlert(Alert.AlertType.ERROR, "L\u1ed7i", message);
+        showAlert(Alert.AlertType.ERROR, "Error", message);
     }
 
     private void showAlert(Alert.AlertType type, String title, String message) {
@@ -365,7 +365,7 @@ public class DepositController implements Initializable {
                 topBarAvatarPane.getChildren().add(icon);
             }
         } catch (Exception e) {
-            logger.warn("Kh\u00f4ng th\u1ec3 c\u1eadp nh\u1eadt avatar tr\u00ean top bar: {}", e.getMessage());
+            logger.warn("Cannot update avatar on top bar: {}", e.getMessage());
         }
     }
 

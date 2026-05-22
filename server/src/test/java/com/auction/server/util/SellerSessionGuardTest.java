@@ -41,14 +41,14 @@ class SellerSessionGuardTest {
     void getSellerById_missingUser_throwsException() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> guard.getSellerById(99));
 
-        assertEquals("Không tìm thấy người bán", ex.getMessage());
+        assertEquals("Seller not found", ex.getMessage());
     }
 
     @Test
     void getSellerById_nullId_throwsCleanException() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> guard.getSellerById(null));
 
-        assertEquals("Không tìm thấy người bán", ex.getMessage());
+        assertEquals("Seller not found", ex.getMessage());
     }
 
     @Test
@@ -59,21 +59,21 @@ class SellerSessionGuardTest {
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> guard.getSellerById(2));
 
-        assertEquals("Người dùng này không phải seller", ex.getMessage());
+        assertEquals("This user is not a seller", ex.getMessage());
     }
 
     @Test
     void getSessionById_missingSession_throwsException() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> guard.getSessionById(10));
 
-        assertEquals("Phiên đấu giá không tồn tại", ex.getMessage());
+        assertEquals("Auction session does not exist", ex.getMessage());
     }
 
     @Test
     void getSessionById_nullId_throwsCleanException() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> guard.getSessionById(null));
 
-        assertEquals("Phiên đấu giá không tồn tại", ex.getMessage());
+        assertEquals("Auction session does not exist", ex.getMessage());
     }
 
     private Seller seller(Integer id) {

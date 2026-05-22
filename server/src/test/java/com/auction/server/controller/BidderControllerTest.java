@@ -42,13 +42,13 @@ public class BidderControllerTest {
     public void testUpToSeller_API_ThanhCong() throws Exception {
         // Giả lập service trả về kết quả thành công
         Mockito.when(bidderService.upToSeller(10))
-                .thenReturn(Map.of("success", true, "message", "Đã nâng cấp tài khoản thành công"));
+                .thenReturn(Map.of("success", true, "message", "Account upgraded successfully"));
 
         mockMvc.perform(post("/api/bidder/up-to-seller")
                         .param("userId", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(200))
-                .andExpect(jsonPath("$.message").value("Đã nâng cấp tài khoản thành công"))
+                .andExpect(jsonPath("$.message").value("Account upgraded successfully"))
                 .andExpect(jsonPath("$.data").value("SUCCESS"));
     }
 
@@ -59,13 +59,13 @@ public class BidderControllerTest {
     @DisplayName("POST /up-to-seller: userId không tồn tại -> HTTP 200 với status 400 trong body")
     public void testUpToSeller_API_KhongTimThayUser() throws Exception {
         Mockito.when(bidderService.upToSeller(999))
-                .thenReturn(Map.of("success", false, "message", "Người dùng không tồn tại"));
+                .thenReturn(Map.of("success", false, "message", "User does not exist"));
 
         mockMvc.perform(post("/api/bidder/up-to-seller")
                         .param("userId", "999"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").value("Người dùng không tồn tại"))
+                .andExpect(jsonPath("$.message").value("User does not exist"))
                 .andExpect(jsonPath("$.data").value("FAILED"));
     }
 
@@ -76,13 +76,13 @@ public class BidderControllerTest {
     @DisplayName("POST /up-to-seller: User đã là SELLER -> HTTP 200 với status 400 trong body")
     public void testUpToSeller_API_DaLaSeller() throws Exception {
         Mockito.when(bidderService.upToSeller(14))
-                .thenReturn(Map.of("success", false, "message", "Tài khoản không phải là BIDDER hoặc đã là SELLER"));
+                .thenReturn(Map.of("success", false, "message", "Account is not a BIDDER or is already a SELLER"));
 
         mockMvc.perform(post("/api/bidder/up-to-seller")
                         .param("userId", "14"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").value("Tài khoản không phải là BIDDER hoặc đã là SELLER"))
+                .andExpect(jsonPath("$.message").value("Account is not a BIDDER or is already a SELLER"))
                 .andExpect(jsonPath("$.data").value("FAILED"));
     }
 }

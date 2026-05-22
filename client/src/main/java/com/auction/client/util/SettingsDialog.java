@@ -4,9 +4,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.stage.Window;
 
 import java.util.prefs.Preferences;
@@ -32,7 +29,7 @@ public final class SettingsDialog {
     public static void show(Window ownerWindow, Runnable onResetFilters, Runnable onReloadData) {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.initOwner(ownerWindow);
-        dialog.setTitle("Cấu hình hệ thống");
+        dialog.setTitle("System Configuration");
         
         DialogPane pane = dialog.getDialogPane();
         pane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -64,9 +61,9 @@ public final class SettingsDialog {
         gearIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 32px; -fx-text-fill: #e040a0;");
 
         VBox titleBox = new VBox(2);
-        Label titleLabel = new Label("Cấu hình ứng dụng");
+        Label titleLabel = new Label("App Configuration");
         titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
-        Label descLabel = new Label("Tùy chỉnh trải nghiệm đấu giá và giao diện của bạn.");
+        Label descLabel = new Label("Customize your auction experience and interface.");
         descLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #907898;");
         titleBox.getChildren().addAll(titleLabel, descLabel);
 
@@ -79,14 +76,14 @@ public final class SettingsDialog {
 
         // Group 1: Notifications
         VBox grpNotifications = new VBox(10);
-        Label lblGrpNotif = new Label("THÔNG BÁO & ÂM THANH");
+        Label lblGrpNotif = new Label("NOTIFICATIONS & SOUNDS");
         lblGrpNotif.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #e040a0; -fx-padding: 0 0 4 0;");
         
-        CheckBox chkOutbid = new CheckBox("Nhận thông báo khi bị vượt giá");
+        CheckBox chkOutbid = new CheckBox("Receive notification when outbid");
         chkOutbid.setSelected(prefs.getBoolean(KEY_OUTBID, true));
         chkOutbid.setStyle("-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-cursor: hand;");
 
-        CheckBox chkSound = new CheckBox("Phát âm thanh thông báo");
+        CheckBox chkSound = new CheckBox("Play notification sounds");
         chkSound.setSelected(prefs.getBoolean(KEY_SOUND, true));
         chkSound.setStyle("-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-cursor: hand;");
 
@@ -95,24 +92,24 @@ public final class SettingsDialog {
 
         // Group 2: UI Experience
         VBox grpUi = new VBox(12);
-        Label lblGrpUi = new Label("GIAO DIỆN & TRẢI NGHIỆM");
+        Label lblGrpUi = new Label("INTERFACE & EXPERIENCE");
         lblGrpUi.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #e040a0; -fx-padding: 4 0 4 0;");
 
-        CheckBox chkCollapse = new CheckBox("Tự động thu gọn thanh bên (Sidebar)");
+        CheckBox chkCollapse = new CheckBox("Auto-collapse sidebar");
         chkCollapse.setSelected(prefs.getBoolean(KEY_AUTO_COLLAPSE, false));
         chkCollapse.setStyle("-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-cursor: hand;");
 
         // Language Dropdown
         HBox rowLang = new HBox(10);
         rowLang.setAlignment(Pos.CENTER_LEFT);
-        Label lblLang = new Label("Ngôn ngữ ứng dụng:");
+        Label lblLang = new Label("App language:");
         lblLang.setStyle("-fx-font-size: 14px; -fx-text-fill: #2e1a28;");
         Region spacerLang = new Region();
         HBox.setHgrow(spacerLang, Priority.ALWAYS);
         
         ComboBox<String> cbLang = new ComboBox<>();
-        cbLang.getItems().addAll("Tiếng Việt", "English");
-        cbLang.setValue(prefs.get(KEY_LANGUAGE, "Tiếng Việt"));
+        cbLang.getItems().addAll("English");
+        cbLang.setValue(prefs.get(KEY_LANGUAGE, "English"));
         cbLang.setStyle("-fx-background-color: #fef7ff; -fx-border-color: #ffe8f2; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-cursor: hand;");
 
         rowLang.getChildren().addAll(lblLang, spacerLang, cbLang);
@@ -120,14 +117,14 @@ public final class SettingsDialog {
         // Accent Color Dropdown
         HBox rowColor = new HBox(10);
         rowColor.setAlignment(Pos.CENTER_LEFT);
-        Label lblColor = new Label("Tông màu chủ đạo:");
+        Label lblColor = new Label("Primary color tone:");
         lblColor.setStyle("-fx-font-size: 14px; -fx-text-fill: #2e1a28;");
         Region spacerColor = new Region();
         HBox.setHgrow(spacerColor, Priority.ALWAYS);
 
         ComboBox<String> cbColor = new ComboBox<>();
-        cbColor.getItems().addAll("Rose Pink (Mặc định)", "Royal Purple", "Emerald Green");
-        cbColor.setValue(prefs.get(KEY_ACCENT_COLOR, "Rose Pink (Mặc định)"));
+        cbColor.getItems().addAll("Rose Pink (Default)", "Royal Purple", "Emerald Green");
+        cbColor.setValue(prefs.get(KEY_ACCENT_COLOR, "Rose Pink (Default)"));
         cbColor.setStyle("-fx-background-color: #fef7ff; -fx-border-color: #ffe8f2; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-cursor: hand;");
 
         rowColor.getChildren().addAll(lblColor, spacerColor, cbColor);
@@ -138,14 +135,14 @@ public final class SettingsDialog {
         // Group 3: Quick Actions (Optional)
         if (onResetFilters != null || onReloadData != null) {
             VBox grpActions = new VBox(10);
-            Label lblGrpActions = new Label("THAO TÁC NHANH");
+            Label lblGrpActions = new Label("QUICK ACTIONS");
             lblGrpActions.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #e040a0; -fx-padding: 4 0 4 0;");
             
             HBox actionButtons = new HBox(12);
             actionButtons.setAlignment(Pos.CENTER_LEFT);
             
             if (onResetFilters != null) {
-                Button btnReset = new Button("Đặt lại bộ lọc");
+                Button btnReset = new Button("Reset Filters");
                 btnReset.setStyle("-fx-background-color: #fff1fa; -fx-text-fill: #8a2b66; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-color: #f6a6d7; -fx-border-radius: 8px; -fx-padding: 6px 14px; -fx-cursor: hand;");
                 btnReset.setOnAction(e -> {
                     onResetFilters.run();
@@ -156,7 +153,7 @@ public final class SettingsDialog {
             }
             
             if (onReloadData != null) {
-                Button btnReload = new Button("Tải lại dữ liệu");
+                Button btnReload = new Button("Reload Data");
                 btnReload.setStyle("-fx-background-color: #fff1fa; -fx-text-fill: #8a2b66; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-color: #f6a6d7; -fx-border-radius: 8px; -fx-padding: 6px 14px; -fx-cursor: hand;");
                 btnReload.setOnAction(e -> {
                     onReloadData.run();
@@ -175,7 +172,7 @@ public final class SettingsDialog {
 
         // Style the buttons
         Button btnOk = (Button) pane.lookupButton(ButtonType.OK);
-        btnOk.setText("Lưu cài đặt");
+        btnOk.setText("Save Settings");
         btnOk.setStyle("-fx-background-color: #e040a0;"
                 + " -fx-text-fill: white;"
                 + " -fx-font-weight: bold;"
@@ -185,7 +182,7 @@ public final class SettingsDialog {
                 + " -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.2), 8, 0, 0, 3);");
 
         Button btnCancel = (Button) pane.lookupButton(ButtonType.CANCEL);
-        btnCancel.setText("Hủy bỏ");
+        btnCancel.setText("Cancel");
         btnCancel.setStyle("-fx-background-color: #fff1fa;"
                 + " -fx-text-fill: #8a2b66;"
                 + " -fx-font-weight: bold;"

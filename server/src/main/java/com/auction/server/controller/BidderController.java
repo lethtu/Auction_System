@@ -6,7 +6,6 @@ import com.auction.server.model.AuctionSession;
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.repository.AuctionSessionRepository;
 import com.auction.server.dto.ApiResponse;
-import com.auction.server.model.*;
 import com.auction.server.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import com.auction.server.service.BidderService;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -38,34 +36,34 @@ public class BidderController {
     @Autowired
     private UserRepository userRepository;
 
-    // API lấy danh sách đang đấu giá (có phân trang)
+    // API to get active auction sessions (paginated)
     @GetMapping("/active-sessions")
     public ApiResponse<Page<AuctionSession>> getActiveSessions(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size) {
-        logger.info("Đang lấy danh sách đấu giá");
-        // Sắp xếp ưu tiên hiển thị những cái mới nhất (theo startTime giảm dần)
+        logger.info("Fetching auction session list");
+        // Sort by newest first (startTime descending)
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "startTime"));
 
-        // Gọi hàm phân trang từ Repository với trạng thái ACTIVE
+        // Call paginated query from Repository with ACTIVE status
         Page<AuctionSession> activeSessions = auctionSessionRepository.findByStatus(AuctionStatus.ACTIVE, pageable);
 
-        // Gói dữ liệu vào ApiResponse chuẩn form
-        return new ApiResponse<>(200, "Lấy danh sách đấu giá thành công", activeSessions);
+        // Wrap data in standard ApiResponse format
+        return new ApiResponse<>(200, "Active auction sessions retrieved successfully", activeSessions);
     }
 
 
     @GetMapping("/my-bidding-sessions")
     public ApiResponse<List<AuctionSession>> getMyBiddingSessions(@RequestParam Integer bidderId) {
         if (bidderId == null || bidderId <= 0) {
-            return new ApiResponse<>(400, "bidderId không hợp lệ", List.of());
+            return new ApiResponse<>(400, "Invalid bidderId", List.of());
         }
 
         List<AuctionSession> sessions = bidRepository.findDistinctSessionsByBidderId(bidderId);
-        return new ApiResponse<>(200, "Lấy danh sách phiên người dùng đang đấu giá thành công", sessions);
+        return new ApiResponse<>(200, "Bidder's auction sessions retrieved successfully", sessions);
     }
 
-    // API Nạp tiền
+    // API to deposit money
     @PostMapping("/deposit")
     public ResponseEntity<?> depositMoney(@RequestParam Integer bidderId, @RequestParam BigDecimal amount) {
         return userRepository.findById(bidderId)
@@ -91,7 +89,7 @@ public class BidderController {
 
     @GetMapping("/my-bids")
     public ApiResponse<java.util.List<com.auction.server.dto.SessionResponseDTO>> getMyBids(@RequestParam Integer bidderId) {
-        logger.info("Đang lấy danh sách các phiên đấu giá đã tham gia của bidderId: {}", bidderId);
+        logger.info("Fetching participated auction sessions for bidderId: {}", bidderId);
         java.util.List<AuctionSession> sessions = bidRepository.findSessionsByBidderId(bidderId);
         java.util.List<com.auction.server.dto.SessionResponseDTO> dtos = sessions.stream()
                 .map(session -> {
@@ -102,6 +100,6 @@ public class BidderController {
                     return dto;
                 })
                 .toList();
-        return new ApiResponse<>(200, "Lấy danh sách đấu giá đã tham gia thành công", dtos);
+        return new ApiResponse<>(200, "Participated auction sessions retrieved successfully", dtos);
     }
 }

@@ -150,14 +150,13 @@
                 
 
                 <!-- Filter controls mapping to cbCategory and cbStatus -->
-
                 <HBox fx:id="filterControlsBox" spacing="12.0" alignment="CENTER_RIGHT" styleClass="filter-controls-bar">
 
-                    <Label text="Lọc:" textFill="#604868" styleClass="filter-label" />
+                    <Label text="Filter:" textFill="#604868" styleClass="filter-label" />
 
-                    <ComboBox fx:id="cbCategory" promptText="Thể loại" prefWidth="150.0" styleClass="filter-combo" />
+                    <ComboBox fx:id="cbCategory" promptText="Category" prefWidth="150.0" styleClass="filter-combo" />
 
-                    <ComboBox fx:id="cbStatus" promptText="Trạng thái" prefWidth="150.0" styleClass="filter-combo" />
+                    <ComboBox fx:id="cbStatus" promptText="Status" prefWidth="150.0" styleClass="filter-combo" />
 
                     <Button fx:id="btnToggleProductView"
                             mnemonicParsing="false"

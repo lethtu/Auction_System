@@ -9,15 +9,9 @@ import javafx.event.ActionEvent;
 import com.auction.client.util.NotificationBellBinder;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.geometry.Insets;
-import javafx.geometry.Bounds;
-import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.input.MouseEvent;
-import javafx.animation.PauseTransition;
-import javafx.util.Duration;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import org.json.JSONObject;
@@ -26,8 +20,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Scanner;
 
@@ -52,7 +44,7 @@ public class UpToSellerController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         if (User.getFullname() != null) {
-            createUserOption("Chào, " + User.getFullname());
+            createUserOption("Hello, " + User.getFullname());
         }
 
         
@@ -66,23 +58,23 @@ public class UpToSellerController implements Initializable {
                 try {
                     com.auction.client.controller.SceneSwitcher.switchScene(e, "Settings.fxml", 1280, 800);
                 } catch (IOException ex) {
-                    logger.error("Lỗi chuyển sang trang Settings.fxml: ", ex);
+                    logger.error("Error switching to Settings.fxml: ", ex);
                 }
             });
         }
     }
 
     private void createUserOption(String text) {
-        MenuItem accountItem = new MenuItem("Tài Khoản Của Tôi");
-        MenuItem depositMoney = new MenuItem("Nạp tiền");
-        MenuItem logoutItem = new MenuItem("Đăng Xuất");
+        MenuItem accountItem = new MenuItem("My Account");
+        MenuItem depositMoney = new MenuItem("Deposit");
+        MenuItem logoutItem = new MenuItem("Logout");
 
         accountItem.setOnAction(event -> {
             try {
                 MainController.initialShowAccount = true;
                 SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
             } catch (IOException e) {
-                logger.error("Lỗi khi chuyển sang trang tài khoản: ", e);
+                logger.error("Error switching to account page: ", e);
             }
         });
 
@@ -90,7 +82,7 @@ public class UpToSellerController implements Initializable {
             try {
                 SceneSwitcher.switchScene(event, "Deposit.fxml", 1280, 800);
             } catch (IOException e) {
-                logger.error("Lỗi khi chuyển sang trang nạp tiền: ", e);
+                logger.error("Error switching to deposit page: ", e);
             }
         });
 
@@ -98,7 +90,7 @@ public class UpToSellerController implements Initializable {
             try {
                 handleLogout(event);
             } catch (IOException e) {
-                logger.error("Lỗi khi chuyển sang màn hình Login!", e);
+                logger.error("Error switching to Login screen!", e);
             }
         });
 
@@ -122,12 +114,12 @@ public class UpToSellerController implements Initializable {
     @FXML
     public void handleUpgrade(ActionEvent event) {
         if (User.getId() == null) {
-            showError("Vui lòng đăng nhập để nâng cấp!");
+            showError("Please log in to upgrade!");
             return;
         }
 
         if (!chkAgree.isSelected()) {
-            showError("Vui lòng đồng ý với điều khoản bán hàng của HY Auction!");
+            showError("Please agree to the HY Auction terms of sale!");
             return;
         }
 
@@ -138,7 +130,7 @@ public class UpToSellerController implements Initializable {
         new Thread(() -> {
             try {
                 String apiUrl = Config.API_URL + "/api/bidder/up-to-seller?userId=" + User.getId();
-                HttpURLConnection conn = (HttpURLConnection) new URL(apiUrl).openConnection();
+                HttpURLConnection conn = (HttpURLConnection) java.net.URI.create(apiUrl).toURL().openConnection();
                 conn.setRequestMethod("POST");
                 conn.setRequestProperty("Content-Type", "application/json");
 
@@ -153,13 +145,13 @@ public class UpToSellerController implements Initializable {
                 Platform.runLater(() -> {
                     btnUpgrade.setDisable(false);
                     if (responseCode >= 200 && responseCode < 300 && jsonResponse.optInt("status", 400) == 200) {
-                        // Thành công
+                        // Success
                         User.setSession(User.getId(), User.getUsername(), User.getFullname(), User.getEmail(), User.getDob(), User.getPlace_of_birth(), "SELLER", User.getAvatarUrl());
 
                         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                        alert.setTitle("Nâng cấp thành công");
-                        alert.setHeaderText("Chúc mừng bạn đã trở thành Người bán!");
-                        alert.setContentText("Tính năng Bán Hàng đã được mở khóa. Hãy truy cập Kênh Người Bán để đăng bán sản phẩm của riêng bạn.");
+                        alert.setTitle("Upgrade successful");
+                        alert.setHeaderText("Congratulations, you are now a Seller!");
+                        alert.setContentText("Selling features are now unlocked. You can now list your own products.");
 
                         DialogPane dialogPane = alert.getDialogPane();
                         dialogPane.setStyle("-fx-font-family: 'DM Sans'; -fx-background-color: #fcf8ff; -fx-border-color: #e040a0; -fx-border-width: 2px; -fx-border-radius: 12px; -fx-background-radius: 12px;");
@@ -168,18 +160,18 @@ public class UpToSellerController implements Initializable {
                         try {
                             SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
                         } catch (Exception ex) {
-                            logger.error("Lỗi chuyển cảnh sau khi nâng cấp: ", ex);
+                            logger.error("Error switching scenes after upgrade: ", ex);
                         }
                     } else {
-                        showError(jsonResponse.optString("message", "Nâng cấp thất bại hoặc tài khoản đã là SELLER!"));
+                        showError(jsonResponse.optString("message", "Upgrade failed or account is already a SELLER!"));
                     }
                 });
 
             } catch (Exception e) {
-                logger.error("Lỗi khi nâng cấp lên seller: ", e);
+                logger.error("Error when upgrading to seller: ", e);
                 Platform.runLater(() -> {
                     btnUpgrade.setDisable(false);
-                    showError("Lỗi kết nối máy chủ khi nâng cấp!");
+                    showError("Server connection error during upgrade!");
                 });
             }
         }).start();
@@ -191,7 +183,7 @@ public class UpToSellerController implements Initializable {
             ActionEvent actionEvent = new ActionEvent(event.getSource(), event.getTarget());
             SceneSwitcher.switchScene(actionEvent, "MainTemplate.fxml", 1280, 800);
         } catch (Exception e) {
-            logger.error("Lỗi quay lại trang chính: ", e);
+            logger.error("Error going back to main page: ", e);
         }
     }
 
@@ -200,7 +192,7 @@ public class UpToSellerController implements Initializable {
         try {
             SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
         } catch (Exception e) {
-            logger.error("Lỗi quay lại trang chính: ", e);
+            logger.error("Error going back to main page: ", e);
         }
     }
 
@@ -230,7 +222,7 @@ public class UpToSellerController implements Initializable {
                 topBarAvatarPane.getChildren().add(icon);
             }
         } catch (Exception e) {
-            logger.warn("Không thể cập nhật avatar trên top bar: {}", e.getMessage());
+            logger.warn("Cannot update avatar on top bar: {}", e.getMessage());
         }
     }
 

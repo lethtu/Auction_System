@@ -16,10 +16,10 @@ public final class SellerAuctionValidator {
 
     public static void validate(CreateAuctionRequest request) {
         if (request == null) {
-            throw new InvalidItemException("Dữ liệu phiên đấu giá không hợp lệ");
+            throw new InvalidItemException("Invalid auction session data");
         }
 
-        validateRequiredText(request.getName(), "Tên sản phẩm không được để trống");
+        validateRequiredText(request.getName(), "Product name cannot be empty");
         validateItemType(request.getType());
         validateDescription(request.getDescription());
 
@@ -29,17 +29,17 @@ public final class SellerAuctionValidator {
                 request.setStartingPrice(BigDecimal.ZERO);
             }
             if (request.getStartingPrice().compareTo(BigDecimal.ZERO) < 0) {
-                throw new InvalidItemException("Giá khởi điểm không được âm");
+                throw new InvalidItemException("Starting price cannot be negative");
             }
             if (request.getStepPrice() != null && request.getStepPrice().compareTo(BigDecimal.ZERO) <= 0) {
-                throw new InvalidItemException("Bước giá phải lớn hơn 0");
+                throw new InvalidItemException("Step price must be greater than 0");
             }
             if (request.getReservePrice() != null) {
                 validateReservePrice(request.getReservePrice(), request.getStartingPrice());
             }
         } else {
-            validatePositivePrice(request.getStartingPrice(), "Giá khởi điểm phải lớn hơn 0");
-            validatePositivePrice(request.getStepPrice(), "Bước giá phải lớn hơn 0");
+            validatePositivePrice(request.getStartingPrice(), "Starting price must be greater than 0");
+            validatePositivePrice(request.getStepPrice(), "Step price must be greater than 0");
             validateReservePrice(request.getReservePrice(), request.getStartingPrice());
             validateAuctionTime(request.getStartTime(), request.getEndTime());
         }
@@ -52,16 +52,16 @@ public final class SellerAuctionValidator {
     }
 
     private static void validateItemType(String type) {
-        validateRequiredText(type, "Loại sản phẩm không được để trống");
+        validateRequiredText(type, "Product type cannot be empty");
 
         if (!ALLOWED_TYPES.contains(type.trim().toLowerCase())) {
-            throw new InvalidItemException("Loại sản phẩm không hợp lệ");
+            throw new InvalidItemException("Invalid product type");
         }
     }
 
     private static void validateDescription(String description) {
         if (description != null && description.length() > MAX_DESCRIPTION_LENGTH) {
-            throw new InvalidItemException("Mô tả không được quá 1000 ký tự");
+            throw new InvalidItemException("Description cannot exceed 1000 characters");
         }
     }
 
@@ -77,11 +77,11 @@ public final class SellerAuctionValidator {
         }
 
         if (reservePrice.compareTo(BigDecimal.ZERO) < 0) {
-            throw new InvalidItemException("Giá sàn không được âm");
+            throw new InvalidItemException("Reserve price cannot be negative");
         }
 
         if (reservePrice.compareTo(BigDecimal.ZERO) > 0 && startingPrice != null && reservePrice.compareTo(startingPrice) < 0) {
-            throw new InvalidItemException("Giá sàn không được nhỏ hơn giá khởi điểm");
+            throw new InvalidItemException("Reserve price cannot be less than starting price");
         }
     }
 
@@ -89,11 +89,11 @@ public final class SellerAuctionValidator {
         LocalDateTime now = LocalDateTime.now();
 
         if (endTime == null || !endTime.isAfter(now)) {
-            throw new InvalidItemException("Thời gian kết thúc phải ở tương lai");
+            throw new InvalidItemException("End time must be in the future");
         }
 
         if (startTime != null && !endTime.isAfter(startTime)) {
-            throw new InvalidItemException("Thời gian kết thúc phải diễn ra sau thời gian bắt đầu");
+            throw new InvalidItemException("End time must be after start time");
         }
     }
 }

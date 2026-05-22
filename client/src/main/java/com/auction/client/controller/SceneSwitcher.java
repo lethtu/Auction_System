@@ -12,7 +12,12 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.net.URL;
 import javafx.scene.control.MenuItem;
-
+
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.BorderPane;
+import javafx.geometry.Insets;
 public class SceneSwitcher {
     private static final Logger logger = LoggerFactory.getLogger(SceneSwitcher.class);
 
@@ -58,11 +63,12 @@ public class SceneSwitcher {
         URL xmlResource = SceneSwitcher.class.getResource(path);
 
         if (xmlResource == null) {
-            throw new RuntimeException("Không tìm thấy file FXML: " + path);
+            throw new RuntimeException("FXML file not found: " + path);
         }
 
         FXMLLoader loader = new FXMLLoader(xmlResource);
         Parent root = loader.load();
+        root = prepareSceneRoot(root);
 
         Stage stage = null;
         Object source = event.getSource();
@@ -75,7 +81,7 @@ public class SceneSwitcher {
         }
 
         if (stage == null) {
-            throw new RuntimeException("Không thể xác định được Stage hiện tại để chuyển cảnh!");
+            throw new RuntimeException("Cannot determine current Stage for scene switching!");
         }
 
         boolean wasMaximized = stage.isMaximized();
@@ -89,8 +95,10 @@ public class SceneSwitcher {
         Scene scene = stage.getScene();
         if (scene == null) {
             scene = new Scene(root, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+            scene.setFill(Color.TRANSPARENT);
             stage.setScene(scene);
         } else {
+            scene.setFill(Color.TRANSPARENT);
             scene.setRoot(root);
         }
         scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
@@ -120,7 +128,7 @@ public class SceneSwitcher {
             finalStage.setFullScreen(wasFullScreen);
         });
 
-        logger.info("Đang chuyển sang: {}", fxmlFile);
+        logger.info("Switching to: {}", fxmlFile);
         return loader;
     }
 
@@ -131,5 +139,71 @@ public class SceneSwitcher {
     public static FXMLLoader switchScene(Event event, String fxmlFile, Integer width, Integer height)
             throws IOException {
         return Switch(event, fxmlFile, width, height);
+    }
+
+public static Parent prepareSceneRoot(Parent root) {
+        if (root == null) {
+            return null;
+        }
+
+        if (Boolean.TRUE.equals(root.getProperties().get("rounded-window-prepared"))) {
+            return root;
+        }
+        root.getProperties().put("rounded-window-prepared", Boolean.TRUE);
+
+        polishMainShellSpacing(root);
+
+        appendStyle(root,
+                "-fx-background-color: transparent; "
+                        + "-fx-background-radius: 34px; "
+                        + "-fx-border-radius: 34px; "
+                        + "-fx-background-insets: 0; "
+                        + "-fx-border-insets: 0;");
+
+        Rectangle clip = new Rectangle();
+        clip.setArcWidth(68.0);
+        clip.setArcHeight(68.0);
+
+        if (root instanceof Region) {
+            Region region = (Region) root;
+            clip.widthProperty().bind(region.widthProperty());
+            clip.heightProperty().bind(region.heightProperty());
+        } else {
+            root.layoutBoundsProperty().addListener((obs, oldBounds, bounds) -> {
+                clip.setWidth(bounds.getWidth());
+                clip.setHeight(bounds.getHeight());
+            });
+        }
+
+        root.setClip(clip);
+        return root;
+    }
+
+    private static void polishMainShellSpacing(Node node) {
+        if (node instanceof BorderPane) {
+            BorderPane pane = (BorderPane) node;
+            Node left = pane.getLeft();
+            Node center = pane.getCenter();
+            if (left != null && center != null) {
+                BorderPane.setMargin(left, new Insets(22, 34, 22, 18));
+                BorderPane.setMargin(center, new Insets(22, 30, 22, 4));
+            }
+        }
+
+        if (node instanceof Parent) {
+            Parent parent = (Parent) node;
+            for (Node child : parent.getChildrenUnmodifiable()) {
+                polishMainShellSpacing(child);
+            }
+        }
+    }
+
+    private static void appendStyle(Node node, String extraStyle) {
+        String currentStyle = node.getStyle();
+        if (currentStyle == null || currentStyle.isBlank()) {
+            node.setStyle(extraStyle);
+        } else if (!currentStyle.contains(extraStyle)) {
+            node.setStyle(currentStyle + "; " + extraStyle);
+        }
     }
 }

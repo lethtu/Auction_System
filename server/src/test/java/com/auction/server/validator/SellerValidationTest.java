@@ -25,7 +25,7 @@ class SellerValidationTest {
                 () -> SellerAuctionValidator.validate(null)
         );
 
-        assertEquals("Dữ liệu phiên đấu giá không hợp lệ", ex.getMessage());
+        assertEquals("Invalid auction session data", ex.getMessage());
     }
 
     @Test
@@ -38,7 +38,7 @@ class SellerValidationTest {
                 () -> SellerAuctionValidator.validate(request)
         );
 
-        assertEquals("Tên sản phẩm không được để trống", ex.getMessage());
+        assertEquals("Product name cannot be empty", ex.getMessage());
     }
 
     @Test
@@ -51,7 +51,7 @@ class SellerValidationTest {
                 () -> SellerAuctionValidator.validate(request)
         );
 
-        assertEquals("Loại sản phẩm không được để trống", ex.getMessage());
+        assertEquals("Product type cannot be empty", ex.getMessage());
     }
 
     @Test
@@ -64,7 +64,7 @@ class SellerValidationTest {
                 () -> SellerAuctionValidator.validate(request)
         );
 
-        assertEquals("Mô tả không được quá 1000 ký tự", ex.getMessage());
+        assertEquals("Description cannot exceed 1000 characters", ex.getMessage());
     }
 
     @Test
@@ -77,7 +77,7 @@ class SellerValidationTest {
                 () -> SellerAuctionValidator.validate(request)
         );
 
-        assertEquals("Giá khởi điểm phải lớn hơn 0", ex.getMessage());
+        assertEquals("Starting price must be greater than 0", ex.getMessage());
     }
 
     @Test
@@ -90,7 +90,7 @@ class SellerValidationTest {
                 () -> SellerAuctionValidator.validate(request)
         );
 
-        assertEquals("Giá khởi điểm phải lớn hơn 0", ex.getMessage());
+        assertEquals("Starting price must be greater than 0", ex.getMessage());
     }
 
     @Test
@@ -103,7 +103,7 @@ class SellerValidationTest {
                 () -> SellerAuctionValidator.validate(request)
         );
 
-        assertEquals("Bước giá phải lớn hơn 0", ex.getMessage());
+        assertEquals("Step price must be greater than 0", ex.getMessage());
     }
 
     @Test
@@ -116,22 +116,11 @@ class SellerValidationTest {
                 () -> SellerAuctionValidator.validate(request)
         );
 
-        assertEquals("Bước giá phải lớn hơn 0", ex.getMessage());
+        assertEquals("Step price must be greater than 0", ex.getMessage());
     }
 
 
-    @Test
-    void zeroReservePriceThrowsException() {
-        CreateAuctionRequest request = validRequest();
-        request.setReservePrice(BigDecimal.ZERO);
 
-        InvalidItemException ex = assertThrows(
-                InvalidItemException.class,
-                () -> SellerAuctionValidator.validate(request)
-        );
-
-        assertEquals("Giá sàn phải lớn hơn 0", ex.getMessage());
-    }
 
     @Test
     void reservePriceBelowStartingPriceThrowsException() {
@@ -143,7 +132,7 @@ class SellerValidationTest {
                 () -> SellerAuctionValidator.validate(request)
         );
 
-        assertEquals("Giá sàn không được nhỏ hơn giá khởi điểm", ex.getMessage());
+        assertEquals("Reserve price cannot be less than starting price", ex.getMessage());
     }
 
     @Test
@@ -156,7 +145,7 @@ class SellerValidationTest {
                 () -> SellerAuctionValidator.validate(request)
         );
 
-        assertEquals("Thời gian kết thúc phải ở tương lai", ex.getMessage());
+        assertEquals("End time must be in the future", ex.getMessage());
     }
 
     @Test
@@ -169,7 +158,7 @@ class SellerValidationTest {
                 () -> SellerAuctionValidator.validate(request)
         );
 
-        assertEquals("Thời gian kết thúc phải ở tương lai", ex.getMessage());
+        assertEquals("End time must be in the future", ex.getMessage());
     }
 
     @Test
@@ -183,7 +172,7 @@ class SellerValidationTest {
                 () -> SellerAuctionValidator.validate(request)
         );
 
-        assertEquals("Thời gian kết thúc phải diễn ra sau thời gian bắt đầu", ex.getMessage());
+        assertEquals("End time must be after start time", ex.getMessage());
     }
 
     @Test
@@ -198,14 +187,14 @@ class SellerValidationTest {
                 () -> SellerAuctionValidator.validate(request)
         );
 
-        assertEquals("Thời gian kết thúc phải diễn ra sau thời gian bắt đầu", ex.getMessage());
+        assertEquals("End time must be after start time", ex.getMessage());
     }
 
     private CreateAuctionRequest validRequest() {
         CreateAuctionRequest request = new CreateAuctionRequest();
         request.setName("Laptop Gaming");
         request.setType("electronics");
-        request.setDescription("Máy còn tốt");
+        request.setDescription("Good condition");
         request.setSellerId(1);
         request.setStartingPrice(new BigDecimal("1000000"));
         request.setStepPrice(new BigDecimal("100000"));

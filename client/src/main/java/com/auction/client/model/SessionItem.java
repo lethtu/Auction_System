@@ -5,8 +5,8 @@ import java.text.NumberFormat;
 import java.util.Locale;
 
 public class SessionItem {
-    private static final Locale MONEY_LOCALE = new Locale("vi", "VN");
-    private static final String DEFAULT_TEXT = "Không rõ";
+    private static final Locale MONEY_LOCALE = new Locale.Builder().setLanguage("vi").setRegion("VN").build();
+    private static final String DEFAULT_TEXT = "Unknown";
     private static final String DEFAULT_STATUS = "UNKNOWN";
     private static final String CURRENCY_SUFFIX = " VND";
 
@@ -36,17 +36,17 @@ public class SessionItem {
                 + " | " + normalizeText(productName)
                 + minRateInfo
                 + " | " + normalizeText(status)
-                + " | Giá hiện tại: " + formatPrice(currentPrice)
-                + " | Bước giá: " + formatPrice(stepPrice)
-                + " | Giá sàn: " + formatPrice(reservePrice);
+                + " | Current Price: " + formatPrice(currentPrice)
+                + " | Step Price: " + formatPrice(stepPrice)
+                + " | Reserve Price: " + formatPrice(reservePrice);
     }
 
     private String buildPrefix(int displayIndex) {
         if (displayIndex > 0) {
-            return "STT " + displayIndex + " | Mã phiên #" + id;
+            return "Index " + displayIndex + " | Session #" + id;
         }
 
-        return "Mã phiên #" + id;
+        return "Session #" + id;
     }
 
     private static String normalizeText(String value) {

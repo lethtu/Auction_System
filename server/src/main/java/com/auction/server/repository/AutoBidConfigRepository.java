@@ -11,13 +11,13 @@ import java.util.Optional;
 public interface AutoBidConfigRepository extends JpaRepository<AutoBidConfig, Integer> {
 
     /**
-     * Lấy tất cả config đang active của 1 phiên, sắp xếp maxBid giảm dần.
-     * Top 2 phần tử = Winner [0] và Challenger [1].
+     * Get all active configs for a session, sorted by maxBid descending.
+     * Top 2 elements = Winner [0] and Challenger [1].
      */
     List<AutoBidConfig> findBySessionIdAndActiveTrueOrderByMaxBidDesc(Integer sessionId);
 
     /**
-     * Tìm config hiện có của 1 user trong 1 phiên (để upsert thay vì tạo mới).
+     * Find existing config for a user in a session (for upsert instead of creating new).
      */
     Optional<AutoBidConfig> findBySessionIdAndBidderIdAndActiveTrue(Integer sessionId, Integer bidderId);
 }

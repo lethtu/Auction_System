@@ -179,7 +179,7 @@
                                                                 <VBox spacing="12.0">
                                                                     <children>
                                                                         <Label text="Item Description" style="-fx-font-family: 'DM Sans'; -fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;" />
-                                                                        <Label fx:id="itemDescriptionLabel" text="Chưa có mô tả sản phẩm." wrapText="true" style="-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-text-fill: #604868; -fx-line-spacing: 6;" />
+                                                                        <Label fx:id="itemDescriptionLabel" text="No product description available." wrapText="true" style="-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-text-fill: #604868; -fx-line-spacing: 6;" />
                                                                     </children>
                                                                 </VBox>
                                                                 
@@ -200,7 +200,7 @@
                                                                         <Label fx:id="currentPriceLabel" text="₫ 0" style="-fx-font-family: 'DM Sans'; -fx-font-size: 48px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;" />
                                                                     </children>
                                                                 </HBox>
-                                                                <Label fx:id="highestBidderLabel" text="Chưa có người đặt giá" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 800; -fx-text-fill: #604868;" />
+                                                                <Label fx:id="highestBidderLabel" text="No bids yet" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 800; -fx-text-fill: #604868;" />
                                                                 <Label fx:id="reserveStatusLabel" text="" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: #e040a0;" />
                                                             </children>
                                                         </VBox>
@@ -213,7 +213,7 @@
                                                                             <children>
                                                                                 <Label text="Your Bid Amount" style="-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: #604868;" />
                                                                                 <Region HBox.hgrow="ALWAYS" />
-                                                                                <Label fx:id="minIncrementLabel" text="Tăng tối thiểu ₫ 0" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: #e040a0;" />
+                                                                                <Label fx:id="minIncrementLabel" text="Min increment ₫ 0" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: #e040a0;" />
                                                                             </children>
                                                                         </HBox>
                                                                         <StackPane alignment="CENTER_LEFT">
@@ -225,7 +225,7 @@
                                                                     </children>
                                                                 </VBox>
                                                                 <Button fx:id="placeBidBtn" maxWidth="Infinity" onAction="#handlePlaceBid" text="PLACE BID NOW" style="-fx-background-color: #e040a0; -fx-text-fill: white; -fx-padding: 16; -fx-background-radius: 999; -fx-font-family: 'DM Sans'; -fx-font-size: 18px; -fx-font-weight: 900; -fx-cursor: hand;" />
-                                                                <Button fx:id="btnAutoBid" maxWidth="Infinity" onAction="#handleAutoBidConfig" text="⚡ Cấu hình Auto-bid" style="-fx-background-color: transparent; -fx-text-fill: #7c52aa; -fx-border-color: #7c52aa; -fx-border-width: 2; -fx-border-radius: 999; -fx-background-radius: 999; -fx-padding: 12; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: 900; -fx-cursor: hand;" />
+                                                                <Button fx:id="btnAutoBid" maxWidth="Infinity" onAction="#handleAutoBidConfig" text="⚡ Configure Auto-bid" style="-fx-background-color: transparent; -fx-text-fill: #7c52aa; -fx-border-color: #7c52aa; -fx-border-width: 2; -fx-border-radius: 999; -fx-background-radius: 999; -fx-padding: 12; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: 900; -fx-cursor: hand;" />
                                                                 
                                                                 <Label fx:id="messageLabel" alignment="CENTER" maxWidth="Infinity" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-text-fill: #e53e3e;" />
                                                             </children>

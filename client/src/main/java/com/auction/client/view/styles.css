@@ -3248,3 +3248,19 @@
 .table-view .filler {
     -fx-background-insets: 0;
 }
+
+/* Rounded shell/sidebar gap fix v4 */
+.root {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.rounded-window-content,
+.app-content-panel {
+    -fx-background-radius: 34px;
+    -fx-border-radius: 34px;
+}

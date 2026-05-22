@@ -13,7 +13,7 @@ public final class ItemFactory {
 
     public static Item createItem(String type) {
         if (type == null || type.trim().isEmpty()) {
-            throw new IllegalArgumentException("Loại sản phẩm không hợp lệ");
+            throw new IllegalArgumentException("Invalid product type");
         }
 
         switch (type.trim().toLowerCase()) {

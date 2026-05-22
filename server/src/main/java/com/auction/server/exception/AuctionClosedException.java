@@ -1,8 +1,8 @@
 package com.auction.server.exception;
 
 /**
- * Ngoại lệ được ném khi có hành động đặt giá vào một phiên đấu giá đã kết thúc (ENDED) hoặc đã bị hủy (CANCELED).
- * Kế thừa RuntimeException để không bắt buộc caller phải khai báo throws.
+ * Exception thrown when a bid is placed on an auction session that has ENDED or been CANCELED.
+ * Extends RuntimeException so callers are not forced to declare throws.
  */
 public class AuctionClosedException extends RuntimeException {
     private final Integer sessionId;

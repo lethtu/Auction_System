@@ -53,7 +53,7 @@ class AdminServiceTest {
                 () -> adminService.approveSession(10, 2)
         );
 
-        assertEquals("Người này không phải là Quản trị viên", ex.getMessage());
+        assertEquals("This user is not an Administrator", ex.getMessage());
     }
 
     @Test
@@ -67,7 +67,7 @@ class AdminServiceTest {
                 () -> adminService.rejectSession(10, 1, "   ")
         );
 
-        assertEquals("Vui lòng nhập lý do từ chối", ex.getMessage());
+        assertEquals("Please enter a rejection reason", ex.getMessage());
     }
 
     @Test
@@ -95,7 +95,7 @@ class AdminServiceTest {
                 () -> adminService.banUser(1, 1)
         );
 
-        assertEquals("Không thể khóa chính tài khoản admin hiện tại", ex.getMessage());
+        assertEquals("Cannot ban your own admin account", ex.getMessage());
     }
 
     @Test
@@ -111,7 +111,7 @@ class AdminServiceTest {
                 () -> adminService.banUser(2, 1)
         );
 
-        assertEquals("Không được khóa tài khoản Admin khác", ex.getMessage());
+        assertEquals("Cannot ban another Admin account", ex.getMessage());
     }
 
     @Test
@@ -143,7 +143,7 @@ class AdminServiceTest {
                 () -> adminService.cancelAuction(10, 1)
         );
 
-        assertEquals("Phiên này đã kết thúc hoặc đã bị hủy", ex.getMessage());
+        assertEquals("This session has already ended or been canceled", ex.getMessage());
     }
 
     @Test

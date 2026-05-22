@@ -82,42 +82,42 @@
             <VBox spacing="35.0" style="-fx-padding: 40px 60px;">
                 <!-- Header Title -->
                 <VBox spacing="10.0">
-                    <Label text="CẤU HÌNH &amp; CÀI ĐẶT HỆ THỐNG" style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;" />
-                    <Label text="Tùy chỉnh thông báo, giao diện ứng dụng và trải nghiệm đấu giá của bạn." style="-fx-font-size: 15px; -fx-text-fill: #604868;" />
+                    <Label text="CONFIGURATION &amp; SYSTEM SETTINGS" style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;" />
+                    <Label text="Customize notifications, app interface and your auction experience." style="-fx-font-size: 15px; -fx-text-fill: #604868;" />
                 </VBox>
 
                 <!-- 2-Column Grid Area -->
                 <HBox spacing="40.0" alignment="TOP_LEFT">
                     <!-- Column 1: Config Form (Left) -->
                     <VBox spacing="24.0" prefWidth="540.0" minWidth="440.0" HBox.hgrow="ALWAYS" style="-fx-background-color: #ffffff; -fx-padding: 30px; -fx-background-radius: 24px; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.06), 20, 0, 0, 6);">
-                        <Label text="CẤU HÌNH ỨNG DỤNG" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #e040a0;" />
+                        <Label text="APP CONFIGURATION" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #e040a0;" />
                         
                         <!-- Notifications -->
                         <VBox spacing="12.0">
-                            <Label text="THÔNG BÁO &amp; ÂM THANH" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #e040a0; -fx-padding: 0 0 4px 0;" />
+                            <Label text="NOTIFICATIONS &amp; SOUNDS" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #e040a0; -fx-padding: 0 0 4px 0;" />
                             
-                            <CheckBox fx:id="chkOutbid" text="Nhận thông báo khi bị vượt giá" style="-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-cursor: hand;" />
-                            <CheckBox fx:id="chkSound" text="Phát âm thanh thông báo" style="-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-cursor: hand;" />
+                            <CheckBox fx:id="chkOutbid" text="Receive notification when outbid" style="-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-cursor: hand;" />
+                            <CheckBox fx:id="chkSound" text="Play notification sounds" style="-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-cursor: hand;" />
                         </VBox>
 
                         <Separator style="-fx-background-color: #ffe8e8; -fx-opacity: 0.5;" />
 
                         <!-- UI Experience -->
                         <VBox spacing="16.0">
-                            <Label text="GIAO DIỆN &amp; TRẢI NGHIỆM" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #e040a0; -fx-padding: 0 0 4px 0;" />
+                            <Label text="INTERFACE &amp; EXPERIENCE" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #e040a0; -fx-padding: 0 0 4px 0;" />
                             
-                            <CheckBox fx:id="chkCollapse" text="Tự động thu gọn thanh bên (Sidebar)" style="-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-cursor: hand;" />
+                            <CheckBox fx:id="chkCollapse" text="Auto-collapse sidebar" style="-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-cursor: hand;" />
 
                             <!-- Language -->
                             <HBox spacing="10.0" alignment="CENTER_LEFT">
-                                <Label text="Ngôn ngữ ứng dụng:" style="-fx-font-size: 14px; -fx-text-fill: #2e1a28;" />
+                                <Label text="App language:" style="-fx-font-size: 14px; -fx-text-fill: #2e1a28;" />
                                 <Region HBox.hgrow="ALWAYS" />
                                 <ComboBox fx:id="cbLang" prefWidth="180.0" style="-fx-background-color: #ffffff; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-cursor: hand;" />
                             </HBox>
 
                             <!-- Accent Color -->
                             <HBox spacing="10.0" alignment="CENTER_LEFT">
-                                <Label text="Tông màu chủ đạo:" style="-fx-font-size: 14px; -fx-text-fill: #2e1a28;" />
+                                <Label text="Primary color tone:" style="-fx-font-size: 14px; -fx-text-fill: #2e1a28;" />
                                 <Region HBox.hgrow="ALWAYS" />
                                 <ComboBox fx:id="cbColor" prefWidth="180.0" style="-fx-background-color: #ffffff; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-cursor: hand;" />
                             </HBox>
@@ -125,7 +125,7 @@
 
                         <Label fx:id="lblStatus" text="" visible="false" managed="false" style="-fx-font-size: 14px; -fx-font-weight: bold;" />
 
-                        <Button fx:id="btnSaveSettings" onAction="#handleSaveSettings" text="Lưu Cài Đặt" maxWidth="Infinity" prefHeight="48.0" style="-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 24px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.3), 12, 0, 0, 4);">
+                        <Button fx:id="btnSaveSettings" onAction="#handleSaveSettings" text="Save Settings" maxWidth="Infinity" prefHeight="48.0" style="-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 24px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.3), 12, 0, 0, 4);">
                             <graphic>
                                 <Label text="&#xe876;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: white;" translateY="2.0" />
                             </graphic>
@@ -135,26 +135,26 @@
                     <!-- Column 2: Quick Actions (Right) -->
                     <VBox spacing="24.0" HBox.hgrow="ALWAYS">
                         <VBox spacing="20.0" style="-fx-background-color: #ffffff; -fx-padding: 30px; -fx-background-radius: 24px; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.06), 20, 0, 0, 6);">
-                            <Label text="THAO TÁC NHANH" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #e040a0;" />
-                            <Label text="Dưới đây là một số phím tắt điều chỉnh bộ lọc tìm kiếm và đồng bộ hóa lại dữ liệu trực tiếp từ máy chủ đấu giá." wrapText="true" style="-fx-font-size: 14px; -fx-text-fill: #604868;" />
+                            <Label text="QUICK ACTIONS" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #e040a0;" />
+                            <Label text="Below are some shortcuts to adjust search filters and resynchronize data directly from the auction server." wrapText="true" style="-fx-font-size: 14px; -fx-text-fill: #604868;" />
 
                             <HBox spacing="15.0">
-                                <Button fx:id="btnResetFilters" onAction="#handleResetFilters" text="Đặt lại bộ lọc" prefHeight="40.0" style="-fx-background-color: #fff1fa; -fx-text-fill: #8a2b66; -fx-font-weight: bold; -fx-background-radius: 10px; -fx-border-color: #f6a6d7; -fx-border-radius: 10px; -fx-padding: 8px 20px; -fx-cursor: hand;" />
-                                <Button fx:id="btnReloadData" onAction="#handleReloadData" text="Tải lại dữ liệu" prefHeight="40.0" style="-fx-background-color: #fff1fa; -fx-text-fill: #8a2b66; -fx-font-weight: bold; -fx-background-radius: 10px; -fx-border-color: #f6a6d7; -fx-border-radius: 10px; -fx-padding: 8px 20px; -fx-cursor: hand;" />
+                                <Button fx:id="btnResetFilters" onAction="#handleResetFilters" text="Reset Filters" prefHeight="40.0" style="-fx-background-color: #fff1fa; -fx-text-fill: #8a2b66; -fx-font-weight: bold; -fx-background-radius: 10px; -fx-border-color: #f6a6d7; -fx-border-radius: 10px; -fx-padding: 8px 20px; -fx-cursor: hand;" />
+                                <Button fx:id="btnReloadData" onAction="#handleReloadData" text="Reload Data" prefHeight="40.0" style="-fx-background-color: #fff1fa; -fx-text-fill: #8a2b66; -fx-font-weight: bold; -fx-background-radius: 10px; -fx-border-color: #f6a6d7; -fx-border-radius: 10px; -fx-padding: 8px 20px; -fx-cursor: hand;" />
                             </HBox>
                         </VBox>
 
                         <VBox spacing="16.0" style="-fx-background-color: #ffffff; -fx-padding: 30px; -fx-background-radius: 24px; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.06), 20, 0, 0, 6);">
-                            <Label text="THÔNG TIN HỆ THỐNG" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #e040a0;" />
+                            <Label text="SYSTEM INFORMATION" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #e040a0;" />
                             
                             <HBox spacing="12.0" alignment="CENTER_LEFT">
                                 <Label text="&#xe8d4;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #e040a0;" />
-                                <Label text="Phiên bản ứng dụng: 0.1 (Stable)" style="-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-font-weight: bold;" />
+                                <Label text="App version: 0.1 (Stable)" style="-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-font-weight: bold;" />
                             </HBox>
 
                             <HBox spacing="12.0" alignment="CENTER_LEFT">
                                 <Label text="&#xe1b1;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #e040a0;" />
-                                <Label text="Trạng thái máy chủ: Đang kết nối tốt" style="-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-font-weight: bold;" />
+                                <Label text="Server status: Connected" style="-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-font-weight: bold;" />
                             </HBox>
                         </VBox>
                     </VBox>

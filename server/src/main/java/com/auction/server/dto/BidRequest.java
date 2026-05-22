@@ -1,8 +1,5 @@
 package com.auction.server.dto;
 
-import com.auction.server.model.AuctionSession;
-import com.auction.server.model.Bidder;
-import com.auction.server.model.User;
 
 import java.io.Serializable;
 import java.math.BigDecimal;

@@ -70,14 +70,14 @@ public class AuthLoginSignupTest {
                         .content(requestJson))
                 .andExpect(status().isOk()) // API HTTP Status = 200
                 .andExpect(jsonPath("$.status").value(200)) // Trạng thái logic của bạn = 200
-                .andExpect(jsonPath("$.message").value("Đăng nhập thành công"));
+                .andExpect(jsonPath("$.message").value("Login successful"));
         // .andExpect(jsonPath("$.data").exists()); // Có thể bật lên nếu muốn check data trả về
     }
 
     @Test
     @DisplayName("API Login: Sai tài khoản/mật khẩu -> Trả về 400")
     public void testLogin_Fail() throws Exception {
-        // MỚM LỜI GIẢ: Sai thông tin -> Optional rỗng
+        // MỚM LỜI GIẢ: Incorrect info -> Optional rỗng
         Mockito.when(rq.login("wronguser", "wrongpass")).thenReturn(Optional.empty());
 
         String requestJson = """
@@ -92,7 +92,7 @@ public class AuthLoginSignupTest {
                         .content(requestJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(400)) // Báo lỗi logic
-                .andExpect(jsonPath("$.message").value("Đăng nhập thất bại"));
+                .andExpect(jsonPath("$.message").value("Login failed"));
     }
 
     // =====================================================================
@@ -119,10 +119,14 @@ public class AuthLoginSignupTest {
                         .content(requestJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(200))
-                .andExpect(jsonPath("$.message").value("Đăng ký thành công"));
+                .andExpect(jsonPath("$.message").value("Registration successful"));
 
         // KIỂM TRA CHÉO: Phải chắc chắn thằng Server đã gọi hàm SendEmail!
-        Mockito.verify(emailServer).SendEmail(eq("newuser@gmail.com"), eq("Đăng ký tài khoản thành công"), anyString());
+        Mockito.verify(emailServer).SendEmail(
+                eq("newuser@gmail.com"),
+                eq("Account Registration Successful"),
+                anyString()
+        );
     }
 
     @Test
@@ -145,7 +149,7 @@ public class AuthLoginSignupTest {
                         .content(requestJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").value("Email hoặc Username đã tồn tại"));
+                .andExpect(jsonPath("$.message").value("Email or Username already exists"));
 
         // KIỂM TRA CHÉO: Bị lỗi thì cấm được gửi email đi!
         Mockito.verify(emailServer, Mockito.never()).SendEmail(anyString(), anyString(), anyString());

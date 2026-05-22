@@ -16,7 +16,7 @@ import java.util.Objects;
 @RestController
 @RequestMapping("/api/auctions")
 public class AuctionController {
-    private static final String AUCTION_READY_MESSAGE = "Sảnh đấu giá đã sẵn sàng!";
+    private static final String AUCTION_READY_MESSAGE = "Auction hall is ready!";
     private static final String SUCCESS_STATUS = "SUCCESS";
 
     private final AuctionService auctionService;
@@ -28,8 +28,8 @@ public class AuctionController {
     }
 
     @GetMapping("/hello")
-    public ResponseEntity<ApiResponse> check() {
-        ApiResponse response = new ApiResponse(200, AUCTION_READY_MESSAGE, SUCCESS_STATUS);
+    public ResponseEntity<ApiResponse<String>> check() {
+        ApiResponse<String> response = new ApiResponse<>(200, AUCTION_READY_MESSAGE, SUCCESS_STATUS);
         return ResponseEntity.ok(response);
     }
 
@@ -51,9 +51,9 @@ public class AuctionController {
     }
 
     /**
-     * Lấy lịch sử bid của một phiên đấu giá, sắp xếp theo thời gian tăng dần.
-     * Dùng cho Bid History Chart trên client.
-     * Trả 404 nếu session không tồn tại (nhất quán với GET /api/auctions/{id}).
+     * Get bid history of an auction session, sorted by time ascending.
+     * Used for Bid History Chart on client.
+     * Returns 404 if session does not exist (consistent with GET /api/auctions/{id}).
      */
     @GetMapping("/{id}/bid-history")
     public ResponseEntity<List<BidHistoryDTO>> getBidHistory(@PathVariable Integer id) {

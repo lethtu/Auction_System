@@ -4,7 +4,11 @@ package com.auction.client.controller;
 
 
 
-import com.auction.client.util.AlertUtil;import javafx.scene.Scene;import javafx.scene.Parent;import javafx.fxml.FXMLLoader;import javafx.animation.PauseTransition;
+import com.auction.client.util.AlertUtil;
+import javafx.scene.Scene;
+import javafx.scene.Parent;
+import javafx.fxml.FXMLLoader;
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -75,7 +79,7 @@ public class SidebarController {
 
     @FXML
     public void initialize() {
-        // Lưu lại text mặc định
+        // Save default text
         for (javafx.scene.Node node : sidebarContent.getChildren()) {
             if (node instanceof Button) {
                 Button btn = (Button) node;
@@ -83,7 +87,7 @@ public class SidebarController {
             }
         }
 
-        // Kiểm tra xem đã là seller chưa
+        // Check if already a seller
         if (User.getRole() != null && User.getRole().equalsIgnoreCase("seller")) {
             if (btnStartSelling != null) {
                 btnStartSelling.setVisible(false);
@@ -277,10 +281,17 @@ public class SidebarController {
                     + textColor
                     + ";");
         }
-    }@FXML
+    }
+
+    @FXML
     public void handleDashboard(ActionEvent event) {
         autoCollapse();
         setActiveDashboard();
+        if (listener != null) {
+            listener.onResetFilter(event);
+            return;
+        }
+
         try {
             Stage stage = resolveStage(event);
             boolean wasMaximized = stage != null && stage.isMaximized();
@@ -296,13 +307,20 @@ public class SidebarController {
                 Platform.runLater(() -> stage.setMaximized(true));
             }
         } catch (IOException e) {
-            logger.error("Lỗi chuyển cảnh về Dashboard: ", e);
-            showInfo("Dashboard", "Không thể mở Dashboard. Vui lòng thử lại.");
+            logger.error("Error switching to Dashboard: ", e);
+            showInfo("Dashboard", "Cannot open Dashboard. Please try again.");
         }
-    }@FXML
+    }
+
+    @FXML
     public void handleWatchlist(ActionEvent event) {
         autoCollapse();
         setActiveWatchlist();
+        if (listener != null) {
+            listener.onFilterWatchlist(event);
+            return;
+        }
+
         try {
             Stage stage = resolveStage(event);
             boolean wasMaximized = stage != null && stage.isMaximized();
@@ -318,12 +336,10 @@ public class SidebarController {
                 Platform.runLater(() -> stage.setMaximized(true));
             }
         } catch (IOException e) {
-            logger.error("Lỗi chuyển cảnh sang Watchlist: ", e);
-            showInfo("Watchlist", "Không thể mở Watchlist. Vui lòng thử lại.");
+            logger.error("Error switching to Watchlist: ", e);
+            showInfo("Watchlist", "Cannot open Watchlist. Please try again.");
         }
     }
-
-
 
     @FXML
     public void handleStartSelling(ActionEvent event) {
@@ -332,7 +348,7 @@ public class SidebarController {
             if (onBeforeNavigate != null) onBeforeNavigate.run();
             switchSceneKeepingStage(event, "UpToSeller.fxml", 1280, 800);
         } catch (IOException e) {
-            logger.error("Lỗi chuyển cảnh sang UpToSeller: ", e);
+            logger.error("Error switching to UpToSeller: ", e);
         }
     }
 
@@ -353,8 +369,8 @@ public class SidebarController {
                 Platform.runLater(() -> stage.setMaximized(true));
             }
         } catch (IOException e) {
-            logger.error("Lỗi chuyển cảnh sang MyBids.fxml: ", e);
-            showInfo("My Bids", "Không thể mở màn My Bids. Vui lòng thử lại.");
+            logger.error("Error switching to MyBids.fxml: ", e);
+            showInfo("My Bids", "Cannot open My Bids screen. Please try again.");
         }
     }
 
@@ -375,8 +391,8 @@ public class SidebarController {
                 Platform.runLater(() -> stage.setMaximized(true));
             }
         } catch (IOException e) {
-            logger.error("Lỗi chuyển cảnh sang SellerDashboard: ", e);
-            showInfo("Selling", "Không thể mở Seller Dashboard. Vui lòng thử lại.");
+            logger.error("Error switching to SellerDashboard: ", e);
+            showInfo("Selling", "Cannot open Seller Dashboard. Please try again.");
         }
     }
 
@@ -397,8 +413,8 @@ public class SidebarController {
                 Platform.runLater(() -> stage.setMaximized(true));
             }
         } catch (IOException e) {
-            logger.error("Lỗi chuyển cảnh sang Support.fxml: ", e);
-            showInfo("Support", "Không thể mở màn hỗ trợ. Vui lòng thử lại.");
+            logger.error("Error switching to Support.fxml: ", e);
+            showInfo("Support", "Cannot open support screen. Please try again.");
         }
     }
 
@@ -419,8 +435,8 @@ public class SidebarController {
                 Platform.runLater(() -> stage.setMaximized(true));
             }
         } catch (IOException e) {
-            logger.error("Lỗi chuyển cảnh sang Settings.fxml: ", e);
-            showInfo("Settings", "Không thể mở màn cài đặt. Vui lòng thử lại.");
+            logger.error("Error switching to Settings.fxml: ", e);
+            showInfo("Settings", "Cannot open settings screen. Please try again.");
         }
     }
     private void switchSceneKeepingStage(ActionEvent event, String fxmlName, int width, int height) throws IOException {
@@ -436,7 +452,10 @@ public class SidebarController {
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/auction/client/view/" + fxmlName));
         Parent root = loader.load();
-        stage.setScene(new Scene(root, targetWidth, targetHeight));
+        root = SceneSwitcher.prepareSceneRoot(root);
+        Scene scene = new Scene(root, targetWidth, targetHeight);
+        scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
+        stage.setScene(scene);
         stage.show();
 
         if (wasMaximized) {

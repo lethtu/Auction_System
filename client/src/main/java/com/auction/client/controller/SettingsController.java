@@ -11,13 +11,11 @@ import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
-import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
@@ -53,7 +51,7 @@ public class SettingsController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         // Initialize User Menu Options
         if (User.getFullname() != null) {
-            createUserOption("Chào, " + User.getFullname());
+            createUserOption("Hello, " + User.getFullname());
         }
 
         Platform.runLater(() -> updateTopBarAvatar(User.getAvatarUrl()));
@@ -74,7 +72,7 @@ public class SettingsController implements Initializable {
                         SceneSwitcher.switchScene(e, "MainTemplate.fxml", 1280, 800);
                     }
                 } catch (IOException ex) {
-                    logger.error("Lỗi tìm kiếm chuyển trang: ", ex);
+                    logger.error("Error switching page: ", ex);
                 }
             });
         }
@@ -87,7 +85,7 @@ public class SettingsController implements Initializable {
         // Initialize Gear button in header to just refresh/do nothing on this page since we're already here
         if (btnSettings != null) {
             btnSettings.setOnAction(e -> {
-                lblStatus.setText("Bạn đang ở trang cài đặt.");
+                lblStatus.setText("You are on the settings page.");
                 lblStatus.setStyle("-fx-text-fill: #1a73e8;");
                 lblStatus.setVisible(true);
                 lblStatus.setManaged(true);
@@ -99,11 +97,11 @@ public class SettingsController implements Initializable {
         chkSound.setSelected(prefs.getBoolean(SettingsDialog.KEY_SOUND, true));
         chkCollapse.setSelected(prefs.getBoolean(SettingsDialog.KEY_AUTO_COLLAPSE, false));
 
-        cbLang.setItems(FXCollections.observableArrayList("Tiếng Việt", "English"));
-        cbLang.setValue(prefs.get(SettingsDialog.KEY_LANGUAGE, "Tiếng Việt"));
+        cbLang.setItems(FXCollections.observableArrayList("English"));
+        cbLang.setValue(prefs.get(SettingsDialog.KEY_LANGUAGE, "English"));
 
-        cbColor.setItems(FXCollections.observableArrayList("Rose Pink (Mặc định)", "Royal Purple", "Emerald Green"));
-        cbColor.setValue(prefs.get(SettingsDialog.KEY_ACCENT_COLOR, "Rose Pink (Mặc định)"));
+        cbColor.setItems(FXCollections.observableArrayList("Rose Pink (Default)", "Royal Purple", "Emerald Green"));
+        cbColor.setValue(prefs.get(SettingsDialog.KEY_ACCENT_COLOR, "Rose Pink (Default)"));
     }
 
     @FXML
@@ -120,7 +118,7 @@ public class SettingsController implements Initializable {
             javafx.event.Event eventWrapper = new javafx.event.ActionEvent(target, null);
             SceneSwitcher.switchScene((javafx.event.ActionEvent) eventWrapper, "MainTemplate.fxml", 1280, 800);
         } catch (IOException e) {
-            logger.error("Lỗi chuyển về MainTemplate: ", e);
+            logger.error("Error switching to MainTemplate: ", e);
         }
     }
 
@@ -146,7 +144,7 @@ public class SettingsController implements Initializable {
             }
         }
 
-        lblStatus.setText("Đã lưu các thiết lập thành công!");
+        lblStatus.setText("Settings saved successfully!");
         lblStatus.setStyle("-fx-text-fill: #137333; -fx-font-weight: bold;");
         lblStatus.setVisible(true);
         lblStatus.setManaged(true);
@@ -157,9 +155,9 @@ public class SettingsController implements Initializable {
         MainController.initialHomeFilterMode = "ALL";
         
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Cài đặt");
+        alert.setTitle("Settings");
         alert.setHeaderText(null);
-        alert.setContentText("Đã đặt lại tất cả bộ lọc tìm kiếm trên trang chủ về mặc định.");
+        alert.setContentText("All search filters on the homepage have been reset to defaults.");
         alert.getDialogPane().setStyle("-fx-font-family: 'DM Sans';");
         alert.showAndWait();
     }
@@ -167,24 +165,24 @@ public class SettingsController implements Initializable {
     @FXML
     private void handleReloadData(ActionEvent event) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Cài đặt");
+        alert.setTitle("Settings");
         alert.setHeaderText(null);
-        alert.setContentText("Đã yêu cầu tải lại dữ liệu từ máy chủ thành công.");
+        alert.setContentText("Data reload from server requested successfully.");
         alert.getDialogPane().setStyle("-fx-font-family: 'DM Sans';");
         alert.showAndWait();
     }
 
     private void createUserOption(String text) {
-        MenuItem accountItem = new MenuItem("Tài Khoản Của Tôi");
-        MenuItem depositMoney = new MenuItem("Nạp tiền");
-        MenuItem logoutItem = new MenuItem("Đăng Xuất");
+        MenuItem accountItem = new MenuItem("My Account");
+        MenuItem depositMoney = new MenuItem("Deposit");
+        MenuItem logoutItem = new MenuItem("Logout");
 
         accountItem.setOnAction(event -> {
             try {
                 MainController.initialShowAccount = true;
                 SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
             } catch (IOException e) {
-                logger.error("Lỗi khi chuyển sang trang tài khoản: ", e);
+                logger.error("Error switching to account page: ", e);
             }
         });
 
@@ -192,7 +190,7 @@ public class SettingsController implements Initializable {
             try {
                 SceneSwitcher.switchScene(event, "Deposit.fxml", 1280, 800);
             } catch (IOException e) {
-                logger.error("Lỗi khi chuyển sang trang nạp tiền: ", e);
+                logger.error("Error switching to deposit page: ", e);
             }
         });
 
@@ -201,7 +199,7 @@ public class SettingsController implements Initializable {
                 User.clearSession();
                 SceneSwitcher.switchScene(event, "Login.fxml", 1100, 700);
             } catch (IOException e) {
-                logger.error("Lỗi khi đăng xuất: ", e);
+                logger.error("Error logging out: ", e);
             }
         });
 
@@ -228,7 +226,7 @@ public class SettingsController implements Initializable {
                 topBarAvatarPane.getChildren().add(icon);
             }
         } catch (Exception e) {
-            logger.warn("Không thể cập nhật avatar trên top bar: {}", e.getMessage());
+            logger.warn("Cannot update avatar on top bar: {}", e.getMessage());
         }
     }
 

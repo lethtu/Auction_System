@@ -1,6 +1,5 @@
 package com.auction.server.service;
 
-import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.model.Admin;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.model.AuctionStatus;
@@ -35,14 +34,14 @@ class AdminServiceExtraTest {
     void getSessionDetail_missingSession_throwsException() {
         RuntimeException ex = assertThrows(RuntimeException.class, () -> adminService.getSessionDetail(99));
 
-        assertEquals("Không tìm thấy phiên đấu giá", ex.getMessage());
+        assertEquals("Auction session not found", ex.getMessage());
     }
 
     @Test
     void approveSession_missingAdmin_throwsException() {
         RuntimeException ex = assertThrows(RuntimeException.class, () -> adminService.approveSession(10, 99));
 
-        assertEquals("Không tìm thấy admin", ex.getMessage());
+        assertEquals("Admin not found", ex.getMessage());
     }
 
     @Test
@@ -56,7 +55,7 @@ class AdminServiceExtraTest {
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> adminService.approveSession(10, 1));
 
-        assertEquals("Phiên này đã được xử lý hoặc không ở trạng thái chờ duyệt", ex.getMessage());
+        assertEquals("This session has already been processed or is not in pending status", ex.getMessage());
         assertNull(sessionRepository.savedSession);
     }
 
@@ -71,10 +70,10 @@ class AdminServiceExtraTest {
 
         RuntimeException ex = assertThrows(
                 RuntimeException.class,
-                () -> adminService.rejectSession(10, 1, "Sai thông tin")
+                () -> adminService.rejectSession(10, 1, "Incorrect info")
         );
 
-        assertEquals("Chỉ được từ chối các phiên đang ở trạng thái chờ duyệt", ex.getMessage());
+        assertEquals("Can only reject sessions in pending status", ex.getMessage());
         assertNull(sessionRepository.savedSession);
     }
 
@@ -85,7 +84,7 @@ class AdminServiceExtraTest {
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> adminService.banUser(99, 1));
 
-        assertEquals("Không tìm thấy user cần khóa", ex.getMessage());
+        assertEquals("Target user not found", ex.getMessage());
     }
 
     @Test
@@ -99,7 +98,7 @@ class AdminServiceExtraTest {
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> adminService.cancelAuction(10, 1));
 
-        assertEquals("Phiên này đã kết thúc hoặc đã bị hủy", ex.getMessage());
+        assertEquals("This session has already ended or been canceled", ex.getMessage());
         assertNull(sessionRepository.savedSession);
     }
 

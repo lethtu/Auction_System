@@ -17,11 +17,11 @@ public class DatabaseMigrationRunner {
     @PostConstruct
     public void migrateDatabase() {
         try {
-            logger.info("[MIGRATION] Bắt đầu tự động cập nhật cấu trúc bảng auction_sessions (loại bỏ PENDING và REJECTED)...");
+            logger.info("[MIGRATION] Starting automatic schema update for auction_sessions table (removing PENDING and REJECTED)...");
             jdbcTemplate.execute("ALTER TABLE auction_sessions MODIFY COLUMN status ENUM('ACTIVE', 'ENDED', 'CANCELED', 'COMING', 'DRAFT') NOT NULL;");
-            logger.info("[MIGRATION] Cập nhật kiểu dữ liệu cột status thành công (chỉ giữ lại ACTIVE, ENDED, CANCELED, COMING, DRAFT)!");
+            logger.info("[MIGRATION] Status column data type updated successfully (keeping only ACTIVE, ENDED, CANCELED, COMING, DRAFT)!");
         } catch (Exception e) {
-            logger.warn("[MIGRATION] Bỏ qua cập nhật cột status (bảng đã cập nhật hoặc không dùng ENUM): " + e.getMessage());
+            logger.warn("[MIGRATION] Skipped status column update (table already updated or not using ENUM): " + e.getMessage());
         }
     }
 }

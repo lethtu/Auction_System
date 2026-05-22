@@ -86,14 +86,14 @@ public class ClientHandler implements Runnable {
                 return;
             }
     
-            // QUAN TRỌNG:
-            // Trả kết quả bid chính trước, để client/test nhận đúng RESPONSE thành công.
+            // IMPORTANT:
+            // Return the main bid result first, so client/test receives the correct SUCCESS RESPONSE.
             sendBidResponse(response);
     
             if (response.isSuccess()) {
                 broadcastBidNotice(request.getAuctionId(), response);
     
-                // Auto-bid là xử lý phụ. Không được để lỗi auto-bid làm fail bid chính.
+                // Auto-bid is secondary processing. Auto-bid errors must not fail the main bid.
                 try {
                     BidResponse autoBidResult = biddingController.resolveAutoBids(request.getAuctionId());
                     if (autoBidResult != null && autoBidResult.isSuccess()) {
@@ -113,7 +113,7 @@ public class ClientHandler implements Runnable {
     
             JSONObject errorResponse = new JSONObject();
             errorResponse.put("success", false);
-            errorResponse.put("message", "LỖI HỆ THỐNG: Không xử lý được yêu cầu đặt giá.");
+            errorResponse.put("message", "SYSTEM ERROR: Could not process bid request.");
             out.println("RESPONSE:" + errorResponse);
         }
     }
@@ -194,11 +194,11 @@ public class ClientHandler implements Runnable {
             response.put("type", "AUTOBID_CONFIG");
             response.put(
                     "message",
-                    "Kích hoạt Auto-bidding thành công! Hệ thống sẽ tự đặt giá khi có người trả giá cao hơn."
+                    "Auto-bidding activated successfully! The system will automatically bid when someone offers a higher price."
             );
             out.println("RESPONSE:" + response);
 
-            // Resolve ngay lập tức nếu đang có giá cần phản đòn
+            // Resolve immediately if there's a price that needs counter-bidding
             BidResponse autoBidResult = biddingController.resolveAutoBids(auctionId);
             if (autoBidResult != null && autoBidResult.isSuccess()) {
                 broadcastBidNotice(auctionId, autoBidResult);
@@ -209,7 +209,7 @@ public class ClientHandler implements Runnable {
 
             JSONObject errorResponse = new JSONObject();
             errorResponse.put("success", false);
-            errorResponse.put("message", "Lỗi xử lý Auto-bidding: " + e.getMessage());
+            errorResponse.put("message", "Auto-bidding processing error: " + e.getMessage());
             out.println("RESPONSE:" + errorResponse);
         }
     }

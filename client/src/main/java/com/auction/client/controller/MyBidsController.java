@@ -1,19 +1,16 @@
 package com.auction.client.controller;
 
 import javafx.scene.control.*;
-import javafx.scene.Cursor;
 import javafx.fxml.FXMLLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
-import com.auction.client.HttpClientSingleton;
 import javafx.application.Platform;
 import javafx.animation.PauseTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
-import javafx.geometry.Bounds;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
@@ -27,7 +24,6 @@ import javafx.util.Duration;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import com.auction.client.model.User;
-import com.auction.client.service.ClientLogger;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.math.BigDecimal;
@@ -100,7 +96,7 @@ public class MyBidsController implements Initializable {
                 try {
                     com.auction.client.controller.SceneSwitcher.switchScene(e, "Settings.fxml", 1280, 800);
                 } catch (IOException ex) {
-                    logger.error("Lỗi chuyển sang trang Settings.fxml: ", ex);
+                    logger.error("Error switching to Settings.fxml: ", ex);
                 }
             });
         }
@@ -130,7 +126,7 @@ public class MyBidsController implements Initializable {
                         MainController.initialShowWatchlist = true;
                         SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
                     } catch (IOException e) {
-                        logger.error("Lỗi điều hướng:", e);
+                        logger.error("Navigation error:", e);
                     }
                 }
 
@@ -139,7 +135,7 @@ public class MyBidsController implements Initializable {
                     try {
                         SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
                     } catch (IOException e) {
-                        logger.error("Lỗi điều hướng:", e);
+                        logger.error("Navigation error:", e);
                     }
                 }
             });
@@ -177,16 +173,16 @@ public class MyBidsController implements Initializable {
     }
 
     private void createUserOption() {
-        MenuItem accountItem = new MenuItem("Tài Khoản Của Tôi");
-        MenuItem depositMoney = new MenuItem("Nạp tiền");
-        MenuItem logoutItem = new MenuItem("Đăng Xuất");
+        MenuItem accountItem = new MenuItem("My Account");
+        MenuItem depositMoney = new MenuItem("Deposit");
+        MenuItem logoutItem = new MenuItem("Logout");
 
         accountItem.setOnAction(event -> {
             try {
                 MainController.initialShowAccount = true;
                 SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
             } catch (IOException e) {
-                logger.error("Lỗi khi chuyển sang trang tài khoản: ", e);
+                logger.error("Error switching to account page: ", e);
             }
         });
 
@@ -194,7 +190,7 @@ public class MyBidsController implements Initializable {
             try {
                 SceneSwitcher.switchScene(event, "Deposit.fxml", 1280, 800);
             } catch (IOException e) {
-                logger.error("Lỗi khi chuyển sang trang nạp tiền: ", e);
+                logger.error("Error switching to deposit page: ", e);
             }
         });
 
@@ -202,7 +198,7 @@ public class MyBidsController implements Initializable {
             try {
                 handleLogout(event);
             } catch (IOException e) {
-                logger.error("Lỗi đăng xuất", e);
+                logger.error("Logout error", e);
             }
         });
 
@@ -273,7 +269,7 @@ public class MyBidsController implements Initializable {
                 logger.warn("[MyBids-DEBUG] HTTP returned non-200 status: {}", response.statusCode());
             }
         } catch (Exception e) {
-            logger.error("Lỗi tải sản phẩm: {}", e.getMessage(), e);
+            logger.error("Error loading products: {}", e.getMessage(), e);
         }
     }
 
@@ -665,7 +661,7 @@ if (matchKeyword && matchTab) {
                 AuctionPageController controller = loader.getController();
                 controller.setItem(sessionObj, itemObj);
             } catch (IOException e) {
-                logger.error("Lỗi chuyển cảnh vào phòng đấu giá", e);
+                logger.error("Error switching to auction room", e);
             }
         });
 
@@ -767,7 +763,7 @@ if (matchKeyword && matchTab) {
         try {
             SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
         } catch (IOException e) {
-            logger.error("Lỗi chuyển cảnh", e);
+            logger.error("Error switching scene", e);
         }
     }
 
@@ -853,7 +849,7 @@ if (matchKeyword && matchTab) {
                 topBarAvatarPane.getChildren().add(icon);
             }
         } catch (Exception e) {
-            logger.warn("Không thể cập nhật avatar trên top bar: {}", e.getMessage());
+            logger.warn("Cannot update avatar on top bar: {}", e.getMessage());
         }
     }
 

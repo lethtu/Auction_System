@@ -20,7 +20,7 @@ import java.util.concurrent.Executors;
 
 @Component
 public class SocketServer {
-    private int port = 8081; // Bỏ final để có thể thay đổi khi Test
+    private int port = 8081; // Non-final to allow changes during testing
     private static final Logger logger = LoggerFactory.getLogger(SocketServer.class);
     private final int systemCores = Runtime.getRuntime().availableProcessors();
     private final ExecutorService threadPool = Executors.newFixedThreadPool(systemCores);
@@ -36,7 +36,7 @@ public class SocketServer {
         this.biddingController = biddingController;
     }
 
-    // Gán cổng thủ công (Dùng cho bài Test)
+    // Set port manually (used for testing)
     public void setPort(int port) {
         this.port = port;
     }
@@ -48,17 +48,17 @@ public class SocketServer {
                 serverSocket = new ServerSocket();
                 serverSocket.setReuseAddress(true);
                 serverSocket.bind(new java.net.InetSocketAddress(this.port));
-                logger.info("SERVER SOCKET: Đang lắng nghe tại cổng {}...", this.port);
+                logger.info("SERVER SOCKET: Listening on port {}...", this.port);
                 while (running) {
                     try {
                         Socket clientSocket = serverSocket.accept();
                         threadPool.execute(new ClientHandler(clientSocket, biddingController));
                     } catch (SocketException e) {
-                        if (running) logger.error("Lỗi accept: {}", e.getMessage());
+                        if (running) logger.error("Accept error: {}", e.getMessage());
                     }
                 }
             } catch (IOException e) {
-                logger.error("Lỗi khởi động ServerSocket tại cổng {}: {}", this.port, e.getMessage());
+                logger.error("Error starting ServerSocket on port {}: {}", this.port, e.getMessage());
             } finally {
                 stop();
             }
@@ -67,7 +67,7 @@ public class SocketServer {
 
     public static void joinRoom(Integer sessionId, PrintWriter out) {
         rooms.computeIfAbsent(sessionId, k -> new CopyOnWriteArrayList<>()).add(out);
-        logger.info("SERVER: Client đã tham gia vào phòng ID: {}", sessionId);
+        logger.info("SERVER: Client joined room ID: {}", sessionId);
         broadcastCounts(sessionId);
     }
 
@@ -83,16 +83,16 @@ public class SocketServer {
 
     public static void joinHome(PrintWriter out) {
         homeClients.add(out);
-        logger.info("SERVER: Client Home đã kết nối để nhận event global.");
+        logger.info("SERVER: Home Client connected for global events.");
     }
 
     public static void broadcastToAll(String message) {
-        // Gửi cho tất cả client Home
+        // Send to all Home clients
         homeClients.forEach(out -> {
             out.println(message);
             out.flush();
         });
-        // Gửi cho tất cả client trong các phòng đấu giá
+        // Send to all clients in auction rooms
         rooms.values().forEach(clients -> {
             clients.forEach(out -> {
                 out.println(message);
@@ -124,7 +124,7 @@ public class SocketServer {
         try {
             if (serverSocket != null && !serverSocket.isClosed()) serverSocket.close();
         } catch (IOException e) {
-            logger.error("Lỗi khi đóng ServerSocket: {}", e.getMessage());
+            logger.error("Error closing ServerSocket: {}", e.getMessage());
         }
     }
 }

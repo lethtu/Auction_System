@@ -1,7 +1,6 @@
 package com.auction.server.util;
 
 import com.auction.server.model.AuctionSession;
-import com.auction.server.model.AuctionStatus;
 import com.auction.server.model.Seller;
 import com.auction.server.model.User;
 import com.auction.server.repository.AuctionSessionRepository;
@@ -27,15 +26,15 @@ public class SellerSessionGuard {
 
     public Seller getSellerById(Integer sellerId) {
         if (sellerId == null) {
-            throw new IllegalArgumentException("Không tìm thấy người bán");
+            throw new IllegalArgumentException("Seller not found");
         }
 
         User user = userRepository.findById(sellerId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người bán"));
+                .orElseThrow(() -> new IllegalArgumentException("Seller not found"));
 
         if (!(user instanceof Seller)) {
-            logger.error("Người dùng {} không phải seller", sellerId);
-            throw new IllegalArgumentException("Người dùng này không phải seller");
+            logger.error("User {} is not a seller", sellerId);
+            throw new IllegalArgumentException("This user is not a seller");
         }
 
         return (Seller) user;
@@ -43,16 +42,16 @@ public class SellerSessionGuard {
 
     public AuctionSession getSessionById(Integer sessionId) {
         if (sessionId == null) {
-            throw new IllegalArgumentException("Phiên đấu giá không tồn tại");
+            throw new IllegalArgumentException("Auction session does not exist");
         }
 
         return auctionSessionRepository.findById(sessionId)
-                .orElseThrow(() -> new IllegalArgumentException("Phiên đấu giá không tồn tại"));
+                .orElseThrow(() -> new IllegalArgumentException("Auction session does not exist"));
     }
 
     public void validateSessionOwner(AuctionSession session, Integer sellerId, String errorMessage) {
         if (session.getSeller() == null || !session.getSeller().getId().equals(sellerId)) {
-            logger.error("Seller {} không có quyền với phiên {}", sellerId, session.getId());
+            logger.error("Seller {} does not have permission for session {}", sellerId, session.getId());
             throw new IllegalArgumentException(errorMessage);
         }
     }

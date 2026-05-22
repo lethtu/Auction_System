@@ -7,12 +7,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-@EnableScheduling // Bật công tắc ở đây
+@EnableScheduling // Enable scheduling
 public class ServerApplication {
     private static final Logger logger = LoggerFactory.getLogger(ServerApplication.class);
     public static void main(String[] args) {
-        logger.info("Hệ thống đang khởi động");
+        logger.info("System is starting up");
         SpringApplication.run(ServerApplication.class, args);
-        logger.info("Hệ thống đã khởi động thành công");
+        logger.info("System started successfully");
     }
 }
