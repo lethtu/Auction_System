@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+import com.auction.server.util.PasswordUtil;
+
 @Service
 public class RqLoginSignup {
     private static final Logger logger = LoggerFactory.getLogger(RqLoginSignup.class);
@@ -18,7 +20,20 @@ public class RqLoginSignup {
     private HandleLoginSignup loginSignup;
 
     public Optional<User> login(String username, String pass) {
-        return loginSignup.findByUsernameOrEmailAndPassword(username, pass);
+        Optional<User> userOpt = loginSignup.findByUsernameOrEmail(username);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            if (PasswordUtil.checkPassword(pass, user.getPassword())) {
+                // If the password is still stored as plaintext, upgrade it to hashed
+                if (PasswordUtil.isPlaintext(user.getPassword())) {
+                    logger.info("Migrating plaintext password to BCrypt for user: {}", user.getUsername());
+                    user.setPassword(PasswordUtil.hashPassword(pass));
+                    loginSignup.save(user);
+                }
+                return Optional.of(user);
+            }
+        }
+        return Optional.empty();
     }
 
     public boolean signup(User newUser) {
@@ -32,7 +47,8 @@ public class RqLoginSignup {
             // Always create Bidder on signup so Hibernate writes "BIDDER" discriminator to DB
             Bidder bidder = new Bidder();
             bidder.setUsername(newUser.getUsername());
-            bidder.setPassword(newUser.getPassword());
+            // Hash the password before saving
+            bidder.setPassword(PasswordUtil.hashPassword(newUser.getPassword()));
             bidder.setFullname(newUser.getFullname());
             bidder.setEmail(newUser.getEmail());
             bidder.setDob(newUser.getDob());

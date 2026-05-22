@@ -125,8 +125,8 @@ public class AuthForgotpassTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(200));
 
-        // KIỂM TRA CHÉO: Kiểm tra xem User đã được cập nhật pass mới và lưu vào DB chưa?
-        assertEquals("new_password_123", mockUser.getPassword());
+        // KIỂM TRA CHÉO: Kiểm tra xem User đã được cập nhật pass mới (đã mã hóa) và lưu vào DB chưa?
+        org.junit.jupiter.api.Assertions.assertTrue(com.auction.server.util.PasswordUtil.checkPassword("new_password_123", mockUser.getPassword()));
         Mockito.verify(saveRepo).save(mockUser); // Xác nhận hàm Save.save() đã được gọi
     }
 

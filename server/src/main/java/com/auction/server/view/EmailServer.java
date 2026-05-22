@@ -36,9 +36,8 @@ public class EmailServer {
                 helper.setTo(toEmail);
                 helper.setSubject(subject);
 
-                // false = send as plain text.
                 // To send with beautiful HTML layout, just change to true
-                helper.setText(body, false);
+                helper.setText(body, true);
                 mailSender.send(message);
                 logger.info("Email sent successfully to: {}", toEmail);
 
