@@ -33,7 +33,7 @@ public class SessionResponseMapper {
             dto.setProductName(session.getItem().getName());
             dto.setProductType(session.getItem().getType());
             dto.setDescription(session.getItem().getDescription());
-            
+
             String imagePath = session.getItem().getImagePath();
             if (imagePath != null && !imagePath.isBlank()) {
                 if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {

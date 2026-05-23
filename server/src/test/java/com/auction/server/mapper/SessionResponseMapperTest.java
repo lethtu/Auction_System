@@ -59,12 +59,12 @@ class SessionResponseMapperTest {
         TestItem item = new TestItem();
         item.setId(6);
         item.setName("MacBook");
-        
+
         String clientUploadedUuid = java.util.UUID.randomUUID().toString();
         item.setImagePath(clientUploadedUuid);
-        
+
         assertEquals(clientUploadedUuid, item.getUuid());
-        
+
         session.setItem(item);
         SessionResponseDTO dto = SessionResponseMapper.toDTO(session);
         assertEquals("/api/files/images/" + clientUploadedUuid + "/" + clientUploadedUuid + ".png", dto.getImagePath());

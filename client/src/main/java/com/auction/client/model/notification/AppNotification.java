@@ -16,6 +16,7 @@ public class AppNotification {
     private LocalDateTime createdAt;
     private BooleanProperty read;
     private String actionLabel;
+    private boolean soundMuted = false;
 
     public AppNotification(NotificationType type, NotificationSeverity severity, String title, String message) {
         this.id = UUID.randomUUID().toString();
@@ -26,6 +27,9 @@ public class AppNotification {
         this.createdAt = LocalDateTime.now();
         this.read = new SimpleBooleanProperty(false);
     }
+
+    public boolean isSoundMuted() { return soundMuted; }
+    public void setSoundMuted(boolean soundMuted) { this.soundMuted = soundMuted; }
 
     public String getId() { return id; }
     public NotificationType getType() { return type; }

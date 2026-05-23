@@ -241,6 +241,24 @@ public class UserController {
         }
     }
 
+    @PostMapping("/{id}/change-password")
+    public ResponseEntity<ApiResponse<User>> changePassword(
+            @PathVariable Integer id,
+            @RequestBody Map<String, String> request) {
+        try {
+            String oldPassword = request.get("oldPassword");
+            String newPassword = request.get("newPassword");
+            User updatedUser = userService.changePassword(id, oldPassword, newPassword);
+            return ResponseEntity.ok(success("Password changed successfully.", updatedUser));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(error(e.getMessage(), null));
+        } catch (Exception e) {
+            logger.error("Error changing password for user {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.internalServerError().body(
+                    new ApiResponse<>(500, "Failed to change password.", null));
+        }
+    }
+
     private ApiResponse<User> error(String message, User user) {
         return new ApiResponse<>(ERROR_STATUS, message, user);
     }

@@ -2,6 +2,10 @@
     font-family: "DM Sans";
     src: url("../view/fonts/DMSans-Variable.ttf");
 }
+@font-face {
+    font-family: "DM Sans";
+    src: url("../view/fonts/DMSans-Variable.ttf");
+}
 
 @font-face {
     font-family: "Material Symbols Outlined";
@@ -10,9 +14,28 @@
 
 .auth-root {
     /* Root remains transparent; only auth-shell paints the rounded window. */
-    -fx-background-color: transparent;
+    -fx-background-color: transparent !important;
     -fx-font-family: "DM Sans", sans-serif;
     -fx-padding: 10;
+
+    /* Force light-theme styling variables inside auth screens */
+    -app-bg:          #ffffff;
+    -app-surface:     #ffffff;
+    -app-surface-2:   #fbf1fb;
+    -app-card:        #ffffff;
+    -app-text:        #604868;
+    -app-text-muted:  #907898;
+    -app-border:      #f2e8f2;
+    -app-input-bg:    #fbf1fb;
+    -app-input-text:  #2e1a28;
+    -app-placeholder: #dcc8e0;
+}
+
+/* Base text visibility inside authentication wrapper, overriding global dark/light theme overrides */
+.auth-root .label,
+.auth-root .text {
+    -fx-text-fill: -app-text;
+    -fx-fill: -app-text;
 }
 
 .auth-root.window-maximized {
@@ -40,10 +63,10 @@
 }
 
 .auth-shell {
-    -fx-background-color: #ffffff;
+    -fx-background-color: -app-bg;
     -fx-background-radius: 32;
     -fx-border-radius: 32;
-    -fx-border-color: rgba(224, 64, 160, 0.24);
+    -fx-border-color: -app-accent-opacity-25;
     -fx-border-width: 1;
 }
 
@@ -61,21 +84,21 @@
     -fx-fill: rgba(255, 255, 255, 0.16);
 }
 
-.auth-brand-title {
-    -fx-font-family: "DM Sans";
-    -fx-font-size: 28px;
-    -fx-font-weight: 900;
-    -fx-text-fill: #ffffff;
-    -fx-wrap-text: true;
+.auth-root .auth-brand-title {
+    -fx-font-family: "DM Sans" !important;
+    -fx-font-size: 28px !important;
+    -fx-font-weight: 900 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-wrap-text: true !important;
 }
 
-.auth-brand-subtitle {
-    -fx-font-family: "DM Sans";
-    -fx-font-size: 16px;
-    -fx-font-weight: 500;
-    -fx-text-fill: #ffd6ee;
-    -fx-wrap-text: true;
-    -fx-line-spacing: 4;
+.auth-root .auth-brand-subtitle {
+    -fx-font-family: "DM Sans" !important;
+    -fx-font-size: 16px !important;
+    -fx-font-weight: 500 !important;
+    -fx-text-fill: #ffd6ee !important;
+    -fx-wrap-text: true !important;
+    -fx-line-spacing: 4 !important;
 }
 
 .auth-card-overlay {
@@ -103,18 +126,18 @@
     -fx-fill: #113145;
 }
 
-.auth-stat-title {
-    -fx-text-fill: #ffffff;
-    -fx-font-family: "DM Sans";
-    -fx-font-size: 15px;
-    -fx-font-weight: 900;
+.auth-root .auth-stat-title {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-family: "DM Sans" !important;
+    -fx-font-size: 15px !important;
+    -fx-font-weight: 900 !important;
 }
 
-.auth-stat-subtitle {
-    -fx-text-fill: #ffd6ee;
-    -fx-font-family: "DM Sans";
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
+.auth-root .auth-stat-subtitle {
+    -fx-text-fill: #ffd6ee !important;
+    -fx-font-family: "DM Sans" !important;
+    -fx-font-size: 12px !important;
+    -fx-font-weight: 500 !important;
 }
 
 .auth-progress-track {
@@ -133,206 +156,211 @@
     -fx-max-height: 6;
 }
 
-.auth-intensity-label {
-    -fx-text-fill: rgba(255, 255, 255, 0.8);
-    -fx-font-family: "DM Sans";
-    -fx-font-size: 11px;
-    -fx-font-weight: 900;
+.auth-root .auth-intensity-label {
+    -fx-text-fill: rgba(255, 255, 255, 0.8) !important;
+    -fx-font-family: "DM Sans" !important;
+    -fx-font-size: 11px !important;
+    -fx-font-weight: 900 !important;
 }
 
 .auth-product-carousel {
-    -fx-background-color: #ffffff;
+    -fx-background-color: -app-card;
     -fx-background-radius: 18;
     -fx-effect: dropshadow(gaussian, rgba(34, 12, 32, 0.13), 24, 0.12, 0, 7);
 }
 
 .auth-product-image-container {
-    -fx-background-color: #ffffff;
+    -fx-background-color: -app-card;
     -fx-background-radius: 18 18 0 0;
 }
 
 .auth-product-details-container {
-    -fx-background-color: #fffbfe;
+    -fx-background-color: -app-surface-2;
     -fx-background-radius: 0 0 18 18;
-    -fx-border-color: #f3ebf3 transparent transparent transparent;
+    -fx-border-color: -app-border transparent transparent transparent;
     -fx-border-width: 1 0 0 0;
 }
 
 .auth-live-badge {
-    -fx-background-color: #e040a0;
-    -fx-background-radius: 6;
-    -fx-padding: 4 10 4 10;
-    -fx-font-family: "DM Sans";
-    -fx-font-size: 11px;
-    -fx-font-weight: 900;
-    -fx-text-fill: #ffffff;
+    -fx-background-color: -fx-accent !important;
+    -fx-background-radius: 6 !important;
+    -fx-padding: 4 10 4 10 !important;
+    -fx-font-family: "DM Sans" !important;
+    -fx-font-size: 11px !important;
+    -fx-font-weight: 900 !important;
+    -fx-text-fill: #ffffff !important;
 }
 
-.auth-product-type {
-    -fx-font-family: "DM Sans";
-    -fx-font-size: 13px;
-    -fx-font-weight: 700;
-    -fx-text-fill: #a05080;
+.auth-root .auth-product-type {
+    -fx-font-family: "DM Sans" !important;
+    -fx-font-size: 13px !important;
+    -fx-font-weight: 700 !important;
+    -fx-text-fill: -fx-accent !important;
 }
 
-.auth-product-name {
-    -fx-font-family: "DM Sans";
-    -fx-font-size: 18px;
-    -fx-font-weight: 800;
-    -fx-text-fill: #2c1527;
-    -fx-wrap-text: true;
-    -fx-max-width: 360;
+.auth-root .auth-product-name {
+    -fx-font-family: "DM Sans" !important;
+    -fx-font-size: 18px !important;
+    -fx-font-weight: 800 !important;
+    -fx-text-fill: -app-text !important;
+    -fx-wrap-text: true !important;
+    -fx-max-width: 360 !important;
 }
 
-.auth-product-price {
-    -fx-font-family: "DM Sans";
-    -fx-font-size: 13px;
-    -fx-font-weight: 700;
-    -fx-text-fill: #0096cc;
+.auth-root .auth-product-price {
+    -fx-font-family: "DM Sans" !important;
+    -fx-font-size: 13px !important;
+    -fx-font-weight: 700 !important;
+    -fx-text-fill: -fx-accent !important;
 }
 
-.auth-title {
-    -fx-font-family: "DM Sans";
-    -fx-font-size: 28px;
-    -fx-font-weight: 900;
-    -fx-text-fill: #2e1a28;
+.auth-root .auth-title {
+    -fx-font-family: "DM Sans" !important;
+    -fx-font-size: 28px !important;
+    -fx-font-weight: 900 !important;
+    -fx-text-fill: -app-text !important;
 }
 
-.auth-subtitle {
-    -fx-font-family: "DM Sans";
-    -fx-font-size: 14px;
-    -fx-font-weight: 500;
-    -fx-text-fill: #604868;
+.auth-root .auth-subtitle {
+    -fx-font-family: "DM Sans" !important;
+    -fx-font-size: 14px !important;
+    -fx-font-weight: 500 !important;
+    -fx-text-fill: -app-text-muted !important;
 }
 
-.auth-input-label {
-    -fx-font-family: "DM Sans";
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
-    -fx-text-fill: #604868;
+.auth-root .auth-input-label {
+    -fx-font-family: "DM Sans" !important;
+    -fx-font-size: 12px !important;
+    -fx-font-weight: 700 !important;
+    -fx-text-fill: -app-text !important;
 }
 
-.auth-input {
-    -fx-background-color: #fbf1fb;
-    -fx-background-radius: 30;
-    -fx-border-radius: 30;
-    -fx-border-color: transparent;
-    -fx-border-width: 0;
-    -fx-padding: 13 20 13 20;
-    -fx-font-family: "DM Sans";
-    -fx-font-size: 14px;
-    -fx-font-weight: 500;
-    -fx-text-fill: #2e1a28;
-    -fx-prompt-text-fill: #dcc8e0;
-    -fx-min-height: 48;
-    -fx-pref-height: 48;
-    -fx-max-height: 48;
+.auth-root .auth-input {
+    -fx-background-color: -app-input-bg !important;
+    -fx-background-radius: 30 !important;
+    -fx-border-radius: 30 !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0 !important;
+    -fx-padding: 13 20 13 20 !important;
+    -fx-font-family: "DM Sans" !important;
+    -fx-font-size: 14px !important;
+    -fx-font-weight: 500 !important;
+    -fx-text-fill: -app-input-text !important;
+    -fx-prompt-text-fill: -app-placeholder !important;
+    -fx-min-height: 48 !important;
+    -fx-pref-height: 48 !important;
+    -fx-max-height: 48 !important;
 }
 
-.auth-input:focused {
-    -fx-background-color: #fff6fd;
-    -fx-border-color: transparent;
-    -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.15), 10, 0, 0, 4);
+.auth-root .auth-input:focused {
+    -fx-background-color: -app-input-bg !important;
+    -fx-border-color: transparent !important;
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-16, 10, 0, 0, 4) !important;
 }
 
-.auth-remember-check {
-    -fx-font-family: "DM Sans";
-    -fx-text-fill: #604868;
-    -fx-font-size: 13px;
+.auth-root .check-box,
+.auth-root .check-box .text,
+.auth-root .auth-remember-check,
+.auth-root .check-box.auth-remember-check .text {
+    -fx-font-family: "DM Sans" !important;
+    -fx-text-fill: -app-text !important;
+    -fx-font-size: 13px !important;
 }
 
-.auth-primary-button {
-    -fx-background-color: linear-gradient(to right, #e040a0, #dd3ba0);
-    -fx-background-radius: 30;
-    -fx-text-fill: #ffffff;
-    -fx-font-family: "DM Sans";
-    -fx-font-size: 20px;
-    -fx-font-weight: 900;
-    -fx-cursor: hand;
-    -fx-padding: 16 32 16 32;
-    -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 30, 0, 0, 12);
+.auth-root .button.auth-primary-button {
+    -fx-background-color: -app-accent-gradient-horizontal !important;
+    -fx-background-radius: 30 !important;
+    -fx-text-fill: #ffffff !important;
+    -fx-font-family: "DM Sans" !important;
+    -fx-font-size: 20px !important;
+    -fx-font-weight: 900 !important;
+    -fx-cursor: hand !important;
+    -fx-padding: 16 32 16 32 !important;
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-25, 30, 0, 0, 12) !important;
 }
 
 .auth-primary-button:hover {
-    -fx-background-color: linear-gradient(to right, #ec4caf, #d9369a);
-    -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.4), 35, 0, 0, 15);
+    -fx-background-color: -app-accent-gradient-dark !important;
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-40, 35, 0, 0, 15) !important;
 }
 
 .auth-primary-button:pressed {
-    -fx-background-color: #a02070;
+    -fx-background-color: -app-accent-hover !important;
 }
 
 .auth-primary-button:disabled {
-    -fx-background-color: #f2e8f2;
-    -fx-text-fill: #907898;
-    -fx-effect: none;
+    -fx-background-color: #f2e8f2 !important;
+    -fx-text-fill: #907898 !important;
+    -fx-effect: none !important;
 }
 
-.auth-secondary-link {
-    -fx-font-family: "DM Sans";
-    -fx-font-size: 14px;
-    -fx-font-weight: 700;
-    -fx-text-fill: #e040a0;
-    -fx-border-color: transparent;
-    -fx-cursor: hand;
+.auth-root .hyperlink.auth-secondary-link,
+.auth-root .hyperlink.auth-secondary-link .text {
+    -fx-font-family: "DM Sans" !important;
+    -fx-font-size: 14px !important;
+    -fx-font-weight: 700 !important;
+    -fx-text-fill: -fx-accent !important;
+    -fx-border-color: transparent !important;
+    -fx-cursor: hand !important;
 }
 
-.auth-secondary-link:hover {
-    -fx-text-fill: #a02070;
-    -fx-underline: true;
+.auth-root .hyperlink.auth-secondary-link:hover,
+.auth-root .hyperlink.auth-secondary-link:hover .text {
+    -fx-text-fill: -app-accent-hover !important;
+    -fx-underline: true !important;
 }
 
-.auth-social-button {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #f2e8f2;
-    -fx-border-width: 2;
-    -fx-border-radius: 30;
-    -fx-background-radius: 30;
-    -fx-font-family: "DM Sans";
-    -fx-font-size: 14px;
-    -fx-font-weight: 700;
-    -fx-text-fill: #2e1a28;
-    -fx-cursor: hand;
-    -fx-padding: 12 24 12 24;
+.auth-root .button.auth-social-button {
+    -fx-background-color: -app-card !important;
+    -fx-border-color: -app-border !important;
+    -fx-border-width: 2 !important;
+    -fx-border-radius: 30 !important;
+    -fx-background-radius: 30 !important;
+    -fx-font-family: "DM Sans" !important;
+    -fx-font-size: 14px !important;
+    -fx-font-weight: 700 !important;
+    -fx-text-fill: -app-text !important;
+    -fx-cursor: hand !important;
+    -fx-padding: 12 24 12 24 !important;
 }
 
 .auth-social-button:hover {
-    -fx-background-color: #fbf2fb;
+    -fx-background-color: -app-surface-2 !important;
 }
 
 .auth-footer {
-    -fx-border-color: #f2e8f2;
+    -fx-border-color: -app-border;
     -fx-border-width: 1 0 0 0;
     -fx-padding: 22 0 0 0;
 }
 
-.auth-footer-text {
-    -fx-font-family: "DM Sans";
-    -fx-text-fill: #604868;
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
+.auth-root .auth-footer-text {
+    -fx-font-family: "DM Sans" !important;
+    -fx-text-fill: -app-text-muted !important;
+    -fx-font-size: 12px !important;
+    -fx-font-weight: 500 !important;
 }
 
-.auth-trust-label {
-    -fx-font-family: "DM Sans";
-    -fx-font-size: 10px;
-    -fx-font-weight: 900;
-    -fx-text-fill: #604868;
+.auth-root .auth-trust-label {
+    -fx-font-family: "DM Sans" !important;
+    -fx-font-size: 10px !important;
+    -fx-font-weight: 900 !important;
+    -fx-text-fill: -app-text-muted !important;
 }
 
 /* Status Messages */
-.status-success {
-    -fx-text-fill: #22c55e;
-    -fx-font-family: "DM Sans";
-    -fx-font-size: 13px;
-    -fx-font-weight: 500;
+.auth-root .status-success {
+    -fx-text-fill: #22c55e !important;
+    -fx-font-family: "DM Sans" !important;
+    -fx-font-size: 13px !important;
+    -fx-font-weight: 500 !important;
 }
 
-.status-error {
-    -fx-text-fill: #e53e3e;
-    -fx-font-family: "DM Sans";
-    -fx-font-size: 13px;
-    -fx-font-weight: 500;
+.auth-root .status-error {
+    -fx-text-fill: #e53e3e !important;
+    -fx-font-family: "DM Sans" !important;
+    -fx-font-size: 13px !important;
+    -fx-font-weight: 500 !important;
 }
 
 .strength-weak {
@@ -371,7 +399,7 @@
     -fx-font-family: 'DM Sans';
     -fx-font-size: 14px;
     -fx-font-weight: 900;
-    -fx-text-fill: #907898;
+    -fx-text-fill: -app-text-muted;
 }
 
 
@@ -379,37 +407,37 @@
 #rememberMeCheckBox,
 .remember-me-pill,
 .auth-remember-check {
-    -fx-background-color: #fff6fc;
+    -fx-background-color: -app-accent-chip-bg;
     -fx-background-radius: 999px;
-    -fx-border-color: #f4d4e8;
+    -fx-border-color: -app-accent-chip-border;
     -fx-border-width: 1.5px;
     -fx-border-radius: 999px;
     -fx-padding: 8 14 8 12;
-    -fx-text-fill: #604868;
+    -fx-text-fill: -app-text;
     -fx-font-family: "DM Sans", "Segoe UI", sans-serif;
     -fx-font-size: 14px;
     -fx-font-weight: 800;
     -fx-cursor: hand;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
-    -fx-accent: #e040a0;
-    -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.08), 10, 0.18, 0, 2);
+    -fx-accent: -fx-accent;
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-08, 10, 0.18, 0, 2);
 }
 
 #rememberMeCheckBox:hover,
 .remember-me-pill:hover,
 .auth-remember-check:hover {
-    -fx-background-color: #fff0f8;
-    -fx-border-color: #e040a0;
-    -fx-text-fill: #e040a0;
+    -fx-background-color: -app-accent-chip-bg;
+    -fx-border-color: -fx-accent;
+    -fx-text-fill: -fx-accent;
 }
 
 #rememberMeCheckBox:selected,
 .remember-me-pill:selected,
 .auth-remember-check:selected {
-    -fx-background-color: #fff0f8;
-    -fx-border-color: #e040a0;
-    -fx-text-fill: #a02070;
+    -fx-background-color: -app-accent-chip-bg;
+    -fx-border-color: -fx-accent;
+    -fx-text-fill: -app-accent-hover;
 }
 
 #rememberMeCheckBox .box,
@@ -424,9 +452,9 @@
     -fx-min-height: 22px;
     -fx-pref-height: 22px;
     -fx-max-height: 22px;
-    -fx-background-color: #ffffff;
+    -fx-background-color: -app-input-bg;
     -fx-background-radius: 8px;
-    -fx-border-color: #e6c8e6;
+    -fx-border-color: -app-border;
     -fx-border-width: 2px;
     -fx-border-radius: 8px;
 }
@@ -437,8 +465,8 @@
 .remember-me-pill:selected > .box,
 .auth-remember-check:selected .box,
 .auth-remember-check:selected > .box {
-    -fx-background-color: linear-gradient(to bottom right, #e040a0, #b2368f);
-    -fx-border-color: #e040a0;
+    -fx-background-color: -app-accent-gradient-dark;
+    -fx-border-color: -fx-accent;
 }
 
 #rememberMeCheckBox:selected .mark,
@@ -464,24 +492,24 @@
 }
 .remember-me-pill, .auth-check-box {
     -fx-font-family: 'DM Sans';
-    -fx-text-fill: #604868;
+    -fx-text-fill: -app-text;
     -fx-font-size: 14px;
     -fx-font-weight: 700;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
 }
 .remember-me-pill > .box, .auth-check-box > .box {
-    -fx-background-color: #fff7fd;
-    -fx-border-color: #f2a6d8;
+    -fx-background-color: -app-accent-chip-bg;
+    -fx-border-color: -app-accent-chip-border;
     -fx-border-width: 1.6;
     -fx-border-radius: 8;
     -fx-background-radius: 8;
     -fx-padding: 4;
-    -fx-effect: dropshadow(gaussian, rgba(224,64,160,0.12), 8, 0.10, 0, 2);
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-12, 8, 0.10, 0, 2);
 }
 .remember-me-pill:selected > .box, .auth-check-box:selected > .box {
-    -fx-background-color: #e040a0;
-    -fx-border-color: #e040a0;
+    -fx-background-color: -fx-accent;
+    -fx-border-color: -fx-accent;
 }
 .remember-me-pill:selected > .box > .mark, .auth-check-box:selected > .box > .mark {
     -fx-background-color: white;

@@ -3,6 +3,7 @@ module com.auction.client {
     requires transitive javafx.fxml;
     requires transitive javafx.base;
     requires transitive javafx.graphics;
+    requires transitive javafx.media;
 
     requires transitive org.json;
     requires transitive java.net.http;

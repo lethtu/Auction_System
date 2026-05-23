@@ -108,6 +108,12 @@ public class User {
         cachedAvatarImage = null;
         cachedAvatarUrl = null;
         passwordSet = true;
+
+        try {
+            com.auction.client.service.NotificationSocketService.getInstance().stop();
+        } catch (Exception e) {
+            // Ignore if service not initialized or not found
+        }
     }
 
     public static String getRole(){
