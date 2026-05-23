@@ -1,0 +1,84 @@
+/* Pink accent - broad override layer */
+.root, .accent-pink {
+    -fx-accent: #e040a0;
+    -fx-focus-color: #e040a0;
+    -fx-faint-focus-color: rgba(224,64,160,0.28);
+}
+
+.accent-pink .app-logo,
+.accent-pink .page-title,
+.accent-pink .settings-card-title,
+.accent-pink .section-title,
+.accent-pink .card-title,
+.accent-pink .nav-button:selected,
+.accent-pink .nav-button:hover,
+.accent-pink .sidebar-button:selected,
+.accent-pink .sidebar-button:hover,
+.accent-pink .admin-nav-button:hover,
+.accent-pink .admin-nav-button.active-admin-nav,
+.accent-pink .filter-label,
+.accent-pink .material-icon.accent-icon,
+.accent-pink .view-toggle-button:hover,
+.accent-pink .btn-account-secondary,
+.accent-pink .settings-link {
+    -fx-text-fill: #e040a0;
+    -fx-fill: #e040a0;
+}
+
+.accent-pink .primary-btn,
+.accent-pink .button.primary-btn,
+.accent-pink .btn-account-primary,
+.accent-pink .admin-refresh-button,
+.accent-pink .view-toggle-button-active,
+.accent-pink .setting-switch:selected .box,
+.accent-pink .check-box:selected > .box,
+.accent-pink .seller-policy-check:selected > .box,
+.accent-pink .scroll-bar:vertical .thumb,
+.accent-pink .slider .thumb {
+    -fx-background-color: #e040a0;
+    -fx-border-color: #e040a0;
+}
+
+.accent-pink .btn-account-primary,
+.accent-pink .view-toggle-button-active,
+.accent-pink .primary-btn {
+    -fx-background-color: linear-gradient(to right, #e040a0, #f15bb5);
+}
+
+.accent-pink .app-sidebar-content,
+.accent-pink .admin-sidebar,
+.accent-pink .app-content-panel,
+.accent-pink .app-content-scroll,
+.accent-pink .settings-card,
+.accent-pink .dashboard-card,
+.accent-pink .auction-card,
+.accent-pink .table-container,
+.accent-pink .filter-combo,
+.accent-pink .view-toggle-button,
+.accent-pink .account-input:focused,
+.accent-pink .admin-nav-button.active-admin-nav {
+    -fx-border-color: #f2a6d8;
+}
+
+.accent-pink .app-sidebar-content,
+.accent-pink .admin-sidebar,
+.accent-pink .view-toggle-button-active,
+.accent-pink .btn-account-primary,
+.accent-pink .primary-btn,
+.accent-pink .settings-card {
+    -fx-effect: dropshadow(gaussian, rgba(224,64,160,0.28), 18, 0.16, 0, 5);
+}
+
+.accent-pink .nav-button:selected,
+.accent-pink .sidebar-button:selected,
+.accent-pink .admin-nav-button.active-admin-nav,
+.accent-pink .view-toggle-button:hover,
+.accent-pink .combo-box-popup .list-cell:filled:hover {
+    -fx-background-color: #fff3fb;
+}
+
+.accent-pink .combo-box-popup .list-cell:filled:selected,
+.accent-pink .combo-box-popup .list-cell:filled:selected:hover {
+    -fx-background-color: #e040a0;
+    -fx-text-fill: white;
+}

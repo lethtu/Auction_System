@@ -1,0 +1,84 @@
+/* Purple accent - broad override layer */
+.root, .accent-purple {
+    -fx-accent: #8b5cf6;
+    -fx-focus-color: #8b5cf6;
+    -fx-faint-focus-color: rgba(139,92,246,0.28);
+}
+
+.accent-purple .app-logo,
+.accent-purple .page-title,
+.accent-purple .settings-card-title,
+.accent-purple .section-title,
+.accent-purple .card-title,
+.accent-purple .nav-button:selected,
+.accent-purple .nav-button:hover,
+.accent-purple .sidebar-button:selected,
+.accent-purple .sidebar-button:hover,
+.accent-purple .admin-nav-button:hover,
+.accent-purple .admin-nav-button.active-admin-nav,
+.accent-purple .filter-label,
+.accent-purple .material-icon.accent-icon,
+.accent-purple .view-toggle-button:hover,
+.accent-purple .btn-account-secondary,
+.accent-purple .settings-link {
+    -fx-text-fill: #8b5cf6;
+    -fx-fill: #8b5cf6;
+}
+
+.accent-purple .primary-btn,
+.accent-purple .button.primary-btn,
+.accent-purple .btn-account-primary,
+.accent-purple .admin-refresh-button,
+.accent-purple .view-toggle-button-active,
+.accent-purple .setting-switch:selected .box,
+.accent-purple .check-box:selected > .box,
+.accent-purple .seller-policy-check:selected > .box,
+.accent-purple .scroll-bar:vertical .thumb,
+.accent-purple .slider .thumb {
+    -fx-background-color: #8b5cf6;
+    -fx-border-color: #8b5cf6;
+}
+
+.accent-purple .btn-account-primary,
+.accent-purple .view-toggle-button-active,
+.accent-purple .primary-btn {
+    -fx-background-color: linear-gradient(to right, #8b5cf6, #a78bfa);
+}
+
+.accent-purple .app-sidebar-content,
+.accent-purple .admin-sidebar,
+.accent-purple .app-content-panel,
+.accent-purple .app-content-scroll,
+.accent-purple .settings-card,
+.accent-purple .dashboard-card,
+.accent-purple .auction-card,
+.accent-purple .table-container,
+.accent-purple .filter-combo,
+.accent-purple .view-toggle-button,
+.accent-purple .account-input:focused,
+.accent-purple .admin-nav-button.active-admin-nav {
+    -fx-border-color: #c4b5fd;
+}
+
+.accent-purple .app-sidebar-content,
+.accent-purple .admin-sidebar,
+.accent-purple .view-toggle-button-active,
+.accent-purple .btn-account-primary,
+.accent-purple .primary-btn,
+.accent-purple .settings-card {
+    -fx-effect: dropshadow(gaussian, rgba(139,92,246,0.28), 18, 0.16, 0, 5);
+}
+
+.accent-purple .nav-button:selected,
+.accent-purple .sidebar-button:selected,
+.accent-purple .admin-nav-button.active-admin-nav,
+.accent-purple .view-toggle-button:hover,
+.accent-purple .combo-box-popup .list-cell:filled:hover {
+    -fx-background-color: #f4f0ff;
+}
+
+.accent-purple .combo-box-popup .list-cell:filled:selected,
+.accent-purple .combo-box-popup .list-cell:filled:selected:hover {
+    -fx-background-color: #8b5cf6;
+    -fx-text-fill: white;
+}

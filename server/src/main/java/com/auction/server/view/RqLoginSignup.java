@@ -1,16 +1,17 @@
 package com.auction.server.view;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.auction.server.model.Bidder;
 import com.auction.server.model.User;
 import com.auction.server.repository.HandleLoginSignup;
+import com.auction.server.util.PasswordUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.Optional;
-
-import com.auction.server.util.PasswordUtil;
+import java.util.UUID;
 
 @Service
 public class RqLoginSignup {
@@ -53,7 +54,8 @@ public class RqLoginSignup {
             bidder.setEmail(newUser.getEmail());
             bidder.setDob(newUser.getDob());
             bidder.setPlace_of_birth(newUser.getPlace_of_birth());
-            bidder.setBalance(newUser.getBalance() != null ? newUser.getBalance() : java.math.BigDecimal.ZERO);
+            bidder.setBalance(newUser.getBalance() != null ? newUser.getBalance() : BigDecimal.ZERO);
+            bidder.setPasswordSet(true);
 
             loginSignup.save(bidder);
             logger.info("Successfully added user: {} to DB with role BIDDER", newUser.getUsername());
@@ -62,5 +64,69 @@ public class RqLoginSignup {
         logger.info("Username: {} or Email: {} already exists in DB", newUser.getUsername(), newUser.getEmail());
         return true;
     }
-}
 
+    public User findOrCreateGoogleUser(String email, String fullname, String avatarUrl) {
+        String normalizedEmail = normalizeEmail(email);
+        Optional<User> existingUser = loginSignup.findByEmail(normalizedEmail);
+        if (existingUser.isPresent()) {
+            User user = existingUser.get();
+            boolean changed = false;
+
+            if ((user.getFullname() == null || user.getFullname().isBlank()) && fullname != null && !fullname.isBlank()) {
+                user.setFullname(fullname);
+                changed = true;
+            }
+
+            if ((user.getAvatarUrl() == null || user.getAvatarUrl().isBlank()) && avatarUrl != null && !avatarUrl.isBlank()) {
+                user.setAvatarUrl(avatarUrl);
+                changed = true;
+            }
+
+            return changed ? loginSignup.save(user) : user;
+        }
+
+        Bidder bidder = new Bidder();
+        bidder.setEmail(normalizedEmail);
+        bidder.setUsername(buildUniqueGoogleUsername(normalizedEmail));
+        bidder.setFullname((fullname == null || fullname.isBlank()) ? normalizedEmail : fullname.trim());
+        bidder.setPassword(PasswordUtil.hashPassword(UUID.randomUUID().toString()));
+        bidder.setBalance(BigDecimal.ZERO);
+        bidder.setAvatarUrl(avatarUrl);
+        bidder.setPasswordSet(false);
+
+        User savedUser = loginSignup.save(bidder);
+        logger.info("Created Google bidder account for {}", normalizedEmail);
+        return savedUser;
+    }
+
+    public boolean googleUserExistsByEmail(String email) {
+        if (email == null || email.isBlank()) {
+            return false;
+        }
+        return loginSignup.findByEmail(email.trim().toLowerCase()).isPresent();
+    }
+    private String buildUniqueGoogleUsername(String email) {
+        String base = email.substring(0, email.indexOf('@'))
+                .replaceAll("[^A-Za-z0-9_]", "_")
+                .replaceAll("_+", "_");
+
+        if (base.isBlank()) {
+            base = "google_user";
+        }
+
+        String candidate = base;
+        int suffix = 1;
+        while (loginSignup.existsByUsername(candidate)) {
+            candidate = base + "_" + suffix;
+            suffix++;
+        }
+        return candidate;
+    }
+
+    private static String normalizeEmail(String email) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Email is required");
+        }
+        return email.trim().toLowerCase();
+    }
+}

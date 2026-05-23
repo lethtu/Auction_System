@@ -20,17 +20,17 @@ public class SellerDashboardService {
 
     private static final String IMAGE_PATH_KEY = "imagePath";
 
-    private static final String CREATE_SUCCESS_MESSAGE = "Đã tạo phiên đấu giá thành công.";
-    private static final String UPDATE_SUCCESS_MESSAGE = "Đã cập nhật phiên thành công.";
-    private static final String CANCEL_SUCCESS_MESSAGE = "Đã hủy phiên thành công.";
+    private static final String CREATE_SUCCESS_MESSAGE = "Auction session created successfully.";
+    private static final String UPDATE_SUCCESS_MESSAGE = "Session updated successfully.";
+    private static final String CANCEL_SUCCESS_MESSAGE = "Session canceled successfully.";
 
-    private static final String NO_IMAGE_SELECTED_MESSAGE = "Chưa chọn file ảnh.";
-    private static final String INVALID_IMAGE_FILE_MESSAGE = "File ảnh không tồn tại hoặc không hợp lệ.";
-    private static final String IMAGE_FILE_NOT_READABLE_MESSAGE = "Không có quyền đọc file ảnh đã chọn.";
-    private static final String IMAGE_TOO_LARGE_MESSAGE = "Ảnh quá lớn. Hãy chọn ảnh nhỏ hơn hoặc tăng giới hạn upload của server.";
-    private static final String MISSING_IMAGE_PATH_MESSAGE = "Server đã nhận ảnh nhưng không trả về đường dẫn ảnh.";
+    private static final String NO_IMAGE_SELECTED_MESSAGE = "No image file selected.";
+    private static final String INVALID_IMAGE_FILE_MESSAGE = "Image file does not exist or is invalid.";
+    private static final String IMAGE_FILE_NOT_READABLE_MESSAGE = "No permission to read the selected image file.";
+    private static final String IMAGE_TOO_LARGE_MESSAGE = "Image is too large. Please select a smaller image or increase the server upload limit.";
+    private static final String MISSING_IMAGE_PATH_MESSAGE = "Server received the image but did not return an image path.";
     private static final String UPLOAD_FAILED_MESSAGE = "Image upload failed. HTTP status: ";
-    private static final String LOAD_SESSIONS_FAILED_MESSAGE = "Không thể tải danh sách phiên đấu giá.";
+    private static final String LOAD_SESSIONS_FAILED_MESSAGE = "Unable to load auction sessions list.";
 
     private final SellerApiClient sellerApiClient;
 

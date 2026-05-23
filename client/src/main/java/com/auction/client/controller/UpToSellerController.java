@@ -61,6 +61,9 @@ public class UpToSellerController implements Initializable {
                 HttpURLConnection conn = (HttpURLConnection) java.net.URI.create(apiUrl).toURL().openConnection();
                 conn.setRequestMethod("POST");
                 conn.setRequestProperty("Content-Type", "application/json");
+                if (User.getSessionToken() != null && !User.getSessionToken().isBlank()) {
+                    conn.setRequestProperty("X-Auth-Token", User.getSessionToken());
+                }
 
                 int responseCode = conn.getResponseCode();
                 InputStream stream = (responseCode >= 200 && responseCode < 300) ? conn.getInputStream() : conn.getErrorStream();
@@ -74,7 +77,7 @@ public class UpToSellerController implements Initializable {
                     btnUpgrade.setDisable(false);
                     if (responseCode >= 200 && responseCode < 300 && jsonResponse.optInt("status", 400) == 200) {
                         // Success
-                        User.setSession(User.getId(), User.getUsername(), User.getFullname(), User.getEmail(), User.getDob(), User.getPlace_of_birth(), "SELLER", User.getAvatarUrl());
+                        User.setSession(User.getId(), User.getUsername(), User.getFullname(), User.getEmail(), User.getDob(), User.getPlace_of_birth(), "seller", User.getAvatarUrl());
                         AlertUtil.showInfo("Upgrade successful", "Congratulations, you are now a Seller!\nSelling features are now unlocked. You can now list your own products.");
 
                         try {

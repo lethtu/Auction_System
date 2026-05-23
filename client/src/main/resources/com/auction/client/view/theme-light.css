@@ -1,0 +1,179 @@
+/* ====== LIGHT THEME: token definitions ====== */
+.theme-light {
+    -app-bg:          #fff7fc;
+    -app-surface:     #fffafc;
+    -app-surface-2:   #fff5fa;
+    -app-card:        #ffffff;
+    -app-text:        #201427;
+    -app-text-muted:  #6f5c7d;
+    -app-border:      rgba(224,64,160,0.18);
+    -app-input-bg:    #ffffff;
+    -app-input-text:  #201427;
+    -app-placeholder: #8f7b96;
+}
+
+/* ====== BACKGROUNDS ====== */
+.theme-light .rounded-window-content,
+.theme-light .app-content-panel,
+.theme-light .content-area,
+.theme-light .app-topbar,
+.theme-light .app-topbar-even,
+.theme-light .app-sidebar-content,
+.theme-light .admin-bidpop-topbar {
+    -fx-background-color: -app-bg;
+}
+
+/* ====== ALL TEXT / LABELS ====== */
+.theme-light .label,
+.theme-light .text {
+    -fx-text-fill: -app-text;
+    -fx-fill:      -app-text;
+}
+
+/* ====== BUTTONS ====== */
+.theme-light .button {
+    -fx-text-fill: -app-text;
+}
+
+/* ====== CHECKBOXES & RADIO ====== */
+.theme-light .check-box,
+.theme-light .check-box .text,
+.theme-light .radio-button,
+.theme-light .radio-button .text {
+    -fx-text-fill: -app-text;
+}
+.theme-light .check-box:disabled .text,
+.theme-light .radio-button:disabled .text {
+    -fx-text-fill: -app-text-muted;
+}
+
+/* ====== INPUTS ====== */
+.theme-light .text-field,
+.theme-light .password-field,
+.theme-light .text-area {
+    -fx-background-color: -app-input-bg;
+    -fx-text-fill:        -app-input-text;
+    -fx-prompt-text-fill: -app-placeholder;
+    -fx-border-color:     -app-border;
+    -fx-border-radius:    6;
+    -fx-background-radius: 6;
+}
+.theme-light .text-area .content {
+    -fx-background-color: -app-input-bg;
+    -fx-text-fill:        -app-input-text;
+}
+
+/* ====== COMBO BOX ====== */
+.theme-light .combo-box,
+.theme-light .combo-box-base {
+    -fx-background-color: -app-input-bg;
+    -fx-text-fill:        -app-input-text;
+    -fx-border-color:     -app-border;
+    -fx-border-radius:    6;
+    -fx-background-radius: 6;
+}
+.theme-light .combo-box .label,
+.theme-light .combo-box .text,
+.theme-light .combo-box-base .label {
+    -fx-text-fill: -app-input-text;
+}
+.theme-light .combo-box .list-cell,
+.theme-light .combo-box-popup .list-view,
+.theme-light .combo-box-popup .list-cell {
+    -fx-background-color: -app-input-bg;
+    -fx-text-fill:        -app-input-text;
+}
+
+/* ====== SCROLL PANES ====== */
+.theme-light .scroll-pane,
+.theme-light .scroll-pane > .viewport {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+/* ====== TABLES ====== */
+.theme-light .table-view {
+    -fx-background-color: -app-surface-2;
+    -fx-table-cell-border-color: -app-border;
+}
+.theme-light .table-row-cell {
+    -fx-background-color: -app-card;
+    -fx-text-fill: -app-text;
+}
+.theme-light .table-row-cell:odd {
+    -fx-background-color: -app-surface-2;
+}
+.theme-light .table-cell {
+    -fx-text-fill: -app-text;
+}
+.theme-light .column-header,
+.theme-light .column-header .label,
+.theme-light .column-header-background {
+    -fx-background-color: -app-surface;
+    -fx-text-fill:        -app-text;
+}
+.theme-light .placeholder .label {
+    -fx-text-fill: -app-text-muted;
+}
+
+/* ====== CARDS ====== */
+.theme-light .settings-card,
+.theme-light .auction-card,
+.theme-light .dashboard-card,
+.theme-light .support-card,
+.theme-light .seller-summary-card,
+.theme-light .table-container,
+.theme-light .faq-card,
+.theme-light .account-form-card,
+.theme-light .account-stat-card,
+.theme-light .profile-summary-card {
+    -fx-background-color: -app-card;
+    -fx-border-color:     -app-border;
+    -fx-opacity: 1.0;
+}
+
+/* ====== SPECIFIC TEXT CLASSES ====== */
+.theme-light .settings-card-title,
+.theme-light .section-title,
+.theme-light .card-title,
+.theme-light .stat-value,
+.theme-light .table-header-label,
+.theme-light .account-page-title,
+.theme-light .account-form-title,
+.theme-light .profile-name,
+.theme-light .account-stat-value {
+    -fx-text-fill: -app-text;
+    -fx-fill:      -app-text;
+}
+
+.theme-light .settings-card-subtitle,
+.theme-light .section-subtitle,
+.theme-light .card-subtitle,
+.theme-light .stat-label,
+.theme-light .help-subtitle,
+.theme-light .help-title,
+.theme-light .account-page-subtitle,
+.theme-light .profile-email,
+.theme-light .account-stat-label,
+.theme-light .account-form-label {
+    -fx-text-fill: -app-text-muted;
+    -fx-fill:      -app-text-muted;
+}
+
+/* ====== SIDEBAR ====== */
+.theme-light .app-sidebar-content .button {
+    -fx-text-fill: -app-text-muted;
+}
+.theme-light .app-sidebar-content .button:hover {
+    -fx-text-fill: -app-text;
+}
+
+/* ====== MENU / CONTEXT ====== */
+.theme-light .context-menu,
+.theme-light .menu-item {
+    -fx-background-color: -app-card;
+    -fx-text-fill: -app-text;
+}
+.theme-light .menu-item .label {
+    -fx-text-fill: -app-text;
+}

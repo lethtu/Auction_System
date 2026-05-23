@@ -122,9 +122,7 @@ public final class AlertUtil {
         card.getChildren().add(card.getChildren().size() - 1, input);
         card.getChildren().set(card.getChildren().size() - 1, actions);
 
-        Scene scene = new Scene(wrap(card));
-        scene.setFill(Color.TRANSPARENT);
-        dialog.setScene(scene);
+        dialog.setScene(createTransparentScene(wrap(card)));
         dialog.setOnShown(event -> input.requestFocus());
         dialog.showAndWait();
 
@@ -149,9 +147,7 @@ public final class AlertUtil {
                 + " -fx-font-family: 'DM Sans';"
                 + " -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.18), 24, 0, 0, 8);");
 
-        if (pane.getScene() != null) {
-            pane.getScene().setFill(Color.TRANSPARENT);
-        }
+        keepDialogSceneTransparent(pane);
 
         pane.lookupAll(".header-panel").forEach(node -> node.setStyle("-fx-background-color: transparent;"));
         pane.lookupAll(".header-panel .label").forEach(node -> node.setStyle("-fx-text-fill: #211427; -fx-font-size: 20px; -fx-font-weight: 900;"));
@@ -200,9 +196,7 @@ public final class AlertUtil {
         okButton.setOnAction(event -> dialog.close());
         card.getChildren().add(okButton);
 
-        Scene scene = new Scene(wrap(card));
-        scene.setFill(Color.TRANSPARENT);
-        dialog.setScene(scene);
+        dialog.setScene(createTransparentScene(wrap(card)));
         dialog.showAndWait();
     }
 
@@ -210,6 +204,7 @@ public final class AlertUtil {
         Stage dialog = new Stage(StageStyle.TRANSPARENT);
         dialog.setTitle(title == null ? "" : title);
         dialog.initModality(Modality.APPLICATION_MODAL);
+        dialog.setResizable(false);
         Window owner = findOwnerWindow();
         if (owner != null) {
             dialog.initOwner(owner);
@@ -220,8 +215,29 @@ public final class AlertUtil {
     private static StackPane wrap(Node content) {
         StackPane wrapper = new StackPane(content);
         wrapper.setPadding(new Insets(18));
-        wrapper.setStyle("-fx-background-color: rgba(33, 20, 39, 0.08);");
+        wrapper.setStyle("-fx-background-color: transparent;");
         return wrapper;
+    }
+
+    private static Scene createTransparentScene(StackPane root) {
+        Scene scene = new Scene(root);
+        scene.setFill(Color.TRANSPARENT);
+        return scene;
+    }
+
+    private static void keepDialogSceneTransparent(DialogPane pane) {
+        if (pane == null) {
+            return;
+        }
+
+        makeSceneTransparent(pane.getScene());
+        pane.sceneProperty().addListener((observable, oldScene, newScene) -> makeSceneTransparent(newScene));
+    }
+
+    private static void makeSceneTransparent(Scene scene) {
+        if (scene != null) {
+            scene.setFill(Color.TRANSPARENT);
+        }
     }
 
     private static VBox baseCard(Alert.AlertType type, String title, String message) {

@@ -14,7 +14,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpServletRequest;
 import com.auction.server.service.BidderService;
+import com.auction.server.util.SessionManager;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -26,6 +28,9 @@ public class BidderController {
     private static final Logger logger = LoggerFactory.getLogger(BidderController.class);
     @Autowired
     private BidderService bidderService;
+
+    @Autowired
+    private SessionManager sessionManager;
 
     @Autowired
     private AuctionSessionRepository auctionSessionRepository;
@@ -76,11 +81,13 @@ public class BidderController {
     }
 
     @PostMapping("/up-to-seller")
-    public ApiResponse<String> upToSeller(@RequestParam Integer userId) {
+    public ApiResponse<String> upToSeller(@RequestParam Integer userId, HttpServletRequest request) {
         Map<String, Object> result = bidderService.upToSeller(userId);
         boolean isSuccess = (boolean) result.get("success");
         String message = (String) result.get("message");
         if (isSuccess) {
+            String token = request.getHeader("X-Auth-Token");
+            sessionManager.updateSessionRole(token, "seller");
             return new ApiResponse<>(200, message, "SUCCESS");
         } else {
             return new ApiResponse<>(400, message, "FAILED");

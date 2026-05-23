@@ -19,6 +19,7 @@ import com.auction.client.model.notification.AppNotification;
 import com.auction.client.model.notification.NotificationType;
 import com.auction.client.model.notification.NotificationSeverity;
 import com.auction.client.service.NotificationCenterService;
+import com.auction.client.service.SettingsService;
 import javafx.geometry.Pos;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -294,7 +295,7 @@ public class MainController implements Initializable {
 
         final double cardWidth = 240.0;
         final double hgap = 28.0;
-        final int maxColumns = 3;
+        final int maxColumns = 8;
 
         int columns = Math.max(1, Math.min(maxColumns, (int) Math.floor((viewportWidth + hgap) / (cardWidth + hgap))));
         double gridWidth = columns * cardWidth + Math.max(0, columns - 1) * hgap;
@@ -871,13 +872,11 @@ public class MainController implements Initializable {
         vbox.setMaxWidth(240.0);
         vbox.setPrefHeight(360.0);
         vbox.setMinHeight(360.0);
-        vbox.setStyle(
-                "-fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-padding: 16px; -fx-background-color: #ffffff; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.05), 10, 0, 0, 2);");
+        vbox.setStyle(productCardStyle());
 
         StackPane imageWrapper = new StackPane();
         imageWrapper.setPrefHeight(192.0);
-        imageWrapper.setStyle(
-                "-fx-background-radius: 12px; -fx-border-radius: 12px; -fx-border-color: #f2e8f2; -fx-border-width: 1px;");
+        imageWrapper.setStyle(productImageWrapperStyle());
 
         ImageView imageView = new ImageView();
         imageView.setFitHeight(192.0);
@@ -955,10 +954,9 @@ public class MainController implements Initializable {
             StackPane.setMargin(timerBadge, new Insets(8, 8, 0, 0));
             imageWrapper.getChildren().add(timerBadge);
         } else if ("RUNNING".equals(normalizedStatus)) {
-            timerBadge.setStyle(
-                    "-fx-background-color: rgba(255, 255, 255, 0.9); -fx-background-radius: 15px; -fx-padding: 4px 8px;");
-            timerIcon.setStyle("-fx-text-fill: #e040a0; -fx-font-size: 14px;");
-            timerText.setStyle("-fx-font-weight: 900; -fx-font-size: 11px; -fx-text-fill: #e040a0;");
+            timerBadge.setStyle(runningTimerBadgeStyle());
+            timerIcon.setStyle("-fx-text-fill: " + accentHex() + "; -fx-font-size: 14px;");
+            timerText.setStyle("-fx-font-weight: 900; -fx-font-size: 11px; -fx-text-fill: " + accentHex() + ";");
 
             // Calculate remaining time immediately on creation
             String displayRemaining = "Ongoing";
@@ -1018,13 +1016,13 @@ public class MainController implements Initializable {
         }
 
         Label nameLabel = new Label(name);
-        nameLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 16px; -fx-text-fill: #2e1a28;");
+        nameLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 16px; -fx-text-fill: " + primaryTextHex() + ";");
         nameLabel.setWrapText(true);
         nameLabel.setMaxHeight(24.0);
         VBox.setMargin(nameLabel, new Insets(8, 0, 0, 0));
 
         Label categoryLabel = new Label(type);
-        categoryLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #604868;");
+        categoryLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: " + mutedTextHex() + ";");
 
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
@@ -1034,10 +1032,10 @@ public class MainController implements Initializable {
 
         VBox priceBox = new VBox(0);
         Label lblCurrentBid = new Label("CURRENT BID");
-        lblCurrentBid.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #907898;");
+        lblCurrentBid.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: " + mutedTextHex() + ";");
         Label priceLabel = new Label("₫ " + formatPrice(currentPrice));
         priceLabel.setId("priceLabel_" + id); // Set ID for fast updating
-        priceLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 18px; -fx-text-fill: #e040a0;");
+        priceLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 18px; -fx-text-fill: " + accentHex() + ";");
         priceBox.getChildren().addAll(lblCurrentBid, priceLabel);
 
         Region hSpacer = new Region();
@@ -1067,13 +1065,13 @@ public class MainController implements Initializable {
         mainBtn.setPadding(Insets.EMPTY);
         mainBtn.setAlignment(Pos.CENTER);
         mainBtn.setStyle(
-                "-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
+                "-fx-background-color: " + accentHex() + "; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
         Tooltip.install(mainBtn, new Tooltip("Options"));
 
         Button btnWatch = new Button();
         Label watchIcon = new Label(User.watchlistIds.contains(id) ? "\uE87D" : "\uE87E"); // heart filled or outline
         watchIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: "
-                + (User.watchlistIds.contains(id) ? "#e040a0" : "#604868") + ";");
+                + (User.watchlistIds.contains(id) ? accentHex() : mutedTextHex()) + ";");
         watchIcon.setAlignment(Pos.CENTER);
         watchIcon.setMinSize(44.0, 44.0);
         watchIcon.setPrefSize(44.0, 44.0);
@@ -1087,7 +1085,7 @@ public class MainController implements Initializable {
         btnWatch.setPadding(Insets.EMPTY);
         btnWatch.setAlignment(Pos.CENTER);
         btnWatch.setStyle(
-                "-fx-background-color: #f2e8f2; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
+                "-fx-background-color: " + secondaryButtonBgHex() + "; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
         Tooltip.install(btnWatch, new Tooltip(User.watchlistIds.contains(id) ? "Favorited" : "Add to favorites"));
 
         Button btnBid = new Button();
@@ -1107,7 +1105,7 @@ public class MainController implements Initializable {
         btnBid.setPadding(Insets.EMPTY);
         btnBid.setAlignment(Pos.CENTER);
         btnBid.setStyle(
-                "-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224,64,160,0.3), 8, 0, 0, 2);");
+                "-fx-background-color: " + accentHex() + "; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224,64,160,0.3), 8, 0, 0, 2);");
         Tooltip.install(btnBid, new Tooltip("Bid Now"));
 
         btnWatch.setVisible(false);
@@ -2402,6 +2400,33 @@ public class MainController implements Initializable {
         }
     }
 
+
+    private boolean isDarkThemeActive() {
+        return false;
+    }
+    private String accentHex() {
+        return "#e040a0";
+    }
+    private String primaryTextHex() {
+        return "#2e1a28";
+    }
+    private String mutedTextHex() {
+        return "#604868";
+    }
+    private String secondaryButtonBgHex() {
+        return "#f2e8f2";
+    }
+    private String productCardStyle() {
+        return "-fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 20px; "
+                + "-fx-background-radius: 20px; -fx-padding: 16px; -fx-background-color: #ffffff; "
+                + "-fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.05), 10, 0, 0, 2);";
+    }
+    private String productImageWrapperStyle() {
+        return "-fx-background-radius: 12px; -fx-border-radius: 12px; -fx-border-color: #f2e8f2; -fx-border-width: 1px;";
+    }
+    private String runningTimerBadgeStyle() {
+        return "-fx-background-color: rgba(255, 255, 255, 0.9); -fx-background-radius: 15px; -fx-padding: 4px 8px;";
+    }
     private void startCountdownTimeline() {
         stopCountdownTimeline();
 

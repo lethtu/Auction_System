@@ -1,0 +1,84 @@
+/* Orange accent - broad override layer */
+.root, .accent-orange {
+    -fx-accent: #f97316;
+    -fx-focus-color: #f97316;
+    -fx-faint-focus-color: rgba(249,115,22,0.28);
+}
+
+.accent-orange .app-logo,
+.accent-orange .page-title,
+.accent-orange .settings-card-title,
+.accent-orange .section-title,
+.accent-orange .card-title,
+.accent-orange .nav-button:selected,
+.accent-orange .nav-button:hover,
+.accent-orange .sidebar-button:selected,
+.accent-orange .sidebar-button:hover,
+.accent-orange .admin-nav-button:hover,
+.accent-orange .admin-nav-button.active-admin-nav,
+.accent-orange .filter-label,
+.accent-orange .material-icon.accent-icon,
+.accent-orange .view-toggle-button:hover,
+.accent-orange .btn-account-secondary,
+.accent-orange .settings-link {
+    -fx-text-fill: #f97316;
+    -fx-fill: #f97316;
+}
+
+.accent-orange .primary-btn,
+.accent-orange .button.primary-btn,
+.accent-orange .btn-account-primary,
+.accent-orange .admin-refresh-button,
+.accent-orange .view-toggle-button-active,
+.accent-orange .setting-switch:selected .box,
+.accent-orange .check-box:selected > .box,
+.accent-orange .seller-policy-check:selected > .box,
+.accent-orange .scroll-bar:vertical .thumb,
+.accent-orange .slider .thumb {
+    -fx-background-color: #f97316;
+    -fx-border-color: #f97316;
+}
+
+.accent-orange .btn-account-primary,
+.accent-orange .view-toggle-button-active,
+.accent-orange .primary-btn {
+    -fx-background-color: linear-gradient(to right, #f97316, #fb923c);
+}
+
+.accent-orange .app-sidebar-content,
+.accent-orange .admin-sidebar,
+.accent-orange .app-content-panel,
+.accent-orange .app-content-scroll,
+.accent-orange .settings-card,
+.accent-orange .dashboard-card,
+.accent-orange .auction-card,
+.accent-orange .table-container,
+.accent-orange .filter-combo,
+.accent-orange .view-toggle-button,
+.accent-orange .account-input:focused,
+.accent-orange .admin-nav-button.active-admin-nav {
+    -fx-border-color: #fdba74;
+}
+
+.accent-orange .app-sidebar-content,
+.accent-orange .admin-sidebar,
+.accent-orange .view-toggle-button-active,
+.accent-orange .btn-account-primary,
+.accent-orange .primary-btn,
+.accent-orange .settings-card {
+    -fx-effect: dropshadow(gaussian, rgba(249,115,22,0.28), 18, 0.16, 0, 5);
+}
+
+.accent-orange .nav-button:selected,
+.accent-orange .sidebar-button:selected,
+.accent-orange .admin-nav-button.active-admin-nav,
+.accent-orange .view-toggle-button:hover,
+.accent-orange .combo-box-popup .list-cell:filled:hover {
+    -fx-background-color: #fff7ed;
+}
+
+.accent-orange .combo-box-popup .list-cell:filled:selected,
+.accent-orange .combo-box-popup .list-cell:filled:selected:hover {
+    -fx-background-color: #f97316;
+    -fx-text-fill: white;
+}

@@ -1,0 +1,84 @@
+/* Blue accent - broad override layer */
+.root, .accent-blue {
+    -fx-accent: #3b82f6;
+    -fx-focus-color: #3b82f6;
+    -fx-faint-focus-color: rgba(59,130,246,0.28);
+}
+
+.accent-blue .app-logo,
+.accent-blue .page-title,
+.accent-blue .settings-card-title,
+.accent-blue .section-title,
+.accent-blue .card-title,
+.accent-blue .nav-button:selected,
+.accent-blue .nav-button:hover,
+.accent-blue .sidebar-button:selected,
+.accent-blue .sidebar-button:hover,
+.accent-blue .admin-nav-button:hover,
+.accent-blue .admin-nav-button.active-admin-nav,
+.accent-blue .filter-label,
+.accent-blue .material-icon.accent-icon,
+.accent-blue .view-toggle-button:hover,
+.accent-blue .btn-account-secondary,
+.accent-blue .settings-link {
+    -fx-text-fill: #3b82f6;
+    -fx-fill: #3b82f6;
+}
+
+.accent-blue .primary-btn,
+.accent-blue .button.primary-btn,
+.accent-blue .btn-account-primary,
+.accent-blue .admin-refresh-button,
+.accent-blue .view-toggle-button-active,
+.accent-blue .setting-switch:selected .box,
+.accent-blue .check-box:selected > .box,
+.accent-blue .seller-policy-check:selected > .box,
+.accent-blue .scroll-bar:vertical .thumb,
+.accent-blue .slider .thumb {
+    -fx-background-color: #3b82f6;
+    -fx-border-color: #3b82f6;
+}
+
+.accent-blue .btn-account-primary,
+.accent-blue .view-toggle-button-active,
+.accent-blue .primary-btn {
+    -fx-background-color: linear-gradient(to right, #3b82f6, #60a5fa);
+}
+
+.accent-blue .app-sidebar-content,
+.accent-blue .admin-sidebar,
+.accent-blue .app-content-panel,
+.accent-blue .app-content-scroll,
+.accent-blue .settings-card,
+.accent-blue .dashboard-card,
+.accent-blue .auction-card,
+.accent-blue .table-container,
+.accent-blue .filter-combo,
+.accent-blue .view-toggle-button,
+.accent-blue .account-input:focused,
+.accent-blue .admin-nav-button.active-admin-nav {
+    -fx-border-color: #93c5fd;
+}
+
+.accent-blue .app-sidebar-content,
+.accent-blue .admin-sidebar,
+.accent-blue .view-toggle-button-active,
+.accent-blue .btn-account-primary,
+.accent-blue .primary-btn,
+.accent-blue .settings-card {
+    -fx-effect: dropshadow(gaussian, rgba(59,130,246,0.28), 18, 0.16, 0, 5);
+}
+
+.accent-blue .nav-button:selected,
+.accent-blue .sidebar-button:selected,
+.accent-blue .admin-nav-button.active-admin-nav,
+.accent-blue .view-toggle-button:hover,
+.accent-blue .combo-box-popup .list-cell:filled:hover {
+    -fx-background-color: #eff6ff;
+}
+
+.accent-blue .combo-box-popup .list-cell:filled:selected,
+.accent-blue .combo-box-popup .list-cell:filled:selected:hover {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: white;
+}

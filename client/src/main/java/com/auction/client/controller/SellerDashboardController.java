@@ -494,7 +494,7 @@ public class SellerDashboardController {
                     Button btnView;
                     if ("DRAFT".equalsIgnoreCase(item.status)) {
                         btnView = createIconButton("mdi2p-publish", "#0096cc");
-                        btnView.setTooltip(new javafx.scene.control.Tooltip("Đăng bán nhanh"));
+                        btnView.setTooltip(new javafx.scene.control.Tooltip("Quick Sale"));
                         btnView.setOnAction(e -> handleQuickPublish(item));
                     } else {
                         btnView = createIconButton("mdi2e-eye", "#0096cc");
@@ -740,7 +740,8 @@ public class SellerDashboardController {
 
         String productName = productNameField.getText().trim();
         String productType = productTypeCombo.getValue();
-        String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField));
+        String existingUuid = (editingSession != null) ? extractUuid(editingSession.imageUrl) : null;
+        String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField), existingUuid);
         if (imageUrl == null) {
             return;
         }
@@ -889,9 +890,9 @@ public class SellerDashboardController {
                     }
                     if (lblErrorEndDT != null) {
                         if (!isEndFuture) {
-                            lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
+                            lblErrorEndDT.setText("End time must be in the future");
                         } else {
-                            lblErrorEndDT.setText("Thời gian kết thúc phải sau thời gian bắt đầu");
+                            lblErrorEndDT.setText("End time must be after start time");
                         }
                     }
                 } else {
@@ -915,7 +916,7 @@ public class SellerDashboardController {
                         wrapperEndDT.getStyleClass().add("error-segmented-input");
                     }
                     if (lblErrorEndDT != null) {
-                        lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
+                        lblErrorEndDT.setText("End time must be in the future");
                     }
                 } else {
                     if (errorEndDT != null) {
@@ -1002,7 +1003,8 @@ public class SellerDashboardController {
 
         String productName = productNameField.getText().trim();
         String productType = productTypeCombo.getValue();
-        String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField));
+        String existingUuid = (editingSession != null) ? extractUuid(editingSession.imageUrl) : null;
+        String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField), existingUuid);
         if (imageUrl == null) {
             return;
         }
@@ -1151,9 +1153,9 @@ public class SellerDashboardController {
                     }
                     if (lblErrorEndDT != null) {
                         if (!isEndFuture) {
-                            lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
+                            lblErrorEndDT.setText("End time must be in the future");
                         } else {
-                            lblErrorEndDT.setText("Thời gian kết thúc phải sau thời gian bắt đầu");
+                            lblErrorEndDT.setText("End time must be after start time");
                         }
                     }
                 } else {
@@ -1177,7 +1179,7 @@ public class SellerDashboardController {
                         wrapperEndDT.getStyleClass().add("error-segmented-input");
                     }
                     if (lblErrorEndDT != null) {
-                        lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
+                        lblErrorEndDT.setText("End time must be in the future");
                     }
                 } else {
                     if (errorEndDT != null) {
@@ -1265,7 +1267,8 @@ public class SellerDashboardController {
 
         String productName = productNameField.getText().trim();
         String productType = productTypeCombo.getValue();
-        String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField));
+        String existingUuid = (editingSession != null) ? extractUuid(editingSession.imageUrl) : null;
+        String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField), existingUuid);
         if (imageUrl == null) {
             return;
         }
@@ -1414,9 +1417,9 @@ public class SellerDashboardController {
                     }
                     if (lblErrorEndDT != null) {
                         if (!isEndFuture) {
-                            lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
+                            lblErrorEndDT.setText("End time must be in the future");
                         } else {
-                            lblErrorEndDT.setText("Thời gian kết thúc phải sau thời gian bắt đầu");
+                            lblErrorEndDT.setText("End time must be after start time");
                         }
                     }
                 } else {
@@ -1440,7 +1443,7 @@ public class SellerDashboardController {
                         wrapperEndDT.getStyleClass().add("error-segmented-input");
                     }
                     if (lblErrorEndDT != null) {
-                        lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
+                        lblErrorEndDT.setText("End time must be in the future");
                     }
                 } else {
                     if (errorEndDT != null) {
@@ -1574,7 +1577,8 @@ public class SellerDashboardController {
 
         String productName = productNameField.getText().trim();
         String productType = productTypeCombo.getValue();
-        String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField));
+        String existingUuid = (editingSession != null) ? extractUuid(editingSession.imageUrl) : null;
+        String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField), existingUuid);
         if (imageUrl == null) {
             return;
         }
@@ -1723,9 +1727,9 @@ public class SellerDashboardController {
                     }
                     if (lblErrorEndDT != null) {
                         if (!isEndFuture) {
-                            lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
+                            lblErrorEndDT.setText("End time must be in the future");
                         } else {
-                            lblErrorEndDT.setText("Thời gian kết thúc phải sau thời gian bắt đầu");
+                            lblErrorEndDT.setText("End time must be after start time");
                         }
                     }
                 } else {
@@ -1749,7 +1753,7 @@ public class SellerDashboardController {
                         wrapperEndDT.getStyleClass().add("error-segmented-input");
                     }
                     if (lblErrorEndDT != null) {
-                        lblErrorEndDT.setText("Thời gian kết thúc phải ở tương lai");
+                        lblErrorEndDT.setText("End time must be in the future");
                     }
                 } else {
                     if (errorEndDT != null) {
@@ -1854,7 +1858,7 @@ public class SellerDashboardController {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "Đã hủy phiên thành công.");
+            ApiResult api = parseApiResponse(response.body(), response.statusCode(), "Session canceled successfully.");
 
             if (api.success) {
                 loadMySessions();
@@ -1925,13 +1929,13 @@ public class SellerDashboardController {
 
         // End Time must be in the future
         if (!endDT.isAfter(LocalDateTime.now())) {
-            showAlert(Alert.AlertType.ERROR, "Time Error", "Thời gian kết thúc phải ở tương lai");
+            showAlert(Alert.AlertType.ERROR, "Time Error", "End time must be in the future!");
             return;
         }
 
         // End Time must be after Start Time
         if (!endDT.isAfter(startDT)) {
-            showAlert(Alert.AlertType.ERROR, "Time Error", "Thời gian kết thúc phải sau thời gian bắt đầu");
+            showAlert(Alert.AlertType.ERROR, "Time Error", "End time must be after start time!");
             return;
         }
 
@@ -1948,7 +1952,7 @@ public class SellerDashboardController {
         }
 
         try {
-            String selectedImagePath = prepareImagePathForSave(selected.imageUrl);
+            String selectedImagePath = prepareImagePathForSave(selected.imageUrl, extractUuid(selected.imageUrl));
             if (selectedImagePath == null) {
                 return;
             }
@@ -2334,7 +2338,20 @@ public class SellerDashboardController {
         return obj;
     }
 
+    private String extractUuid(String path) {
+        if (path == null || path.isBlank()) {
+            return null;
+        }
+        java.util.regex.Pattern uuidPattern = java.util.regex.Pattern.compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
+        java.util.regex.Matcher matcher = uuidPattern.matcher(path);
+        return matcher.find() ? matcher.group() : null;
+    }
+
     private String prepareImagePathForSave(String rawPath) {
+        return prepareImagePathForSave(rawPath, null);
+    }
+
+    private String prepareImagePathForSave(String rawPath, String existingUuid) {
         if (rawPath == null || rawPath.isBlank()) {
             return "";
         }
@@ -2343,7 +2360,7 @@ public class SellerDashboardController {
         File localImage = toExistingLocalFile(path);
         if (localImage != null) {
             try {
-                return uploadProductImage(localImage);
+                return uploadProductImage(localImage, existingUuid);
             } catch (Exception e) {
                 logger.error("Cannot upload product image: {}", e.getMessage(), e);
                 showAlert(Alert.AlertType.ERROR, "Image Upload Error", "Cannot upload product image to the server.");
@@ -2376,7 +2393,12 @@ public class SellerDashboardController {
     }
 
     private String uploadProductImage(File imageFile) throws Exception {
-        HttpResponse<String> response = HttpRequestUtil.uploadImage(Config.API_URL, "/api/files/images", imageFile);
+        return uploadProductImage(imageFile, null);
+    }
+
+    private String uploadProductImage(File imageFile, String existingUuid) throws Exception {
+        String uploadPath = "/api/files/images" + (existingUuid != null ? "?uuid=" + existingUuid : "");
+        HttpResponse<String> response = HttpRequestUtil.uploadImage(Config.API_URL, uploadPath, imageFile);
         if (response.statusCode() < 200 || response.statusCode() >= 300) {
             throw new IOException("Image upload failed with status " + response.statusCode());
         }
@@ -2479,7 +2501,7 @@ public class SellerDashboardController {
 
     private ApiArrayResult extractDataArray(String body, int httpStatus) {
         if (body == null || body.isBlank()) {
-            return new ApiArrayResult(false, "Không có dữ liệu từ server.", new JSONArray());
+            return new ApiArrayResult(false, "No data from the server.", new JSONArray());
         }
 
         try {
@@ -2504,7 +2526,7 @@ public class SellerDashboardController {
 
             return new ApiArrayResult(true, message, new JSONArray());
         } catch (Exception e) {
-            return new ApiArrayResult(false, "Không thể đọc dữ liệu từ server.", new JSONArray());
+            return new ApiArrayResult(false, "Could not read data from the server.", new JSONArray());
         }
     }
 
@@ -2531,7 +2553,7 @@ public class SellerDashboardController {
         timerIcon.setIconColor(Color.valueOf("#e040a0"));
         iconCircle.getChildren().add(timerIcon);
 
-        Label titleLabel = new Label("Thời gian bắt đầu đã đến!");
+        Label titleLabel = new Label("Start time has arrived!");
         titleLabel.setStyle(
                 "-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
 

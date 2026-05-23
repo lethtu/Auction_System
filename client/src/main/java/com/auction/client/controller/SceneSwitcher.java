@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.net.URL;
 import javafx.scene.control.MenuItem;
 import com.auction.client.util.ResizeHelper;
+import com.auction.client.service.AppStyleManager;
 
 public class SceneSwitcher {
     private static final Logger logger = LoggerFactory.getLogger(SceneSwitcher.class);
@@ -127,6 +128,11 @@ public class SceneSwitcher {
             scene.setRoot(root);
         }
         scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
+        if (isAuthScene) {
+            AppStyleManager.clearCurrentStyle(scene);
+        } else {
+            AppStyleManager.applyCurrentStyle(scene);
+        }
         ResizeHelper.install(stage, root);
 
         stage.setMinWidth(isAuthScene ? AUTH_WIDTH : MIN_WIDTH);

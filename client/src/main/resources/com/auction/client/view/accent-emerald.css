@@ -1,0 +1,84 @@
+/* Emerald accent - broad override layer */
+.root, .accent-emerald {
+    -fx-accent: #10b981;
+    -fx-focus-color: #10b981;
+    -fx-faint-focus-color: rgba(16,185,129,0.28);
+}
+
+.accent-emerald .app-logo,
+.accent-emerald .page-title,
+.accent-emerald .settings-card-title,
+.accent-emerald .section-title,
+.accent-emerald .card-title,
+.accent-emerald .nav-button:selected,
+.accent-emerald .nav-button:hover,
+.accent-emerald .sidebar-button:selected,
+.accent-emerald .sidebar-button:hover,
+.accent-emerald .admin-nav-button:hover,
+.accent-emerald .admin-nav-button.active-admin-nav,
+.accent-emerald .filter-label,
+.accent-emerald .material-icon.accent-icon,
+.accent-emerald .view-toggle-button:hover,
+.accent-emerald .btn-account-secondary,
+.accent-emerald .settings-link {
+    -fx-text-fill: #10b981;
+    -fx-fill: #10b981;
+}
+
+.accent-emerald .primary-btn,
+.accent-emerald .button.primary-btn,
+.accent-emerald .btn-account-primary,
+.accent-emerald .admin-refresh-button,
+.accent-emerald .view-toggle-button-active,
+.accent-emerald .setting-switch:selected .box,
+.accent-emerald .check-box:selected > .box,
+.accent-emerald .seller-policy-check:selected > .box,
+.accent-emerald .scroll-bar:vertical .thumb,
+.accent-emerald .slider .thumb {
+    -fx-background-color: #10b981;
+    -fx-border-color: #10b981;
+}
+
+.accent-emerald .btn-account-primary,
+.accent-emerald .view-toggle-button-active,
+.accent-emerald .primary-btn {
+    -fx-background-color: linear-gradient(to right, #10b981, #34d399);
+}
+
+.accent-emerald .app-sidebar-content,
+.accent-emerald .admin-sidebar,
+.accent-emerald .app-content-panel,
+.accent-emerald .app-content-scroll,
+.accent-emerald .settings-card,
+.accent-emerald .dashboard-card,
+.accent-emerald .auction-card,
+.accent-emerald .table-container,
+.accent-emerald .filter-combo,
+.accent-emerald .view-toggle-button,
+.accent-emerald .account-input:focused,
+.accent-emerald .admin-nav-button.active-admin-nav {
+    -fx-border-color: #6ee7b7;
+}
+
+.accent-emerald .app-sidebar-content,
+.accent-emerald .admin-sidebar,
+.accent-emerald .view-toggle-button-active,
+.accent-emerald .btn-account-primary,
+.accent-emerald .primary-btn,
+.accent-emerald .settings-card {
+    -fx-effect: dropshadow(gaussian, rgba(16,185,129,0.28), 18, 0.16, 0, 5);
+}
+
+.accent-emerald .nav-button:selected,
+.accent-emerald .sidebar-button:selected,
+.accent-emerald .admin-nav-button.active-admin-nav,
+.accent-emerald .view-toggle-button:hover,
+.accent-emerald .combo-box-popup .list-cell:filled:hover {
+    -fx-background-color: #ecfdf5;
+}
+
+.accent-emerald .combo-box-popup .list-cell:filled:selected,
+.accent-emerald .combo-box-popup .list-cell:filled:selected:hover {
+    -fx-background-color: #10b981;
+    -fx-text-fill: white;
+}

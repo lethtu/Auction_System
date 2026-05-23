@@ -68,6 +68,19 @@ public class SessionManager {
     /**
      * Removes the session associated with the token.
      */
+    /**
+     * Updates the role stored in an existing session after an account role change.
+     */
+    public void updateSessionRole(String token, String role) {
+        if (token == null || role == null || role.isBlank()) {
+            return;
+        }
+        SessionUser current = activeSessions.get(token);
+        if (current == null) {
+            return;
+        }
+        activeSessions.put(token, new SessionUser(current.getUserId(), current.getUsername(), role.toLowerCase()));
+    }
     public void removeSession(String token) {
         if (token != null) {
             activeSessions.remove(token);

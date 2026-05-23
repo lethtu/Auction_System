@@ -23,6 +23,8 @@ public class User {
 
     private static String sessionToken;
 
+    private static boolean passwordSet = true;
+
     private static javafx.scene.image.Image cachedAvatarImage;
     private static String cachedAvatarUrl;
 
@@ -58,6 +60,7 @@ public class User {
         place_of_birth = Place_of_birth;
         role = Role;
         avatarUrl = AvatarUrl;
+        passwordSet = true;
         balance = BigDecimal.ZERO;
         watchlistIds.clear();
         if (username != null) {
@@ -102,9 +105,19 @@ public class User {
         balance = BigDecimal.ZERO;
         avatarUrl = null;
         sessionToken = null;
+        passwordSet = true;
         watchlistIds.clear();
         cachedAvatarImage = null;
         cachedAvatarUrl = null;
+    }
+
+
+    public static boolean isPasswordSet() {
+        return passwordSet;
+    }
+
+    public static void setPasswordSet(boolean value) {
+        passwordSet = value;
     }
 
     public static String getRole(){

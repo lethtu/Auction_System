@@ -21,7 +21,7 @@ public class DatabaseCompatibilityInitializer implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         relaxLegacyDtypeColumn();
         normalizeRoleValues();
-        allowRejectedAuctionStatus();
+        ensureAuctionStatusColumn();
         ensureItemHiddenColumn();
         repairBidSessionForeignKey();
     }
@@ -77,12 +77,44 @@ public class DatabaseCompatibilityInitializer implements ApplicationRunner {
         );
     }
 
-    private void allowRejectedAuctionStatus() {
-        runStatement(
-                "Add REJECTED status to auction_sessions.status",
-                "ALTER TABLE auction_sessions MODIFY COLUMN status "
-                        + "ENUM('PENDING','ACTIVE','ENDED','CANCELED','REJECTED') DEFAULT NULL"
-        );
+    private void ensureAuctionStatusColumn() {
+        try {
+            Integer count = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) "
+                            + "FROM information_schema.COLUMNS "
+                            + "WHERE TABLE_SCHEMA = DATABASE() "
+                            + "AND TABLE_NAME = 'auction_sessions' "
+                            + "AND COLUMN_NAME = 'status'",
+                    Integer.class
+            );
+
+            if (count == null || count == 0) {
+                return;
+            }
+
+            runStatement(
+                    "Allow all legacy and current auction statuses",
+                    "ALTER TABLE auction_sessions MODIFY COLUMN status "
+                            + "ENUM('PENDING','DRAFT','COMING','ACTIVE','ENDED','CANCELED','REJECTED') "
+                            + "NOT NULL DEFAULT 'DRAFT'"
+            );
+            runUpdate(
+                    "Normalize old PENDING sessions to DRAFT",
+                    "UPDATE auction_sessions SET status = 'DRAFT' WHERE status = 'PENDING'"
+            );
+            runUpdate(
+                    "Normalize old REJECTED sessions to CANCELED",
+                    "UPDATE auction_sessions SET status = 'CANCELED' WHERE status = 'REJECTED'"
+            );
+            runStatement(
+                    "Keep auction_sessions.status aligned with AuctionStatus enum",
+                    "ALTER TABLE auction_sessions MODIFY COLUMN status "
+                            + "ENUM('DRAFT','COMING','ACTIVE','ENDED','CANCELED') "
+                            + "NOT NULL DEFAULT 'DRAFT'"
+            );
+        } catch (Exception e) {
+            logger.warn("Fixing auction_sessions.status column skipped: {}", e.getMessage());
+        }
     }
 
     private void ensureItemHiddenColumn() {

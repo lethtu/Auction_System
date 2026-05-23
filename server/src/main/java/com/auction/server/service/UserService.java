@@ -2,6 +2,7 @@ package com.auction.server.service;
 
 import com.auction.server.model.User;
 import com.auction.server.repository.UserRepository;
+import com.auction.server.util.PasswordUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -70,6 +71,57 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         user.setAvatarUrl(avatarUrl);
+        return userRepository.save(user);
+    }
+
+
+    public User setPassword(Integer id, String password) {
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("Invalid userId");
+        }
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (user.getPasswordSet() != null && user.getPasswordSet()) {
+            throw new IllegalArgumentException("Password has already been set for this account.");
+        }
+
+        if (password == null || password.trim().length() < 6) {
+            throw new IllegalArgumentException("Password must be at least 6 characters long.");
+        }
+
+        user.setPassword(PasswordUtil.hashPassword(password));
+        user.setPasswordSet(true);
+        return userRepository.save(user);
+    }
+
+    public User changePassword(Integer id, String oldPassword, String newPassword) {
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("Invalid userId");
+        }
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (user.getPasswordSet() == null || !user.getPasswordSet() || user.getPassword() == null) {
+            throw new IllegalArgumentException("Please set a password for this account first.");
+        }
+
+        if (oldPassword == null || oldPassword.isBlank()) {
+            throw new IllegalArgumentException("Current password cannot be empty.");
+        }
+
+        if (!PasswordUtil.checkPassword(oldPassword, user.getPassword())) {
+            throw new IllegalArgumentException("Incorrect current password.");
+        }
+
+        if (newPassword == null || newPassword.trim().length() < 6) {
+            throw new IllegalArgumentException("New password must be at least 6 characters long.");
+        }
+
+        user.setPassword(PasswordUtil.hashPassword(newPassword));
+        user.setPasswordSet(true);
         return userRepository.save(user);
     }
 

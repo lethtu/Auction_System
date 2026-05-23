@@ -81,7 +81,7 @@
                                     <FontIcon iconLiteral="mdi2c-cash" iconSize="24" iconColor="#a02070"/>
                                 </StackPane>
                             </HBox>
-                            <HBox alignment="CENTER_LEFT" spacing="8.0" style="-fx-background-color: #d1fae5; -fx-background-radius: 999px; -fx-padding: 4px 12px; ">
+                            <HBox alignment="CENTER_LEFT" spacing="8.0" style="-fx-background-color: #d1fae5; -fx-background-radius: 999px; -fx-padding: 4px 12px; -fx-max-width: max-content;">
                                 <FontIcon iconLiteral="mdi2t-trending-up" iconSize="16" iconColor="#10b981"/>
                                 <Label text="+12% from last month" style="-fx-text-fill: #10b981; -fx-font-weight: bold; -fx-font-size: 12px;"/>
                             </HBox>
@@ -252,7 +252,7 @@
                             </HBox>
                             <HBox fx:id="errorEndDT" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
                                 <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" iconColor="#e040a0"/>
-                                <Label fx:id="lblErrorEndDT" text="Thời gian kết thúc phải sau thời gian bắt đầu" style="-fx-text-fill: #e040a0; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                                <Label fx:id="lblErrorEndDT" text="End time must be after start time" style="-fx-text-fill: #e040a0; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                             </HBox>
                         </VBox>
                     </HBox>
