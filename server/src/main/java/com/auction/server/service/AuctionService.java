@@ -12,9 +12,11 @@ import com.auction.server.repository.AuctionSessionRepository;
 import com.auction.server.repository.ItemRepository;
 import com.auction.server.repository.UserRepository;
 import com.auction.server.repository.BidRepository;
+import com.auction.server.socket.SocketServer;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.json.JSONObject;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -91,11 +93,41 @@ public class AuctionService {
             }
             auctionSessionRepository.save(session);
             logger.info("Auction session ID: {} ended with status: {}", sessionId, session.getStatus());
+            broadcastAuctionEnded(session);
             return true;
         }
         return false;
     }
 
+    private void broadcastAuctionEnded(AuctionSession session) {
+        if (session == null || session.getId() == null) {
+            return;
+        }
+
+        try {
+            JSONObject event = new JSONObject();
+            event.put("type", "AUCTION_ENDED");
+            event.put("sessionId", session.getId());
+            event.put("auctionId", session.getId());
+            event.put("status", session.getStatus() == null ? "" : session.getStatus().name());
+
+            if (session.getHighestBidderId() != null) {
+                event.put("highestBidderId", session.getHighestBidderId());
+            }
+            if (session.getCurrentPrice() != null) {
+                event.put("currentPrice", session.getCurrentPrice());
+            }
+            if (session.getItem() != null && session.getItem().getName() != null) {
+                event.put("itemName", session.getItem().getName());
+            }
+
+            SocketServer.broadcastToAll("EVENT:" + event.toString());
+            logger.info("Broadcasted auction-end event for session ID: {}", session.getId());
+        } catch (Exception e) {
+            logger.warn("Could not broadcast auction-end event for session ID {}: {}",
+                    session.getId(), e.getMessage());
+        }
+    }
     private boolean isProductVisible(AuctionSession session) {
         return session != null && (session.getItem() == null || !session.getItem().isHidden());
     }
