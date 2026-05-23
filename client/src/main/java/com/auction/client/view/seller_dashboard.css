@@ -1,4 +1,4 @@
-﻿* {
+* {
     -fx-primary: -fx-accent;
     -fx-primary-container: #f080c0;
     -fx-on-primary: #ffffff;
@@ -856,3 +856,41 @@
     -fx-text-fill: #7e22ce;
 }
 /* === THEME PHASE 8 SELLER DASHBOARD POLISH END === */
+/* PHASE E: seller add new item outline button */
+.action-btn-primary {
+    -fx-background-color: transparent;
+    -fx-border-color: -fx-accent;
+    -fx-border-width: 2px;
+    -fx-border-radius: 999px;
+    -fx-background-radius: 999px;
+    -fx-text-fill: -fx-accent;
+    -fx-font-weight: 900;
+    -fx-font-size: 14px;
+    -fx-padding: 12px 26px;
+    -fx-cursor: hand;
+    -fx-effect: none;
+}
+
+.action-btn-primary .add-item-plus-icon,
+.action-btn-primary .ikonli-font-icon {
+    -fx-icon-color: -fx-accent;
+}
+
+.action-btn-primary:hover {
+    -fx-background-color: -fx-accent;
+    -fx-border-color: -fx-accent;
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.25), 18, 0, 0, 6);
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+}
+
+.action-btn-primary:hover .add-item-plus-icon,
+.action-btn-primary:hover .ikonli-font-icon {
+    -fx-icon-color: white;
+}
+
+.action-btn-primary:pressed {
+    -fx-scale-x: 0.99;
+    -fx-scale-y: 0.99;
+}

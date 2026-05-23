@@ -53,7 +53,7 @@
                             </HBox>
                             <Button text="Add New Item" onAction="#handleShowAddModal" styleClass="action-btn-primary">
                                 <graphic>
-                                    <FontIcon iconLiteral="mdi2p-plus" iconSize="20" iconColor="white"/>
+                                    <FontIcon iconLiteral="mdi2p-plus" iconSize="20" styleClass="add-item-plus-icon"/>
                                 </graphic>
                             </Button>
                         </HBox>
