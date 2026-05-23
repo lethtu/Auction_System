@@ -2456,7 +2456,7 @@ public class SellerDashboardController {
         }
 
         path = normalizeImagePathForStorage(path);
-        return path.isBlank() ? "" : Config.API_URL + "/api/files/images/" + path;
+        return path.isBlank() ? "" : Config.applyCacheBuster(Config.API_URL + "/api/files/images/" + path);
     }
 
     private String safeString(String value) {

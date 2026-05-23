@@ -2368,7 +2368,7 @@ public class MainController implements Initializable {
             path = path.substring("images/".length());
         }
 
-        return path.isBlank() ? "" : Config.API_URL + "/api/files/images/" + path;
+        return path.isBlank() ? "" : Config.applyCacheBuster(Config.API_URL + "/api/files/images/" + path);
     }
 
     private String formatPrice(BigDecimal price) {

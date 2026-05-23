@@ -1659,7 +1659,7 @@ public class AuctionPageController {
         path = removeLeadingSlashes(path);
         path = removeKnownImagePrefix(path);
 
-        return path.isBlank() ? "" : Config.API_URL + "/api/files/images/" + path;
+        return path.isBlank() ? "" : Config.applyCacheBuster(Config.API_URL + "/api/files/images/" + path);
     }
 
     private String removeLeadingSlashes(String path) {
