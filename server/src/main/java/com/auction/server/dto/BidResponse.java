@@ -16,13 +16,14 @@ public final class BidResponse implements Serializable {
     private final Integer bidCount;
     private final String bidTime;
     private final Integer bidId;
+    private final Integer previousHighestBidderId;
 
     public BidResponse(boolean success, String message, BigDecimal currentPrice) {
-        this(success, message, currentPrice, null, null, null, null, null);
+        this(success, message, currentPrice, null, null, null, null, null, null);
     }
 
     public BidResponse(boolean success, String message, BigDecimal currentPrice, String newEndTime) {
-        this(success, message, currentPrice, newEndTime, null, null, null, null);
+        this(success, message, currentPrice, newEndTime, null, null, null, null, null);
     }
 
     public BidResponse(
@@ -32,7 +33,7 @@ public final class BidResponse implements Serializable {
             String newEndTime,
             Integer highestBidderId
     ) {
-        this(success, message, currentPrice, newEndTime, highestBidderId, null, null, null);
+        this(success, message, currentPrice, newEndTime, highestBidderId, null, null, null, null);
     }
 
     // Backward-compatible 6-arg constructor (existing callers)
@@ -44,7 +45,7 @@ public final class BidResponse implements Serializable {
             Integer highestBidderId,
             Integer bidCount
     ) {
-        this(success, message, currentPrice, newEndTime, highestBidderId, bidCount, null, null);
+        this(success, message, currentPrice, newEndTime, highestBidderId, bidCount, null, null, null);
     }
 
     // 7-arg constructor with bidTime (backward-compatible)
@@ -57,7 +58,7 @@ public final class BidResponse implements Serializable {
             Integer bidCount,
             String bidTime
     ) {
-        this(success, message, currentPrice, newEndTime, highestBidderId, bidCount, bidTime, null);
+        this(success, message, currentPrice, newEndTime, highestBidderId, bidCount, bidTime, null, null);
     }
 
     // Full 8-arg constructor with bidTime + bidId
@@ -71,6 +72,21 @@ public final class BidResponse implements Serializable {
             String bidTime,
             Integer bidId
     ) {
+        this(success, message, currentPrice, newEndTime, highestBidderId, bidCount, bidTime, bidId, null);
+    }
+
+    // Full 9-arg constructor with previousHighestBidderId
+    public BidResponse(
+            boolean success,
+            String message,
+            BigDecimal currentPrice,
+            String newEndTime,
+            Integer highestBidderId,
+            Integer bidCount,
+            String bidTime,
+            Integer bidId,
+            Integer previousHighestBidderId
+    ) {
         this.success = success;
         this.message = message;
         this.currentPrice = currentPrice;
@@ -79,6 +95,7 @@ public final class BidResponse implements Serializable {
         this.bidCount = bidCount;
         this.bidTime = bidTime;
         this.bidId = bidId;
+        this.previousHighestBidderId = previousHighestBidderId;
     }
 
     public static BidResponse success(String message, BigDecimal currentPrice) {
@@ -129,5 +146,9 @@ public final class BidResponse implements Serializable {
 
     public Integer getBidId() {
         return bidId;
+    }
+
+    public Integer getPreviousHighestBidderId() {
+        return previousHighestBidderId;
     }
 }

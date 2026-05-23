@@ -65,7 +65,7 @@ public class TopbarController implements Initializable {
         if (btnSettings != null) {
             btnSettings.setStyle("-fx-background-color: rgba(224, 64, 160, 0.15); -fx-background-radius: 22px; -fx-cursor: hand;");
             if (btnSettings.getGraphic() instanceof Label) {
-                ((Label) btnSettings.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #e040a0;");
+                ((Label) btnSettings.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: -fx-accent;");
             }
         }
     }
@@ -142,14 +142,14 @@ public class TopbarController implements Initializable {
             topBarAvatarPane.getChildren().clear();
             if (avatarUrl != null && !avatarUrl.isBlank()) {
                 Image img = null;
+                boolean fromCache = false;
                 if (avatarUrl.equals(User.getCachedAvatarUrl()) && User.getCachedAvatarImage() != null) {
                     img = User.getCachedAvatarImage();
+                    fromCache = true;
                 } else {
                     String fullUrl = avatarUrl.startsWith("http") ? avatarUrl : Config.API_URL + avatarUrl;
-                    img = new Image(fullUrl, 36, 36, false, true, false); // load synchronously
-                    if (!img.isError()) {
-                        User.setCachedAvatarImage(img, avatarUrl);
-                    }
+                    fullUrl = Config.applyCacheBuster(fullUrl);
+                    img = new Image(fullUrl, 36, 36, false, true, true);
                 }
                 ImageView imgView = new ImageView(img);
                 imgView.setFitWidth(36);
@@ -157,7 +157,22 @@ public class TopbarController implements Initializable {
                 imgView.setSmooth(true);
                 javafx.scene.shape.Circle clip = new javafx.scene.shape.Circle(18, 18, 18);
                 imgView.setClip(clip);
-                topBarAvatarPane.getChildren().add(imgView);
+                if (fromCache) {
+                    topBarAvatarPane.getChildren().add(imgView);
+                } else {
+                    Label placeholder = new Label("\uE7FD");
+                    placeholder.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: white;");
+                    topBarAvatarPane.getChildren().add(placeholder);
+
+                    final Image loadedImage = img;
+                    final String cachedUrl = avatarUrl;
+                    img.progressProperty().addListener((obs, oldProgress, newProgress) -> {
+                        if (newProgress.doubleValue() >= 1.0 && !loadedImage.isError()) {
+                            User.setCachedAvatarImage(loadedImage, cachedUrl);
+                            topBarAvatarPane.getChildren().setAll(imgView);
+                        }
+                    });
+                }
             } else {
                 Label icon = new Label("\uE7FD");
                 icon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: white;");

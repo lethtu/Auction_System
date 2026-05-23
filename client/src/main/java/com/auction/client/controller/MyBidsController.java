@@ -24,6 +24,7 @@ import javafx.util.Duration;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import com.auction.client.model.User;
+import com.auction.client.service.SettingsService;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.math.BigDecimal;
@@ -423,17 +424,14 @@ public class MyBidsController implements Initializable {
         vbox.setMaxHeight(400.0);
 
         // Premium modern style
-        vbox.setStyle(
-                "-fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-padding: 14px; -fx-background-color: #ffffff; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.05), 10, 0, 0, 2);");
+        vbox.setStyle(myBidCardStyle(false));
 
         // Interactive hover scaling and drop shadow micro-animation
         vbox.setOnMouseEntered(e -> {
-            vbox.setStyle(
-                    "-fx-border-color: #ffd6ee; -fx-border-width: 2px; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-padding: 14px; -fx-background-color: #ffffff; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.15), 15, 0, 0, 4); -fx-scale-x: 1.02; -fx-scale-y: 1.02; -fx-cursor: hand;");
+            vbox.setStyle(myBidCardStyle(true));
         });
         vbox.setOnMouseExited(e -> {
-            vbox.setStyle(
-                    "-fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-padding: 14px; -fx-background-color: #ffffff; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.05), 10, 0, 0, 2); -fx-scale-x: 1.0; -fx-scale-y: 1.0;");
+            vbox.setStyle(myBidCardStyle(false));
         });
 
         // Image container with clipping and shadow
@@ -444,7 +442,7 @@ public class MyBidsController implements Initializable {
         imageWrapper.setPrefWidth(222.0);
         imageWrapper.setMinWidth(222.0);
         imageWrapper.setMaxWidth(222.0);
-        imageWrapper.setStyle("-fx-background-radius: 14px; -fx-border-radius: 14px; -fx-background-color: #fcf6fc;");
+        imageWrapper.setStyle(myBidImageWrapperStyle());
 
         ImageView imageView = new ImageView();
         imageView.setFitHeight(150.0);
@@ -532,7 +530,7 @@ public class MyBidsController implements Initializable {
             statusBadge.setStyle(
                     "-fx-background-color: rgba(224, 64, 160, 0.12); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: rgba(224, 64, 160, 0.25); -fx-border-radius: 12px;");
             badgeLabel.setText(status);
-            badgeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #e040a0;");
+            badgeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: -fx-accent;");
             statusBadge.getChildren().setAll(badgeLabel);
         }
         imageWrapper.getChildren().remove(statusBadge);
@@ -545,50 +543,50 @@ public class MyBidsController implements Initializable {
             StackPane.setAlignment(timeBadge, Pos.TOP_RIGHT);
             StackPane.setMargin(timeBadge, new Insets(10, 10, 0, 0));
             timeBadge.setStyle(
-                    "-fx-background-color: rgba(255, 255, 255, 0.9); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: #ffe8e8; -fx-border-radius: 12px;");
+                    "-fx-background-color: rgba(255, 255, 255, 0.9); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: -app-border; -fx-border-radius: 12px;");
 
             Label timerIcon = new Label("\uE425");
             timerIcon.setStyle(
-                    "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 14px; -fx-text-fill: #e040a0;");
+                    "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 14px; -fx-text-fill: -fx-accent;");
 
             Label timeLabel = new Label("Active");
-            timeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #e040a0;");
+            timeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: -fx-accent;");
             timeBadge.getChildren().addAll(timerIcon, timeLabel);
             imageWrapper.getChildren().add(timeBadge);
         }
 
         Label nameLabel = new Label(name);
-        nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2e1a28;");
+        nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: " + primaryTextHex() + ";");
         nameLabel.setWrapText(true);
         nameLabel.setPrefHeight(44.0);
         nameLabel.setMaxHeight(44.0);
 
         Label categoryLabel = new Label(type);
-        categoryLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #7c52aa; -fx-font-weight: bold;");
+        categoryLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: " + accentHex() + "; -fx-font-weight: bold;");
 
         VBox bidDetailsBox = new VBox(6.0);
         if (outbidSession) {
             bidDetailsBox.setStyle(
                     "-fx-background-color: rgba(239, 68, 68, 0.05); -fx-background-radius: 12px; -fx-padding: 10px; -fx-border-color: rgba(239, 68, 68, 0.1); -fx-border-width: 1px; -fx-border-radius: 12px;");
         } else {
-            bidDetailsBox.setStyle("-fx-background-color: #f8eef8; -fx-background-radius: 12px; -fx-padding: 10px;");
+            bidDetailsBox.setStyle(myBidDetailsStyle());
         }
 
         HBox currentBidRow = new HBox();
         currentBidRow.setAlignment(Pos.CENTER_LEFT);
         Label lblCurrentBid = new Label("CURRENT BID");
-        lblCurrentBid.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #604868;");
+        lblCurrentBid.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: " + mutedTextHex() + ";");
         Region spacer1 = new Region();
         HBox.setHgrow(spacer1, Priority.ALWAYS);
         Label priceLabel = new Label("₫ " + formatPrice(currentPrice));
         priceLabel.setId("priceLabel_" + id);
-        priceLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2e1a28;");
+        priceLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: " + primaryTextHex() + ";");
         currentBidRow.getChildren().addAll(lblCurrentBid, spacer1, priceLabel);
 
         HBox userBidRow = new HBox();
         userBidRow.setAlignment(Pos.CENTER_LEFT);
         Label lblYourBid = new Label(outbidSession ? "YOUR MAX BID" : (endedSession ? "FINAL BID" : "YOUR BID"));
-        lblYourBid.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #604868;");
+        lblYourBid.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: " + mutedTextHex() + ";");
         Region spacer2 = new Region();
         HBox.setHgrow(spacer2, Priority.ALWAYS);
 
@@ -614,7 +612,7 @@ public class MyBidsController implements Initializable {
         if (outbidSession) {
             btnAction.setText("Increase Bid");
             btnAction.setStyle(
-                    "-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 6, 0, 0, 1);");
+                    "-fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 6, 0, 0, 1);");
             Label arrowIcon = new Label("\uE5D8");
             arrowIcon.setStyle(
                     "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 15px; -fx-text-fill: white; -fx-padding: 0 4px 0 0;");
@@ -622,28 +620,28 @@ public class MyBidsController implements Initializable {
 
             btnAction.setOnMouseEntered(e -> {
                 btnAction.setStyle(
-                        "-fx-background-color: #d03090; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.35), 8, 0, 0, 2);");
+                        "-fx-background-color: derive(-fx-accent, -10%); -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.35), 8, 0, 0, 2);");
             });
             btnAction.setOnMouseExited(e -> {
                 btnAction.setStyle(
-                        "-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 6, 0, 0, 1);");
+                        "-fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 6, 0, 0, 1);");
             });
         } else {
             btnAction.setText("View Details");
             btnAction.setStyle(
-                    "-fx-background-color: #f2e8f2; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px;");
+                    "-fx-background-color: -app-surface-2; -fx-text-fill: -app-text-muted; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px;");
             Label eyeIcon = new Label("\uE8f4");
             eyeIcon.setStyle(
-                    "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 15px; -fx-text-fill: #604868; -fx-padding: 0 4px 0 0;");
+                    "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 15px; -fx-text-fill: -app-text-muted; -fx-padding: 0 4px 0 0;");
             btnAction.setGraphic(eyeIcon);
 
             btnAction.setOnMouseEntered(e -> {
                 btnAction.setStyle(
-                        "-fx-background-color: #ffd6ee; -fx-text-fill: #e040a0; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px;");
+                        "-fx-background-color: -app-surface-2; -fx-text-fill: -fx-accent; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px;");
             });
             btnAction.setOnMouseExited(e -> {
                 btnAction.setStyle(
-                        "-fx-background-color: #f2e8f2; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px;");
+                        "-fx-background-color: -app-surface-2; -fx-text-fill: -app-text-muted; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px;");
             });
         }
 
@@ -690,32 +688,94 @@ public class MyBidsController implements Initializable {
         filterAndRenderProducts();
     }
 
+    private boolean isDarkThemeActive() {
+        return SettingsService.getInstance().getTheme().toLowerCase(java.util.Locale.ROOT).contains("dark");
+    }
+
+    private String accentHex() {
+        String color = SettingsService.getInstance().getPrimaryColor();
+        if (color == null) return "#e040a0";
+        String normalized = color.toLowerCase(java.util.Locale.ROOT);
+        if (normalized.contains("purple")) return "#8b5cf6";
+        if (normalized.contains("emerald") || normalized.contains("green")) return "#10b981";
+        if (normalized.contains("blue")) return "#3b82f6";
+        if (normalized.contains("orange")) return "#f97316";
+        return "#e040a0";
+    }
+
+    private String primaryTextHex() {
+        return isDarkThemeActive() ? "#f0e6f8" : "#2e1a28";
+    }
+
+    private String mutedTextHex() {
+        return isDarkThemeActive() ? "#b8a8c8" : "#604868";
+    }
+
+    private String myBidCardStyle(boolean hover) {
+        String scale = hover ? " -fx-scale-x: 1.02; -fx-scale-y: 1.02; -fx-cursor: hand;" : " -fx-scale-x: 1.0; -fx-scale-y: 1.0;";
+        if (isDarkThemeActive()) {
+            return "-fx-border-color: rgba(255,255,255,0.14); -fx-border-width: 1.5px; -fx-border-radius: 20px; "
+                    + "-fx-background-radius: 20px; -fx-padding: 14px; -fx-background-color: #241a2f; "
+                    + "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.30), 14, 0, 0, 4);" + scale;
+        }
+        return "-fx-border-color: " + (hover ? "-app-surface-2" : "-app-border") + "; -fx-border-width: 2px; -fx-border-radius: 20px; "
+                + "-fx-background-radius: 20px; -fx-padding: 14px; -fx-background-color: white; "
+                + "-fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, " + (hover ? "0.15" : "0.05") + "), 15, 0, 0, 4);" + scale;
+    }
+
+    private String myBidImageWrapperStyle() {
+        if (isDarkThemeActive()) {
+            return "-fx-background-radius: 14px; -fx-border-radius: 14px; -fx-background-color: #1a1223; "
+                    + "-fx-border-color: rgba(255,255,255,0.12); -fx-border-width: 1px;";
+        }
+        return "-fx-background-radius: 14px; -fx-border-radius: 14px; -fx-background-color: #fcf6fc;";
+    }
+
+    private String myBidDetailsStyle() {
+        if (isDarkThemeActive()) {
+            return "-fx-background-color: #2a2035; -fx-background-radius: 12px; -fx-padding: 10px; "
+                    + "-fx-border-color: rgba(255,255,255,0.10); -fx-border-width: 1px; -fx-border-radius: 12px;";
+        }
+        return "-fx-background-color: -app-surface-2; -fx-background-radius: 12px; -fx-padding: 10px;";
+    }
+
+    private String activeTabStyle() {
+        return "-fx-background-color: " + accentHex() + "; -fx-text-fill: white; -fx-font-weight: bold; "
+                + "-fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;";
+    }
+
+    private String inactiveTabStyle() {
+        if (isDarkThemeActive()) {
+            return "-fx-background-color: #2a2035; -fx-text-fill: #f0e6f8; -fx-font-weight: bold; "
+                    + "-fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px; "
+                    + "-fx-border-color: rgba(255,255,255,0.12); -fx-border-radius: 20px;";
+        }
+        return "-fx-background-color: -app-surface-2; -fx-text-fill: -app-text; -fx-font-weight: bold; "
+                + "-fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;";
+    }
+
     private void updateTabStyles() {
         // Active
         if (btnTabActive != null) {
             if (currentTab == Tab.ACTIVE) {
-                btnTabActive.setStyle(
-                        "-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
+                btnTabActive.setStyle(activeTabStyle());
                 setLabelStyleInButton(btnTabActive,
-                        "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #ffffff; -fx-padding: 0 4px 0 0;");
+                        "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: white; -fx-padding: 0 4px 0 0;");
             } else {
-                btnTabActive.setStyle(
-                        "-fx-background-color: #f8eef8; -fx-text-fill: #2e1a28; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
+                btnTabActive.setStyle(inactiveTabStyle());
                 setLabelStyleInButton(btnTabActive,
-                        "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #e040a0; -fx-padding: 0 4px 0 0;");
+                        "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: -fx-accent; -fx-padding: 0 4px 0 0;");
             }
         }
 
         // Winning
         if (btnTabWinning != null) {
             if (currentTab == Tab.WINNING) {
-                btnTabWinning.setStyle(
-                        "-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
+                btnTabWinning.setStyle(activeTabStyle());
                 setLabelStyleInButton(btnTabWinning,
-                        "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #ffffff; -fx-padding: 0 4px 0 0;");
+                        "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: white; -fx-padding: 0 4px 0 0;");
             } else {
-                btnTabWinning.setStyle(
-                        "-fx-background-color: #f8eef8; -fx-text-fill: #2e1a28; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
+                btnTabWinning.setStyle(inactiveTabStyle());
                 setLabelStyleInButton(btnTabWinning,
                         "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #10b981; -fx-padding: 0 4px 0 0;");
             }
@@ -724,13 +784,11 @@ public class MyBidsController implements Initializable {
         // Outbid
         if (btnTabOutbid != null) {
             if (currentTab == Tab.OUTBID) {
-                btnTabOutbid.setStyle(
-                        "-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
+                btnTabOutbid.setStyle(activeTabStyle());
                 setLabelStyleInButton(btnTabOutbid,
-                        "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #ffffff; -fx-padding: 0 4px 0 0;");
+                        "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: white; -fx-padding: 0 4px 0 0;");
             } else {
-                btnTabOutbid.setStyle(
-                        "-fx-background-color: #f8eef8; -fx-text-fill: #2e1a28; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
+                btnTabOutbid.setStyle(inactiveTabStyle());
                 setLabelStyleInButton(btnTabOutbid,
                         "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #ef4444; -fx-padding: 0 4px 0 0;");
             }
@@ -739,13 +797,11 @@ public class MyBidsController implements Initializable {
         // Ended
         if (btnTabEnded != null) {
             if (currentTab == Tab.ENDED) {
-                btnTabEnded.setStyle(
-                        "-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
+                btnTabEnded.setStyle(activeTabStyle());
                 setLabelStyleInButton(btnTabEnded,
-                        "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #ffffff; -fx-padding: 0 4px 0 0;");
+                        "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: white; -fx-padding: 0 4px 0 0;");
             } else {
-                btnTabEnded.setStyle(
-                        "-fx-background-color: #f8eef8; -fx-text-fill: #2e1a28; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;");
+                btnTabEnded.setStyle(inactiveTabStyle());
                 setLabelStyleInButton(btnTabEnded,
                         "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: #7c52aa; -fx-padding: 0 4px 0 0;");
             }

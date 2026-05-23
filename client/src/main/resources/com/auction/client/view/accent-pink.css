@@ -21,8 +21,8 @@
 .accent-pink .view-toggle-button:hover,
 .accent-pink .btn-account-secondary,
 .accent-pink .settings-link {
-    -fx-text-fill: #e040a0;
-    -fx-fill: #e040a0;
+    -fx-text-fill: -fx-accent;
+    -fx-fill: -fx-accent;
 }
 
 .accent-pink .primary-btn,
@@ -35,8 +35,8 @@
 .accent-pink .seller-policy-check:selected > .box,
 .accent-pink .scroll-bar:vertical .thumb,
 .accent-pink .slider .thumb {
-    -fx-background-color: #e040a0;
-    -fx-border-color: #e040a0;
+    -fx-background-color: -fx-accent;
+    -fx-border-color: -fx-accent;
 }
 
 .accent-pink .btn-account-primary,
@@ -79,6 +79,32 @@
 
 .accent-pink .combo-box-popup .list-cell:filled:selected,
 .accent-pink .combo-box-popup .list-cell:filled:selected:hover {
-    -fx-background-color: #e040a0;
+    -fx-background-color: -fx-accent;
     -fx-text-fill: white;
+}
+
+
+/* Theme refactor phase 3: override remaining accent-sensitive components. */
+.accent-pink .page-title,
+.accent-pink .section-title,
+.accent-pink .settings-card-title,
+.accent-pink .filter-label,
+.accent-pink .app-logo {
+    -fx-text-fill: -fx-accent;
+    -fx-fill: -fx-accent;
+}
+.accent-pink .view-toggle-button-active,
+.accent-pink .primary-btn,
+.accent-pink .button.primary-btn {
+    -fx-background-color: linear-gradient(to right, #e040a0, #f06292);
+    -fx-border-color: -fx-accent;
+    -fx-effect: dropshadow(gaussian, rgba(224,64,160,0.28), 18, 0.16, 0, 5);
+}
+.accent-pink .filter-combo:focused,
+.accent-pink .combo-box-base:focused,
+.accent-pink .search-box:focused-within {
+    -fx-border-color: -fx-accent;
+}
+.accent-pink .scroll-bar:vertical .thumb {
+    -fx-background-color: -fx-accent;
 }

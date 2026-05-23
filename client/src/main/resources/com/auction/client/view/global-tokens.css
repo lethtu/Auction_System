@@ -1,0 +1,432 @@
+/* Global UI components styling mapped to tokens */
+.rounded-window-content {
+    -fx-background-color: -app-bg;
+}
+.app-topbar, .app-topbar-even, .admin-bidpop-topbar {
+    -fx-background-color: -app-surface;
+    -fx-border-color: -app-border;
+}
+.app-sidebar-content, .app-sidebar-content-collapsed {
+    -fx-background-color: -app-surface;
+    -fx-border-color: -app-border;
+}
+.app-content-panel, .app-content-scroll {
+    -fx-background-color: -app-surface-2;
+    -fx-border-color: -app-border;
+}
+
+.text-field, .text-area, .combo-box {
+    -fx-background-color: -app-input-bg;
+    -fx-text-fill: -app-input-text;
+    -fx-prompt-text-fill: -app-text-muted;
+    -fx-border-color: -app-border;
+}
+.text-area .content {
+    -fx-background-color: -app-input-bg;
+}
+
+.combo-box .list-cell {
+    -fx-text-fill: -app-input-text;
+}
+.combo-box-popup .list-view {
+    -fx-background-color: -app-surface;
+    -fx-border-color: -app-border;
+}
+.combo-box-popup .list-cell {
+    -fx-text-fill: -app-input-text;
+}
+.combo-box-popup .list-cell:filled:hover {
+    -fx-background-color: -app-primary;
+    -fx-text-fill: white;
+}
+
+.label, .text, .brand-title, .page-title {
+    -fx-text-fill: -app-text;
+}
+.brand-subtitle, .page-subtitle, .settings-card-subtitle, .setting-description, .faq-text, .contact-text {
+    -fx-text-fill: -app-text-muted;
+}
+.settings-card, .support-card, .auction-card, .dashboard-card, .notification-card, .hero-card, .section-card, .mini-stat-card {
+    -fx-background-color: -app-card;
+    -fx-border-color: -app-border;
+}
+.settings-card-title, .setting-label, .settings-section-title {
+    -fx-text-fill: -app-text;
+}
+.scroll-pane, .scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+.table-view, .list-view, .table-row-cell, .list-cell {
+    -fx-background-color: -app-surface;
+}
+.table-view .column-header-background, .table-view .column-header {
+    -fx-background-color: -app-surface-2;
+}
+.setting-switch .box {
+    -fx-background-color: -app-border;
+}
+.setting-switch .text {
+    -fx-fill: -app-text;
+}
+.button {
+    /* If any button needs specific fix */
+}
+
+
+/* Theme refactor phase 3: broad accent/token fixes. */
+.page-title, .section-title, .settings-card-title, .filter-label {
+    -fx-text-fill: -fx-accent;
+    -fx-fill: -fx-accent;
+}
+.primary-btn, .button.primary-btn, .view-toggle-button-active {
+    -fx-background-color: -fx-accent;
+    -fx-border-color: -fx-accent;
+}
+.combo-box-popup .list-cell:filled:selected,
+.combo-box-popup .list-cell:filled:selected:hover,
+.combo-box-popup .list-cell:filled:hover {
+    -fx-background-color: -fx-accent;
+    -fx-text-fill: #ffffff;
+}
+/* === Theme Refactor Phase 4: search/filter/title token bridge === */
+.main-page-title,
+.page-title,
+.section-title,
+.filter-label {
+    -fx-text-fill: -fx-accent;
+    -fx-fill: -fx-accent;
+}
+
+.search-shell {
+    -fx-background-color: -app-surface;
+    -fx-border-color: -app-border;
+}
+.search-shell:hover,
+.search-shell:focused,
+.search-shell:focused-within {
+    -fx-border-color: -fx-accent;
+}
+.search-field {
+    -fx-text-fill: -app-text;
+    -fx-prompt-text-fill: -app-text-muted;
+}
+.search-field .text {
+    -fx-fill: -app-text;
+}
+
+.filter-combo,
+.combo-box.filter-combo,
+.custom-combo-box {
+    -fx-background-color: -app-input-bg;
+    -fx-border-color: -app-border;
+    -fx-text-fill: -app-input-text;
+}
+.filter-combo:hover,
+.combo-box.filter-combo:hover,
+.filter-combo:focused,
+.combo-box.filter-combo:focused {
+    -fx-border-color: -fx-accent;
+}
+.filter-combo .list-cell,
+.combo-box.filter-combo .list-cell,
+.custom-combo-box .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -app-input-text;
+}
+.filter-combo .arrow,
+.combo-box.filter-combo .arrow,
+.custom-combo-box .arrow {
+    -fx-background-color: -app-text-muted;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: -app-surface;
+    -fx-border-color: -fx-accent;
+}
+.combo-box-popup .list-view .list-cell,
+.combo-box-popup .list-cell {
+    -fx-background-color: -app-surface;
+    -fx-text-fill: -app-text;
+}
+.combo-box-popup .list-view .list-cell:filled:hover,
+.combo-box-popup .list-cell:filled:hover {
+    -fx-background-color: -app-surface-2;
+    -fx-text-fill: -fx-accent;
+}
+.combo-box-popup .list-view .list-cell:filled:selected,
+.combo-box-popup .list-view .list-cell:filled:selected:hover,
+.combo-box-popup .list-cell:filled:selected,
+.combo-box-popup .list-cell:filled:selected:hover {
+    -fx-background-color: -fx-accent;
+    -fx-text-fill: white;
+}
+
+.view-toggle-button {
+    -fx-border-color: -fx-accent;
+}
+.view-toggle-button .material-symbols,
+.view-toggle-button .material-icon {
+    -fx-fill: -fx-accent;
+    -fx-text-fill: -fx-accent;
+}
+/* === End Theme Refactor Phase 4 === */
+
+/* === Theme Phase 5 v2: tokenized remaining app chrome === */
+.app-logo {
+    -fx-text-fill: -fx-accent;
+    -fx-fill: -fx-accent;
+}
+.app-topbar .material-symbols,
+.app-topbar .material-icon,
+.app-sidebar-content .material-symbols,
+.app-sidebar-content .material-icon,
+.app-sidebar-content-collapsed .material-symbols,
+.app-sidebar-content-collapsed .material-icon {
+    -fx-text-fill: -app-text-muted;
+    -fx-fill: -app-text-muted;
+}
+.nav-button,
+.sidebar-button {
+    -fx-text-fill: -app-text-muted;
+    -fx-background-color: transparent;
+}
+.nav-button:hover,
+.sidebar-button:hover,
+.nav-button-active,
+.sidebar-button-active {
+    -fx-text-fill: -fx-accent;
+    -fx-background-color: -app-surface-2;
+}
+.primary-btn,
+.button.primary-btn,
+.accent-button,
+.bid-action-button,
+.view-action-button,
+.compact-bid-button {
+    -fx-background-color: -fx-accent;
+    -fx-border-color: -fx-accent;
+    -fx-text-fill: white;
+}
+.accent-text,
+.price-text,
+.compact-price,
+.stat-accent,
+.card-accent-text {
+    -fx-text-fill: -fx-accent;
+    -fx-fill: -fx-accent;
+}
+.search-shell {
+    -fx-background-color: -app-input-bg;
+    -fx-border-color: -app-border;
+}
+.search-shell:hover,
+.search-shell:focused,
+.search-shell:focused-within {
+    -fx-border-color: -fx-accent;
+}
+.search-field {
+    -fx-background-color: transparent;
+    -fx-text-fill: -app-input-text;
+    -fx-prompt-text-fill: -app-text-muted;
+}
+.compact-session-row,
+.compact-session-empty,
+.auction-page-card,
+.auction-page-panel,
+.auction-page-side-card,
+.bid-panel-card {
+    -fx-background-color: -app-card;
+    -fx-border-color: -app-border;
+}
+.compact-session-row:hover {
+    -fx-border-color: -fx-accent;
+}
+.compact-index-badge,
+.status-soft-badge,
+.soft-badge {
+    -fx-background-color: -app-surface-2;
+    -fx-text-fill: -fx-accent;
+}
+.auction-image-panel,
+.chart-panel,
+.soft-panel {
+    -fx-background-color: -app-surface-2;
+    -fx-border-color: -app-border;
+}
+/* Keep auth pages intentionally independent; theme starts after login. */
+/* === End Theme Phase 5 v2 === */
+
+/* === Theme Phase 5 v2: final overrides === */
+.theme-dark .search-shell {
+    -fx-background-color: -app-input-bg;
+    -fx-border-color: -app-border;
+}
+.theme-dark .search-field {
+    -fx-text-fill: -app-input-text;
+    -fx-prompt-text-fill: -app-text-muted;
+}
+.theme-dark .auction-page-scroll,
+.theme-dark .auction-page-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+.theme-dark .topbar-icon,
+.theme-light .topbar-icon {
+    -fx-text-fill: -app-text-muted;
+}
+.accent-emerald .app-logo,
+.accent-emerald .sidebar-button-active,
+.accent-emerald .nav-button-active,
+.accent-emerald .price-text,
+.accent-emerald .compact-price,
+.accent-emerald .view-action-button,
+.accent-emerald .bid-action-button {
+    -fx-text-fill: #10b981;
+    -fx-fill: #10b981;
+}
+.accent-emerald .primary-btn,
+.accent-emerald .accent-button,
+.accent-emerald .compact-bid-button,
+.accent-emerald .bid-action-button {
+    -fx-background-color: #10b981;
+    -fx-border-color: #10b981;
+}
+.accent-orange .app-logo,
+.accent-orange .sidebar-button-active,
+.accent-orange .nav-button-active,
+.accent-orange .price-text,
+.accent-orange .compact-price {
+    -fx-text-fill: #f97316;
+    -fx-fill: #f97316;
+}
+.accent-orange .primary-btn,
+.accent-orange .accent-button,
+.accent-orange .compact-bid-button,
+.accent-orange .bid-action-button {
+    -fx-background-color: #f97316;
+    -fx-border-color: #f97316;
+}
+/* === End Theme Phase 5 v2 final overrides === */
+
+/* === Theme Phase 6: final token cleanup === */
+.root.theme-dark .app-logo,
+.root.theme-light .app-logo,
+.theme-dark .app-logo,
+.theme-light .app-logo,
+.accent-pink .app-logo,
+.accent-purple .app-logo,
+.accent-emerald .app-logo,
+.accent-blue .app-logo,
+.accent-orange .app-logo {
+    -fx-text-fill: -fx-accent;
+    -fx-fill: -fx-accent;
+}
+.root.theme-dark .page-title,
+.root.theme-light .page-title,
+.root.theme-dark .section-title,
+.root.theme-light .section-title,
+.root.theme-dark .filter-label,
+.root.theme-light .filter-label,
+.theme-dark .page-title,
+.theme-light .page-title,
+.theme-dark .section-title,
+.theme-light .section-title,
+.theme-dark .filter-label,
+.theme-light .filter-label {
+    -fx-text-fill: -fx-accent;
+    -fx-fill: -fx-accent;
+}
+.theme-dark .app-sidebar-content,
+.theme-dark .app-sidebar-content-collapsed,
+.theme-dark .app-content-panel,
+.theme-dark .auction-card,
+.theme-dark .my-bid-card,
+.theme-dark .seller-stat-card,
+.theme-dark .seller-table-card,
+.theme-dark .auction-page-card,
+.theme-dark .auction-page-side-card,
+.theme-dark .bid-panel-card,
+.theme-dark .compact-session-row {
+    -fx-border-color: -fx-accent;
+}
+.theme-dark .view-action-button,
+.theme-light .view-action-button,
+.theme-dark .compact-bid-button,
+.theme-light .compact-bid-button,
+.theme-dark .bid-action-button,
+.theme-light .bid-action-button,
+.theme-dark .primary-btn,
+.theme-light .primary-btn,
+.theme-dark .accent-button,
+.theme-light .accent-button,
+.theme-dark .button.primary-btn,
+.theme-light .button.primary-btn {
+    -fx-background-color: -fx-accent;
+    -fx-border-color: -fx-accent;
+    -fx-text-fill: white;
+}
+.theme-dark .price-text,
+.theme-light .price-text,
+.theme-dark .compact-price,
+.theme-light .compact-price,
+.theme-dark .card-accent-text,
+.theme-light .card-accent-text,
+.theme-dark .stat-accent,
+.theme-light .stat-accent {
+    -fx-text-fill: -fx-accent;
+    -fx-fill: -fx-accent;
+}
+.theme-dark .search-shell,
+.theme-light .search-shell {
+    -fx-background-color: -app-input-bg;
+    -fx-border-color: -app-border;
+}
+.theme-dark .search-shell:hover,
+.theme-light .search-shell:hover,
+.theme-dark .search-shell:focused,
+.theme-light .search-shell:focused,
+.theme-dark .search-shell:focused-within,
+.theme-light .search-shell:focused-within,
+.theme-dark .combo-box:focused,
+.theme-light .combo-box:focused,
+.theme-dark .custom-combo-box:focused,
+.theme-light .custom-combo-box:focused,
+.theme-dark .filter-combo:focused,
+.theme-light .filter-combo:focused {
+    -fx-border-color: -fx-accent;
+}
+.theme-dark .combo-box .list-cell,
+.theme-dark .combo-box-popup .list-cell,
+.theme-dark .custom-combo-box .list-cell {
+    -fx-text-fill: -app-input-text;
+    -fx-background-color: -app-input-bg;
+}
+.theme-dark .combo-box-popup .list-cell:filled:hover,
+.theme-dark .combo-box-popup .list-cell:filled:selected,
+.theme-dark .combo-box-popup .list-cell:filled:selected:hover {
+    -fx-background-color: -fx-accent;
+    -fx-text-fill: white;
+}
+.theme-dark .sidebar-button-active,
+.theme-light .sidebar-button-active,
+.theme-dark .nav-button-active,
+.theme-light .nav-button-active,
+.theme-dark .sidebar-button:hover,
+.theme-light .sidebar-button:hover,
+.theme-dark .nav-button:hover,
+.theme-light .nav-button:hover {
+    -fx-text-fill: -fx-accent;
+    -fx-background-color: -app-surface-2;
+}
+.theme-dark .sidebar-button-active .label,
+.theme-light .sidebar-button-active .label,
+.theme-dark .sidebar-button-active .text,
+.theme-light .sidebar-button-active .text,
+.theme-dark .nav-button-active .label,
+.theme-light .nav-button-active .label,
+.theme-dark .nav-button-active .text,
+.theme-light .nav-button-active .text {
+    -fx-text-fill: -fx-accent;
+    -fx-fill: -fx-accent;
+}
+/* Auth/Login screens remain intentionally independent from app theme. */
+/* === End Theme Phase 6 === */

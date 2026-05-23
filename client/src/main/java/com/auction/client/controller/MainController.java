@@ -172,6 +172,8 @@ public class MainController implements Initializable {
         // Initialize display status on main market
         cbStatus.getItems().addAll("All", "Ongoing", "Starting Soon", "Ended");
         cbStatus.setValue("All");
+        setupThemeAwareFilterCombo(cbCategory);
+        setupThemeAwareFilterCombo(cbStatus);
 
         updateViewToggleButton(false);
 
@@ -469,18 +471,18 @@ public class MainController implements Initializable {
 
         Label iconLabel = new Label(showingWatchlistOnly ? "♡" : "∅");
         iconLabel.setStyle(
-                "-fx-font-family: 'DM Sans'; -fx-font-size: 54px; -fx-font-weight: 900; -fx-text-fill: #e040a0; -fx-opacity: 0.72;");
+                "-fx-font-family: 'DM Sans'; -fx-font-size: 54px; -fx-font-weight: 900; -fx-text-fill: " + accentHex() + "; -fx-opacity: 0.72;");
 
         Label titleLabel = new Label(getEmptyStateTitle());
         titleLabel.setStyle(
-                "-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
+                "-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: 900; -fx-text-fill: " + primaryTextHex() + ";");
 
         Label msgLabel = new Label(message == null || message.isBlank() ? getEmptyStateMessage() : message);
         msgLabel.setWrapText(true);
         msgLabel.setMaxWidth(520);
         msgLabel.setAlignment(Pos.CENTER);
         msgLabel.setStyle(
-                "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;");
+                "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: " + mutedTextHex() + "; -fx-text-alignment: center;");
 
         emptyBox.getChildren().addAll(iconLabel, titleLabel, msgLabel);
         return emptyBox;
@@ -514,9 +516,44 @@ public class MainController implements Initializable {
         lblPageTitle.setManaged(true);
         lblPageTitle.setOpacity(1.0);
         lblPageTitle.setText(title);
-        lblPageTitle.setTextFill(Color.web("#e040a0"));
+        String accent = accentHex();
+        lblPageTitle.setTextFill(Color.web(accent));
         lblPageTitle.setStyle(
-                "-fx-font-family: 'DM Sans'; -fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: #e040a0;");
+                "-fx-font-family: 'DM Sans'; -fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: " + accent + ";");
+    }
+
+    private void setupThemeAwareFilterCombo(ComboBox<String> combo) {
+        if (combo == null) {
+            return;
+        }
+        combo.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : item);
+                setStyle(filterComboCellStyle(false));
+            }
+        });
+        combo.setCellFactory(listView -> new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : item);
+                setStyle(filterComboCellStyle(isSelected() || isHover()));
+            }
+        });
+    }
+
+    private String filterComboCellStyle(boolean active) {
+        String accent = accentHex();
+        if (isDarkThemeActive()) {
+            return "-fx-background-color: " + (active ? accent : "transparent") + ";"
+                    + "-fx-text-fill: " + (active ? "#ffffff" : accent) + ";"
+                    + "-fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-padding: 8px 12px;";
+        }
+        return "-fx-background-color: " + (active ? accent : "transparent") + ";"
+                + "-fx-text-fill: " + (active ? "#ffffff" : accent) + ";"
+                + "-fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-padding: 8px 12px;";
     }
 
     private void filterAndRenderProducts() {
@@ -1137,7 +1174,7 @@ public class MainController implements Initializable {
                     User.watchlistIds.remove(id);
                     watchIcon.setText("\uE87E");
                     watchIcon.setStyle(
-                            "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #604868;");
+                            "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: " + mutedTextHex() + ";");
                     watchIcon.setTranslateY(1.5);
                     Tooltip.install(btnWatch, new Tooltip("Add to favorites"));
                     ClientLogger.logFavorite(User.getUsername(), name, id, false);
@@ -1145,7 +1182,7 @@ public class MainController implements Initializable {
                     User.watchlistIds.add(id);
                     watchIcon.setText("\uE87D");
                     watchIcon.setStyle(
-                            "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #e040a0;");
+                            "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: " + accentHex() + ";");
                     watchIcon.setTranslateY(1.5);
                     Tooltip.install(btnWatch, new Tooltip("Favorited"));
                     ClientLogger.logFavorite(User.getUsername(), name, id, true);
@@ -1193,7 +1230,7 @@ public class MainController implements Initializable {
             if ("UPCOMING".equals(normalizedStatus)) {
                 mainPlusIcon.setTextFill(Color.web("#ffffff"));
                 mainBtn.setStyle(
-                        "-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
+                        "-fx-background-color: " + accentHex() + "; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
                 Tooltip.install(mainBtn, new Tooltip("View details"));
                 mainBtn.setDisable(false);
                 mainBtn.setOnAction(e -> {
@@ -1203,7 +1240,7 @@ public class MainController implements Initializable {
             } else if ("ENDED".equals(normalizedStatus)) {
                 mainPlusIcon.setTextFill(Color.web("#ffffff"));
                 mainBtn.setStyle(
-                        "-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
+                        "-fx-background-color: " + accentHex() + "; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
                 Tooltip.install(mainBtn, new Tooltip("View results"));
                 mainBtn.setDisable(false);
                 mainBtn.setOnAction(e -> {
@@ -1212,9 +1249,9 @@ public class MainController implements Initializable {
                 });
             } else {
                 // UNKNOWN_TIME
-                mainPlusIcon.setTextFill(Color.web("#888888"));
+                mainPlusIcon.setTextFill(Color.web(mutedTextHex()));
                 mainBtn.setStyle(
-                        "-fx-background-color: #cccccc; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: default;");
+                        "-fx-background-color: " + secondaryButtonBgHex() + "; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: default;");
                 Tooltip.install(mainBtn, new Tooltip("Auction time unknown"));
                 mainBtn.setDisable(true);
                 mainBtn.setOnAction(e -> {
@@ -1493,7 +1530,7 @@ public class MainController implements Initializable {
         StackPane placeholder = new StackPane();
         placeholder.setMinSize(size, size);
         placeholder.setMaxSize(size, size);
-        placeholder.setStyle("-fx-background-color: linear-gradient(to bottom right, #e040a0, #c83090);"
+        placeholder.setStyle("-fx-background-color: " + accentHex() + ";"
                 + " -fx-background-radius: " + (size / 2) + ";");
 
         String initials = getInitials(User.getFullname());
@@ -1947,9 +1984,9 @@ public class MainController implements Initializable {
         VBox titleBox = new VBox(2);
         Label title = new Label("Compact Session List");
         title.setStyle(
-                "-fx-font-family: 'DM Sans'; -fx-font-size: 26px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
+                "-fx-font-family: 'DM Sans'; -fx-font-size: 26px; -fx-font-weight: 900; -fx-text-fill: " + primaryTextHex() + ";");
         Label subtitle = new Label("Sessions currently displayed based on filters.");
-        subtitle.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #907898;");
+        subtitle.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: " + mutedTextHex() + ";");
         titleBox.getChildren().addAll(title, subtitle);
 
         Region spacer = new Region();
@@ -1957,7 +1994,7 @@ public class MainController implements Initializable {
 
         Button backButton = new Button("Back to Grid");
         backButton.setStyle(
-                "-fx-background-color: #e040a0; -fx-background-radius: 999; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-padding: 9 22 9 22; -fx-cursor: hand;");
+                "-fx-background-color: " + accentHex() + "; -fx-background-radius: 999; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-padding: 9 22 9 22; -fx-cursor: hand;");
         backButton.setOnAction(e -> returnToAuctionGrid());
         header.getChildren().addAll(titleBox, spacer, backButton);
 
@@ -1969,12 +2006,12 @@ public class MainController implements Initializable {
             empty.setAlignment(Pos.CENTER);
             empty.setPadding(new Insets(60));
             empty.setStyle(
-                    "-fx-background-color: #ffffff; -fx-background-radius: 22px; -fx-border-color: #ffe8e8; -fx-border-radius: 22px; -fx-border-width: 2px;");
+                    "-fx-background-color: " + (isDarkThemeActive() ? "#241a2f" : "#ffffff") + "; -fx-background-radius: 22px; -fx-border-color: " + (isDarkThemeActive() ? "rgba(255,255,255,0.14)" : "#ffe8e8") + "; -fx-border-radius: 22px; -fx-border-width: 2px;");
             Label emptyTitle = new Label("No sessions found with current filters");
             emptyTitle.setStyle(
-                    "-fx-font-family: 'DM Sans'; -fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
+                    "-fx-font-family: 'DM Sans'; -fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: -app-text;");
             Label emptyMsg = new Label("Try changing filters or return to grid view.");
-            emptyMsg.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #907898;");
+            emptyMsg.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: " + mutedTextHex() + ";");
             empty.getChildren().addAll(emptyTitle, emptyMsg);
             listBox.getChildren().add(empty);
         } else {
@@ -2012,7 +2049,7 @@ public class MainController implements Initializable {
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(14, 18, 14, 18));
         row.setStyle(
-                "-fx-background-color: #ffffff; -fx-background-radius: 18px; -fx-border-color: #ffe8e8; -fx-border-width: 1.5px; -fx-border-radius: 18px; -fx-cursor: hand;");
+                "-fx-background-color: " + (isDarkThemeActive() ? "#241a2f" : "#ffffff") + "; -fx-background-radius: 18px; -fx-border-color: " + (isDarkThemeActive() ? "rgba(255,255,255,0.14)" : "#ffe8e8") + "; -fx-border-width: 1.5px; -fx-border-radius: 18px; -fx-cursor: hand;");
         row.setOnMouseClicked(event -> {
             openAuctionPage(event, sessionObj, itemObj, itemObj.optString("name", "Unknown"), sessionObj.optInt("id"),
                     currentPrice);
@@ -2023,13 +2060,13 @@ public class MainController implements Initializable {
         order.setMinSize(34, 34);
         order.setPrefSize(34, 34);
         order.setStyle(
-                "-fx-background-color: #ffd6ee; -fx-background-radius: 17px; -fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: 900; -fx-text-fill: #e040a0;");
+                "-fx-background-color: " + secondaryButtonBgHex() + "; -fx-background-radius: 17px; -fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: 900; -fx-text-fill: " + accentHex() + ";");
 
         VBox infoBox = new VBox(3);
         Label name = new Label("#" + sessionId + " · " + itemName);
-        name.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
+        name.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: 900; -fx-text-fill: " + primaryTextHex() + ";");
         Label type = new Label(itemType);
-        type.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-text-fill: #907898;");
+        type.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-text-fill: " + mutedTextHex() + ";");
         infoBox.getChildren().addAll(name, type);
 
         Region rowSpacer = new Region();
@@ -2037,13 +2074,13 @@ public class MainController implements Initializable {
 
         Label statusBadge = new Label(status);
         statusBadge.setStyle(
-                "-fx-background-color: #f2e8f2; -fx-background-radius: 999; -fx-padding: 5 12 5 12; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: #604868;");
+                "-fx-background-color: " + secondaryButtonBgHex() + "; -fx-background-radius: 999; -fx-padding: 5 12 5 12; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: " + mutedTextHex() + ";");
 
         Label price = new Label("₫ " + formatPrice(currentPrice));
         price.setMinWidth(110);
         price.setAlignment(Pos.CENTER_RIGHT);
         price.setStyle(
-                "-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: #e040a0;");
+                "-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: " + accentHex() + ";");
 
         Button bidButton = new Button(canBid ? "Bid" : "Ended");
         bidButton.setMinWidth(92);
@@ -2051,14 +2088,14 @@ public class MainController implements Initializable {
         bidButton.setDisable(!canBid);
         if (canBid) {
             bidButton.setStyle(
-                    "-fx-background-color: #e040a0; -fx-background-radius: 999; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: 900; -fx-padding: 8 18 8 18; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224,64,160,0.25), 10, 0, 0, 3);");
+                    "-fx-background-color: " + accentHex() + "; -fx-background-radius: 999; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: 900; -fx-padding: 8 18 8 18; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.20), 10, 0, 0, 3);");
             bidButton.setOnAction(event -> {
                 event.consume();
                 openAuctionPage(event, sessionObj, itemObj, itemName, sessionId, currentPrice);
             });
         } else {
             bidButton.setStyle(
-                    "-fx-background-color: #f2e8f2; -fx-background-radius: 999; -fx-text-fill: #907898; -fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: 900; -fx-padding: 8 18 8 18;");
+                    "-fx-background-color: " + secondaryButtonBgHex() + "; -fx-background-radius: 999; -fx-text-fill: " + mutedTextHex() + "; -fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: 900; -fx-padding: 8 18 8 18;");
         }
 
         row.getChildren().addAll(order, infoBox, rowSpacer, statusBadge, price, bidButton);
@@ -2386,31 +2423,58 @@ public class MainController implements Initializable {
 
 
     private boolean isDarkThemeActive() {
-        return false;
+        return SettingsService.getInstance().getTheme().toLowerCase(java.util.Locale.ROOT).contains("dark");
     }
+
     private String accentHex() {
+        String color = SettingsService.getInstance().getPrimaryColor();
+        if (color == null) return "#e040a0";
+        String normalized = color.toLowerCase(java.util.Locale.ROOT);
+        if (normalized.contains("purple")) return "#8b5cf6";
+        if (normalized.contains("emerald") || normalized.contains("green")) return "#10b981";
+        if (normalized.contains("blue")) return "#3b82f6";
+        if (normalized.contains("orange")) return "#f97316";
         return "#e040a0";
     }
+
     private String primaryTextHex() {
-        return "#2e1a28";
+        return isDarkThemeActive() ? "#f0e6f8" : "#2e1a28";
     }
+
     private String mutedTextHex() {
-        return "#604868";
+        return isDarkThemeActive() ? "#b8a8c8" : "#604868";
     }
+
     private String secondaryButtonBgHex() {
-        return "#f2e8f2";
+        return isDarkThemeActive() ? "#2a2035" : "#f2e8f2";
     }
+
     private String productCardStyle() {
+        if (isDarkThemeActive()) {
+            return "-fx-border-color: rgba(255,255,255,0.12); -fx-border-width: 1px; -fx-border-radius: 20px; "
+                    + "-fx-background-radius: 20px; -fx-padding: 16px; -fx-background-color: #241a2f; "
+                    + "-fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.28), 14, 0, 0, 4);";
+        }
         return "-fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 20px; "
                 + "-fx-background-radius: 20px; -fx-padding: 16px; -fx-background-color: #ffffff; "
                 + "-fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.05), 10, 0, 0, 2);";
     }
+
     private String productImageWrapperStyle() {
+        if (isDarkThemeActive()) {
+            return "-fx-background-color: #2a2035; -fx-background-radius: 12px; -fx-border-radius: 12px; "
+                    + "-fx-border-color: rgba(255,255,255,0.12); -fx-border-width: 1px;";
+        }
         return "-fx-background-radius: 12px; -fx-border-radius: 12px; -fx-border-color: #f2e8f2; -fx-border-width: 1px;";
     }
+
     private String runningTimerBadgeStyle() {
+        if (isDarkThemeActive()) {
+            return "-fx-background-color: rgba(42, 32, 53, 0.95); -fx-background-radius: 15px; -fx-padding: 4px 8px;";
+        }
         return "-fx-background-color: rgba(255, 255, 255, 0.9); -fx-background-radius: 15px; -fx-padding: 4px 8px;";
     }
+
     private void startCountdownTimeline() {
         stopCountdownTimeline();
 

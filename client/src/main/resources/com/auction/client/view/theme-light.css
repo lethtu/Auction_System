@@ -177,3 +177,58 @@
 .theme-light .menu-item .label {
     -fx-text-fill: -app-text;
 }
+
+/* ====== PHASE 2: complex pages light cleanup ====== */
+.theme-light .bento-card,
+.theme-light .seller-listings-card,
+.theme-light .custom-table,
+.theme-light .custom-table .table-row-cell,
+.theme-light .custom-table .table-cell {
+    -fx-background-color: -app-card;
+    -fx-text-fill: -app-text;
+}
+
+.theme-light .custom-table .column-header-background,
+.theme-light .custom-table .column-header {
+    -fx-background-color: -app-surface-2;
+    -fx-border-color: -app-border;
+}
+
+.theme-light .custom-table .column-header .label,
+.theme-light .custom-table .table-cell .label,
+.theme-light .custom-table .table-cell {
+    -fx-text-fill: -app-text;
+}
+
+
+/* ====== PHASE 3: light ComboBox cleanup ====== */
+.theme-light .filter-combo,
+.theme-light .combo-box,
+.theme-light .combo-box-base {
+    -fx-background-color: #fff7fd;
+    -fx-border-color: #ffdceb;
+    -fx-text-fill: -app-text;
+}
+.theme-light .combo-box-popup .list-cell:hover,
+.theme-light .combo-box-popup .list-cell:selected,
+.theme-light .combo-box-popup .list-cell:filled:selected,
+.theme-light .combo-box-popup .list-cell:filled:hover {
+    -fx-background-color: -fx-accent;
+    -fx-text-fill: #ffffff;
+}
+/* === Theme Refactor Phase 4: light search/filter polish === */
+.theme-light .search-shell,
+.theme-light .filter-combo,
+.theme-light .combo-box.filter-combo,
+.theme-light .custom-combo-box {
+    -fx-background-color: -app-input-bg;
+    -fx-border-color: -app-border;
+}
+.theme-light .search-shell:hover,
+.theme-light .filter-combo:hover,
+.theme-light .combo-box.filter-combo:hover,
+.theme-light .filter-combo:focused,
+.theme-light .combo-box.filter-combo:focused {
+    -fx-border-color: -fx-accent;
+}
+/* === End Theme Refactor Phase 4 === */

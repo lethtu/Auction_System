@@ -105,7 +105,7 @@ public class SupportController implements Initializable {
                     alert.setContentText("Your support request has been received. We will respond soon via email: " + email);
 
                     DialogPane dialogPane = alert.getDialogPane();
-                    dialogPane.setStyle("-fx-font-family: 'DM Sans'; -fx-background-color: #fcf8ff; -fx-border-color: #e040a0; -fx-border-width: 2px; -fx-border-radius: 12px; -fx-background-radius: 12px;");
+                    dialogPane.setStyle("-fx-font-family: 'DM Sans'; -fx-background-color: #fcf8ff; -fx-border-color: -fx-accent; -fx-border-width: 2px; -fx-border-radius: 12px; -fx-background-radius: 12px;");
                     AlertUtil.styleAndShow(alert);
                 });
             } catch (InterruptedException e) {
