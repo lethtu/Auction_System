@@ -168,6 +168,13 @@ public class AuctionPageController {
             productImageView.setPreserveRatio(true);
             javafx.scene.layout.Region parent = (javafx.scene.layout.Region) productImageView.getParent();
             productImageView.fitWidthProperty().bind(parent.widthProperty().subtract(16));
+            Platform.runLater(() -> {
+                if (productImageView.getScene() != null) {
+                    productImageView.fitHeightProperty().bind(
+                            productImageView.getScene().heightProperty().multiply(0.45)
+                    );
+                }
+            });
         }
         
         if (btnNotificationBell != null && notificationBadge != null) {
@@ -252,6 +259,7 @@ public class AuctionPageController {
 
         accountItem.setOnAction(event -> {
             try {
+                disconnectSocket();
                 MainController.initialShowAccount = true;
                 SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
             } catch (IOException e) {
@@ -261,6 +269,7 @@ public class AuctionPageController {
 
         depositMoney.setOnAction(event -> {
             try {
+                disconnectSocket();
                 SceneSwitcher.switchScene(event, "Deposit.fxml", 1280, 800);
             } catch (IOException e) {
                 logger.error("Error switching to deposit page: ", e);
@@ -282,6 +291,7 @@ public class AuctionPageController {
     }
 
     public void handleLogout(ActionEvent event) throws IOException {
+        disconnectSocket();
         User.clearSession();
         SceneSwitcher.switchScene(event, "Login.fxml", 1100, 700);
     }
@@ -992,6 +1002,8 @@ public class AuctionPageController {
         double timeFont = calculateTimeFont(windowWidth);
         double startPriceFont = Math.max(14, Math.min(20, windowWidth * 0.014));
         double bidFieldFont = Math.max(12, Math.min(24, windowWidth * 0.017));
+        double productNameFont = Math.max(18, Math.min(30, windowWidth * 0.022));
+        double bidBtnFont = Math.max(12, Math.min(18, windowWidth * 0.013));
 
         setNodeStyle(currentPriceLabel,
                 "-fx-font-family: 'DM Sans'; -fx-font-size: " + (int) priceFont + "px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;"
@@ -1021,6 +1033,15 @@ public class AuctionPageController {
                 "-fx-background-color: white; -fx-border-color: #ece2ec; -fx-border-width: 2; " +
                         "-fx-border-radius: 999; -fx-padding: 16 16 16 48; " +
                         "-fx-font-family: 'DM Sans'; -fx-font-size: " + (int) bidFieldFont + "px; -fx-font-weight: 900;"
+        );
+
+        setNodeStyle(productNameLabel,
+                "-fx-font-family: 'DM Sans'; -fx-font-size: " + (int) productNameFont + "px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;"
+        );
+
+        setNodeStyle(placeBidBtn,
+                "-fx-background-color: #e040a0; -fx-text-fill: white; -fx-padding: 16; " +
+                        "-fx-background-radius: 999; -fx-font-family: 'DM Sans'; -fx-font-size: " + (int) bidBtnFont + "px; -fx-font-weight: 900; -fx-cursor: hand;"
         );
     }
 
@@ -1294,15 +1315,10 @@ public class AuctionPageController {
                         notif.setAuctionId(currentSessionId);
                         notif.setItemName(productNameLabel.getText());
                         NotificationCenterService.getInstance().addNotification(notif);
-                    } else if (User.watchlistIds.contains(currentSessionId) || myLastBidAmount != null) {
-                        AppNotification notif = new AppNotification(NotificationType.NEW_BID, NotificationSeverity.INFO, 
-                            "New bid", "Product " + productNameLabel.getText() + " has a new bid: ₫ " + formatPrice(newPrice));
-                        notif.setAuctionId(currentSessionId);
-                        notif.setItemName(productNameLabel.getText());
-                        NotificationCenterService.getInstance().addNotification(notif);
                     }
                 }
             }
+            fetchLatestUserBalance();
         });
     }
 
@@ -1359,6 +1375,7 @@ public class AuctionPageController {
         notif.setAuctionId(currentSessionId);
         notif.setItemName(productNameLabel.getText());
         NotificationCenterService.getInstance().addNotification(notif);
+        fetchLatestUserBalance();
     }
 
     private void handleRoomCountMessage(String countText) {
@@ -1738,6 +1755,54 @@ public class AuctionPageController {
         } catch (IOException e) {
             logger.warn("Cannot close socket", e);
         }
+    }
+
+    private void fetchLatestUserBalance() {
+        if (User.getId() == null) {
+            return;
+        }
+
+        new Thread(() -> {
+            try {
+                HttpRequest.Builder builder = HttpRequest.newBuilder()
+                        .uri(URI.create(Config.API_URL + "/api/users/" + User.getId()))
+                        .GET();
+
+                if (User.getSessionToken() != null) {
+                    builder.header("X-Auth-Token", User.getSessionToken());
+                }
+
+                HttpResponse<String> response = HttpClient.newHttpClient()
+                        .send(builder.build(), HttpResponse.BodyHandlers.ofString());
+
+                if (response.statusCode() != 200) {
+                    return;
+                }
+
+                JSONObject responseJson = new JSONObject(response.body());
+                if (responseJson.optInt("status", 500) != 200) {
+                    return;
+                }
+
+                JSONObject data = responseJson.optJSONObject("data");
+                if (data == null || !data.has("balance")) {
+                    return;
+                }
+
+                BigDecimal balance = new BigDecimal(String.valueOf(data.opt("balance")));
+                User.updateProfile(
+                        data.optString("username", User.getUsername()),
+                        data.optString("fullname", User.getFullname()),
+                        data.optString("email", User.getEmail()),
+                        data.optString("dob", User.getDob()),
+                        data.optString("placeOfBirth", data.optString("place_of_birth", User.getPlace_of_birth())),
+                        balance,
+                        data.optString("avatarUrl", data.optString("avatar_url", User.getAvatarUrl()))
+                );
+            } catch (Exception e) {
+                logger.warn("Failed to refresh latest user balance: {}", e.getMessage());
+            }
+        }).start();
     }
 
     private void updateTopBarAvatar(String avatarUrl) {
