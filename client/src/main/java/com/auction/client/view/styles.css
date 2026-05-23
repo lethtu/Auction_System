@@ -1,4 +1,4 @@
-@font-face {
+﻿@font-face {
 
     font-family: 'DM Sans';
 
@@ -4742,3 +4742,154 @@
     -fx-background-color: transparent;
 }
 /* === THEME PHASE9C SETTINGS SCROLLBAR MATCH SELLER END === */
+/* === Phase F: settings combo popup polish === */
+/* Make ComboBox popup items readable in dark/accent themes. */
+.combo-box-popup .list-view,
+.combo-box-popup .list-view:focused {
+    -fx-background-color: -app-surface;
+    -fx-background-radius: 18px;
+    -fx-border-color: -fx-accent;
+    -fx-border-width: 1.5px;
+    -fx-border-radius: 18px;
+    -fx-padding: 8px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.28), 18, 0, 0, 8);
+}
+
+.combo-box-popup .list-view .virtual-flow,
+.combo-box-popup .list-view .virtual-flow .clipped-container,
+.combo-box-popup .list-view .virtual-flow .sheet {
+    -fx-background-color: transparent;
+}
+
+.combo-box-popup .list-cell,
+.combo-box-popup .list-cell:filled {
+    -fx-background-color: transparent;
+    -fx-background-radius: 12px;
+    -fx-text-fill: -app-text;
+    -fx-font-size: 15px;
+    -fx-padding: 10px 14px;
+}
+
+.combo-box-popup .list-cell:filled:hover,
+.combo-box-popup .list-cell:filled:focused,
+.combo-box-popup .list-cell:filled:selected:hover {
+    -fx-background-color: rgba(20, 184, 132, 0.20);
+    -fx-text-fill: -fx-accent;
+}
+
+.combo-box-popup .list-cell:filled:selected,
+.combo-box-popup .list-cell:filled:selected:focused {
+    -fx-background-color: -fx-accent;
+    -fx-text-fill: white;
+    -fx-font-weight: 800;
+}
+
+.combo-box-popup .list-cell:disabled,
+.combo-box-popup .list-cell:filled:disabled {
+    -fx-opacity: 0.55;
+    -fx-background-color: transparent;
+    -fx-text-fill: -app-text-muted;
+}
+
+.combo-box-popup .scroll-bar:vertical,
+.combo-box-popup .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+    -fx-pref-width: 7px;
+    -fx-pref-height: 7px;
+}
+
+.combo-box-popup .scroll-bar .track,
+.combo-box-popup .scroll-bar .increment-button,
+.combo-box-popup .scroll-bar .decrement-button,
+.combo-box-popup .scroll-bar .increment-arrow,
+.combo-box-popup .scroll-bar .decrement-arrow {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-shape: "";
+}
+
+.combo-box-popup .scroll-bar .thumb {
+    -fx-background-color: -fx-accent;
+    -fx-background-radius: 999px;
+    -fx-background-insets: 1px;
+}
+
+
+/* === PHASE F2: combo popup hover readable fix === */
+.combo-box-popup .list-view,
+.combo-box-popup > .list-view {
+    -fx-background-color: -app-surface, -app-surface;
+    -fx-control-inner-background: -app-surface;
+    -fx-background: -app-surface;
+    -fx-border-color: -fx-accent;
+    -fx-border-width: 1.5px;
+    -fx-background-radius: 14px;
+    -fx-border-radius: 14px;
+    -fx-padding: 6px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.28), 16, 0, 0, 8);
+}
+
+.combo-box-popup .list-view .list-cell,
+.combo-box-popup > .list-view .list-cell,
+.combo-box-popup .list-cell,
+.combo-box-popup .list-cell:odd,
+.combo-box-popup .list-cell:even {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-text-fill: -app-text;
+    -fx-font-weight: 600;
+    -fx-padding: 10px 14px;
+    -fx-background-radius: 10px;
+    -fx-border-radius: 10px;
+}
+
+.combo-box-popup .list-view .list-cell:filled:hover,
+.combo-box-popup .list-view .list-cell:filled:focused,
+.combo-box-popup .list-view .list-cell:filled:selected,
+.combo-box-popup .list-view .list-cell:filled:selected:hover,
+.combo-box-popup > .list-view .list-cell:filled:hover,
+.combo-box-popup > .list-view .list-cell:filled:focused,
+.combo-box-popup > .list-view .list-cell:filled:selected,
+.combo-box-popup > .list-view .list-cell:filled:selected:hover,
+.combo-box-popup .list-cell:filled:hover,
+.combo-box-popup .list-cell:filled:focused,
+.combo-box-popup .list-cell:filled:selected,
+.combo-box-popup .list-cell:filled:selected:hover {
+    -fx-background-color: -fx-accent;
+    -fx-background: -fx-accent;
+    -fx-text-fill: white;
+    -fx-font-weight: 900;
+    -fx-background-radius: 10px;
+    -fx-border-radius: 10px;
+}
+
+.combo-box-popup .list-view .list-cell:empty,
+.combo-box-popup > .list-view .list-cell:empty,
+.combo-box-popup .list-cell:empty {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.combo-box-popup .list-view .scroll-bar,
+.combo-box-popup > .list-view .scroll-bar {
+    -fx-background-color: transparent;
+    -fx-pref-width: 6px;
+    -fx-pref-height: 6px;
+}
+
+.combo-box-popup .list-view .scroll-bar .thumb,
+.combo-box-popup > .list-view .scroll-bar .thumb {
+    -fx-background-color: -fx-accent;
+    -fx-background-radius: 999px;
+}
+
+.combo-box-popup .list-view .scroll-bar .track,
+.combo-box-popup .list-view .scroll-bar .increment-button,
+.combo-box-popup .list-view .scroll-bar .decrement-button,
+.combo-box-popup .list-view .scroll-bar .increment-arrow,
+.combo-box-popup .list-view .scroll-bar .decrement-arrow {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-shape: "";
+}
+/* === END PHASE F2 === */
