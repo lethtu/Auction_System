@@ -1620,9 +1620,9 @@ public class MainController implements Initializable {
         statsColumn.setMaxWidth(320);
 
         statsColumn.getChildren().addAll(
-                createProfileStatCard("Total Balance", "₫ " + formatPrice(User.getBalance()), "\uE227"),
-                createProfileStatCard("Available Balance", "₫ " + formatPrice(User.getAvailableBalance()), "\uE850"),
-                createProfileStatCard("Frozen Balance", "₫ " + formatPrice(User.getFrozenBalance()), "\uE855"));
+                createProfileStatCard("Account Balance", "₫ " + formatPrice(User.getBalance()), "\uE227"),
+                createProfileStatCard("Role", safeText(User.getRole(), "Unknown"), "\uE7FD"),
+                createProfileStatCard("User ID", String.valueOf(User.getId()), "\uE838"));
         return statsColumn;
     }
 
@@ -1807,7 +1807,6 @@ public class MainController implements Initializable {
                 data.optString("placeOfBirth",
                         data.optString("place_of_birth", safeText(User.getPlace_of_birth(), ""))),
                 parseMoney(data.opt("balance"), User.getBalance()),
-                parseMoney(data.opt("frozenBalance"), User.getFrozenBalance()),
                 avatarUrl);
     }
 

@@ -194,15 +194,9 @@ public class DepositController implements Initializable {
                     JSONObject responseJson = new JSONObject(response.body());
                     if (responseJson.optInt("status", 500) == 200) {
                         JSONObject data = responseJson.optJSONObject("data");
-                        if (data != null) {
-                            if (!data.isNull("balance")) {
-                                BigDecimal newBalance = new BigDecimal(data.get("balance").toString());
-                                User.setBalance(newBalance);
-                            }
-                            if (data.has("frozenBalance") && !data.isNull("frozenBalance")) {
-                                BigDecimal newFrozen = new BigDecimal(data.get("frozenBalance").toString());
-                                User.setFrozenBalance(newFrozen);
-                            }
+                        if (data != null && !data.isNull("balance")) {
+                            BigDecimal newBalance = new BigDecimal(data.get("balance").toString());
+                            User.setBalance(newBalance);
                             Platform.runLater(this::updateWalletBalanceDisplay);
                         }
                     }

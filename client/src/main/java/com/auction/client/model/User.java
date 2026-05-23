@@ -19,8 +19,6 @@ public class User {
 
     private static BigDecimal balance = BigDecimal.ZERO;
 
-    private static BigDecimal frozenBalance = BigDecimal.ZERO;
-
     private static String avatarUrl;
 
     private static String sessionToken;
@@ -64,7 +62,6 @@ public class User {
         avatarUrl = AvatarUrl;
         passwordSet = true;
         balance = BigDecimal.ZERO;
-        frozenBalance = BigDecimal.ZERO;
         watchlistIds.clear();
         if (username != null) {
             watchlistIds.addAll(com.auction.client.service.ClientLogger.loadUserFavorites(username));
@@ -89,12 +86,6 @@ public class User {
         avatarUrl = AvatarUrl;
     }
 
-    public static void updateProfile(String Username, String Fullname, String Email, String Dob, String Place_of_birth, BigDecimal Balance, BigDecimal FrozenBalance, String AvatarUrl){
-        updateProfile(Username, Fullname, Email, Dob, Place_of_birth, Balance);
-        setFrozenBalance(FrozenBalance);
-        avatarUrl = AvatarUrl;
-    }
-
     public static void setBalance(BigDecimal Balance) {
         balance = Balance == null ? BigDecimal.ZERO : Balance;
     }
@@ -112,7 +103,6 @@ public class User {
         place_of_birth = null;
         role = null;
         balance = BigDecimal.ZERO;
-        frozenBalance = BigDecimal.ZERO;
         avatarUrl = null;
         sessionToken = null;
         passwordSet = true;
@@ -160,18 +150,6 @@ public class User {
 
     public static BigDecimal getBalance() {
         return balance == null ? BigDecimal.ZERO : balance;
-    }
-
-    public static BigDecimal getFrozenBalance() {
-        return frozenBalance == null ? BigDecimal.ZERO : frozenBalance;
-    }
-
-    public static void setFrozenBalance(BigDecimal value) {
-        frozenBalance = value == null ? BigDecimal.ZERO : value;
-    }
-
-    public static BigDecimal getAvailableBalance() {
-        return getBalance().subtract(getFrozenBalance());
     }
 
     public static String getAvatarUrl() {

@@ -1303,8 +1303,6 @@ public class AuctionPageController {
                     }
                 }
             }
-
-            fetchLatestUserBalance();
         });
     }
 
@@ -1361,7 +1359,6 @@ public class AuctionPageController {
         notif.setAuctionId(currentSessionId);
         notif.setItemName(productNameLabel.getText());
         NotificationCenterService.getInstance().addNotification(notif);
-        fetchLatestUserBalance();
     }
 
     private void handleRoomCountMessage(String countText) {
@@ -1384,66 +1381,6 @@ public class AuctionPageController {
 
         stopTimeline();
         stopBidTimeout();
-    }
-
-
-    private void fetchLatestUserBalance() {
-        if (User.getId() == null) {
-            return;
-        }
-
-        new Thread(() -> {
-            try {
-                HttpRequest.Builder builder = HttpRequest.newBuilder()
-                        .uri(URI.create(Config.API_URL + "/api/users/" + User.getId()))
-                        .GET();
-                if (User.getSessionToken() != null) {
-                    builder.header("X-Auth-Token", User.getSessionToken());
-                }
-
-                HttpResponse<String> response = HttpClient.newHttpClient()
-                        .send(builder.build(), HttpResponse.BodyHandlers.ofString());
-                if (response.statusCode() != 200) {
-                    return;
-                }
-
-                JSONObject responseJson = new JSONObject(response.body());
-                if (responseJson.optInt("status", 500) != 200) {
-                    return;
-                }
-
-                JSONObject data = responseJson.optJSONObject("data");
-                if (data == null) {
-                    return;
-                }
-
-                BigDecimal balance = parseUserMoney(data.opt("balance"), User.getBalance());
-                BigDecimal frozen = parseUserMoney(data.opt("frozenBalance"), User.getFrozenBalance());
-                User.updateProfile(
-                        data.optString("username", User.getUsername()),
-                        data.optString("fullname", User.getFullname()),
-                        data.optString("email", User.getEmail()),
-                        data.optString("dob", User.getDob()),
-                        data.optString("placeOfBirth", data.optString("place_of_birth", User.getPlace_of_birth())),
-                        balance,
-                        frozen,
-                        data.optString("avatarUrl", data.optString("avatar_url", User.getAvatarUrl()))
-                );
-            } catch (Exception e) {
-                logger.warn("Failed to fetch latest user balance: {}", e.getMessage());
-            }
-        }, "fetch-latest-user-balance").start();
-    }
-
-    private BigDecimal parseUserMoney(Object value, BigDecimal fallback) {
-        if (value == null || JSONObject.NULL.equals(value)) {
-            return fallback == null ? BigDecimal.ZERO : fallback;
-        }
-        try {
-            return new BigDecimal(value.toString());
-        } catch (Exception e) {
-            return fallback == null ? BigDecimal.ZERO : fallback;
-        }
     }
 
     private boolean isUserLoggedIn() {

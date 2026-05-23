@@ -21,7 +21,6 @@ public class DatabaseCompatibilityInitializer implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         relaxLegacyDtypeColumn();
         normalizeRoleValues();
-        ensureUserFrozenBalanceColumn();
         ensureAuctionStatusColumn();
         ensureItemHiddenColumn();
         repairBidSessionForeignKey();
@@ -76,33 +75,6 @@ public class DatabaseCompatibilityInitializer implements ApplicationRunner {
                 "UPDATE users SET role = 'user' "
                         + "WHERE id >= 0 AND (role IS NULL OR TRIM(role) = '' OR LOWER(role) = 'user')"
         );
-    }
-
-    private void ensureUserFrozenBalanceColumn() {
-        try {
-            Integer count = jdbcTemplate.queryForObject(
-                    "SELECT COUNT(*) "
-                            + "FROM information_schema.COLUMNS "
-                            + "WHERE TABLE_SCHEMA = DATABASE() "
-                            + "AND TABLE_NAME = 'users' "
-                            + "AND COLUMN_NAME = 'frozen_balance'",
-                    Integer.class
-            );
-
-            if (count == null || count == 0) {
-                runStatement(
-                        "Add users.frozen_balance column",
-                        "ALTER TABLE users ADD COLUMN frozen_balance DECIMAL(19,2) NOT NULL DEFAULT 0"
-                );
-            }
-
-            runUpdate(
-                    "Normalize users.frozen_balance",
-                    "UPDATE users SET frozen_balance = 0 WHERE frozen_balance IS NULL"
-            );
-        } catch (Exception e) {
-            logger.warn("Adding users.frozen_balance column skipped: {}", e.getMessage());
-        }
     }
 
     private void ensureAuctionStatusColumn() {
