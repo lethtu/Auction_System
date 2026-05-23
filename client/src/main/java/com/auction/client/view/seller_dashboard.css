@@ -1,5 +1,5 @@
-* {
-    -fx-primary: #e040a0;
+﻿* {
+    -fx-primary: -fx-accent;
     -fx-primary-container: #f080c0;
     -fx-on-primary: #ffffff;
     -fx-secondary: #7c52aa;
@@ -7,14 +7,14 @@
     -fx-tertiary: #0096cc;
     -fx-tertiary-container: #40c0ee;
     -fx-background: #fef7ff;
-    -fx-on-background: #2e1a28;
+    -fx-on-background: -app-text;
     -fx-surface: #fef7ff;
     -fx-surface-variant: #f2e8f2;
-    -fx-on-surface: #2e1a28;
-    -fx-on-surface-variant: #604868;
-    -fx-outline: #907898;
+    -fx-on-surface: -app-text;
+    -fx-on-surface-variant: -app-text-muted;
+    -fx-outline: -app-text-muted;
     -fx-outline-variant: #dcc8e0;
-    -fx-error: #e040a0;
+    -fx-error: -fx-accent;
     -fx-error-container: #ffe8f2;
     -fx-success: #10b981; /* emerald-500 */
     -fx-success-bg: #d1fae5; /* emerald-100 */
@@ -42,7 +42,7 @@
 
 /* Utility Classes */
 .bg-white {
-    -fx-background-color: #ffffff;
+    -fx-background-color: -app-card;
 }
 .rounded-full {
     -fx-background-radius: 999px;
@@ -59,7 +59,7 @@
 
 /* Dashboard Specifics */
 .bento-card {
-    -fx-background-color: #ffffff;
+    -fx-background-color: -app-card;
     -fx-background-radius: 24px;
     -fx-border-color: #fbf2fb;
     -fx-border-width: 1px;
@@ -153,7 +153,7 @@
     -fx-background-color: rgba(0, 0, 0, 0.5);
 }
 .modal-dialog {
-    -fx-background-color: #ffffff;
+    -fx-background-color: -app-card;
     -fx-background-radius: 24px;
     -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.2), 40, 0, 0, 10);
     -fx-padding: 32px;
@@ -161,7 +161,7 @@
 
 /* Search Box */
 .search-box {
-    -fx-background-color: #ffffff;
+    -fx-background-color: -app-card;
     -fx-border-color: -fx-outline-variant;
     -fx-border-width: 1px;
     -fx-border-radius: 999px;
@@ -287,7 +287,7 @@
 
 /* ── Context Menu (Dropdown menus) ── */
 .context-menu {
-    -fx-background-color: #ffffff;
+    -fx-background-color: -app-card;
     -fx-background-radius: 12px;
     -fx-border-radius: 12px;
     -fx-border-color: #ffe8f2;
@@ -304,13 +304,13 @@
 }
 
 .menu-item .label {
-    -fx-text-fill: #2e1a28 !important;
+    -fx-text-fill: -app-text !important;
     -fx-font-family: 'DM Sans';
     -fx-font-size: 14px;
 }
 
 .menu-item:focused {
-    -fx-background-color: #e040a0 !important;
+    -fx-background-color: -fx-accent !important;
 }
 
 .menu-item:focused .label {
@@ -516,7 +516,7 @@
 }
 
 .modal-dialog {
-    -fx-background-color: #ffffff;
+    -fx-background-color: -app-card;
     -fx-background-radius: 28px;
     -fx-border-color: rgba(224, 64, 160, 0.38);
     -fx-border-width: 1.4px;
@@ -536,21 +536,21 @@
     -fx-background-color: #fff9fd;
     -fx-border-color: rgba(224, 64, 160, 0.28);
     -fx-border-width: 1.2px;
-    -fx-text-fill: #2e1a28;
+    -fx-text-fill: -app-text;
     -fx-prompt-text-fill: rgba(96, 72, 104, 0.72);
 }
 
 .custom-text-input:focused,
 .custom-combo-box:focused,
 .custom-segmented-input:focused-within {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #e040a0;
+    -fx-background-color: -app-card;
+    -fx-border-color: -fx-accent;
     -fx-border-width: 1.8px;
     -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.16), 12, 0.12, 0, 3);
 }
 
 .transparent-time-picker {
-    -fx-text-fill: #2e1a28;
+    -fx-text-fill: -app-text;
     -fx-prompt-text-fill: rgba(96, 72, 104, 0.66);
 }
 
@@ -558,13 +558,13 @@
     -fx-background-color: #fff9fd;
     -fx-border-color: rgba(224, 64, 160, 0.24);
     -fx-border-width: 1.2px;
-    -fx-text-fill: #2e1a28;
+    -fx-text-fill: -app-text;
     -fx-prompt-text-fill: rgba(96, 72, 104, 0.68);
 }
 
 .transparent-text-area:focused {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #e040a0;
+    -fx-background-color: -app-card;
+    -fx-border-color: -fx-accent;
     -fx-border-width: 1.8px;
 }
 
@@ -587,7 +587,7 @@
 }
 
 .modal-dialog .label {
-    -fx-text-fill: #2e1a28;
+    -fx-text-fill: -app-text;
 }
 
 .custom-text-input,
@@ -597,7 +597,7 @@
     -fx-background-color: #fff7fd;
     -fx-border-color: rgba(224, 64, 160, 0.30);
     -fx-border-width: 1.2px;
-    -fx-text-fill: #2e1a28;
+    -fx-text-fill: -app-text;
     -fx-prompt-text-fill: rgba(96, 72, 104, 0.58);
 }
 
@@ -605,15 +605,15 @@
 .custom-combo-box:focused,
 .custom-segmented-input:focused-within,
 .transparent-text-area:focused {
-    -fx-border-color: #e040a0;
+    -fx-border-color: -fx-accent;
     -fx-border-width: 1.8px;
-    -fx-background-color: #ffffff;
+    -fx-background-color: -app-card;
     -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.14), 12, 0.12, 0, 3);
 }
 
 .transparent-date-picker > .text-field,
 .transparent-time-picker {
-    -fx-text-fill: #2e1a28;
+    -fx-text-fill: -app-text;
     -fx-prompt-text-fill: rgba(96, 72, 104, 0.58);
 }
 /* Theme refactor phase 2: allow global theme tokens to style Seller Dashboard. */
@@ -678,3 +678,181 @@
 .theme-dark .custom-table .placeholder .label {
     -fx-text-fill: #b8a8c8;
 }
+
+/* === THEME PHASE 8 SELLER DASHBOARD POLISH START === */
+/* Keep this block at the end so it wins over older pink hard-coded rules. */
+
+.seller-dashboard-surface {
+    -fx-background-color: -app-bg;
+    -fx-background-radius: 34;
+    -fx-border-color: -fx-accent;
+    -fx-border-radius: 34;
+    -fx-border-width: 2;
+    -fx-padding: 16 16 12 16;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 22, 0.12, 0, 6);
+}
+
+.theme-dark .seller-dashboard-surface {
+    -fx-background-color: -app-bg;
+    -fx-border-color: -fx-accent;
+}
+
+.seller-dashboard-surface .search-box {
+    -fx-background-color: -app-input-bg;
+    -fx-border-color: -app-border;
+    -fx-border-width: 1.4;
+    -fx-border-radius: 999;
+    -fx-background-radius: 999;
+    -fx-padding: 0 16 0 16;
+    -fx-effect: none;
+}
+
+.seller-dashboard-surface .search-box:focused-within,
+.seller-dashboard-surface .search-box:hover {
+    -fx-border-color: -fx-accent;
+    -fx-border-width: 1.6;
+}
+
+.seller-dashboard-surface .search-box .text-field,
+.seller-dashboard-surface .search-box .text-field:focused {
+    -fx-background-color: transparent;
+    -fx-control-inner-background: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+    -fx-effect: null;
+    -fx-text-box-border: transparent;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-text-fill: -app-text;
+    -fx-prompt-text-fill: -app-text-muted;
+}
+
+.seller-dashboard-surface .bento-card,
+.seller-dashboard-surface .seller-listings-card {
+    -fx-background-color: -app-card;
+    -fx-border-color: -app-border;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.16), 22, 0.12, 0, 6);
+}
+
+.seller-dashboard-surface .seller-listings-header,
+.seller-dashboard-surface .seller-listings-footer {
+    -fx-background-color: -app-card;
+    -fx-border-color: -app-border;
+}
+
+.seller-dashboard-surface .custom-table .column-header-background,
+.seller-dashboard-surface .custom-table .column-header,
+.seller-dashboard-surface .custom-table .filler {
+    -fx-background-color: -app-card;
+    -fx-border-color: -app-border;
+}
+
+.seller-dashboard-surface .custom-table .column-header .label {
+    -fx-text-fill: -fx-accent;
+}
+
+.seller-dashboard-scroll .scroll-bar:vertical,
+.seller-dashboard-surface .custom-table .scroll-bar:vertical {
+    -fx-pref-width: 9px;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 18 3 18 3;
+}
+
+.seller-dashboard-scroll .scroll-bar:vertical .track,
+.seller-dashboard-surface .custom-table .scroll-bar:vertical .track {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 999;
+}
+
+.seller-dashboard-scroll .scroll-bar:vertical .thumb,
+.seller-dashboard-surface .custom-table .scroll-bar:vertical .thumb {
+    -fx-background-color: -fx-accent;
+    -fx-opacity: 0.45;
+    -fx-background-radius: 999;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.seller-dashboard-scroll .scroll-bar:vertical .thumb:hover,
+.seller-dashboard-surface .custom-table .scroll-bar:vertical .thumb:hover {
+    -fx-opacity: 0.78;
+}
+
+.seller-dashboard-scroll .scroll-bar:vertical .increment-button,
+.seller-dashboard-scroll .scroll-bar:vertical .decrement-button,
+.seller-dashboard-scroll .scroll-bar:vertical .increment-arrow,
+.seller-dashboard-scroll .scroll-bar:vertical .decrement-arrow,
+.seller-dashboard-surface .custom-table .scroll-bar:vertical .increment-button,
+.seller-dashboard-surface .custom-table .scroll-bar:vertical .decrement-button,
+.seller-dashboard-surface .custom-table .scroll-bar:vertical .increment-arrow,
+.seller-dashboard-surface .custom-table .scroll-bar:vertical .decrement-arrow {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-shape: "";
+}
+
+.seller-dashboard-surface .custom-table .table-row-cell,
+.seller-dashboard-surface .custom-table .table-cell {
+    -fx-background-color: transparent;
+    -fx-border-color: -app-border;
+}
+
+.seller-dashboard-surface .custom-table .table-row-cell:hover,
+.seller-dashboard-surface .custom-table .table-row-cell:selected {
+    -fx-background-color: derive(-app-card, 7%);
+}
+
+.seller-dashboard-surface .custom-table .table-cell .badge {
+    -fx-padding: 6 14 6 14;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+    -fx-border-width: 1.2;
+    -fx-font-weight: 900;
+    -fx-font-size: 12px;
+    -fx-opacity: 1;
+}
+
+.seller-dashboard-surface .custom-table .table-cell .badge-live {
+    -fx-background-color: rgba(16, 185, 129, 0.22);
+    -fx-border-color: rgba(52, 211, 153, 0.62);
+    -fx-text-fill: #34d399;
+}
+
+.seller-dashboard-surface .custom-table .table-cell .badge-ended {
+    -fx-background-color: rgba(56, 189, 248, 0.20);
+    -fx-border-color: rgba(125, 211, 252, 0.58);
+    -fx-text-fill: #7dd3fc;
+}
+
+.seller-dashboard-surface .custom-table .table-cell .badge-draft {
+    -fx-background-color: rgba(168, 85, 247, 0.20);
+    -fx-border-color: rgba(196, 181, 253, 0.58);
+    -fx-text-fill: #c4b5fd;
+}
+
+.theme-light .seller-dashboard-surface .custom-table .table-cell .badge-live {
+    -fx-background-color: #d1fae5;
+    -fx-border-color: #34d399;
+    -fx-text-fill: #047857;
+}
+
+.theme-light .seller-dashboard-surface .custom-table .table-cell .badge-ended {
+    -fx-background-color: #e0f2fe;
+    -fx-border-color: #7dd3fc;
+    -fx-text-fill: #0369a1;
+}
+
+.theme-light .seller-dashboard-surface .custom-table .table-cell .badge-draft {
+    -fx-background-color: #f3e8ff;
+    -fx-border-color: #c4b5fd;
+    -fx-text-fill: #7e22ce;
+}
+/* === THEME PHASE 8 SELLER DASHBOARD POLISH END === */

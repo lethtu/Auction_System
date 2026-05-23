@@ -207,7 +207,7 @@
 .theme-light .combo-box-base {
     -fx-background-color: #fff7fd;
     -fx-border-color: #ffdceb;
-    -fx-text-fill: #2e1a28;
+    -fx-text-fill: -app-text;
 }
 .theme-light .combo-box-popup .list-cell:hover,
 .theme-light .combo-box-popup .list-cell:selected,
@@ -216,3 +216,19 @@
     -fx-background-color: -fx-accent;
     -fx-text-fill: #ffffff;
 }
+/* === Theme Refactor Phase 4: light search/filter polish === */
+.theme-light .search-shell,
+.theme-light .filter-combo,
+.theme-light .combo-box.filter-combo,
+.theme-light .custom-combo-box {
+    -fx-background-color: -app-input-bg;
+    -fx-border-color: -app-border;
+}
+.theme-light .search-shell:hover,
+.theme-light .filter-combo:hover,
+.theme-light .combo-box.filter-combo:hover,
+.theme-light .filter-combo:focused,
+.theme-light .combo-box.filter-combo:focused {
+    -fx-border-color: -fx-accent;
+}
+/* === End Theme Refactor Phase 4 === */

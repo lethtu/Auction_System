@@ -298,3 +298,24 @@
     -fx-background-color: -fx-accent;
     -fx-text-fill: #ffffff;
 }
+/* === Theme Refactor Phase 4: dark search/filter polish === */
+.theme-dark .search-shell,
+.theme-dark .filter-combo,
+.theme-dark .combo-box.filter-combo,
+.theme-dark .custom-combo-box {
+    -fx-background-color: -app-input-bg;
+    -fx-border-color: -app-border;
+}
+.theme-dark .search-shell:hover,
+.theme-dark .filter-combo:hover,
+.theme-dark .combo-box.filter-combo:hover,
+.theme-dark .filter-combo:focused,
+.theme-dark .combo-box.filter-combo:focused {
+    -fx-border-color: -fx-accent;
+}
+.theme-dark .combo-box-popup .list-view,
+.theme-dark .combo-box-popup .list-cell {
+    -fx-background-color: -app-input-bg;
+    -fx-text-fill: -app-input-text;
+}
+/* === End Theme Refactor Phase 4 === */

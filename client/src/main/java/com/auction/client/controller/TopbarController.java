@@ -65,7 +65,7 @@ public class TopbarController implements Initializable {
         if (btnSettings != null) {
             btnSettings.setStyle("-fx-background-color: rgba(224, 64, 160, 0.15); -fx-background-radius: 22px; -fx-cursor: hand;");
             if (btnSettings.getGraphic() instanceof Label) {
-                ((Label) btnSettings.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #e040a0;");
+                ((Label) btnSettings.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: -fx-accent;");
             }
         }
     }
