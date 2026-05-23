@@ -1,4 +1,4 @@
-﻿@font-face {
+﻿﻿@font-face {
 
     font-family: 'DM Sans';
 
@@ -4893,3 +4893,429 @@
     -fx-shape: "";
 }
 /* === END PHASE F2 === */
+
+
+/* === PHASE G ADMIN THEME POLISH START === */
+/* AdminDashboard uses the same tokens as Settings/Seller so dark mode and accent changes stay synced. */
+.admin-solid-window-backdrop {
+    -fx-background-color: -app-bg;
+    -fx-background-radius: 34px;
+    -fx-border-color: -app-border;
+    -fx-border-width: 1px;
+    -fx-border-radius: 34px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.16), 34, 0.16, 0, 10);
+}
+
+.admin-bidpop-root {
+    -fx-background-color: transparent;
+    -fx-background-radius: 34px;
+    -fx-border-radius: 34px;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.admin-bidpop-topbar {
+    -fx-background-color: -app-surface;
+    -fx-background-radius: 32 32 0 0;
+    -fx-border-color: -app-border;
+    -fx-border-width: 0 0 1 0;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.06), 14, 0.12, 0, 3);
+}
+
+.admin-bidpop-brand,
+.admin-bidpop-page-title,
+.admin-bidpop-metric-value,
+.admin-bidpop-section-title {
+    -fx-text-fill: -fx-accent;
+    -fx-fill: -fx-accent;
+}
+
+.admin-bidpop-top-chip,
+.admin-bidpop-status-chip,
+.admin-metric-badge {
+    -fx-background-color: -app-input-bg;
+    -fx-background-radius: 999px;
+    -fx-border-color: -fx-accent;
+    -fx-border-radius: 999px;
+    -fx-border-width: 1px;
+    -fx-text-fill: -fx-accent;
+    -fx-fill: -fx-accent;
+}
+
+.admin-bidpop-sidebar {
+    -fx-background-color: -app-surface;
+    -fx-border-color: -app-border;
+    -fx-border-width: 0 1.5 0 0;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 18, 0.12, 4, 0);
+}
+
+.admin-bidpop-content,
+.admin-bidpop-scroll,
+.admin-bidpop-scroll > .viewport {
+    -fx-background-color: -app-bg;
+}
+
+.admin-bidpop-side-title,
+.admin-bidpop-metric-title,
+.admin-bidpop-note-title {
+    -fx-text-fill: -app-input-text;
+    -fx-fill: -app-input-text;
+}
+
+.admin-bidpop-side-subtitle,
+.admin-bidpop-menu-label,
+.admin-bidpop-subtitle,
+.admin-bidpop-section-desc,
+.admin-bidpop-metric-desc,
+.admin-bidpop-note-text,
+.admin-table-placeholder {
+    -fx-text-fill: -app-text-muted;
+    -fx-fill: -app-text-muted;
+}
+
+.admin-bidpop-avatar {
+    -fx-background-color: -fx-accent;
+    -fx-text-fill: white;
+    -fx-fill: white;
+}
+
+.admin-bidpop-note-card,
+.admin-bidpop-metric-card,
+.admin-bidpop-data-panel,
+.admin-bidpop-table-section {
+    -fx-background-color: -app-card;
+    -fx-background-radius: 26px;
+    -fx-border-color: -app-border;
+    -fx-border-radius: 26px;
+    -fx-border-width: 1px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.07), 22, 0.14, 0, 6);
+}
+
+.admin-nav-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 18px;
+    -fx-border-color: transparent;
+    -fx-border-radius: 18px;
+    -fx-border-width: 1px;
+    -fx-text-fill: -app-text-muted;
+    -fx-cursor: hand;
+}
+
+.admin-nav-button:hover,
+.admin-nav-button.active-admin-nav {
+    -fx-background-color: -app-input-bg;
+    -fx-border-color: -fx-accent;
+    -fx-text-fill: -fx-accent;
+}
+
+.admin-refresh-button,
+.admin-bidpop-logout-button {
+    -fx-background-color: -fx-accent;
+    -fx-background-radius: 999px;
+    -fx-text-fill: white;
+    -fx-cursor: hand;
+}
+
+.admin-refresh-button:hover,
+.admin-bidpop-logout-button:hover {
+    -fx-opacity: 0.88;
+}
+
+.admin-table {
+    -fx-background-color: -app-card;
+    -fx-background-radius: 18px;
+    -fx-border-color: -app-border;
+    -fx-border-radius: 18px;
+    -fx-border-width: 1px;
+    -fx-table-cell-border-color: transparent;
+}
+
+.admin-table .column-header-background,
+.admin-table .column-header,
+.admin-table .filler {
+    -fx-background-color: -app-input-bg;
+}
+
+.admin-table .column-header .label {
+    -fx-text-fill: -fx-accent;
+    -fx-font-weight: 900;
+}
+
+.admin-table .table-row-cell {
+    -fx-background-color: -app-card;
+    -fx-text-background-color: -app-input-text;
+}
+
+.admin-table .table-row-cell:odd {
+    -fx-background-color: -app-surface;
+}
+
+.admin-table .table-row-cell:selected,
+.admin-table .table-row-cell:hover {
+    -fx-background-color: -app-input-bg;
+    -fx-text-background-color: -app-input-text;
+}
+
+.admin-table .table-cell {
+    -fx-text-fill: -app-input-text;
+    -fx-border-color: transparent;
+}
+
+.admin-bidpop-scroll .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 9px;
+}
+
+.admin-bidpop-scroll .scroll-bar:vertical .track {
+    -fx-background-color: transparent;
+}
+
+.admin-bidpop-scroll .scroll-bar:vertical .thumb {
+    -fx-background-color: -fx-accent;
+    -fx-background-radius: 999px;
+    -fx-opacity: 0.72;
+}
+
+.admin-bidpop-scroll .scroll-bar:vertical .thumb:hover {
+    -fx-opacity: 0.95;
+}
+
+.admin-bidpop-scroll .scroll-bar .increment-button,
+.admin-bidpop-scroll .scroll-bar .decrement-button,
+.admin-bidpop-scroll .scroll-bar .increment-arrow,
+.admin-bidpop-scroll .scroll-bar .decrement-arrow {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-shape: "";
+}
+/* === PHASE G ADMIN THEME POLISH END === */
+
+
+/* === PHASE G2 ADMIN DARK TABLE FIX START === */
+/* AdminDashboard final override: remove the white/pink hard-code left from the friend package. */
+
+.admin-bidpop-root,
+.admin-bidpop-scroll,
+.admin-bidpop-scroll > .viewport,
+.admin-bidpop-content {
+    -fx-background-color: -app-bg;
+    -fx-background: -app-bg;
+}
+
+.admin-bidpop-sidebar {
+    -fx-background-color: -app-surface;
+    -fx-border-color: transparent -app-border transparent transparent;
+    -fx-border-width: 0 1px 0 0;
+}
+
+.admin-bidpop-brand {
+    -fx-text-fill: -fx-accent;
+}
+
+.admin-bidpop-top-chip,
+.label.admin-bidpop-top-chip,
+.admin-bidpop-status-chip,
+.admin-metric-badge {
+    -fx-background-color: -app-accent-opacity-08;
+    -fx-border-color: -fx-accent;
+    -fx-text-fill: -app-input-text;
+}
+
+.button.admin-nav-button,
+.admin-nav-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: -app-input-text;
+    -fx-border-color: transparent;
+    -fx-background-radius: 999px;
+    -fx-border-radius: 999px;
+}
+
+.button.admin-nav-button:hover,
+.admin-nav-button:hover {
+    -fx-background-color: -app-accent-opacity-08;
+    -fx-text-fill: -fx-accent;
+    -fx-border-color: -fx-accent;
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-16, 14, 0.18, 0, 4);
+}
+
+.button.admin-nav-button.active-admin-nav,
+.admin-nav-button.active-admin-nav,
+.button.admin-nav-button:focused,
+.admin-nav-button:focused {
+    -fx-background-color: -app-accent-opacity-16;
+    -fx-text-fill: -fx-accent;
+    -fx-border-color: -fx-accent;
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-16, 16, 0.22, 0, 4);
+}
+
+.admin-bidpop-metric-card,
+.admin-bidpop-metric-card:hover,
+.admin-bidpop-note-card,
+.admin-bidpop-data-panel,
+.admin-bidpop-table-section {
+    -fx-background-color: -app-card;
+    -fx-border-color: -app-border;
+    -fx-text-fill: -app-input-text;
+}
+
+.admin-bidpop-metric-card:hover {
+    -fx-border-color: -fx-accent;
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-16, 18, 0.18, 0, 6);
+}
+
+.admin-bidpop-page-title,
+.admin-bidpop-section-title,
+.admin-bidpop-metric-value,
+.admin-bidpop-metric-title,
+.admin-bidpop-note-title {
+    -fx-text-fill: -app-input-text;
+}
+
+.admin-bidpop-metric-desc,
+.admin-bidpop-section-desc,
+.admin-bidpop-subtitle,
+.admin-bidpop-note-text,
+.admin-bidpop-side-subtitle {
+    -fx-text-fill: -app-text-muted;
+}
+
+.admin-table,
+.admin-table:focused,
+.admin-table .virtual-flow,
+.admin-table .virtual-flow .clipped-container,
+.admin-table .virtual-flow .clipped-container .sheet,
+.admin-table .placeholder,
+.admin-table .corner {
+    -fx-background-color: -app-card;
+    -fx-background: -app-card;
+    -fx-control-inner-background: -app-card;
+    -fx-border-color: -app-border;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.admin-table .column-header-background {
+    -fx-background-color: -app-surface-2;
+    -fx-background-radius: 18px 18px 0 0;
+    -fx-border-color: transparent transparent -app-border transparent;
+}
+
+.admin-table .column-header,
+.admin-table .filler {
+    -fx-background-color: -app-surface-2;
+    -fx-border-color: transparent -app-border transparent transparent;
+}
+
+.admin-table .column-header .label {
+    -fx-text-fill: -app-input-text;
+    -fx-opacity: 1;
+}
+
+.admin-table .table-row-cell,
+.admin-table .table-row-cell:empty,
+.admin-table .table-row-cell:odd,
+.admin-table .table-row-cell:even {
+    -fx-background-color: -app-card;
+    -fx-border-color: transparent transparent -app-border transparent;
+    -fx-text-background-color: -app-input-text;
+}
+
+.admin-table .table-row-cell:odd {
+    -fx-background-color: -app-surface-2;
+}
+
+.admin-table .table-row-cell:filled:hover {
+    -fx-background-color: -app-accent-opacity-08;
+    -fx-text-background-color: -app-input-text;
+}
+
+.admin-table .table-row-cell:filled:selected,
+.admin-table .table-row-cell:filled:selected:hover,
+.admin-table .table-row-cell:filled:focused:selected {
+    -fx-background-color: -app-accent-opacity-16;
+    -fx-border-color: transparent transparent -app-border -fx-accent;
+    -fx-border-width: 0 0 1px 4px;
+    -fx-text-background-color: -app-input-text;
+}
+
+.admin-table .table-cell,
+.admin-table .table-row-cell:empty .table-cell,
+.admin-table .table-row-cell:filled:selected .table-cell,
+.admin-table .table-row-cell:filled:hover .table-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -app-input-text;
+    -fx-opacity: 1;
+}
+
+.admin-table .placeholder .label,
+.admin-table-placeholder {
+    -fx-text-fill: -app-text-muted;
+    -fx-opacity: 1;
+}
+
+.admin-table .scroll-bar:vertical,
+.admin-bidpop-scroll .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 7px;
+    -fx-padding: 0 1 0 1;
+}
+
+.admin-table .scroll-bar:vertical .track,
+.admin-bidpop-scroll .scroll-bar:vertical .track {
+    -fx-background-color: transparent;
+}
+
+.admin-table .scroll-bar:vertical .thumb,
+.admin-bidpop-scroll .scroll-bar:vertical .thumb {
+    -fx-background-color: -fx-accent;
+    -fx-background-radius: 999px;
+    -fx-opacity: 0.85;
+}
+/* === PHASE G2 ADMIN DARK TABLE FIX END === */
+
+/* === PHASE G3 ADMIN REFRESH BUTTON CLEAN === */
+.admin-refresh-button {
+    -fx-background-color: -fx-accent;
+    -fx-background-radius: 999px;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-radius: 999px;
+    -fx-text-fill: white;
+    -fx-font-weight: 900;
+    -fx-font-size: 14px;
+    -fx-padding: 13px 18px 13px 18px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.18), 14, 0.18, 0, 4);
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.admin-refresh-button:hover {
+    -fx-background-color: -fx-accent;
+    -fx-background-insets: 0;
+    -fx-border-color: -fx-accent;
+    -fx-border-width: 1.5px;
+    -fx-border-radius: 999px;
+    -fx-effect: dropshadow(gaussian, -fx-accent, 18, 0.22, 0, 4);
+    -fx-scale-x: 1.01;
+    -fx-scale-y: 1.01;
+}
+
+.admin-refresh-button:armed,
+.admin-refresh-button:pressed {
+    -fx-background-color: derive(-fx-accent, -10%);
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-scale-x: 0.99;
+    -fx-scale-y: 0.99;
+}
+
+.admin-refresh-button:focused,
+.admin-refresh-button:focus-visible {
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.18), 14, 0.18, 0, 4);
+}
+/* === END PHASE G3 ADMIN REFRESH BUTTON CLEAN === */
