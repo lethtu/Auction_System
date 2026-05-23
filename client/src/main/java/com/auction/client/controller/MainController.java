@@ -162,21 +162,7 @@ public class MainController implements Initializable {
             this.txtSearch = topbarController.getTxtSearch();
         }
 
-        fakeTestBtn.setId("btnSidebarCategories");
-        fakeTestBtn.setVisible(false);
-        fakeTestBtn.setManaged(false);
-
-        // IMPORTANT
-        fakeTestBtn.setOnAction(e -> {
-        });
-
-        fakeResetFilterBtn.setId("btnResetFilter");
-        fakeResetFilterBtn.setVisible(false);
-        fakeResetFilterBtn.setManaged(false);
-        fakeResetFilterBtn.setOnAction(this::handleResetDashboard);
-
-        productContainer.getChildren().add(fakeTestBtn);
-        productContainer.getChildren().add(fakeResetFilterBtn);
+        resetHiddenActionButtons();
         applyAuctionScrollPolicy();
 
         // Initialize ComboBox
@@ -269,6 +255,37 @@ public class MainController implements Initializable {
             productContainer.setMinWidth(0);
             productContainer.setMaxWidth(Double.MAX_VALUE);
         }
+    }
+
+    private void resetHiddenActionButtons() {
+        fakeTestBtn.setId("btnSidebarCategories");
+        fakeTestBtn.setVisible(false);
+        fakeTestBtn.setManaged(false);
+        fakeTestBtn.setOnAction(e -> {
+        });
+
+        fakeResetFilterBtn.setId("btnResetFilter");
+        fakeResetFilterBtn.setVisible(false);
+        fakeResetFilterBtn.setManaged(false);
+        fakeResetFilterBtn.setOnAction(this::handleResetDashboard);
+
+        if (productContainer != null) {
+            if (!productContainer.getChildren().contains(fakeTestBtn)) {
+                productContainer.getChildren().add(fakeTestBtn);
+            }
+            if (!productContainer.getChildren().contains(fakeResetFilterBtn)) {
+                productContainer.getChildren().add(fakeResetFilterBtn);
+            }
+        }
+    }
+
+    private void prepareProductContainerForRefresh() {
+        stopCountdownTimeline();
+        if (productContainer != null) {
+            productContainer.getChildren().clear();
+        }
+        resetHiddenActionButtons();
+        currentRenderedIds.clear();
     }
 
     private void updateGridLayout() {
@@ -431,16 +448,7 @@ public class MainController implements Initializable {
         if (!allProducts.isEmpty())
             return;
 
-        stopCountdownTimeline();
-        productContainer.getChildren().clear();
-        fakeResetFilterBtn.setId("btnResetFilter");
-        fakeResetFilterBtn.setVisible(false);
-        fakeResetFilterBtn.setManaged(false);
-        fakeResetFilterBtn.setOnAction(this::handleResetDashboard);
-
-        productContainer.getChildren().add(fakeTestBtn);
-        productContainer.getChildren().add(fakeResetFilterBtn);
-        currentRenderedIds.clear();
+        prepareProductContainerForRefresh();
 
         VBox emptyBox = createEmptyStateBox(message == null || message.isBlank()
                 ? getEmptyStateMessage()
@@ -581,16 +589,7 @@ public class MainController implements Initializable {
             }
         }
 
-        stopCountdownTimeline();
-        productContainer.getChildren().clear();
-        fakeResetFilterBtn.setId("btnResetFilter");
-        fakeResetFilterBtn.setVisible(false);
-        fakeResetFilterBtn.setManaged(false);
-        fakeResetFilterBtn.setOnAction(this::handleResetDashboard);
-
-        productContainer.getChildren().add(fakeTestBtn);
-        productContainer.getChildren().add(fakeResetFilterBtn);
-        currentRenderedIds.clear();
+        prepareProductContainerForRefresh();
         sessionCardMap.clear();
 
         if (filtered.isEmpty()) {
@@ -1319,16 +1318,7 @@ public class MainController implements Initializable {
     }
 
     private void renderAccountScreen(boolean saving) {
-        stopCountdownTimeline();
-        productContainer.getChildren().clear();
-        fakeResetFilterBtn.setId("btnResetFilter");
-        fakeResetFilterBtn.setVisible(false);
-        fakeResetFilterBtn.setManaged(false);
-        fakeResetFilterBtn.setOnAction(this::handleResetDashboard);
-
-        productContainer.getChildren().add(fakeTestBtn);
-        productContainer.getChildren().add(fakeResetFilterBtn);
-        currentRenderedIds.clear();
+        prepareProductContainerForRefresh();
         productContainer.setAlignment(Pos.TOP_LEFT);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
@@ -1941,13 +1931,7 @@ public class MainController implements Initializable {
         List<JSONObject> sessionsToShow = getCurrentlyDisplayedSessions();
 
         productContainer.getChildren().clear();
-        fakeResetFilterBtn.setId("btnResetFilter");
-        fakeResetFilterBtn.setVisible(false);
-        fakeResetFilterBtn.setManaged(false);
-        fakeResetFilterBtn.setOnAction(this::handleResetDashboard);
-
-        productContainer.getChildren().add(fakeTestBtn);
-        productContainer.getChildren().add(fakeResetFilterBtn);
+        resetHiddenActionButtons();
         productContainer.setAlignment(Pos.TOP_LEFT);
 
         VBox wrapper = new VBox(16);
