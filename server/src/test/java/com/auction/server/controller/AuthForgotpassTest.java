@@ -27,6 +27,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.auction.server.util.SessionManager;
+
 @WebMvcTest(AuthForgotpass.class)
 public class AuthForgotpassTest {
 
@@ -35,6 +37,9 @@ public class AuthForgotpassTest {
 
     @Autowired
     private AuthForgotpass authForgotpassController; // Controller đang được test
+
+    @MockBean
+    private SessionManager sessionManager;
 
     // TẠO CÁC DIỄN VIÊN ĐÓNG THẾ CHO SERVER
     @MockBean

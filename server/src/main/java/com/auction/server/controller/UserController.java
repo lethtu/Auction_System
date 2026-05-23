@@ -224,6 +224,23 @@ public class UserController {
         return new ApiResponse<>(SUCCESS_STATUS, message, user);
     }
 
+    @PostMapping("/{id}/set-password")
+    public ResponseEntity<ApiResponse<User>> setPassword(
+            @PathVariable Integer id,
+            @RequestBody Map<String, String> request) {
+        try {
+            String newPassword = request.get("password");
+            User updatedUser = userService.setPassword(id, newPassword);
+            return ResponseEntity.ok(success("Password set successfully.", updatedUser));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(error(e.getMessage(), null));
+        } catch (Exception e) {
+            logger.error("Error setting password for user {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.internalServerError().body(
+                    new ApiResponse<>(500, "Failed to set password.", null));
+        }
+    }
+
     private ApiResponse<User> error(String message, User user) {
         return new ApiResponse<>(ERROR_STATUS, message, user);
     }

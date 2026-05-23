@@ -6,22 +6,18 @@ import com.auction.client.Config;
 import com.auction.client.model.User;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
-import com.auction.client.util.NotificationBellBinder;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.scene.layout.StackPane;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.Scanner;
+import com.auction.client.util.AlertUtil;
 
 public class UpToSellerController implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(UpToSellerController.class);
@@ -30,86 +26,18 @@ public class UpToSellerController implements Initializable {
     @FXML private Label lblMessage;
     @FXML private Button btnUpgrade;
 
-    @FXML private MenuButton userMenuButton;
-    @FXML private TextField txtSearch;
-
     @FXML private SidebarController sidebarController;
-    @FXML private Button btnHamburger;
-    
-    @FXML private Button btnNotificationBell;
-    @FXML private Label notificationBadge;
-    @FXML private StackPane topBarAvatarPane;
-    @FXML private Button btnSettings;
+    @FXML private TopbarController topbarController;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        if (User.getFullname() != null) {
-            createUserOption("Hello, " + User.getFullname());
-        }
-
-        
-        if (btnNotificationBell != null && notificationBadge != null) {
-            NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
-        }
-
-        Platform.runLater(() -> updateTopBarAvatar(User.getAvatarUrl()));
-        if (btnSettings != null) {
-            btnSettings.setOnAction(e -> {
-                try {
-                    com.auction.client.controller.SceneSwitcher.switchScene(e, "Settings.fxml", 1280, 800);
-                } catch (IOException ex) {
-                    logger.error("Error switching to Settings.fxml: ", ex);
-                }
-            });
-        }
-    }
-
-    private void createUserOption(String text) {
-        MenuItem accountItem = new MenuItem("My Account");
-        MenuItem depositMoney = new MenuItem("Deposit");
-        MenuItem logoutItem = new MenuItem("Logout");
-
-        accountItem.setOnAction(event -> {
-            try {
-                MainController.initialShowAccount = true;
-                SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
-            } catch (IOException e) {
-                logger.error("Error switching to account page: ", e);
+        if (topbarController != null) {
+            topbarController.setSearchVisible(false);
+            if (sidebarController != null) {
+                topbarController.setSidebarController(sidebarController);
             }
-        });
-
-        depositMoney.setOnAction(event -> {
-            try {
-                SceneSwitcher.switchScene(event, "Deposit.fxml", 1280, 800);
-            } catch (IOException e) {
-                logger.error("Error switching to deposit page: ", e);
-            }
-        });
-
-        logoutItem.setOnAction(event -> {
-            try {
-                handleLogout(event);
-            } catch (IOException e) {
-                logger.error("Error switching to Login screen!", e);
-            }
-        });
-
-        userMenuButton.getItems().addAll(accountItem, depositMoney, new SeparatorMenuItem(), logoutItem);
-    }
-
-    public void handleLogout(ActionEvent event) throws IOException {
-        User.clearSession();
-        SceneSwitcher.switchScene(event, "Login.fxml", 1100, 700);
-    }
-
-    @FXML
-    public void handleToggleSidebar(ActionEvent event) {
-        if (sidebarController != null) {
-            sidebarController.toggleSidebar();
         }
     }
-
-
 
     @FXML
     public void handleUpgrade(ActionEvent event) {
@@ -119,7 +47,7 @@ public class UpToSellerController implements Initializable {
         }
 
         if (!chkAgree.isSelected()) {
-            showError("Please agree to the HY Auction terms of sale!");
+            showError("Please agree to the BidPop terms of sale!");
             return;
         }
 
@@ -147,15 +75,7 @@ public class UpToSellerController implements Initializable {
                     if (responseCode >= 200 && responseCode < 300 && jsonResponse.optInt("status", 400) == 200) {
                         // Success
                         User.setSession(User.getId(), User.getUsername(), User.getFullname(), User.getEmail(), User.getDob(), User.getPlace_of_birth(), "SELLER", User.getAvatarUrl());
-
-                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                        alert.setTitle("Upgrade successful");
-                        alert.setHeaderText("Congratulations, you are now a Seller!");
-                        alert.setContentText("Selling features are now unlocked. You can now list your own products.");
-
-                        DialogPane dialogPane = alert.getDialogPane();
-                        dialogPane.setStyle("-fx-font-family: 'DM Sans'; -fx-background-color: #fcf8ff; -fx-border-color: -fx-accent; -fx-border-width: 2px; -fx-border-radius: 12px; -fx-background-radius: 12px;");
-                        alert.showAndWait();
+                        AlertUtil.showInfo("Upgrade successful", "Congratulations, you are now a Seller!\nSelling features are now unlocked. You can now list your own products.");
 
                         try {
                             SceneSwitcher.switchScene(event, "MainTemplate.fxml", 1280, 800);
@@ -201,43 +121,5 @@ public class UpToSellerController implements Initializable {
         lblMessage.setStyle("-fx-text-fill: #ef4444; -fx-font-weight: bold;");
         lblMessage.setVisible(true);
         lblMessage.setManaged(true);
-    }
-
-    private void updateTopBarAvatar(String avatarUrl) {
-        if (topBarAvatarPane == null) return;
-        try {
-            topBarAvatarPane.getChildren().clear();
-            if (avatarUrl != null && !avatarUrl.isBlank()) {
-                String fullUrl = avatarUrl.startsWith("http") ? avatarUrl : Config.API_URL + avatarUrl;
-                ImageView imgView = new ImageView(new Image(fullUrl, 36, 36, false, true, true));
-                imgView.setFitWidth(36);
-                imgView.setFitHeight(36);
-                imgView.setSmooth(true);
-                javafx.scene.shape.Circle clip = new javafx.scene.shape.Circle(18, 18, 18);
-                imgView.setClip(clip);
-                topBarAvatarPane.getChildren().add(imgView);
-            } else {
-                Label icon = new Label("\uE7FD");
-                icon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: white;");
-                topBarAvatarPane.getChildren().add(icon);
-            }
-        } catch (Exception e) {
-            logger.warn("Cannot update avatar on top bar: {}", e.getMessage());
-        }
-    }
-
-    @FXML
-    private void handleMinimize(javafx.event.ActionEvent event) {
-        SceneSwitcher.handleMinimize(event);
-    }
-
-    @FXML
-    private void handleMaximize(javafx.event.ActionEvent event) {
-        SceneSwitcher.handleMaximize(event);
-    }
-
-    @FXML
-    private void handleClose(javafx.event.ActionEvent event) {
-        SceneSwitcher.handleClose(event);
     }
 }

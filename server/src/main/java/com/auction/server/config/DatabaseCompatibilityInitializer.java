@@ -79,9 +79,9 @@ public class DatabaseCompatibilityInitializer implements ApplicationRunner {
 
     private void allowRejectedAuctionStatus() {
         runStatement(
-                "Add REJECTED status to auction_sessions.status",
+                "Update auction_sessions.status column enum values",
                 "ALTER TABLE auction_sessions MODIFY COLUMN status "
-                        + "ENUM('PENDING','ACTIVE','ENDED','CANCELED','REJECTED') DEFAULT NULL"
+                        + "ENUM('ACTIVE','ENDED','CANCELED','COMING','DRAFT') NOT NULL"
         );
     }
 

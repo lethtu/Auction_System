@@ -399,3 +399,117 @@
     -fx-font-weight: 900;
     -fx-text-fill: #907898;
 }
+
+
+/* === REMEMBER ME PILL FIX 20260522 START === */
+#rememberMeCheckBox,
+.remember-me-pill,
+.auth-remember-check {
+    -fx-background-color: #fff6fc;
+    -fx-background-radius: 999px;
+    -fx-border-color: #f4d4e8;
+    -fx-border-width: 1.5px;
+    -fx-border-radius: 999px;
+    -fx-padding: 8 14 8 12;
+    -fx-text-fill: #604868;
+    -fx-font-family: "DM Sans", "Segoe UI", sans-serif;
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-accent: #e040a0;
+    -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.08), 10, 0.18, 0, 2);
+}
+
+#rememberMeCheckBox:hover,
+.remember-me-pill:hover,
+.auth-remember-check:hover {
+    -fx-background-color: #fff0f8;
+    -fx-border-color: #e040a0;
+    -fx-text-fill: #e040a0;
+}
+
+#rememberMeCheckBox:selected,
+.remember-me-pill:selected,
+.auth-remember-check:selected {
+    -fx-background-color: #fff0f8;
+    -fx-border-color: #e040a0;
+    -fx-text-fill: #a02070;
+}
+
+#rememberMeCheckBox .box,
+#rememberMeCheckBox > .box,
+.remember-me-pill .box,
+.remember-me-pill > .box,
+.auth-remember-check .box,
+.auth-remember-check > .box {
+    -fx-min-width: 22px;
+    -fx-pref-width: 22px;
+    -fx-max-width: 22px;
+    -fx-min-height: 22px;
+    -fx-pref-height: 22px;
+    -fx-max-height: 22px;
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 8px;
+    -fx-border-color: #e6c8e6;
+    -fx-border-width: 2px;
+    -fx-border-radius: 8px;
+}
+
+#rememberMeCheckBox:selected .box,
+#rememberMeCheckBox:selected > .box,
+.remember-me-pill:selected .box,
+.remember-me-pill:selected > .box,
+.auth-remember-check:selected .box,
+.auth-remember-check:selected > .box {
+    -fx-background-color: linear-gradient(to bottom right, #e040a0, #b2368f);
+    -fx-border-color: #e040a0;
+}
+
+#rememberMeCheckBox:selected .mark,
+#rememberMeCheckBox:selected > .box > .mark,
+.remember-me-pill:selected .mark,
+.remember-me-pill:selected > .box > .mark,
+.auth-remember-check:selected .mark,
+.auth-remember-check:selected > .box > .mark {
+    -fx-background-color: white;
+}
+/* === REMEMBER ME PILL FIX 20260522 END === */
+
+/* === AUTH CHECKBOX POLISH 20260522 START === */
+.auth-root .scroll-pane .scroll-bar:horizontal {
+    -fx-opacity: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+}
+.auth-root .scroll-pane .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 0;
+    -fx-opacity: 0;
+}
+.remember-me-pill, .auth-check-box {
+    -fx-font-family: 'DM Sans';
+    -fx-text-fill: #604868;
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+.remember-me-pill > .box, .auth-check-box > .box {
+    -fx-background-color: #fff7fd;
+    -fx-border-color: #f2a6d8;
+    -fx-border-width: 1.6;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 4;
+    -fx-effect: dropshadow(gaussian, rgba(224,64,160,0.12), 8, 0.10, 0, 2);
+}
+.remember-me-pill:selected > .box, .auth-check-box:selected > .box {
+    -fx-background-color: #e040a0;
+    -fx-border-color: #e040a0;
+}
+.remember-me-pill:selected > .box > .mark, .auth-check-box:selected > .box > .mark {
+    -fx-background-color: white;
+}
+/* === AUTH CHECKBOX POLISH 20260522 END === */

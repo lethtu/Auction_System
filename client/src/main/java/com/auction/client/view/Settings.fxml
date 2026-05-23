@@ -2,208 +2,153 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Font?>
 
 <StackPane prefWidth="1280.0" prefHeight="800.0" stylesheets="@styles.css" styleClass="rounded-window-root" style="-fx-font-family: 'DM Sans';" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.SettingsController">
-<BorderPane styleClass="rounded-window-content">
+    <BorderPane styleClass="rounded-window-content">
+        <top>
+            <fx:include source="Topbar.fxml" fx:id="topbar" />
+        </top>
 
-    <top>
-        <HBox alignment="CENTER_LEFT" spacing="0.0" styleClass="app-topbar">
-            <StackPane prefWidth="70.0" minWidth="70.0" maxWidth="70.0">
-                <Button fx:id="btnHamburger" onAction="#handleToggleSidebar" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0;">
-                    <graphic>
-                        <Label text="&#xe5d2;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; " />
-                    </graphic>
-                </Button>
-            </StackPane>
-            <Label text="HY Auction" textFill="#e040a0" onMouseClicked="#handleGoToDashboard" style="-fx-cursor: hand; -fx-font-weight: bold;" styleClass="brand-title">
-                <font>
-                    <Font name="System Bold" size="28.0" />
-                </font>
-            </Label>
-            
-            <Region HBox.hgrow="ALWAYS" />
-            
-            <HBox spacing="10.0" alignment="CENTER_RIGHT" minHeight="52.0" prefHeight="52.0" maxHeight="52.0" style="-fx-padding: 0;">
-                <StackPane alignment="CENTER" minWidth="44.0" prefWidth="44.0" maxWidth="44.0" minHeight="44.0" prefHeight="44.0" maxHeight="44.0">
-                    <Button fx:id="btnNotificationBell" minWidth="44.0" prefWidth="44.0" maxWidth="44.0" minHeight="44.0" prefHeight="44.0" maxHeight="44.0" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0; -fx-alignment: center;">
+        <left>
+            <fx:include source="Sidebar.fxml" fx:id="sidebar">
+                <BorderPane.margin>
+                    <Insets top="14.0" right="0.0" bottom="14.0" left="14.0" />
+                </BorderPane.margin>
+            </fx:include>
+        </left>
+
+        <center>
+            <VBox spacing="20.0" styleClass="app-content-panel">
+                <BorderPane.margin>
+                    <Insets top="14.0" right="14.0" bottom="14.0" left="14.0" />
+                </BorderPane.margin>
+
+                <HBox spacing="10.0" alignment="BOTTOM_LEFT" style="-fx-padding: 0 0 10px 0;">
+                    <VBox spacing="10.0">
+                        <Label text="System Settings" styleClass="settings-page-title" style="-fx-font-size: 32px; -fx-font-weight: bold;" />
+                        <Label text="Customize notifications, app interface and your auction experience." styleClass="settings-page-subtitle" style="-fx-font-size: 15px;" />
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS" />
+                    <Button fx:id="btnSaveSettingsTop" onAction="#handleSaveSettings" text="Save Changes" prefHeight="40.0" styleClass="primary-btn" style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-cursor: hand;">
                         <graphic>
-                            <Label text="&#xe7f4;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; " />
-                        </graphic>
-                    </Button>
-                    <Label fx:id="notificationBadge" text="0" visible="false" managed="false" style="-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 1 5; -fx-background-radius: 10; -fx-translate-x: 12; -fx-translate-y: -12;" />
-                </StackPane>
-                <Button fx:id="btnSettings" minWidth="44.0" prefWidth="44.0" maxWidth="44.0" minHeight="44.0" prefHeight="44.0" maxHeight="44.0" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0; -fx-alignment: center;">
-                    <graphic>
-                        <Label text="&#xe8b8;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: #e040a0;" />
-                    </graphic>
-                </Button>
-                <MenuButton fx:id="userMenuButton" id="profile-menu" minWidth="58.0" prefWidth="58.0" maxWidth="58.0" minHeight="44.0" prefHeight="44.0" maxHeight="44.0" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0; -fx-alignment: center; -fx-background-insets: 0;">
-                    <graphic>
-                        <StackPane fx:id="topBarAvatarPane" minWidth="44" maxWidth="44" minHeight="44" maxHeight="44" prefWidth="44" prefHeight="44" style="-fx-background-color: #1a1a3a; -fx-background-radius: 22px;">
-                            <Label text="&#xe7fd;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: white;" />
-                        </StackPane>
-                    </graphic>
-                </MenuButton>
-                <HBox alignment="CENTER" spacing="6" style="-fx-padding: 0 0 0 10;">
-                    <Button onAction="#handleMinimize" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 4;">
-                        <graphic>
-                            <Label text="−" style="-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; " />
-                        </graphic>
-                    </Button>
-                    <Button onAction="#handleMaximize" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 4;">
-                        <graphic>
-                            <Label text="□" style="-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; " />
-                        </graphic>
-                    </Button>
-                    <Button onAction="#handleClose" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 4;">
-                        <graphic>
-                            <Label text="×" style="-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; " />
+                            <Label text="&#xe876;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: white;" translateY="1.0" />
                         </graphic>
                     </Button>
                 </HBox>
-            </HBox>
-        </HBox>
-    </top>
 
-    <left>
-        <fx:include source="Sidebar.fxml" fx:id="sidebar" />
-    </left>
+                <ScrollPane fitToWidth="true" styleClass="scroll-pane" VBox.vgrow="ALWAYS">
+                    <VBox spacing="24.0" style="-fx-padding: 10px;">
+                        <VBox fx:id="passwordSetBox" spacing="16.0" style="-fx-background-color: #fff9e6; -fx-padding: 24px 30px; -fx-background-radius: 16px; -fx-border-color: #ffe0b2; -fx-border-width: 2px; -fx-border-radius: 16px;">
+                            <HBox spacing="10.0" alignment="CENTER_LEFT">
+                                <Label text="&#xe8a6;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px; -fx-text-fill: #e65100;" />
+                                <Label text="Set account password" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #e65100;" />
+                            </HBox>
+                            <Label text="This account was created through Google sign-in and does not have a local password yet." wrapText="true" style="-fx-font-size: 14px; -fx-text-fill: #5d4037;" />
+                            <HBox spacing="20.0" alignment="CENTER_LEFT">
+                                <PasswordField fx:id="txtNewPassword" promptText="New password, at least 6 characters" prefWidth="260.0" />
+                                <PasswordField fx:id="txtConfirmPassword" promptText="Confirm new password" prefWidth="220.0" />
+                                <Button fx:id="btnSetPassword" onAction="#handleSetPassword" text="Set Password" prefHeight="40.0" style="-fx-background-color: #e65100; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-cursor: hand; -fx-padding: 8px 24px;" />
+                            </HBox>
+                        </VBox>
 
-    <center>
-        <VBox spacing="20.0" styleClass="app-content-panel">
-            <BorderPane.margin>
-                <Insets top="14.0" right="14.0" bottom="14.0" left="14.0" />
-            </BorderPane.margin>
-            <!-- Header Title -->
-            <HBox spacing="10.0" alignment="BOTTOM_LEFT" style="-fx-padding: 0 0 10px 0;">
-                <VBox spacing="10.0">
-                    <Label text="System Settings" style="-fx-font-size: 32px; -fx-font-weight: bold;" styleClass="settings-page-title" />
-                    <Label text="Customize notifications, app interface and your auction experience." style="-fx-font-size: 15px;" styleClass="settings-page-subtitle" />
-                </VBox>
-                <Region HBox.hgrow="ALWAYS" />
-                <Button fx:id="btnSaveSettingsTop" onAction="#handleSaveSettings" text="Save Changes" prefHeight="40.0" style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-cursor: hand;" styleClass="primary-btn">
-                    <graphic>
-                        <Label text="&#xe876;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: white;" translateY="1.0" />
-                    </graphic>
-                </Button>
-            </HBox>
-            
-            <ScrollPane fitToWidth="true" styleClass="scroll-pane" VBox.vgrow="ALWAYS">
-                <FlowPane hgap="30.0" vgap="30.0" prefWrapLength="1000.0" style="-fx-padding: 10px;">
-                    
-                    <!-- Card 1: Notifications & Sounds -->
-                    <VBox spacing="20.0" prefWidth="480.0" styleClass="settings-card" style="-fx-padding: 24px; -fx-background-radius: 16px; -fx-border-radius: 16px; -fx-border-width: 1px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 4);">
-                        <HBox alignment="CENTER_LEFT" spacing="10">
-                            <Label text="&#xe7f4;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px; -fx-text-fill: #e040a0;" />
-                            <Label text="Notifications &amp; Sounds" styleClass="settings-card-title" />
-                        </HBox>
-                        <Separator style="-fx-opacity: 0.3;" />
-                        
-                        <CheckBox fx:id="chkNotificationsEnabled" text="Enable app notifications" styleClass="setting-switch" style="-fx-font-size: 14px; -fx-cursor: hand;" />
-                        <CheckBox fx:id="chkOutbid" text="Notify when outbid" styleClass="setting-switch" style="-fx-font-size: 14px; -fx-cursor: hand;" />
-                        <CheckBox fx:id="chkEndingSoon" text="Notify when auction ending soon" styleClass="setting-switch" style="-fx-font-size: 14px; -fx-cursor: hand;" />
-                        <CheckBox fx:id="chkAuctionResult" text="Notify on auction win/loss" styleClass="setting-switch" style="-fx-font-size: 14px; -fx-cursor: hand;" />
-                        
-                        <Separator style="-fx-opacity: 0.3;" />
-                        <CheckBox fx:id="chkSound" text="Play sound effects" styleClass="setting-switch" style="-fx-font-size: 14px; -fx-cursor: hand;" />
-                        <HBox spacing="15" alignment="CENTER_LEFT">
-                            <Label text="Volume:" styleClass="setting-label" />
-                            <Slider fx:id="sliderVolume" min="0" max="100" value="60" HBox.hgrow="ALWAYS" />
-                            <Label fx:id="lblVolumeValue" text="60%" styleClass="setting-label" />
-                        </HBox>
-                        <Button text="Test Notification Sound" onAction="#handleTestSound" style="-fx-background-color: transparent; -fx-border-color: #cbd5e1; -fx-border-radius: 6px; -fx-padding: 6px 12px; -fx-cursor: hand;" styleClass="setting-label" />
+                        <FlowPane hgap="30.0" vgap="30.0" prefWrapLength="1000.0">
+                            <VBox spacing="20.0" prefWidth="480.0" styleClass="settings-card" style="-fx-padding: 24px; -fx-background-radius: 16px; -fx-border-radius: 16px; -fx-border-width: 1px;">
+                                <HBox alignment="CENTER_LEFT" spacing="10">
+                                    <Label text="&#xe7f4;" styleClass="accent-icon" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px;" />
+                                    <Label text="Notifications &amp; Sounds" styleClass="settings-card-title" />
+                                </HBox>
+                                <Separator />
+                                <CheckBox fx:id="chkNotificationsEnabled" text="Enable app notifications" styleClass="setting-switch" />
+                                <CheckBox fx:id="chkOutbid" text="Notify when outbid" styleClass="setting-switch" />
+                                <CheckBox fx:id="chkEndingSoon" text="Notify when auction ending soon" styleClass="setting-switch" />
+                                <CheckBox fx:id="chkAuctionResult" text="Notify on auction win/loss" styleClass="setting-switch" />
+                                <Separator />
+                                <CheckBox fx:id="chkSound" text="Play sound effects" styleClass="setting-switch" />
+                                <HBox spacing="15" alignment="CENTER_LEFT">
+                                    <Label text="Volume:" styleClass="setting-label" />
+                                    <Slider fx:id="sliderVolume" min="0" max="100" value="60" HBox.hgrow="ALWAYS" />
+                                    <Label fx:id="lblVolumeValue" text="60%" styleClass="setting-label" />
+                                </HBox>
+                                <Button text="Test Notification Sound" onAction="#handleTestSound" styleClass="secondary-btn" />
+                            </VBox>
+
+                            <VBox spacing="20.0" prefWidth="480.0" styleClass="settings-card" style="-fx-padding: 24px; -fx-background-radius: 16px; -fx-border-radius: 16px; -fx-border-width: 1px;">
+                                <HBox alignment="CENTER_LEFT" spacing="10">
+                                    <Label text="&#xe3b5;" styleClass="accent-icon" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px;" />
+                                    <Label text="Appearance" styleClass="settings-card-title" />
+                                </HBox>
+                                <Separator />
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <Label text="Theme:" styleClass="setting-label" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <ComboBox fx:id="cbTheme" prefWidth="180" />
+                                </HBox>
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <Label text="Accent Color:" styleClass="setting-label" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <ComboBox fx:id="cbColor" prefWidth="180" />
+                                </HBox>
+                                <Separator />
+                                <CheckBox fx:id="chkCollapse" text="Auto-collapse sidebar" styleClass="setting-switch" />
+                                <CheckBox fx:id="chkRememberPage" text="Remember last page on startup" styleClass="setting-switch" />
+                            </VBox>
+
+                            <VBox spacing="20.0" prefWidth="480.0" styleClass="settings-card" style="-fx-padding: 24px; -fx-background-radius: 16px; -fx-border-radius: 16px; -fx-border-width: 1px;">
+                                <HBox alignment="CENTER_LEFT" spacing="10">
+                                    <Label text="&#xe8d0;" styleClass="accent-icon" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px;" />
+                                    <Label text="Auction Preferences" styleClass="settings-card-title" />
+                                </HBox>
+                                <Separator />
+                                <CheckBox fx:id="chkConfirmBid" text="Confirm before placing bid" styleClass="setting-switch" />
+                                <CheckBox fx:id="chkQuickBid" text="Enable Quick Bid buttons" styleClass="setting-switch" />
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <Label text="High bid warning (VND):" styleClass="setting-label" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <TextField fx:id="txtHighBidWarning" prefWidth="140" />
+                                </HBox>
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <Label text="Default bid increment (VND):" styleClass="setting-label" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <TextField fx:id="txtDefaultIncrement" prefWidth="140" />
+                                </HBox>
+                            </VBox>
+
+                            <VBox spacing="20.0" prefWidth="480.0" styleClass="settings-card" style="-fx-padding: 24px; -fx-background-radius: 16px; -fx-border-radius: 16px; -fx-border-width: 1px;">
+                                <HBox alignment="CENTER_LEFT" spacing="10">
+                                    <Label text="&#xe871;" styleClass="accent-icon" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px;" />
+                                    <Label text="Dashboard Display" styleClass="settings-card-title" />
+                                </HBox>
+                                <Separator />
+                                <CheckBox fx:id="chkShowEnded" text="Show ended auctions by default" styleClass="setting-switch" />
+                                <CheckBox fx:id="chkSortActive" text="Sort active auctions first" styleClass="setting-switch" />
+                                <CheckBox fx:id="chkShowCountdown" text="Show countdown timers" styleClass="setting-switch" />
+                                <CheckBox fx:id="chkCompactCards" text="Use compact product cards" styleClass="setting-switch" />
+                            </VBox>
+
+                            <VBox spacing="20.0" prefWidth="480.0" styleClass="settings-card" style="-fx-padding: 24px; -fx-background-radius: 16px; -fx-border-radius: 16px; -fx-border-width: 1px;">
+                                <HBox alignment="CENTER_LEFT" spacing="10">
+                                    <Label text="&#xe8b8;" styleClass="accent-icon" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px;" />
+                                    <Label text="System &amp; Data" styleClass="settings-card-title" />
+                                </HBox>
+                                <Separator />
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <Label text="App Version:" styleClass="setting-label" />
+                                    <Label text="0.1.0 Stable" styleClass="setting-label" />
+                                </HBox>
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <Label text="Server Status:" styleClass="setting-label" />
+                                    <Label text="Connected" style="-fx-text-fill: #10b981;" />
+                                </HBox>
+                                <HBox spacing="15" style="-fx-padding: 10px 0 0 0;">
+                                    <Button onAction="#handleResetFilters" text="Reset Filters" styleClass="secondary-btn" />
+                                    <Button onAction="#handleReloadData" text="Sync Latest Data" styleClass="secondary-btn" />
+                                </HBox>
+                            </VBox>
+                        </FlowPane>
                     </VBox>
-
-                    <!-- Card 2: Appearance -->
-                    <VBox spacing="20.0" prefWidth="480.0" styleClass="settings-card" style="-fx-padding: 24px; -fx-background-radius: 16px; -fx-border-radius: 16px; -fx-border-width: 1px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 4);">
-                        <HBox alignment="CENTER_LEFT" spacing="10">
-                            <Label text="&#xe3b5;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px; -fx-text-fill: #e040a0;" />
-                            <Label text="Appearance" styleClass="settings-card-title" />
-                        </HBox>
-                        <Separator style="-fx-opacity: 0.3;" />
-                        
-                        <HBox spacing="10" alignment="CENTER_LEFT">
-                            <Label text="Theme:" styleClass="setting-label" />
-                            <Region HBox.hgrow="ALWAYS" />
-                            <ComboBox fx:id="cbTheme" prefWidth="180" styleClass="combo-box" />
-                        </HBox>
-
-                        <HBox spacing="10" alignment="CENTER_LEFT">
-                            <Label text="Accent Color:" styleClass="setting-label" />
-                            <Region HBox.hgrow="ALWAYS" />
-                            <ComboBox fx:id="cbColor" prefWidth="180" styleClass="combo-box" />
-                        </HBox>
-                        
-                        <Separator style="-fx-opacity: 0.3;" />
-                        <CheckBox fx:id="chkCollapse" text="Auto-collapse sidebar" styleClass="setting-switch" style="-fx-font-size: 14px; -fx-cursor: hand;" />
-                        <CheckBox fx:id="chkRememberPage" text="Remember last page on startup" styleClass="setting-switch" style="-fx-font-size: 14px; -fx-cursor: hand;" />
-                    </VBox>
-
-                    <!-- Card 3: Auction Preferences -->
-                    <VBox spacing="20.0" prefWidth="480.0" styleClass="settings-card" style="-fx-padding: 24px; -fx-background-radius: 16px; -fx-border-radius: 16px; -fx-border-width: 1px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 4);">
-                        <HBox alignment="CENTER_LEFT" spacing="10">
-                            <Label text="&#xe8d0;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px; -fx-text-fill: #e040a0;" />
-                            <Label text="Auction Preferences" styleClass="settings-card-title" />
-                        </HBox>
-                        <Separator style="-fx-opacity: 0.3;" />
-                        
-                        <CheckBox fx:id="chkConfirmBid" text="Confirm before placing bid" styleClass="setting-switch" style="-fx-font-size: 14px; -fx-cursor: hand;" />
-                        <CheckBox fx:id="chkQuickBid" text="Enable Quick Bid buttons" styleClass="setting-switch" style="-fx-font-size: 14px; -fx-cursor: hand;" />
-                        
-                        <HBox spacing="10" alignment="CENTER_LEFT">
-                            <Label text="High bid warning (₫):" styleClass="setting-label" />
-                            <Region HBox.hgrow="ALWAYS" />
-                            <TextField fx:id="txtHighBidWarning" prefWidth="140" styleClass="text-field" />
-                        </HBox>
-                        <HBox spacing="10" alignment="CENTER_LEFT">
-                            <Label text="Default bid increment (₫):" styleClass="setting-label" />
-                            <Region HBox.hgrow="ALWAYS" />
-                            <TextField fx:id="txtDefaultIncrement" prefWidth="140" styleClass="text-field" />
-                        </HBox>
-                    </VBox>
-
-                    <!-- Card 4: Dashboard Display -->
-                    <VBox spacing="20.0" prefWidth="480.0" styleClass="settings-card" style="-fx-padding: 24px; -fx-background-radius: 16px; -fx-border-radius: 16px; -fx-border-width: 1px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 4);">
-                        <HBox alignment="CENTER_LEFT" spacing="10">
-                            <Label text="&#xe871;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px; -fx-text-fill: #e040a0;" />
-                            <Label text="Dashboard Display" styleClass="settings-card-title" />
-                        </HBox>
-                        <Separator style="-fx-opacity: 0.3;" />
-                        
-                        <CheckBox fx:id="chkShowEnded" text="Show ended auctions by default" styleClass="setting-switch" style="-fx-font-size: 14px; -fx-cursor: hand;" />
-                        <CheckBox fx:id="chkSortActive" text="Sort active auctions first" styleClass="setting-switch" style="-fx-font-size: 14px; -fx-cursor: hand;" />
-                        <CheckBox fx:id="chkShowCountdown" text="Show countdown timers" styleClass="setting-switch" style="-fx-font-size: 14px; -fx-cursor: hand;" />
-                        <CheckBox fx:id="chkCompactCards" text="Use compact product cards" styleClass="setting-switch" style="-fx-font-size: 14px; -fx-cursor: hand;" />
-                    </VBox>
-
-                    <!-- Card 5: System & Data -->
-                    <VBox spacing="20.0" prefWidth="480.0" styleClass="settings-card" style="-fx-padding: 24px; -fx-background-radius: 16px; -fx-border-radius: 16px; -fx-border-width: 1px; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 4);">
-                        <HBox alignment="CENTER_LEFT" spacing="10">
-                            <Label text="&#xe8b8;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px; -fx-text-fill: #e040a0;" />
-                            <Label text="System &amp; Data" styleClass="settings-card-title" />
-                        </HBox>
-                        <Separator style="-fx-opacity: 0.3;" />
-                        
-                        <HBox spacing="10" alignment="CENTER_LEFT">
-                            <Label text="App Version:" styleClass="setting-label" />
-                            <Label text="0.1.0 Stable" styleClass="setting-label" />
-                        </HBox>
-                        <HBox spacing="10" alignment="CENTER_LEFT">
-                            <Label text="Server Status:" styleClass="setting-label" />
-                            <Label text="Connected" style="-fx-text-fill: #10b981;" />
-                        </HBox>
-                        
-                        <HBox spacing="15" style="-fx-padding: 10px 0 0 0;">
-                            <Button onAction="#handleResetFilters" text="Reset Filters" style="-fx-background-color: transparent; -fx-border-color: #cbd5e1; -fx-border-radius: 6px; -fx-padding: 8px 16px; -fx-cursor: hand;" styleClass="setting-label" />
-                            <Button onAction="#handleReloadData" text="Sync Latest Data" style="-fx-background-color: transparent; -fx-border-color: #cbd5e1; -fx-border-radius: 6px; -fx-padding: 8px 16px; -fx-cursor: hand;" styleClass="setting-label" />
-                        </HBox>
-                    </VBox>
-
-                </FlowPane>
-            </ScrollPane>
-        </VBox>
-    </center>
-</BorderPane>
+                </ScrollPane>
+            </VBox>
+        </center>
+    </BorderPane>
     <VBox fx:id="toastContainer" pickOnBounds="false" alignment="BOTTOM_RIGHT" spacing="10" style="-fx-padding: 30px;" />
 </StackPane>

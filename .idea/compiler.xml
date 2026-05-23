@@ -8,12 +8,12 @@
         <outputRelativeToContentRoot value="true" />
         <module name="Auction_System (1)" />
         <module name="Auction_System (3)" />
+        <module name="Auction_System_Server" />
         <module name="Auction_System" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="Auction_System (2)" target="1.5" />
-      <module name="Auction_System (3)" target="17" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">

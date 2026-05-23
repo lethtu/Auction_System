@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.auction.server.service.CloudinaryService;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,9 +31,15 @@ public class AuthGetImage {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthGetImage.class);
 
-    private static final String UPLOAD_ROOT_DIRECTORY = "upload/images";
+    @Autowired(required = false)
+    private CloudinaryService cloudinaryService;
+
+    private static final String DEFAULT_UPLOAD_ROOT_DIRECTORY = "upload/images";
+    private static final String UPLOAD_DIR_SYSTEM_PROPERTY = "auction.upload.dir";
+    private static final String UPLOAD_DIR_ENV_NAME = "AUCTION_UPLOAD_DIR";
     private static final String FILE_REQUEST_PARAM = "file";
     private static final String IMAGE_PATH_KEY = "imagePath";
+    private static final String IMAGE_URL_KEY = "imageUrl";
 
     private static final String DEFAULT_EXTENSION = ".png";
     private static final String DEFAULT_CONTENT_TYPE = "application/octet-stream";
@@ -45,34 +53,58 @@ public class AuthGetImage {
     private static final int BAD_REQUEST_STATUS = 400;
     private static final int MAX_EXTENSION_LENGTH = 10;
 
-    private Path rootLocation = Paths.get(UPLOAD_ROOT_DIRECTORY).toAbsolutePath().normalize();
-
     @PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Map<String, String>>> uploadImage(
-            @RequestParam(FILE_REQUEST_PARAM) MultipartFile file
+            @RequestParam(FILE_REQUEST_PARAM) MultipartFile file,
+            @RequestParam(value = "uuid", required = false) String uuid
     ) {
         try {
             validateImageFile(file);
 
+            String finalUuid = (uuid != null && !uuid.isBlank()) ? uuid.trim() : UUID.randomUUID().toString();
+
+            if (cloudinaryService != null && cloudinaryService.isConfigured()) {
+                try {
+                    String cloudinaryUrl = cloudinaryService.uploadFileWithPublicId(file, "auction_system/items/images", finalUuid, false);
+                    logger.info("Image file uploaded to Cloudinary: {}", cloudinaryUrl);
+                    return ResponseEntity.ok(ApiResponse.success(
+                            UPLOAD_SUCCESS_MESSAGE,
+                            Map.of(
+                                    IMAGE_PATH_KEY, finalUuid,
+                                    IMAGE_URL_KEY, cloudinaryUrl
+                            )
+                    ));
+                } catch (Exception e) {
+                    logger.warn("Cloudinary upload failed, falling back to local storage: {}", e.getMessage(), e);
+                }
+            }
+
+            // Local fallback with UUID-based path
             Path root = getRootLocation();
             Files.createDirectories(root);
 
-            Path itemFolderPath = createItemFolder(root);
-            String storedFileName = buildStoredFileName(file.getOriginalFilename());
+            Path itemFolderPath = root.resolve(finalUuid).normalize();
+            Files.createDirectories(itemFolderPath);
+
+            String storedFileName = finalUuid + ".png";
             Path destination = itemFolderPath.resolve(storedFileName).normalize();
 
             if (!isInsideRootLocation(destination)) {
                 return badRequest(INVALID_FILE_PATH_MESSAGE);
             }
 
-            file.transferTo(destination);
+            // Use standard Java NIO Files.copy for maximum compatibility and resilience
+            Files.copy(file.getInputStream(), destination, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
 
-            String imagePath = toClientImagePath(destination);
-            logger.info("Image file uploaded: {}", destination);
+            String clientPath = finalUuid + "/" + storedFileName;
+            logger.info("Image file uploaded locally: {}", destination);
 
             return ResponseEntity.ok(ApiResponse.success(
                     UPLOAD_SUCCESS_MESSAGE,
-                    Map.of(IMAGE_PATH_KEY, imagePath)
+                    Map.of(
+                            IMAGE_PATH_KEY, finalUuid,
+                            IMAGE_URL_KEY, "/api/files/images/" + clientPath
+                    )
             ));
 
         } catch (IllegalArgumentException e) {
@@ -81,6 +113,82 @@ public class AuthGetImage {
         } catch (Exception e) {
             logger.error("Error uploading image: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().body(ApiResponse.error(UPLOAD_FAILED_MESSAGE));
+        }
+    }
+
+    @PostMapping(value = "/models-3d", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<Map<String, String>>> uploadModel3D(
+            @RequestParam(FILE_REQUEST_PARAM) MultipartFile file,
+            @RequestParam(value = "uuid", required = false) String uuid
+    ) {
+        try {
+            if (file == null || file.isEmpty()) {
+                return badRequest("File 3D is empty.");
+            }
+
+            String finalUuid = (uuid != null && !uuid.isBlank()) ? uuid.trim() : UUID.randomUUID().toString();
+
+            if (cloudinaryService != null && cloudinaryService.isConfigured()) {
+                try {
+                    String cloudinaryUrl = cloudinaryService.uploadFileWithPublicId(file, "auction_system/items/models_3d", finalUuid, true);
+                    logger.info("3D model uploaded to Cloudinary: {}", cloudinaryUrl);
+                    return ResponseEntity.ok(ApiResponse.success(
+                            "3D model uploaded successfully.",
+                            Map.of(
+                                    "model3dPath", finalUuid,
+                                    "model3dUrl", cloudinaryUrl
+                            )
+                    ));
+                } catch (Exception e) {
+                    logger.warn("Cloudinary 3D model upload failed, falling back to local storage: {}", e.getMessage(), e);
+                }
+            }
+
+            // Local fallback for 3D model
+            Path root = Paths.get("upload/models_3d").toAbsolutePath().normalize();
+            Files.createDirectories(root);
+
+            Path itemFolderPath = root.resolve(finalUuid).normalize();
+            Files.createDirectories(itemFolderPath);
+
+            String originalName = file.getOriginalFilename();
+            String extension = originalName != null && originalName.contains(".")
+                    ? originalName.substring(originalName.lastIndexOf('.')) : ".glb";
+
+            Path destination = itemFolderPath.resolve(finalUuid + extension).normalize();
+
+            // Use standard Java NIO Files.copy for maximum compatibility and resilience
+            Files.copy(file.getInputStream(), destination, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+            logger.info("3D model uploaded locally: {}", destination);
+            String localUrl = "/api/files/models-3d/" + finalUuid + "/" + finalUuid + extension;
+
+            return ResponseEntity.ok(ApiResponse.success(
+                    "3D model uploaded successfully.",
+                    Map.of(
+                            "model3dPath", finalUuid,
+                            "model3dUrl", localUrl
+                    )
+            ));
+
+        } catch (Exception e) {
+            logger.error("Error uploading 3D model: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().body(ApiResponse.error("3D model upload failed."));
+        }
+    }
+
+    @GetMapping("/models-3d/{folder}/{filename:.+}")
+    public ResponseEntity<Resource> serveModel3D(
+            @PathVariable String folder,
+            @PathVariable String filename
+    ) {
+        try {
+            Path modelsRoot = Paths.get("upload/models_3d").toAbsolutePath().normalize();
+            Path file = modelsRoot.resolve(folder).resolve(filename).normalize();
+            return serveFrom(file, modelsRoot);
+        } catch (Exception e) {
+            logger.error("Error processing 3D model path: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
         }
     }
 
@@ -128,12 +236,24 @@ public class AuthGetImage {
 
         String contentType = file.getContentType();
         if (!isImageContentType(contentType)) {
-            throw new IllegalArgumentException(INVALID_IMAGE_TYPE_MESSAGE);
+            // Robust Windows fallback: If content-type is application/octet-stream or generic, check extension
+            String fileName = file.getOriginalFilename();
+            String extension = getSafeExtension(fileName);
+            if (!isSafeImageExtension(extension)) {
+                throw new IllegalArgumentException(INVALID_IMAGE_TYPE_MESSAGE);
+            }
         }
     }
 
     private boolean isImageContentType(String contentType) {
         return contentType != null && contentType.startsWith("image/");
+    }
+
+    private boolean isSafeImageExtension(String extension) {
+        if (extension == null) return false;
+        String ext = extension.toLowerCase();
+        return ext.equals(".png") || ext.equals(".jpg") || ext.equals(".jpeg")
+                || ext.equals(".gif") || ext.equals(".webp") || ext.equals(".bmp");
     }
 
     private Path createItemFolder(Path root) throws IOException {
@@ -230,11 +350,21 @@ public class AuthGetImage {
     }
 
     private Path getRootLocation() {
-        if (rootLocation == null) {
-            throw new IllegalStateException("Image upload directory has not been initialized");
+        return Paths.get(resolveUploadRootDirectory()).toAbsolutePath().normalize();
+    }
+
+    private String resolveUploadRootDirectory() {
+        String propertyValue = System.getProperty(UPLOAD_DIR_SYSTEM_PROPERTY);
+        if (hasText(propertyValue)) {
+            return propertyValue.trim();
         }
 
-        return rootLocation;
+        String envValue = System.getenv(UPLOAD_DIR_ENV_NAME);
+        if (hasText(envValue)) {
+            return envValue.trim();
+        }
+
+        return DEFAULT_UPLOAD_ROOT_DIRECTORY;
     }
 
     private boolean hasText(String value) {
