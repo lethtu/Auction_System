@@ -109,6 +109,10 @@ public class User {
         watchlistIds.clear();
         cachedAvatarImage = null;
         cachedAvatarUrl = null;
+        try {
+            com.auction.client.service.NotificationSocketService.getInstance().stop();
+        } catch (Exception ignored) {
+        }
     }
 
 
