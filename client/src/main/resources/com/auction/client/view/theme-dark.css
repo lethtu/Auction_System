@@ -202,3 +202,99 @@
     -fx-text-fill: -app-text;
     -fx-border-color: -app-border;
 }
+
+/* ====== PHASE 2: complex pages dark cleanup ====== */
+.theme-dark .bento-card,
+.theme-dark .seller-listings-card,
+.theme-dark .seller-dashboard-surface,
+.theme-dark .seller-dashboard-scroll,
+.theme-dark .seller-dashboard-scroll > .viewport,
+.theme-dark .seller-dashboard-body,
+.theme-dark .custom-table,
+.theme-dark .custom-table .table-row-cell,
+.theme-dark .custom-table .table-cell {
+    -fx-background-color: -app-card;
+    -fx-text-fill: -app-text;
+}
+
+.theme-dark .seller-listings-card,
+.theme-dark .bento-card,
+.theme-dark .support-card,
+.theme-dark .faq-card,
+.theme-dark .deposit-card {
+    -fx-border-color: -app-border;
+}
+
+.theme-dark .custom-table .column-header-background,
+.theme-dark .custom-table .column-header {
+    -fx-background-color: -app-surface;
+    -fx-border-color: -app-border;
+}
+
+.theme-dark .custom-table .column-header .label,
+.theme-dark .custom-table .table-cell .label,
+.theme-dark .custom-table .table-cell {
+    -fx-text-fill: -app-text;
+}
+
+.theme-dark .search-box,
+.theme-dark .custom-text-input,
+.theme-dark .custom-combo-box {
+    -fx-background-color: -app-input-bg;
+    -fx-border-color: -app-border;
+    -fx-text-fill: -app-input-text;
+}
+
+.theme-dark .search-box .text-field,
+.theme-dark .custom-text-input,
+.theme-dark .custom-combo-box .cell {
+    -fx-text-fill: -app-input-text;
+    -fx-prompt-text-fill: -app-placeholder;
+}
+
+.theme-dark .my-bids-card,
+.theme-dark .bid-detail-card,
+.theme-dark .deposit-panel,
+.theme-dark .support-panel {
+    -fx-background-color: -app-card;
+    -fx-border-color: -app-border;
+}
+
+
+/* ====== PHASE 3: filter ComboBox and popup cleanup ====== */
+.theme-dark .filter-combo,
+.theme-dark .combo-box,
+.theme-dark .combo-box-base {
+    -fx-background-color: #2a2035;
+    -fx-border-color: rgba(255,255,255,0.14);
+    -fx-text-fill: #f0e6f8;
+}
+.theme-dark .filter-combo .list-cell,
+.theme-dark .combo-box .list-cell {
+    -fx-background-color: #2a2035;
+    -fx-text-fill: #f0e6f8;
+}
+.theme-dark .combo-box .arrow-button,
+.theme-dark .combo-box-base .arrow-button {
+    -fx-background-color: transparent;
+}
+.theme-dark .combo-box .arrow,
+.theme-dark .combo-box-base .arrow {
+    -fx-background-color: #b8a8c8;
+}
+.theme-dark .combo-box-popup .list-view {
+    -fx-background-color: #241a2f;
+    -fx-border-color: rgba(255,255,255,0.16);
+    -fx-control-inner-background: #241a2f;
+}
+.theme-dark .combo-box-popup .list-cell {
+    -fx-background-color: #241a2f;
+    -fx-text-fill: #f0e6f8;
+}
+.theme-dark .combo-box-popup .list-cell:hover,
+.theme-dark .combo-box-popup .list-cell:selected,
+.theme-dark .combo-box-popup .list-cell:filled:selected,
+.theme-dark .combo-box-popup .list-cell:filled:hover {
+    -fx-background-color: -fx-accent;
+    -fx-text-fill: #ffffff;
+}

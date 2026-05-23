@@ -172,6 +172,8 @@ public class MainController implements Initializable {
         // Initialize display status on main market
         cbStatus.getItems().addAll("All", "Ongoing", "Starting Soon", "Ended");
         cbStatus.setValue("All");
+        setupThemeAwareFilterCombo(cbCategory);
+        setupThemeAwareFilterCombo(cbStatus);
 
         updateViewToggleButton(false);
 
@@ -514,9 +516,44 @@ public class MainController implements Initializable {
         lblPageTitle.setManaged(true);
         lblPageTitle.setOpacity(1.0);
         lblPageTitle.setText(title);
-        lblPageTitle.setTextFill(Color.web("#e040a0"));
+        String accent = accentHex();
+        lblPageTitle.setTextFill(Color.web(accent));
         lblPageTitle.setStyle(
-                "-fx-font-family: 'DM Sans'; -fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: #e040a0;");
+                "-fx-font-family: 'DM Sans'; -fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: " + accent + ";");
+    }
+
+    private void setupThemeAwareFilterCombo(ComboBox<String> combo) {
+        if (combo == null) {
+            return;
+        }
+        combo.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : item);
+                setStyle(filterComboCellStyle(false));
+            }
+        });
+        combo.setCellFactory(listView -> new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : item);
+                setStyle(filterComboCellStyle(isSelected() || isHover()));
+            }
+        });
+    }
+
+    private String filterComboCellStyle(boolean active) {
+        String accent = accentHex();
+        if (isDarkThemeActive()) {
+            return "-fx-background-color: " + (active ? accent : "#241a2f") + ";"
+                    + "-fx-text-fill: " + (active ? "#ffffff" : primaryTextHex()) + ";"
+                    + "-fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-padding: 8px 12px;";
+        }
+        return "-fx-background-color: " + (active ? accent : "#ffffff") + ";"
+                + "-fx-text-fill: " + (active ? "#ffffff" : primaryTextHex()) + ";"
+                + "-fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-padding: 8px 12px;";
     }
 
     private void filterAndRenderProducts() {
@@ -2386,31 +2423,58 @@ public class MainController implements Initializable {
 
 
     private boolean isDarkThemeActive() {
-        return false;
+        return SettingsService.getInstance().getTheme().toLowerCase(java.util.Locale.ROOT).contains("dark");
     }
+
     private String accentHex() {
+        String color = SettingsService.getInstance().getPrimaryColor();
+        if (color == null) return "#e040a0";
+        String normalized = color.toLowerCase(java.util.Locale.ROOT);
+        if (normalized.contains("purple")) return "#8b5cf6";
+        if (normalized.contains("emerald") || normalized.contains("green")) return "#10b981";
+        if (normalized.contains("blue")) return "#3b82f6";
+        if (normalized.contains("orange")) return "#f97316";
         return "#e040a0";
     }
+
     private String primaryTextHex() {
-        return "#2e1a28";
+        return isDarkThemeActive() ? "#f0e6f8" : "#2e1a28";
     }
+
     private String mutedTextHex() {
-        return "#604868";
+        return isDarkThemeActive() ? "#b8a8c8" : "#604868";
     }
+
     private String secondaryButtonBgHex() {
-        return "#f2e8f2";
+        return isDarkThemeActive() ? "#2a2035" : "#f2e8f2";
     }
+
     private String productCardStyle() {
+        if (isDarkThemeActive()) {
+            return "-fx-border-color: rgba(255,255,255,0.12); -fx-border-width: 1px; -fx-border-radius: 20px; "
+                    + "-fx-background-radius: 20px; -fx-padding: 16px; -fx-background-color: #241a2f; "
+                    + "-fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.28), 14, 0, 0, 4);";
+        }
         return "-fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 20px; "
                 + "-fx-background-radius: 20px; -fx-padding: 16px; -fx-background-color: #ffffff; "
                 + "-fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.05), 10, 0, 0, 2);";
     }
+
     private String productImageWrapperStyle() {
+        if (isDarkThemeActive()) {
+            return "-fx-background-color: #2a2035; -fx-background-radius: 12px; -fx-border-radius: 12px; "
+                    + "-fx-border-color: rgba(255,255,255,0.12); -fx-border-width: 1px;";
+        }
         return "-fx-background-radius: 12px; -fx-border-radius: 12px; -fx-border-color: #f2e8f2; -fx-border-width: 1px;";
     }
+
     private String runningTimerBadgeStyle() {
+        if (isDarkThemeActive()) {
+            return "-fx-background-color: rgba(42, 32, 53, 0.95); -fx-background-radius: 15px; -fx-padding: 4px 8px;";
+        }
         return "-fx-background-color: rgba(255, 255, 255, 0.9); -fx-background-radius: 15px; -fx-padding: 4px 8px;";
     }
+
     private void startCountdownTimeline() {
         stopCountdownTimeline();
 

@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
 import com.auction.client.HttpClientSingleton;
 import com.auction.client.model.User;
+import com.auction.client.service.SettingsService;
 import com.auction.client.util.HttpRequestUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -308,6 +309,25 @@ public class SellerDashboardController {
         });
     }
 
+    private boolean isDarkThemeActive() {
+        return SettingsService.getInstance().getTheme().toLowerCase(java.util.Locale.ROOT).contains("dark");
+    }
+
+    private String sellerPrimaryTextHex() {
+        return isDarkThemeActive() ? "#f0e6f8" : "#2e1a28";
+    }
+
+    private String sellerMutedTextHex() {
+        return isDarkThemeActive() ? "#b8a8c8" : "#604868";
+    }
+
+    private String sellerImageCellStyle() {
+        if (isDarkThemeActive()) {
+            return "-fx-background-color: #2a2035; -fx-background-radius: 24px; -fx-border-color: rgba(255,255,255,0.12); -fx-border-radius: 24px;";
+        }
+        return "-fx-background-color: #f2e8f2; -fx-background-radius: 24px;";
+    }
+
     private void setupTable() {
         sessionsTable.setItems(displayedSessions);
 
@@ -328,7 +348,7 @@ public class SellerDashboardController {
                     imgContainer.setPrefSize(48, 48);
                     imgContainer.setMinSize(48, 48);
                     imgContainer.setMaxSize(48, 48);
-                    imgContainer.setStyle("-fx-background-color: #f2e8f2; -fx-background-radius: 24px;");
+                    imgContainer.setStyle(sellerImageCellStyle());
 
                     if (item.imageUrl != null && !item.imageUrl.isEmpty()) {
                         try {
@@ -353,9 +373,9 @@ public class SellerDashboardController {
                     VBox vbox = new VBox(2);
                     vbox.setAlignment(Pos.CENTER_LEFT);
                     Label lblName = new Label(item.productName);
-                    lblName.setStyle("-fx-font-weight: bold; -fx-text-fill: #2e1a28;");
+                    lblName.setStyle("-fx-font-weight: bold; -fx-text-fill: " + sellerPrimaryTextHex() + ";");
                     Label lblId = new Label("ID: #AUC-" + item.id);
-                    lblId.setStyle("-fx-font-size: 11px; -fx-text-fill: #604868;");
+                    lblId.setStyle("-fx-font-size: 11px; -fx-text-fill: " + sellerMutedTextHex() + ";");
 
                     vbox.getChildren().addAll(lblName, lblId);
                     hbox.getChildren().addAll(imgContainer, vbox);
@@ -424,7 +444,7 @@ public class SellerDashboardController {
 
                 Label priceLabel = new Label(price.compareTo(BigDecimal.ZERO) == 0 ? "--" : "$" + df.format(price));
                 priceLabel.setStyle(price.compareTo(BigDecimal.ZERO) == 0
-                        ? "-fx-text-fill: #604868; -fx-font-weight: bold;"
+                        ? "-fx-text-fill: " + sellerMutedTextHex() + "; -fx-font-weight: bold;"
                         : "-fx-text-fill: #e040a0; -fx-font-weight: 900;");
 
                 StackPane wrapper = new StackPane(priceLabel);
@@ -451,7 +471,7 @@ public class SellerDashboardController {
                 }
 
                 String displayText;
-                String textColor = "#604868";
+                String textColor = sellerMutedTextHex();
                 try {
                     LocalDateTime end = LocalDateTime.parse(endTime);
                     if (end.isBefore(LocalDateTime.now())) {

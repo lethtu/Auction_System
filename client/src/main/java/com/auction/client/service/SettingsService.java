@@ -101,19 +101,27 @@ public class SettingsService {
 
     // --- Appearance ---
     public String getTheme() {
-        return DEFAULT_THEME;
+        return prefs.get("app_theme", DEFAULT_THEME);
     }
 
     public void setTheme(String theme) {
-        prefs.remove("app_theme");
+        if (theme == null || theme.isBlank()) {
+            prefs.put("app_theme", DEFAULT_THEME);
+        } else {
+            prefs.put("app_theme", theme.trim());
+        }
     }
 
     public String getPrimaryColor() {
-        return DEFAULT_ACCENT_COLOR;
+        return prefs.get(SettingsDialog.KEY_ACCENT_COLOR, DEFAULT_ACCENT_COLOR);
     }
 
     public void setPrimaryColor(String color) {
-        prefs.remove(SettingsDialog.KEY_ACCENT_COLOR);
+        if (color == null || color.isBlank()) {
+            prefs.put(SettingsDialog.KEY_ACCENT_COLOR, DEFAULT_ACCENT_COLOR);
+        } else {
+            prefs.put(SettingsDialog.KEY_ACCENT_COLOR, color.trim());
+        }
     }
 
     public boolean isAutoCollapseSidebar() {
