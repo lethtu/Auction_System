@@ -69,7 +69,7 @@ public class NotificationCenterController {
     }
     
     private String getInactiveTabStyle() {
-        return "-fx-background-color: #f2e8f2;  -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;";
+        return "-fx-background-color: -app-surface-2;  -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;";
     }
 
     private void renderList() {
@@ -103,17 +103,17 @@ public class NotificationCenterController {
     private HBox createNotificationCard(AppNotification n) {
         HBox card = new HBox(15);
         card.setAlignment(Pos.CENTER_LEFT);
-        String bgColor = n.isRead() ? "#ffffff" : "#fff0f8";
+        String bgColor = n.isRead() ? "-app-card" : "-app-accent-opacity-08";
         card.setStyle("-fx-background-color: " + bgColor + "; -fx-background-radius: 12;  -fx-border-radius: 12; -fx-padding: 15;");
         
-        card.setOnMouseEntered(e -> card.setStyle("-fx-background-color: #fbf2fb; -fx-background-radius: 12;  -fx-border-radius: 12; -fx-padding: 15; -fx-cursor: hand;"));
-        card.setOnMouseExited(e -> card.setStyle("-fx-background-color: " + (n.isRead() ? "#ffffff" : "#fff0f8") + "; -fx-background-radius: 12;  -fx-border-radius: 12; -fx-padding: 15;"));
+        card.setOnMouseEntered(e -> card.setStyle("-fx-background-color: -app-accent-opacity-12; -fx-background-radius: 12;  -fx-border-radius: 12; -fx-padding: 15; -fx-cursor: hand;"));
+        card.setOnMouseExited(e -> card.setStyle("-fx-background-color: " + (n.isRead() ? "-app-card" : "-app-accent-opacity-08") + "; -fx-background-radius: 12;  -fx-border-radius: 12; -fx-padding: 15;"));
         card.setOnMouseClicked(e -> {
             service.markAsRead(n.getId());
         });
 
         Label icon = new Label(getIconForType(n.getType()));
-        icon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px; -fx-text-fill: " + getColorForSeverity(n.getSeverity()) + "; -fx-background-color: #fef7ff; -fx-background-radius: 50%; -fx-padding: 10;");
+        icon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px; -fx-text-fill: " + getColorForSeverity(n.getSeverity()) + "; -fx-background-color: -app-surface-2; -fx-background-radius: 50%; -fx-padding: 10;");
 
         VBox textCol = new VBox(5);
         HBox.setHgrow(textCol, Priority.ALWAYS);
@@ -126,7 +126,7 @@ public class NotificationCenterController {
         time.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 11px; ");
         textCol.getChildren().addAll(title, message, time);
 
-        Circle unreadDot = new Circle(4, Color.web("#e040a0"));
+        Circle unreadDot = new Circle(4, Color.valueOf(com.auction.client.service.AppStyleManager.getAccentColorHex()));
         unreadDot.setVisible(!n.isRead());
 
         card.getChildren().addAll(icon, textCol, unreadDot);

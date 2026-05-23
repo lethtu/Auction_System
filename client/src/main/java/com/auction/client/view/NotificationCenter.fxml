@@ -11,14 +11,14 @@
     <!-- Header -->
     <HBox alignment="CENTER_LEFT" spacing="15.0" style="-fx-padding: 0 0 20 0;">
         <Label text="Notifications" style="-fx-font-family: 'DM Sans'; -fx-font-size: 28px; -fx-font-weight: 900; " />
-        <Label fx:id="lblUnreadCount" text="0 unread" style="-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-padding: 4 10; -fx-background-radius: 12;" />
+        <Label fx:id="lblUnreadCount" text="0 unread" style="-fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-padding: 4 10; -fx-background-radius: 12;" />
         <Region HBox.hgrow="ALWAYS" />
-        <Button text="Mark all as read" onAction="#handleMarkAllRead" style="-fx-background-color: transparent; -fx-text-fill: #e040a0; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;" />
+        <Button text="Mark all as read" onAction="#handleMarkAllRead" style="-fx-background-color: transparent; -fx-text-fill: -fx-accent; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;" />
     </HBox>
 
     <!-- Tabs/Filters -->
     <HBox spacing="10.0" style="-fx-padding: 0 0 15 0;">
-        <Button fx:id="tabAll" text="All" onAction="#filterAll" style="-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;" />
+        <Button fx:id="tabAll" text="All" onAction="#filterAll" style="-fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;" />
         <Button fx:id="tabUnread" text="Unread" onAction="#filterUnread" style="-fx-background-color: -app-surface-2; -fx-text-fill: -app-text; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;" />
         <Button fx:id="tabAuction" text="Auction" onAction="#filterAuction" style="-fx-background-color: -app-surface-2; -fx-text-fill: -app-text; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;" />
         <Button fx:id="tabSystem" text="System" onAction="#filterSystem" style="-fx-background-color: -app-surface-2; -fx-text-fill: -app-text; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;" />

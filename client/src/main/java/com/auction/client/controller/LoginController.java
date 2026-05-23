@@ -593,6 +593,13 @@ public class LoginController {
         User.setSessionToken(data.optString("sessionToken", null));
         User.setSession(id, username, fullname, email, dob, placeOfBirth, role, avatarUrl);
         User.setPasswordSet(data.optBoolean("passwordSet", true));
+
+        try {
+            com.auction.client.service.NotificationSocketService.getInstance().start(id);
+        } catch (Exception e) {
+            logger.error("Failed to start global NotificationSocketService: {}", e.getMessage());
+        }
+
         return role;
     }
 

@@ -1284,27 +1284,9 @@ public class AuctionPageController {
 
             if (noticeObj.has("newEndTime")) {
                 handleAuctionExtended(noticeObj.getString("newEndTime"));
-                AppNotification notif = new AppNotification(NotificationType.AUCTION_EXTENDED, NotificationSeverity.INFO, 
-                    "Session extended", "A bid was placed in the last seconds so the session was extended.");
-                notif.setAuctionId(currentSessionId);
-                notif.setItemName(productNameLabel.getText());
-                NotificationCenterService.getInstance().addNotification(notif);
             } else {
                 if (User.getId() == null || highestBidderId == null || !highestBidderId.equals(User.getId())) {
                     showInfo("Someone just placed a new bid!");
-                    if (myLastBidAmount != null && newPrice.compareTo(myLastBidAmount) > 0) {
-                        AppNotification notif = new AppNotification(NotificationType.OUTBID, NotificationSeverity.WARNING, 
-                            "You have been outbid", "Product " + productNameLabel.getText() + " is now at ₫ " + formatPrice(newPrice));
-                        notif.setAuctionId(currentSessionId);
-                        notif.setItemName(productNameLabel.getText());
-                        NotificationCenterService.getInstance().addNotification(notif);
-                    } else if (User.watchlistIds.contains(currentSessionId) || myLastBidAmount != null) {
-                        AppNotification notif = new AppNotification(NotificationType.NEW_BID, NotificationSeverity.INFO, 
-                            "New bid", "Product " + productNameLabel.getText() + " has a new bid: ₫ " + formatPrice(newPrice));
-                        notif.setAuctionId(currentSessionId);
-                        notif.setItemName(productNameLabel.getText());
-                        NotificationCenterService.getInstance().addNotification(notif);
-                    }
                 }
             }
         });
@@ -1560,20 +1542,6 @@ public class AuctionPageController {
         placeBidBtn.setDisable(true);
         bidAmountField.setDisable(true);
         disconnectSocket();
-        
-        if (highestBidderId != null && User.getId() != null && highestBidderId.equals(User.getId())) {
-            AppNotification notif = new AppNotification(NotificationType.AUCTION_END_WIN, NotificationSeverity.SUCCESS, 
-                "You won!", "You are the highest bidder for " + productNameLabel.getText());
-            notif.setAuctionId(currentSessionId);
-            notif.setItemName(productNameLabel.getText());
-            NotificationCenterService.getInstance().addNotification(notif);
-        } else if (User.getId() != null && myLastBidAmount != null) {
-            AppNotification notif = new AppNotification(NotificationType.AUCTION_END_LOSE, NotificationSeverity.INFO, 
-                "Auction ended", "Unfortunately, you did not win the auction for " + productNameLabel.getText());
-            notif.setAuctionId(currentSessionId);
-            notif.setItemName(productNameLabel.getText());
-            NotificationCenterService.getInstance().addNotification(notif);
-        }
     }
 
     private void stopTimeline() {

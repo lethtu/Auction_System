@@ -2,6 +2,28 @@
 .root {
     -fx-accent: #e040a0;
     -fx-focus-color: #e040a0;
+    
+    -app-accent-opacity-05: rgba(224, 64, 160, 0.05);
+    -app-accent-opacity-08: rgba(224, 64, 160, 0.08);
+    -app-accent-opacity-10: rgba(224, 64, 160, 0.10);
+    -app-accent-opacity-12: rgba(224, 64, 160, 0.12);
+    -app-accent-opacity-16: rgba(224, 64, 160, 0.16);
+    -app-accent-opacity-20: rgba(224, 64, 160, 0.20);
+    -app-accent-opacity-25: rgba(224, 64, 160, 0.25);
+    -app-accent-opacity-30: rgba(224, 64, 160, 0.30);
+    -app-accent-opacity-38: rgba(224, 64, 160, 0.38);
+    -app-accent-opacity-40: rgba(224, 64, 160, 0.40);
+    -app-accent-opacity-58: rgba(224, 64, 160, 0.58);
+    -app-accent-opacity-70: rgba(224, 64, 160, 0.70);
+    -app-accent-opacity-78: rgba(224, 64, 160, 0.78);
+    
+    -app-accent-hover: #c83090;
+    -app-accent-light: #f080c0;
+    -app-accent-gradient: linear-gradient(to bottom right, #f080c0, #e040a0);
+    -app-accent-gradient-horizontal: linear-gradient(to right, #e040a0, #c83090);
+    -app-accent-gradient-dark: linear-gradient(to bottom right, #e040a0, #b2368f);
+    -app-accent-chip-bg: #fff5fa;
+    -app-accent-chip-border: #f7ddeb;
 }
 .setting-switch:selected .box {
     -fx-background-color: #e040a0;

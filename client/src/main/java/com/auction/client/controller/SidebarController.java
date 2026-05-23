@@ -252,7 +252,7 @@ public class SidebarController {
                     }
                     if (btn == btnStartSelling) {
                         btn.setStyle(
-                                "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 22px; -fx-padding: 0px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.3), 16, 0, 0, 4);");
+                                "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 22px; -fx-padding: 0px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-30, 16, 0, 0, 4);");
                     }
                 } else if (node instanceof Label) {
                     node.setVisible(false);
@@ -302,7 +302,7 @@ public class SidebarController {
                 btn.setAlignment(Pos.CENTER_LEFT);
                 if (btn == btnStartSelling) {
                     btn.setStyle(
-                            "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 0 12px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.3), 16, 0, 0, 4);");
+                            "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 0 12px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-30, 16, 0, 0, 4);");
                 }
             } else if (node instanceof Label) {
                 node.setVisible(true);
@@ -351,7 +351,7 @@ public class SidebarController {
             return;
 
         String textColor = active ? "-fx-accent" : "-app-text-muted";
-        String backgroundColor = active ? "rgba(224, 64, 160, 0.15)" : "transparent";
+        String backgroundColor = active ? "-app-accent-opacity-16" : "transparent";
         String padding = isSidebarCollapsed ? "0px" : "7px 16px";
         String radius = isSidebarCollapsed ? "22px" : "20px";
 

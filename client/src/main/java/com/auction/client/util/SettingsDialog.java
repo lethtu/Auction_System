@@ -34,9 +34,16 @@ public final class SettingsDialog {
         DialogPane pane = dialog.getDialogPane();
         pane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         
+        // Load styles.css first so variables are available
+        java.net.URL stylesUrl = SettingsDialog.class.getResource("/com/auction/client/view/styles.css");
+        if (stylesUrl != null) {
+            pane.getStylesheets().add(stylesUrl.toExternalForm());
+        }
+        com.auction.client.service.AppStyleManager.applyCurrentStyle(pane);
+        
         // Load Styles
-        pane.setStyle("-fx-background-color: #ffffff;"
-                + " -fx-border-color: #ffe8f2;"
+        pane.setStyle("-fx-background-color: -app-card;"
+                + " -fx-border-color: -app-border;"
                 + " -fx-border-width: 1.5px;"
                 + " -fx-border-radius: 20px;"
                 + " -fx-background-radius: 20px;"
@@ -53,18 +60,18 @@ public final class SettingsDialog {
         HBox header = new HBox(12);
         header.setAlignment(Pos.CENTER_LEFT);
         header.setPadding(new Insets(24, 28, 20, 28));
-        header.setStyle("-fx-background-color: linear-gradient(to right, rgba(224, 64, 160, 0.05), rgba(124, 82, 170, 0.05));"
-                + " -fx-border-color: #ffe8f2;"
+        header.setStyle("-fx-background-color: linear-gradient(to right, -app-accent-opacity-05, rgba(124, 82, 170, 0.05));"
+                + " -fx-border-color: -app-border;"
                 + " -fx-border-width: 0 0 1px 0;");
 
         Label gearIcon = new Label("\ue8b8");
-        gearIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 32px; -fx-text-fill: #e040a0;");
+        gearIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 32px; -fx-text-fill: -fx-accent;");
 
         VBox titleBox = new VBox(2);
         Label titleLabel = new Label("App Configuration");
-        titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
+        titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: -app-text;");
         Label descLabel = new Label("Customize your auction experience and interface.");
-        descLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #907898;");
+        descLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: -app-text-muted;");
         titleBox.getChildren().addAll(titleLabel, descLabel);
 
         header.getChildren().addAll(gearIcon, titleBox);
@@ -77,15 +84,15 @@ public final class SettingsDialog {
         // Group 1: Notifications
         VBox grpNotifications = new VBox(10);
         Label lblGrpNotif = new Label("NOTIFICATIONS & SOUNDS");
-        lblGrpNotif.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #e040a0; -fx-padding: 0 0 4 0;");
+        lblGrpNotif.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -fx-accent; -fx-padding: 0 0 4 0;");
         
         CheckBox chkOutbid = new CheckBox("Receive notification when outbid");
         chkOutbid.setSelected(prefs.getBoolean(KEY_OUTBID, true));
-        chkOutbid.setStyle("-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-cursor: hand;");
+        chkOutbid.setStyle("-fx-font-size: 14px; -fx-text-fill: -app-text; -fx-cursor: hand;");
 
         CheckBox chkSound = new CheckBox("Play notification sounds");
         chkSound.setSelected(prefs.getBoolean(KEY_SOUND, true));
-        chkSound.setStyle("-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-cursor: hand;");
+        chkSound.setStyle("-fx-font-size: 14px; -fx-text-fill: -app-text; -fx-cursor: hand;");
 
         grpNotifications.getChildren().addAll(lblGrpNotif, chkOutbid, chkSound);
         content.getChildren().add(grpNotifications);
@@ -93,24 +100,24 @@ public final class SettingsDialog {
         // Group 2: UI Experience
         VBox grpUi = new VBox(12);
         Label lblGrpUi = new Label("INTERFACE & EXPERIENCE");
-        lblGrpUi.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #e040a0; -fx-padding: 4 0 4 0;");
+        lblGrpUi.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -fx-accent; -fx-padding: 4 0 4 0;");
 
         CheckBox chkCollapse = new CheckBox("Auto-collapse sidebar");
         chkCollapse.setSelected(prefs.getBoolean(KEY_AUTO_COLLAPSE, false));
-        chkCollapse.setStyle("-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-cursor: hand;");
+        chkCollapse.setStyle("-fx-font-size: 14px; -fx-text-fill: -app-text; -fx-cursor: hand;");
 
         // Language Dropdown
         HBox rowLang = new HBox(10);
         rowLang.setAlignment(Pos.CENTER_LEFT);
         Label lblLang = new Label("App language:");
-        lblLang.setStyle("-fx-font-size: 14px; -fx-text-fill: #2e1a28;");
+        lblLang.setStyle("-fx-font-size: 14px; -fx-text-fill: -app-text;");
         Region spacerLang = new Region();
         HBox.setHgrow(spacerLang, Priority.ALWAYS);
         
         ComboBox<String> cbLang = new ComboBox<>();
         cbLang.getItems().addAll("English");
         cbLang.setValue(prefs.get(KEY_LANGUAGE, "English"));
-        cbLang.setStyle("-fx-background-color: #fef7ff; -fx-border-color: #ffe8f2; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-cursor: hand;");
+        cbLang.setStyle("-fx-background-color: -app-input-bg; -fx-border-color: -app-border; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-cursor: hand;");
 
         rowLang.getChildren().addAll(lblLang, spacerLang, cbLang);
 
@@ -118,14 +125,14 @@ public final class SettingsDialog {
         HBox rowColor = new HBox(10);
         rowColor.setAlignment(Pos.CENTER_LEFT);
         Label lblColor = new Label("Primary color tone:");
-        lblColor.setStyle("-fx-font-size: 14px; -fx-text-fill: #2e1a28;");
+        lblColor.setStyle("-fx-font-size: 14px; -fx-text-fill: -app-text;");
         Region spacerColor = new Region();
         HBox.setHgrow(spacerColor, Priority.ALWAYS);
 
         ComboBox<String> cbColor = new ComboBox<>();
         cbColor.getItems().addAll("Rose Pink (Default)", "Royal Purple", "Emerald Green");
         cbColor.setValue(prefs.get(KEY_ACCENT_COLOR, "Rose Pink (Default)"));
-        cbColor.setStyle("-fx-background-color: #fef7ff; -fx-border-color: #ffe8f2; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-cursor: hand;");
+        cbColor.setStyle("-fx-background-color: -app-input-bg; -fx-border-color: -app-border; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-cursor: hand;");
 
         rowColor.getChildren().addAll(lblColor, spacerColor, cbColor);
 
@@ -136,14 +143,14 @@ public final class SettingsDialog {
         if (onResetFilters != null || onReloadData != null) {
             VBox grpActions = new VBox(10);
             Label lblGrpActions = new Label("QUICK ACTIONS");
-            lblGrpActions.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #e040a0; -fx-padding: 4 0 4 0;");
+            lblGrpActions.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -fx-accent; -fx-padding: 4 0 4 0;");
             
             HBox actionButtons = new HBox(12);
             actionButtons.setAlignment(Pos.CENTER_LEFT);
             
             if (onResetFilters != null) {
                 Button btnReset = new Button("Reset Filters");
-                btnReset.setStyle("-fx-background-color: #fff1fa; -fx-text-fill: #8a2b66; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-color: #f6a6d7; -fx-border-radius: 8px; -fx-padding: 6px 14px; -fx-cursor: hand;");
+                btnReset.setStyle("-fx-background-color: -app-accent-opacity-08; -fx-text-fill: -fx-accent; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-color: -fx-accent; -fx-border-radius: 8px; -fx-padding: 6px 14px; -fx-cursor: hand;");
                 btnReset.setOnAction(e -> {
                     onResetFilters.run();
                     dialog.setResult(ButtonType.CANCEL);
@@ -154,7 +161,7 @@ public final class SettingsDialog {
             
             if (onReloadData != null) {
                 Button btnReload = new Button("Reload Data");
-                btnReload.setStyle("-fx-background-color: #fff1fa; -fx-text-fill: #8a2b66; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-color: #f6a6d7; -fx-border-radius: 8px; -fx-padding: 6px 14px; -fx-cursor: hand;");
+                btnReload.setStyle("-fx-background-color: -app-accent-opacity-08; -fx-text-fill: -fx-accent; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-color: -fx-accent; -fx-border-radius: 8px; -fx-padding: 6px 14px; -fx-cursor: hand;");
                 btnReload.setOnAction(e -> {
                     onReloadData.run();
                     dialog.setResult(ButtonType.CANCEL);
@@ -173,21 +180,21 @@ public final class SettingsDialog {
         // Style the buttons
         Button btnOk = (Button) pane.lookupButton(ButtonType.OK);
         btnOk.setText("Save Settings");
-        btnOk.setStyle("-fx-background-color: #e040a0;"
+        btnOk.setStyle("-fx-background-color: -fx-accent;"
                 + " -fx-text-fill: white;"
                 + " -fx-font-weight: bold;"
                 + " -fx-background-radius: 12px;"
                 + " -fx-padding: 8px 20px;"
                 + " -fx-cursor: hand;"
-                + " -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.2), 8, 0, 0, 3);");
-
+                + " -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-20, 8, 0, 0, 3);");
+ 
         Button btnCancel = (Button) pane.lookupButton(ButtonType.CANCEL);
         btnCancel.setText("Cancel");
-        btnCancel.setStyle("-fx-background-color: #fff1fa;"
-                + " -fx-text-fill: #8a2b66;"
+        btnCancel.setStyle("-fx-background-color: -app-accent-opacity-08;"
+                + " -fx-text-fill: -fx-accent;"
                 + " -fx-font-weight: bold;"
                 + " -fx-background-radius: 12px;"
-                + " -fx-border-color: #f6a6d7;"
+                + " -fx-border-color: -fx-accent;"
                 + " -fx-border-radius: 12px;"
                 + " -fx-padding: 8px 20px;"
                 + " -fx-cursor: hand;");

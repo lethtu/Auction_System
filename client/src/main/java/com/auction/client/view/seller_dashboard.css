@@ -1,6 +1,6 @@
 .theme-light {
-    -fx-primary: #e040a0;
-    -fx-primary-container: #f080c0;
+    -fx-primary: -fx-accent;
+    -fx-primary-container: -app-accent-light;
     -fx-on-primary: #ffffff;
     -fx-secondary: #7c52aa;
     -fx-secondary-container: #eedcff;
@@ -14,15 +14,15 @@
     -fx-on-surface-variant: -app-text-muted;
     -fx-outline: -app-border;
     -fx-outline-variant: -app-border;
-    -fx-error: #e040a0;
+    -fx-error: -fx-accent;
     -fx-error-container: #ffe8f2;
     -fx-success: #10b981; /* emerald-500 */
     -fx-success-bg: #d1fae5; /* emerald-100 */
 }
 
 .theme-dark {
-    -fx-primary: #e040a0;
-    -fx-primary-container: #f080c0;
+    -fx-primary: -fx-accent;
+    -fx-primary-container: -app-accent-light;
     -fx-on-primary: #ffffff;
     -fx-secondary: #eedcff;
     -fx-secondary-container: #7c52aa;
@@ -36,7 +36,7 @@
     -fx-on-surface-variant: -app-text-muted;
     -fx-outline: -app-border;
     -fx-outline-variant: -app-border;
-    -fx-error: #e040a0;
+    -fx-error: -fx-accent;
     -fx-error-container: #2a2035;
     -fx-success: #10b981; /* emerald-500 */
     -fx-success-bg: #14532d; /* dark green success bg */
@@ -73,10 +73,10 @@
     -fx-background-radius: 24px;
 }
 .shadow-sm {
-    -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.08), 10, 0, 0, 2);
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-08, 10, 0, 0, 2);
 }
 .shadow-lg {
-    -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.15), 30, 0, 0, 8);
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-16, 30, 0, 0, 8);
 }
 
 /* Dashboard Specifics */
@@ -86,7 +86,7 @@
     -fx-border-color: -fx-outline-variant;
     -fx-border-width: 1px;
     -fx-border-radius: 24px;
-    -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.08), 30, 0, 0, 8);
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-08, 30, 0, 0, 8);
     -fx-padding: 24px;
 }
 
@@ -115,7 +115,7 @@
     -fx-cell-size: 80px;
 }
 .custom-table .table-row-cell:hover {
-    -fx-background-color: rgba(224, 64, 160, 0.05); /* pink-50/30 */
+    -fx-background-color: -app-accent-opacity-05; /* pink-50/30 */
 }
 .custom-table .table-cell {
     -fx-border-color: transparent;
@@ -138,7 +138,7 @@
     -fx-text-fill: -fx-success;
 }
 .badge-draft {
-    -fx-background-color: #ffd6ee; /* primary-fixed */
+    -fx-background-color: -app-accent-opacity-16; /* primary-fixed */
     -fx-text-fill: -fx-accent; /* on-primary-fixed-variant */
 }
 .badge-ended {
@@ -163,7 +163,7 @@
     -fx-padding: 12px 24px;
     -fx-font-weight: bold;
     -fx-cursor: hand;
-    -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.2), 16, 0, 0, 4);
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-20, 16, 0, 0, 4);
 }
 .action-btn-primary:hover {
     -fx-scale-x: 1.03;
@@ -315,7 +315,7 @@
     -fx-border-color: -fx-outline-variant;
     -fx-border-width: 1px;
     -fx-padding: 5px;
-    -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.15), 15, 0, 0, 5);
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-16, 15, 0, 0, 5);
 }
 
 .menu-item {
@@ -332,7 +332,7 @@
 }
 
 .menu-item:focused {
-    -fx-background-color: #e040a0 !important;
+    -fx-background-color: -fx-accent !important;
 }
 
 .menu-item:focused .label {
@@ -350,7 +350,7 @@
     -fx-border-color: -app-border;
     -fx-border-radius: 30;
     -fx-border-width: 2.0;
-    -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.07), 18, 0.10, 0, 4);
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-08, 18, 0.10, 0, 4);
 }
 
 .seller-dashboard-scroll {
@@ -382,7 +382,7 @@
     -fx-border-color: -app-border;
     -fx-border-radius: 28;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.10), 32, 0.16, 0, 10);
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-10, 32, 0.16, 0, 10);
 }
 
 .seller-listings-header {
@@ -430,11 +430,11 @@
 .seller-dashboard-surface {
     -fx-background-color: linear-gradient(to bottom right, rgba(255, 252, 255, 0.98), rgba(254, 247, 255, 0.98));
     -fx-background-radius: 34;
-    -fx-border-color: rgba(224, 64, 160, 0.78);
+    -fx-border-color: -app-accent-opacity-78;
     -fx-border-radius: 34;
     -fx-border-width: 2;
     -fx-padding: 16 16 12 16;
-    -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.08), 20, 0.10, 0, 6);
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-08, 20, 0.10, 0, 6);
 }
 
 .seller-dashboard-scroll {
@@ -464,13 +464,13 @@
 }
 
 .seller-dashboard-scroll .scroll-bar:vertical .thumb {
-    -fx-background-color: rgba(224, 64, 160, 0.38);
+    -fx-background-color: -app-accent-opacity-38;
     -fx-background-radius: 999px;
     -fx-background-insets: 0 4 0 4;
 }
 
 .seller-dashboard-scroll .scroll-bar:vertical .thumb:hover {
-    -fx-background-color: rgba(224, 64, 160, 0.58);
+    -fx-background-color: -app-accent-opacity-58;
 }
 
 .seller-dashboard-body {
@@ -484,7 +484,7 @@
     -fx-border-color: rgba(236, 207, 228, 0.98);
     -fx-border-radius: 28;
     -fx-border-width: 1.2;
-    -fx-effect: dropshadow(gaussian, rgba(224, 64, 160, 0.08), 26, 0.10, 0, 8);
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-08, 26, 0.10, 0, 8);
 }
 
 .seller-listings-header {
@@ -527,7 +527,7 @@
 }
 
 .custom-table .scroll-bar:vertical .thumb {
-    -fx-background-color: rgba(224, 64, 160, 0.25);
+    -fx-background-color: -app-accent-opacity-25;
     -fx-background-radius: 999px;
     -fx-background-insets: 0 4 0 4;
 }

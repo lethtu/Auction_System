@@ -36,6 +36,17 @@ public class Main extends Application {
         primaryStage.show();
     }
 
+    @Override
+    public void stop() throws Exception {
+        logger.info("Client stopping...");
+        try {
+            com.auction.client.service.NotificationSocketService.getInstance().stop();
+        } catch (Exception e) {
+            // Ignore
+        }
+        super.stop();
+    }
+
     public static void main(String[] args) {
         launch(args);
     }

@@ -38,7 +38,7 @@
             </BorderPane.margin>
             <!-- Header Section inside Center -->
             <HBox fx:id="mainPageHeader" alignment="CENTER_LEFT" spacing="20.0" style="-fx-padding: 0 0 0 0;">
-                <Label fx:id="lblPageTitle" id="mainPageTitle" text="Live Auctions" style="-fx-text-fill: #e040a0; -fx-font-weight: 900; -fx-font-size: 32px;">
+                <Label fx:id="lblPageTitle" id="mainPageTitle" text="Live Auctions" style="-fx-text-fill: -fx-accent; -fx-font-weight: 900; -fx-font-size: 32px;">
 
                     <font>
 

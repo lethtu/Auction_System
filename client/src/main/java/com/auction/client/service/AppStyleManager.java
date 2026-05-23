@@ -14,21 +14,29 @@ public class AppStyleManager {
     public static void applyCurrentStyle(Scene scene) {
         if (scene == null) return;
         applyStylesToCollection(scene.getStylesheets());
+        if (scene.getRoot() != null) {
+            applyStylesToCollection(scene.getRoot().getStylesheets());
+        }
         updateRootStyleClass(scene);
     }
 
     public static void applyCurrentStyle(Parent root) {
         if (root == null) return;
+        applyStylesToCollection(root.getStylesheets());
         Scene scene = root.getScene();
         if (scene == null) {
             Platform.runLater(() -> {
                 if (root.getScene() != null) {
                     applyStylesToCollection(root.getScene().getStylesheets());
+                    applyStylesToCollection(root.getScene().getRoot().getStylesheets());
                     updateRootStyleClass(root.getScene());
                 }
             });
         } else {
             applyStylesToCollection(scene.getStylesheets());
+            if (scene.getRoot() != null) {
+                applyStylesToCollection(scene.getRoot().getStylesheets());
+            }
             updateRootStyleClass(scene);
         }
     }
@@ -123,5 +131,20 @@ public class AppStyleManager {
         } catch (Exception e) {
             logger.warn("Error loading stylesheet {}: {}", fileName, e.getMessage());
         }
+    }
+
+    public static String getAccentColorHex() {
+        SettingsService settings = SettingsService.getInstance();
+        String colorName = settings.getPrimaryColor().toLowerCase();
+        if (colorName.contains("purple")) {
+            return "#8b5cf6";
+        } else if (colorName.contains("emerald") || colorName.contains("green")) {
+            return "#10b981";
+        } else if (colorName.contains("blue")) {
+            return "#3b82f6";
+        } else if (colorName.contains("orange")) {
+            return "#f97316";
+        }
+        return "#e040a0"; // Default Pink
     }
 }
