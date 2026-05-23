@@ -332,10 +332,20 @@ public class SellerDashboardController {
                     if (item.imageUrl != null && !item.imageUrl.isEmpty()) {
                         try {
                             String tableImageUrl = buildSellerImageUrl(item.imageUrl);
-                            ImageView iv = new ImageView(new Image(tableImageUrl, 48, 48, true, true));
+                            FontIcon placeholder = new FontIcon("mdi2i-image-outline");
+                            placeholder.setIconSize(24);
+                            placeholder.setIconColor(Color.valueOf("#907898"));
+                            imgContainer.getChildren().add(placeholder);
+
+                            Image image = new Image(tableImageUrl, 48, 48, true, true, true);
+                            ImageView iv = new ImageView(image);
                             Circle clip = new Circle(24, 24, 24);
                             iv.setClip(clip);
-                            imgContainer.getChildren().add(iv);
+                            image.progressProperty().addListener((obs, oldProgress, newProgress) -> {
+                                if (newProgress.doubleValue() >= 1.0 && !image.isError()) {
+                                    imgContainer.getChildren().setAll(iv);
+                                }
+                            });
                         } catch (Exception e) {
                             FontIcon icon = new FontIcon("mdi2i-image-outline");
                             icon.setIconSize(24);
