@@ -80,6 +80,12 @@ public class SellerDashboardController {
     @FXML
     private Label lblImageFileName;
     @FXML
+    private VBox modelUploadArea;
+    @FXML
+    private Label lblModelFileName;
+    @FXML
+    private TextField modelUrlField;
+    @FXML
     private DatePicker datePickerStart;
     @FXML
     private TextField txtStartDay;
@@ -168,6 +174,7 @@ public class SellerDashboardController {
 
         setupTable();
         setupImageUpload();
+        setupModelUpload();
         setupSplitDatetimePickers();
 
         if (topbarController != null) {
@@ -307,6 +314,65 @@ public class SellerDashboardController {
                 lblImageFileName.setText(selectedFile.getName());
             }
         });
+    }
+
+    private void setupModelUpload() {
+        if (modelUploadArea == null) {
+            return;
+        }
+
+        modelUploadArea.setOnDragOver(event -> {
+            if (event.getGestureSource() != modelUploadArea && event.getDragboard().hasFiles()) {
+                event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
+                modelUploadArea.setStyle(
+                        "-fx-border-color: -fx-accent; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 24px; -fx-cursor: hand; -fx-background-color: #ffd6ee;");
+            }
+            event.consume();
+        });
+
+        modelUploadArea.setOnDragExited(event -> {
+            modelUploadArea.setStyle(
+                    "-fx-border-color: #dcc8e0; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 24px; -fx-cursor: hand; -fx-background-color: transparent;");
+            event.consume();
+        });
+
+        modelUploadArea.setOnDragDropped(event -> {
+            Dragboard db = event.getDragboard();
+            boolean success = false;
+            if (db.hasFiles()) {
+                success = acceptModelFile(db.getFiles().get(0));
+            }
+            event.setDropCompleted(success);
+            event.consume();
+        });
+
+        modelUploadArea.setOnMouseClicked(event -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Select 3D Model File");
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("GLB Files", "*.glb"));
+            File selectedFile = fileChooser.showOpenDialog(modelUploadArea.getScene().getWindow());
+            if (selectedFile != null) {
+                acceptModelFile(selectedFile);
+            }
+        });
+    }
+
+    private boolean acceptModelFile(File file) {
+        if (file == null) {
+            return false;
+        }
+
+        String name = file.getName().toLowerCase(java.util.Locale.ROOT);
+        if (!name.endsWith(".glb")) {
+            showAlert(Alert.AlertType.WARNING, "Invalid File Type", "Please upload a .glb 3D model file.");
+            return false;
+        }
+
+        modelUrlField.setText(file.getAbsolutePath());
+        if (lblModelFileName != null) {
+            lblModelFileName.setText(file.getName());
+        }
+        return true;
     }
 
     private boolean isDarkThemeActive() {
@@ -666,6 +732,16 @@ public class SellerDashboardController {
                 lblImageFileName.setText("");
             }
         }
+        if (modelUrlField != null && lblModelFileName != null) {
+            String uuid = extractUuid(item.imageUrl);
+            if (uuid != null && !uuid.isBlank()) {
+                modelUrlField.setText("/api/files/models-3d/" + uuid + "/" + uuid + ".glb");
+                lblModelFileName.setText("Model linked: " + uuid + ".glb");
+            } else {
+                modelUrlField.clear();
+                lblModelFileName.setText("");
+            }
+        }
         descriptionArea.setText(item.description);
         startingPriceField.setText(item.startingPrice != null ? item.startingPrice.toString() : "0");
         if (reservePriceField != null) {
@@ -774,6 +850,9 @@ public class SellerDashboardController {
         String existingUuid = (editingSession != null) ? extractUuid(editingSession.imageUrl) : null;
         String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField), existingUuid);
         if (imageUrl == null) {
+            return;
+        }
+        if (!uploadModelIfSelected(imageUrl)) {
             return;
         }
         String description = productNameOrEmpty(descriptionArea);
@@ -1039,6 +1118,9 @@ public class SellerDashboardController {
         if (imageUrl == null) {
             return;
         }
+        if (!uploadModelIfSelected(imageUrl)) {
+            return;
+        }
         String description = productNameOrEmpty(descriptionArea);
         String startingPriceText = productNameOrEmpty(startingPriceField);
 
@@ -1301,6 +1383,9 @@ public class SellerDashboardController {
         String existingUuid = (editingSession != null) ? extractUuid(editingSession.imageUrl) : null;
         String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField), existingUuid);
         if (imageUrl == null) {
+            return;
+        }
+        if (!uploadModelIfSelected(imageUrl)) {
             return;
         }
         String description = productNameOrEmpty(descriptionArea);
@@ -1611,6 +1696,9 @@ public class SellerDashboardController {
         String existingUuid = (editingSession != null) ? extractUuid(editingSession.imageUrl) : null;
         String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField), existingUuid);
         if (imageUrl == null) {
+            return;
+        }
+        if (!uploadModelIfSelected(imageUrl)) {
             return;
         }
         String description = productNameOrEmpty(descriptionArea);
@@ -2185,6 +2273,10 @@ public class SellerDashboardController {
         startingPriceField.clear();
         if (lblImageFileName != null)
             lblImageFileName.setText("");
+        if (modelUrlField != null)
+            modelUrlField.clear();
+        if (lblModelFileName != null)
+            lblModelFileName.setText("");
 
         if (startingPriceField != null)
             startingPriceField.setDisable(false);
@@ -2400,6 +2492,60 @@ public class SellerDashboardController {
         }
 
         return normalizeImagePathForStorage(path);
+    }
+
+    private boolean uploadModelIfSelected(String imagePath) {
+        String rawModelPath = productNameOrEmpty(modelUrlField);
+        if (rawModelPath.isBlank()) {
+            return true;
+        }
+
+        String uuid = extractUuid(imagePath);
+        if (uuid == null || uuid.isBlank()) {
+            showAlert(Alert.AlertType.ERROR, "Model Upload Error", "Please upload/select a product image before attaching a 3D model.");
+            return false;
+        }
+
+        String modelPath = prepareModelPathForSave(rawModelPath, uuid);
+        return modelPath != null;
+    }
+
+    private String prepareModelPathForSave(String rawPath, String uuid) {
+        if (rawPath == null || rawPath.isBlank()) {
+            return "";
+        }
+
+        String path = rawPath.trim();
+        File localModel = toExistingLocalFile(path);
+        if (localModel != null) {
+            try {
+                return uploadProductModel3D(localModel, uuid);
+            } catch (Exception e) {
+                logger.error("Cannot upload 3D model: {}", e.getMessage(), e);
+                showAlert(Alert.AlertType.ERROR, "Model Upload Error", "Cannot upload 3D model to the server.");
+                return null;
+            }
+        }
+
+        return path;
+    }
+
+    private String uploadProductModel3D(File modelFile, String existingUuid) throws Exception {
+        String uploadPath = "/api/files/models-3d" + (existingUuid != null ? "?uuid=" + existingUuid : "");
+        HttpResponse<String> response = HttpRequestUtil.uploadImage(Config.API_URL, uploadPath, modelFile);
+        if (response.statusCode() < 200 || response.statusCode() >= 300) {
+            throw new IOException("3D model upload failed with status " + response.statusCode());
+        }
+
+        JSONObject obj = new JSONObject(response.body());
+        JSONObject data = obj.optJSONObject("data");
+        String model3dPath = data != null ? data.optString("model3dPath", "") : obj.optString("model3dPath", "");
+        if (model3dPath.isBlank()) {
+            throw new IOException("3D model upload response did not contain model3dPath.");
+        }
+
+        Config.triggerImageCacheBuster();
+        return model3dPath;
     }
 
     private File toExistingLocalFile(String rawPath) {

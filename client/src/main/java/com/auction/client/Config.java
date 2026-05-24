@@ -10,6 +10,8 @@ public class Config {
     public static final Integer Width = 1000;
     public static final Integer PORT_SOCKET = 8081;
 
+    public static final String CACHE_3D_DIR = "client/cache/models";
+
     public static volatile long imageCacheBuster = System.currentTimeMillis();
 
     public static void triggerImageCacheBuster() {

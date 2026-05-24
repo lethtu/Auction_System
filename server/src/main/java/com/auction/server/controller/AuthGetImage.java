@@ -50,7 +50,8 @@ public class AuthGetImage {
 
     @PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Map<String, String>>> uploadImage(
-            @RequestParam(FILE_REQUEST_PARAM) MultipartFile file
+            @RequestParam(FILE_REQUEST_PARAM) MultipartFile file,
+            @RequestParam(value = "uuid", required = false) String uuid
     ) {
         try {
             validateImageFile(file);
@@ -58,15 +59,20 @@ public class AuthGetImage {
             Path root = getRootLocation();
             Files.createDirectories(root);
 
-            Path itemFolderPath = createItemFolder(root);
-            String storedFileName = buildStoredFileName(file.getOriginalFilename());
+            String safeUuid = normalizeOptionalUuid(uuid);
+            Path itemFolderPath = safeUuid == null ? createItemFolder(root) : root.resolve(safeUuid).normalize();
+            Files.createDirectories(itemFolderPath);
+
+            String storedFileName = safeUuid == null
+                    ? buildStoredFileName(file.getOriginalFilename())
+                    : safeUuid + getSafeExtension(file.getOriginalFilename());
             Path destination = itemFolderPath.resolve(storedFileName).normalize();
 
             if (!isInsideRootLocation(destination)) {
                 return badRequest(INVALID_FILE_PATH_MESSAGE);
             }
 
-            file.transferTo(destination);
+            Files.copy(file.getInputStream(), destination, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
 
             String imagePath = toClientImagePath(destination);
             logger.info("Image file uploaded: {}", destination);
@@ -85,6 +91,68 @@ public class AuthGetImage {
         } catch (Exception e) {
             logger.error("Error uploading image: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().body(ApiResponse.error(UPLOAD_FAILED_MESSAGE));
+        }
+    }
+
+    @PostMapping(value = "/models-3d", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<Map<String, String>>> uploadModel3D(
+            @RequestParam(FILE_REQUEST_PARAM) MultipartFile file,
+            @RequestParam(value = "uuid", required = false) String uuid
+    ) {
+        try {
+            validateModel3DFile(file);
+
+            String safeUuid = normalizeOptionalUuid(uuid);
+            if (safeUuid == null) {
+                safeUuid = UUID.randomUUID().toString();
+            }
+
+            Path root = getModel3DRootLocation();
+            Files.createDirectories(root);
+
+            Path itemFolderPath = root.resolve(safeUuid).normalize();
+            Files.createDirectories(itemFolderPath);
+
+            String extension = getSafeModel3DExtension(file.getOriginalFilename());
+            Path destination = itemFolderPath.resolve(safeUuid + extension).normalize();
+
+            if (!destination.startsWith(root)) {
+                return badRequest(INVALID_FILE_PATH_MESSAGE);
+            }
+
+            Files.copy(file.getInputStream(), destination, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+            String modelUrl = "/api/files/models-3d/" + safeUuid + "/" + safeUuid + extension;
+            logger.info("3D model uploaded: {}", destination);
+
+            return ResponseEntity.ok(ApiResponse.success(
+                    "3D model uploaded successfully.",
+                    Map.of(
+                            "model3dPath", safeUuid,
+                            "model3dUrl", modelUrl
+                    )
+            ));
+
+        } catch (IllegalArgumentException e) {
+            return badRequest(e.getMessage());
+        } catch (Exception e) {
+            logger.error("Error uploading 3D model: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().body(ApiResponse.error("3D model upload failed."));
+        }
+    }
+
+    @GetMapping("/models-3d/{folder}/{filename:.+}")
+    public ResponseEntity<Resource> serveModel3D(
+            @PathVariable String folder,
+            @PathVariable String filename
+    ) {
+        try {
+            Path modelsRoot = getModel3DRootLocation();
+            Path file = modelsRoot.resolve(folder).resolve(filename).normalize();
+            return serveFrom(file, modelsRoot);
+        } catch (Exception e) {
+            logger.error("Error processing 3D model path: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
         }
     }
 

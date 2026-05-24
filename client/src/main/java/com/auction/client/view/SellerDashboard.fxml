@@ -257,17 +257,27 @@
                         </VBox>
                     </HBox>
 
-                    <VBox spacing="8">
-                        <Label text="Product Image" style="-fx-font-weight: bold; -fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
-                        <!-- Drag and Drop Area -->
-                        <VBox fx:id="imageUploadArea" alignment="CENTER" spacing="8" style="-fx-border-color: -app-border; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 32px; -fx-cursor: hand; -fx-background-color: transparent;">
-                            <FontIcon iconLiteral="mdi2c-cloud-upload" iconSize="36" iconColor="#907898"/>
-                            <Label text="Click or drag to upload" style="-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: -app-text-muted;"/>
-                            <Label fx:id="lblImageFileName" text="" style="-fx-font-size: 11px; -fx-text-fill: #a02070;"/>
+                    <HBox spacing="16">
+                        <VBox spacing="8" HBox.hgrow="ALWAYS" prefWidth="250">
+                            <Label text="Product Image" style="-fx-font-weight: bold; -fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
+                            <VBox fx:id="imageUploadArea" alignment="CENTER" spacing="8" style="-fx-border-color: -app-border; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 24px; -fx-cursor: hand; -fx-background-color: transparent; -fx-min-height: 120px;">
+                                <FontIcon iconLiteral="mdi2c-cloud-upload" iconSize="36" iconColor="#907898"/>
+                                <Label text="Click or drag image" style="-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: -app-text-muted;"/>
+                                <Label fx:id="lblImageFileName" text="" style="-fx-font-size: 11px; -fx-text-fill: #a02070;"/>
+                            </VBox>
+                            <TextField fx:id="imageUrlField" visible="false" managed="false" />
                         </VBox>
-                        <!-- Hidden text field for storing the URL internally if needed -->
-                        <TextField fx:id="imageUrlField" visible="false" managed="false" />
-                    </VBox>
+
+                        <VBox spacing="8" HBox.hgrow="ALWAYS" prefWidth="250">
+                            <Label text="3D Model (Optional)" style="-fx-font-weight: bold; -fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
+                            <VBox fx:id="modelUploadArea" alignment="CENTER" spacing="8" style="-fx-border-color: -app-border; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 24px; -fx-cursor: hand; -fx-background-color: transparent; -fx-min-height: 120px;">
+                                <FontIcon iconLiteral="mdi2c-cube-outline" iconSize="36" iconColor="#907898"/>
+                                <Label text="Click or drag .glb" style="-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: -app-text-muted;"/>
+                                <Label fx:id="lblModelFileName" text="" style="-fx-font-size: 11px; -fx-text-fill: #a02070;"/>
+                            </VBox>
+                            <TextField fx:id="modelUrlField" visible="false" managed="false" />
+                        </VBox>
+                    </HBox>
                     
                     <VBox spacing="8">
                         <Label text="Description" style="-fx-font-weight: bold; -fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>

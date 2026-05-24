@@ -1,6 +1,7 @@
 package com.auction.client.controller;
 
 import com.auction.client.Config;
+import com.auction.client.util.GltfImporterJFX;
 import com.auction.client.model.User;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -17,6 +18,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.Node;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,6 +81,11 @@ public class AuctionPageController {
     @FXML private Label remainingTimeLabel;
     @FXML private Label startPriceLabel;
     @FXML private ImageView productImageView;
+    @FXML private Button btnToggle3D;
+    @FXML private StackPane model3DContainer;
+
+    private boolean is3DMode = false;
+    private String currentModelUrl;
     @FXML private SidebarController sidebarController;
     @FXML private VBox sideBar;
 
@@ -1151,6 +1158,9 @@ public class AuctionPageController {
     }
 
     private void loadProductImage(String imagePath) {
+        reset3DMode();
+        check3DModelExists(buildModelUrlFromImagePath(imagePath));
+
         String imageUrl = buildImageUrl(imagePath);
 
         if (imageUrl.isBlank()) {
@@ -1169,6 +1179,120 @@ public class AuctionPageController {
         } catch (Exception e) {
             logger.error("Error loading product image from {}", imageUrl, e);
         }
+    }
+
+    private void reset3DMode() {
+        is3DMode = false;
+        currentModelUrl = null;
+
+        if (productImageView != null) {
+            productImageView.setVisible(true);
+            productImageView.setManaged(true);
+        }
+
+        if (model3DContainer != null) {
+            model3DContainer.setVisible(false);
+            model3DContainer.setManaged(false);
+            model3DContainer.getChildren().clear();
+        }
+
+        if (btnToggle3D != null) {
+            btnToggle3D.setVisible(false);
+            btnToggle3D.setManaged(false);
+            btnToggle3D.setText("");
+        }
+    }
+
+    private String buildModelUrlFromImagePath(String imagePath) {
+        String uuid = extractUuid(imagePath);
+        if (uuid == null || uuid.isBlank()) {
+            return "";
+        }
+        return Config.API_URL + "/api/files/models-3d/" + uuid + "/" + uuid + ".glb";
+    }
+
+    private String extractUuid(String path) {
+        if (path == null || path.isBlank()) {
+            return null;
+        }
+        java.util.regex.Pattern uuidPattern = java.util.regex.Pattern.compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
+        java.util.regex.Matcher matcher = uuidPattern.matcher(path);
+        return matcher.find() ? matcher.group() : null;
+    }
+
+    private void check3DModelExists(String modelUrl) {
+        currentModelUrl = modelUrl;
+
+        if (btnToggle3D != null) {
+            btnToggle3D.setVisible(false);
+            btnToggle3D.setManaged(false);
+        }
+
+        if (modelUrl == null || modelUrl.isBlank()) {
+            return;
+        }
+
+        Thread checker = new Thread(() -> {
+            try {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(modelUrl))
+                        .method("HEAD", HttpRequest.BodyPublishers.noBody())
+                        .timeout(Duration.ofSeconds(3))
+                        .build();
+                HttpResponse<Void> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.discarding());
+                boolean exists = response.statusCode() >= 200 && response.statusCode() < 300;
+                Platform.runLater(() -> {
+                    if (exists && modelUrl.equals(currentModelUrl) && btnToggle3D != null) {
+                        btnToggle3D.setVisible(true);
+                        btnToggle3D.setManaged(true);
+                    }
+                });
+            } catch (Exception e) {
+                logger.debug("No 3D model available at {}: {}", modelUrl, e.getMessage());
+            }
+        });
+        checker.setDaemon(true);
+        checker.start();
+    }
+
+    @FXML
+    private void handleToggle3D(ActionEvent event) {
+        if (currentModelUrl == null || currentModelUrl.isBlank() || model3DContainer == null) {
+            return;
+        }
+
+        is3DMode = !is3DMode;
+
+        if (productImageView != null) {
+            productImageView.setVisible(!is3DMode);
+            productImageView.setManaged(!is3DMode);
+        }
+
+        model3DContainer.setVisible(is3DMode);
+        model3DContainer.setManaged(is3DMode);
+
+        if (!is3DMode) {
+            return;
+        }
+
+        if (!model3DContainer.getChildren().isEmpty()) {
+            return;
+        }
+
+        Label loadingLabel = new Label("Loading 3D model...");
+        loadingLabel.setStyle("-fx-text-fill: -app-text; -fx-font-weight: bold;");
+        model3DContainer.getChildren().setAll(loadingLabel);
+
+        Thread loader = new Thread(() -> {
+            Node node3D = GltfImporterJFX.load(currentModelUrl);
+            Platform.runLater(() -> {
+                if (is3DMode && model3DContainer != null) {
+                    model3DContainer.getChildren().setAll(node3D);
+                }
+            });
+        });
+        loader.setDaemon(true);
+        loader.start();
     }
 
     private BigDecimal getEffectiveStepPrice() {
