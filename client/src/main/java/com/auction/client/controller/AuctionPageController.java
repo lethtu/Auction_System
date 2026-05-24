@@ -1,6 +1,7 @@
 package com.auction.client.controller;
 
 import com.auction.client.Config;
+import com.auction.client.util.CacheManager;
 import com.auction.client.util.GltfImporterJFX;
 import com.auction.client.model.User;
 import javafx.animation.KeyFrame;
@@ -39,6 +40,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.time.Duration;
@@ -86,6 +88,7 @@ public class AuctionPageController {
 
     private boolean is3DMode = false;
     private String currentModelUrl;
+    private String currentModelUuid;
     @FXML private SidebarController sidebarController;
     @FXML private VBox sideBar;
 
@@ -1169,13 +1172,19 @@ public class AuctionPageController {
         }
 
         try {
-            Image image = new Image(imageUrl, true);
-            image.errorProperty().addListener((obs, wasError, isError) -> {
-                if (isError) {
-                    logger.warn("Could not load product image from {}", imageUrl);
+            Image image = CacheManager.getCachedImage(imageUrl, updatedImage -> {
+                if (updatedImage != null && productImageView != null && imageUrl.equals(buildImageUrl(imagePath))) {
+                    productImageView.setImage(updatedImage);
                 }
             });
-            productImageView.setImage(image);
+            if (image != null) {
+                image.errorProperty().addListener((obs, wasError, isError) -> {
+                    if (isError) {
+                        logger.warn("Could not load product image from {}", imageUrl);
+                    }
+                });
+                productImageView.setImage(image);
+            }
         } catch (Exception e) {
             logger.error("Error loading product image from {}", imageUrl, e);
         }
@@ -1184,6 +1193,7 @@ public class AuctionPageController {
     private void reset3DMode() {
         is3DMode = false;
         currentModelUrl = null;
+        currentModelUuid = null;
 
         if (productImageView != null) {
             productImageView.setVisible(true);
@@ -1222,6 +1232,7 @@ public class AuctionPageController {
 
     private void check3DModelExists(String modelUrl) {
         currentModelUrl = modelUrl;
+        currentModelUuid = extractUuid(modelUrl);
 
         if (btnToggle3D != null) {
             btnToggle3D.setVisible(false);
@@ -1283,10 +1294,17 @@ public class AuctionPageController {
         loadingLabel.setStyle("-fx-text-fill: -app-text; -fx-font-weight: bold;");
         model3DContainer.getChildren().setAll(loadingLabel);
 
+        String modelUrl = currentModelUrl;
+        String modelUuid = currentModelUuid;
+
         Thread loader = new Thread(() -> {
-            Node node3D = GltfImporterJFX.load(currentModelUrl);
+            Path cachedModel = CacheManager.getCachedModel(modelUrl, modelUuid, () ->
+                    logger.debug("3D model cache updated for {}", modelUrl)
+            );
+            String modelSource = cachedModel != null ? cachedModel.toUri().toString() : modelUrl;
+            Node node3D = GltfImporterJFX.load(modelSource);
             Platform.runLater(() -> {
-                if (is3DMode && model3DContainer != null) {
+                if (is3DMode && model3DContainer != null && modelUrl.equals(currentModelUrl)) {
                     model3DContainer.getChildren().setAll(node3D);
                 }
             });
