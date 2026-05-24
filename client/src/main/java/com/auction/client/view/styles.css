@@ -4082,3 +4082,11 @@
     -fx-border-width: 2;
 }
 /* === END SAFE PATCH: unify shell border with seller dashboard === */
+
+.model-3d-overlay {
+    -fx-background-color: linear-gradient(to bottom, #fff5fa 0%, #f5e2f5 100%);
+    -fx-background-radius: 32;
+    -fx-border-color: rgba(224, 64, 160, 0.15);
+    -fx-border-width: 1;
+    -fx-border-radius: 32;
+}

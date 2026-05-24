@@ -25,6 +25,9 @@ import com.auction.client.model.notification.AppNotification;
 import com.auction.client.model.notification.NotificationType;
 import com.auction.client.model.notification.NotificationSeverity;
 import com.auction.client.service.NotificationCenterService;
+import com.auction.client.util.GltfImporterJFX;
+import com.auction.client.util.CacheManager;
+import javafx.scene.Node;
 
 import java.io.BufferedReader;
 import java.io.EOFException;
@@ -34,6 +37,9 @@ import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.net.Socket;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -79,6 +85,11 @@ public class AuctionPageController {
     @FXML private Label remainingTimeLabel;
     @FXML private Label startPriceLabel;
     @FXML private ImageView productImageView;
+    @FXML private Button btnToggle3D;
+    @FXML private StackPane model3DContainer;
+    private boolean is3DMode = false;
+    private String itemUuid = null;
+    private String productImagePath = null;
     @FXML private SidebarController sidebarController;
     @FXML private VBox sideBar;
 
@@ -1117,6 +1128,34 @@ public class AuctionPageController {
         productNameLabel.setText(productName);
         updateDescription(description);
         loadProductImage(imagePath);
+
+        // Reset and check 3D Mode
+        this.productImagePath = imagePath;
+        this.itemUuid = extractUuid(imagePath);
+        this.is3DMode = false;
+        if (model3DContainer != null) {
+            model3DContainer.setVisible(false);
+            model3DContainer.setManaged(false);
+            model3DContainer.getChildren().clear();
+        }
+        if (productImageView != null) {
+            productImageView.setVisible(true);
+            productImageView.setManaged(true);
+        }
+        if (btnToggle3D != null) {
+            btnToggle3D.setVisible(false);
+            btnToggle3D.setManaged(false);
+            if (btnToggle3D.getGraphic() instanceof javafx.scene.layout.HBox) {
+                javafx.scene.layout.HBox hbox = (javafx.scene.layout.HBox) btnToggle3D.getGraphic();
+                if (hbox.getChildren().size() >= 2 && hbox.getChildren().get(0) instanceof Label && hbox.getChildren().get(1) instanceof Label) {
+                    Label iconLabel = (Label) hbox.getChildren().get(0);
+                    Label textLabel = (Label) hbox.getChildren().get(1);
+                    iconLabel.setText("\uE0B4"); // 3d_rotation
+                    textLabel.setText("3D VIEW");
+                }
+            }
+        }
+        check3DModelExists(resolveModelUrl(imagePath));
     }
 
     private void updatePriceLabels() {
@@ -1138,10 +1177,9 @@ public class AuctionPageController {
         }
 
         try {
-            Image image = new Image(imageUrl, true);
-            image.errorProperty().addListener((obs, wasError, isError) -> {
-                if (isError) {
-                    logger.warn("Could not load product image from {}", imageUrl);
+            Image image = CacheManager.getCachedImage(imageUrl, newImg -> {
+                if (productImageView != null && !is3DMode) {
+                    productImageView.setImage(newImg);
                 }
             });
             productImageView.setImage(image);
@@ -1777,5 +1815,214 @@ public class AuctionPageController {
     @FXML
     private void handleClose(javafx.event.ActionEvent event) {
         SceneSwitcher.handleClose(event);
+    }
+
+    private String extractUuid(String path) {
+        if (path == null || path.isBlank()) return null;
+        java.util.regex.Pattern uuidPattern = java.util.regex.Pattern.compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
+        java.util.regex.Matcher matcher = uuidPattern.matcher(path);
+        return matcher.find() ? matcher.group() : null;
+    }
+
+    private String getCloudName(String cloudinaryUrl) {
+        if (cloudinaryUrl == null || !cloudinaryUrl.contains("cloudinary.com")) {
+            return null;
+        }
+        try {
+            String prefix = "cloudinary.com/";
+            int index = cloudinaryUrl.indexOf(prefix);
+            if (index >= 0) {
+                String sub = cloudinaryUrl.substring(index + prefix.length());
+                int slashIndex = sub.indexOf("/");
+                if (slashIndex > 0) {
+                    return sub.substring(0, slashIndex);
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to extract Cloudinary cloud name: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    private String resolveModelUrl(String imagePath) {
+        String uuid = extractUuid(imagePath);
+        if (uuid == null || uuid.isBlank()) {
+            return null;
+        }
+
+        String cloudName = getCloudName(imagePath);
+        if (cloudName != null && !cloudName.isBlank()) {
+            return "https://res.cloudinary.com/" + cloudName + "/raw/upload/auction_system/items/models_3d/" + uuid;
+        }
+
+        return Config.API_URL + "/api/files/models-3d/" + uuid + "/" + uuid + ".glb";
+    }
+
+    private void reload3DModel() {
+        if (model3DContainer == null) return;
+        String modelUrl = resolveModelUrl(this.productImagePath);
+        if (modelUrl == null || modelUrl.isBlank() || itemUuid == null || itemUuid.isBlank()) {
+            return;
+        }
+        try {
+            Path cachedFile = Paths.get(Config.CACHE_3D_DIR, itemUuid + ".glb");
+            if (Files.exists(cachedFile)) {
+                logger.info("Reloading 3D model from updated cache: {}", cachedFile.toAbsolutePath());
+                byte[] bytes = Files.readAllBytes(cachedFile);
+                Node node3D = GltfImporterJFX.loadFromBytes(bytes, modelUrl);
+                Platform.runLater(() -> {
+                    model3DContainer.getChildren().clear();
+                    model3DContainer.getChildren().add(node3D);
+                });
+            }
+        } catch (Exception e) {
+            logger.error("Failed to reload 3D model", e);
+        }
+    }
+
+    private void check3DModelExists(String modelUrl) {
+        if (modelUrl == null || modelUrl.isBlank() || itemUuid == null || itemUuid.isBlank()) {
+            Platform.runLater(() -> {
+                if (btnToggle3D != null) {
+                    btnToggle3D.setVisible(false);
+                    btnToggle3D.setManaged(false);
+                }
+            });
+            return;
+        }
+
+        Path cachedFile = CacheManager.getCachedModel(modelUrl, itemUuid, () -> {
+            Platform.runLater(() -> {
+                if (btnToggle3D != null) {
+                    btnToggle3D.setVisible(true);
+                    btnToggle3D.setManaged(true);
+                }
+                if (is3DMode) {
+                    reload3DModel();
+                }
+            });
+        });
+
+        if (cachedFile != null) {
+            Platform.runLater(() -> {
+                if (btnToggle3D != null) {
+                    btnToggle3D.setVisible(true);
+                    btnToggle3D.setManaged(true);
+                }
+            });
+        } else {
+            // Check remote availability to show the 3D button
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(modelUrl))
+                    .method("HEAD", HttpRequest.BodyPublishers.noBody())
+                    .timeout(java.time.Duration.ofSeconds(3))
+                    .build();
+
+            client.sendAsync(request, HttpResponse.BodyHandlers.discarding())
+                    .thenAccept(response -> {
+                        boolean exists = response.statusCode() == 200;
+                        Platform.runLater(() -> {
+                            if (btnToggle3D != null) {
+                                btnToggle3D.setVisible(exists);
+                                btnToggle3D.setManaged(exists);
+                            }
+                        });
+                    })
+                    .exceptionally(ex -> {
+                        Platform.runLater(() -> {
+                            if (btnToggle3D != null) {
+                                btnToggle3D.setVisible(false);
+                                btnToggle3D.setManaged(false);
+                            }
+                        });
+                        return null;
+                    });
+        }
+    }
+
+    @FXML
+    private void handleToggle3D(ActionEvent event) {
+        String modelUrl = resolveModelUrl(this.productImagePath);
+        if (modelUrl == null || modelUrl.isBlank() || itemUuid == null || itemUuid.isBlank()) {
+            return;
+        }
+
+        is3DMode = !is3DMode;
+        
+        if (is3DMode) {
+            if (productImageView != null) {
+                productImageView.setVisible(false);
+                productImageView.setManaged(false);
+            }
+            if (model3DContainer != null) {
+                model3DContainer.setVisible(true);
+                model3DContainer.setManaged(true);
+                
+                if (model3DContainer.getChildren().isEmpty()) {
+                    try {
+                        Path cachedFile = Paths.get(Config.CACHE_3D_DIR, itemUuid + ".glb");
+                        Node node3D;
+                        if (Files.exists(cachedFile)) {
+                            byte[] bytes = Files.readAllBytes(cachedFile);
+                            node3D = GltfImporterJFX.loadFromBytes(bytes, modelUrl);
+                        } else {
+                            node3D = GltfImporterJFX.load(modelUrl);
+                        }
+                        model3DContainer.getChildren().add(node3D);
+                    } catch (Exception e) {
+                        logger.error("Failed to load 3D model from " + modelUrl, e);
+                        showError("Failed to load 3D model.");
+                    }
+                } else {
+                    // Reset 3D view state (angles and zoom) to initial values when entering 3D view again
+                    try {
+                        Node node3D = model3DContainer.getChildren().get(0);
+                        if (node3D instanceof javafx.scene.SubScene) {
+                            javafx.scene.SubScene subScene = (javafx.scene.SubScene) node3D;
+                            javafx.scene.transform.Rotate rx = (javafx.scene.transform.Rotate) subScene.getProperties().get("rx");
+                            javafx.scene.transform.Rotate ry = (javafx.scene.transform.Rotate) subScene.getProperties().get("ry");
+                            javafx.scene.transform.Translate cameraTranslate = (javafx.scene.transform.Translate) subScene.getProperties().get("cameraTranslate");
+                            if (rx != null) rx.setAngle(0);
+                            if (ry != null) ry.setAngle(0);
+                            if (cameraTranslate != null) cameraTranslate.setZ(-315);
+                        }
+                    } catch (Exception e) {
+                        logger.warn("Failed to reset 3D view state", e);
+                    }
+                }
+            }
+            if (btnToggle3D != null) {
+                if (btnToggle3D.getGraphic() instanceof javafx.scene.layout.HBox) {
+                    javafx.scene.layout.HBox hbox = (javafx.scene.layout.HBox) btnToggle3D.getGraphic();
+                    if (hbox.getChildren().size() >= 2 && hbox.getChildren().get(0) instanceof Label && hbox.getChildren().get(1) instanceof Label) {
+                        Label iconLabel = (Label) hbox.getChildren().get(0);
+                        Label textLabel = (Label) hbox.getChildren().get(1);
+                        iconLabel.setText("\uE3F4"); // image/photo icon
+                        textLabel.setText("2D VIEW");
+                    }
+                }
+            }
+        } else {
+            if (model3DContainer != null) {
+                model3DContainer.setVisible(false);
+                model3DContainer.setManaged(false);
+            }
+            if (productImageView != null) {
+                productImageView.setVisible(true);
+                productImageView.setManaged(true);
+            }
+            if (btnToggle3D != null) {
+                if (btnToggle3D.getGraphic() instanceof javafx.scene.layout.HBox) {
+                    javafx.scene.layout.HBox hbox = (javafx.scene.layout.HBox) btnToggle3D.getGraphic();
+                    if (hbox.getChildren().size() >= 2 && hbox.getChildren().get(0) instanceof Label && hbox.getChildren().get(1) instanceof Label) {
+                        Label iconLabel = (Label) hbox.getChildren().get(0);
+                        Label textLabel = (Label) hbox.getChildren().get(1);
+                        iconLabel.setText("\uE0B4"); // 3d_rotation
+                        textLabel.setText("3D VIEW");
+                    }
+                }
+            }
+        }
     }
 }

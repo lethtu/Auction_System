@@ -77,6 +77,12 @@ public class SellerDashboardController {
     @FXML
     private Label lblImageFileName;
     @FXML
+    private VBox modelUploadArea;
+    @FXML
+    private Label lblModelFileName;
+    @FXML
+    private TextField modelUrlField;
+    @FXML
     private DatePicker datePickerStart;
     @FXML
     private TextField txtStartDay;
@@ -165,6 +171,7 @@ public class SellerDashboardController {
 
         setupTable();
         setupImageUpload();
+        setupModelUpload();
         setupSplitDatetimePickers();
 
         if (topbarController != null) {
@@ -268,14 +275,14 @@ public class SellerDashboardController {
             if (event.getGestureSource() != imageUploadArea && event.getDragboard().hasFiles()) {
                 event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
                 imageUploadArea.setStyle(
-                        "-fx-border-color: #e040a0; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 32px; -fx-cursor: hand; -fx-background-color: #ffd6ee;");
+                        "-fx-border-color: #e040a0; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 24px; -fx-cursor: hand; -fx-background-color: #ffd6ee;");
             }
             event.consume();
         });
 
         imageUploadArea.setOnDragExited(event -> {
             imageUploadArea.setStyle(
-                    "-fx-border-color: #dcc8e0; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 32px; -fx-cursor: hand; -fx-background-color: transparent;");
+                    "-fx-border-color: #dcc8e0; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 24px; -fx-cursor: hand; -fx-background-color: transparent;");
             event.consume();
         });
 
@@ -302,6 +309,56 @@ public class SellerDashboardController {
             if (selectedFile != null) {
                 imageUrlField.setText(selectedFile.getAbsolutePath());
                 lblImageFileName.setText(selectedFile.getName());
+            }
+        });
+    }
+
+    private void setupModelUpload() {
+        if (modelUploadArea == null)
+            return;
+
+        modelUploadArea.setOnDragOver(event -> {
+            if (event.getGestureSource() != modelUploadArea && event.getDragboard().hasFiles()) {
+                event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
+                modelUploadArea.setStyle(
+                        "-fx-border-color: #e040a0; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 24px; -fx-cursor: hand; -fx-background-color: #ffd6ee;");
+            }
+            event.consume();
+        });
+
+        modelUploadArea.setOnDragExited(event -> {
+            modelUploadArea.setStyle(
+                    "-fx-border-color: #dcc8e0; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 24px; -fx-cursor: hand; -fx-background-color: transparent;");
+            event.consume();
+        });
+
+        modelUploadArea.setOnDragDropped(event -> {
+            Dragboard db = event.getDragboard();
+            boolean success = false;
+            if (db.hasFiles()) {
+                File file = db.getFiles().get(0);
+                String name = file.getName().toLowerCase();
+                if (name.endsWith(".glb") || name.endsWith(".gltf") || name.endsWith(".obj")) {
+                    modelUrlField.setText(file.getAbsolutePath());
+                    lblModelFileName.setText(file.getName());
+                    success = true;
+                } else {
+                    showAlert(Alert.AlertType.WARNING, "Invalid File Type", "Please upload a 3D file (.glb, .gltf, .obj).");
+                }
+            }
+            event.setDropCompleted(success);
+            event.consume();
+        });
+
+        modelUploadArea.setOnMouseClicked(event -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Select 3D Model File");
+            fileChooser.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter("3D Files", "*.glb", "*.gltf", "*.obj"));
+            File selectedFile = fileChooser.showOpenDialog(modelUploadArea.getScene().getWindow());
+            if (selectedFile != null) {
+                modelUrlField.setText(selectedFile.getAbsolutePath());
+                lblModelFileName.setText(selectedFile.getName());
             }
         });
     }
@@ -633,6 +690,16 @@ public class SellerDashboardController {
                 lblImageFileName.setText("");
             }
         }
+        if (lblModelFileName != null) {
+            String uuid = extractUuid(item.imageUrl);
+            if (uuid != null && !uuid.isEmpty()) {
+                modelUrlField.setText("/api/files/models-3d/" + uuid + "/" + uuid + ".glb");
+                lblModelFileName.setText("Model Loaded (" + uuid + ".glb)");
+            } else {
+                modelUrlField.clear();
+                lblModelFileName.setText("");
+            }
+        }
         descriptionArea.setText(item.description);
         startingPriceField.setText(item.startingPrice != null ? item.startingPrice.toString() : "0");
         if (reservePriceField != null) {
@@ -740,6 +807,11 @@ public class SellerDashboardController {
         String productType = productTypeCombo.getValue();
         String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField));
         if (imageUrl == null) {
+            return;
+        }
+        String uuid = extractUuid(imageUrl);
+        String modelUrl = prepareModelPathForSave(productNameOrEmpty(modelUrlField), uuid);
+        if (modelUrl == null) {
             return;
         }
         String description = productNameOrEmpty(descriptionArea);
@@ -1005,6 +1077,11 @@ public class SellerDashboardController {
         if (imageUrl == null) {
             return;
         }
+        String uuid = extractUuid(imageUrl);
+        String modelUrl = prepareModelPathForSave(productNameOrEmpty(modelUrlField), uuid != null ? uuid : existingUuid);
+        if (modelUrl == null) {
+            return;
+        }
         String description = productNameOrEmpty(descriptionArea);
         String startingPriceText = productNameOrEmpty(startingPriceField);
 
@@ -1267,6 +1344,11 @@ public class SellerDashboardController {
         String existingUuid = (editingSession != null) ? extractUuid(editingSession.imageUrl) : null;
         String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField), existingUuid);
         if (imageUrl == null) {
+            return;
+        }
+        String uuid = extractUuid(imageUrl);
+        String modelUrl = prepareModelPathForSave(productNameOrEmpty(modelUrlField), uuid != null ? uuid : existingUuid);
+        if (modelUrl == null) {
             return;
         }
         String description = productNameOrEmpty(descriptionArea);
@@ -1576,6 +1658,11 @@ public class SellerDashboardController {
         String productType = productTypeCombo.getValue();
         String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField));
         if (imageUrl == null) {
+            return;
+        }
+        String uuid = extractUuid(imageUrl);
+        String modelUrl = prepareModelPathForSave(productNameOrEmpty(modelUrlField), uuid);
+        if (modelUrl == null) {
             return;
         }
         String description = productNameOrEmpty(descriptionArea);
@@ -2143,12 +2230,15 @@ public class SellerDashboardController {
     private void clearForm() {
         productNameField.clear();
         imageUrlField.clear();
+        modelUrlField.clear();
         descriptionArea.clear();
         if (reservePriceField != null)
             reservePriceField.clear();
         startingPriceField.clear();
         if (lblImageFileName != null)
             lblImageFileName.setText("");
+        if (lblModelFileName != null)
+            lblModelFileName.setText("");
 
         if (startingPriceField != null)
             startingPriceField.setDisable(false);
@@ -2362,6 +2452,46 @@ public class SellerDashboardController {
         }
 
         return normalizeImagePathForStorage(path);
+    }
+
+    private String prepareModelPathForSave(String rawPath, String uuid) {
+        if (rawPath == null || rawPath.isBlank()) {
+            return "";
+        }
+
+        String path = rawPath.trim();
+        File localModel = toExistingLocalFile(path);
+        if (localModel != null) {
+            try {
+                return uploadProductModel3D(localModel, uuid);
+            } catch (Exception e) {
+                logger.error("Cannot upload 3D model: {}", e.getMessage(), e);
+                showAlert(Alert.AlertType.ERROR, "Model Upload Error", "Cannot upload 3D model to the server.");
+                return null;
+            }
+        }
+
+        return path;
+    }
+
+    private String uploadProductModel3D(File modelFile, String existingUuid) throws Exception {
+        String uploadPath = "/api/files/models-3d" + (existingUuid != null ? "?uuid=" + existingUuid : "");
+        HttpResponse<String> response = HttpRequestUtil.uploadImage(Config.API_URL, uploadPath, modelFile);
+        if (response.statusCode() < 200 || response.statusCode() >= 300) {
+            throw new IOException("3D model upload failed with status " + response.statusCode());
+        }
+
+        JSONObject obj = new JSONObject(response.body());
+        JSONObject data = obj.optJSONObject("data");
+        String model3dPath = data != null ? data.optString("model3dPath", "") : obj.optString("model3dPath", "");
+        if (model3dPath.isBlank()) {
+            throw new IOException("3D model upload response did not contain model3dPath.");
+        }
+
+        // Trigger cache buster to immediately reflect the new 3D model across all views
+        Config.triggerImageCacheBuster();
+
+        return model3dPath;
     }
 
     private File toExistingLocalFile(String rawPath) {

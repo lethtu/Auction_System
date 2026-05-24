@@ -9,6 +9,9 @@ public class Config {
     public static final Integer Width = 1000;
     public static final Integer PORT_SOCKET = 8081;
 
+    public static final String CACHE_3D_DIR = "client/cache/models";
+    public static final String CACHE_IMAGES_DIR = "client/cache/images";
+
     // Cache buster for images to bypass JavaFX internal cache when images are updated
     public static volatile long imageCacheBuster = System.currentTimeMillis();
 

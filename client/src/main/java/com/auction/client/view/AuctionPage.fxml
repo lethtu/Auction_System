@@ -115,6 +115,7 @@
                                                                         <VBox alignment="CENTER" spacing="0.0" style="-fx-background-color: #f8eef8; -fx-background-radius: 32; -fx-overflow: hidden;">
                                                                             <children>
                                                                                 <ImageView fx:id="productImageView" fitHeight="400.0" fitWidth="550.0" preserveRatio="true" />
+                                                                                <StackPane fx:id="model3DContainer" visible="false" managed="false" alignment="CENTER" prefHeight="400.0" prefWidth="550.0" styleClass="model-3d-overlay" />
                                                                             </children>
                                                                         </VBox>
                                                                         
@@ -128,6 +129,17 @@
                                                                                 </HBox>
                                                                             </children>
                                                                         </HBox>
+                                                                        
+                                                                        <Button fx:id="btnToggle3D" onAction="#handleToggle3D" visible="false" managed="false" StackPane.alignment="TOP_RIGHT" style="-fx-background-color: rgba(255, 255, 255, 0.9); -fx-text-fill: #e040a0; -fx-background-radius: 999; -fx-padding: 6 14; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.3), 10, 0, 0, 4); -fx-border-color: #e040a0; -fx-border-width: 1.5; -fx-border-radius: 999; -fx-translate-x: -12; -fx-translate-y: 12;">
+                                                                            <graphic>
+                                                                                <HBox alignment="CENTER" spacing="6.0">
+                                                                                    <children>
+                                                                                        <Label text="&#xe0b4;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 14px; -fx-text-fill: #e040a0;" />
+                                                                                        <Label text="3D VIEW" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: #e040a0;" />
+                                                                                    </children>
+                                                                                </HBox>
+                                                                            </graphic>
+                                                                        </Button>
                                                                     </children>
                                                                 </StackPane>
                                                                 
