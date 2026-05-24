@@ -1132,3 +1132,59 @@
     -fx-underline: true !important;
 }
 /* === PHASE X11 TERMS INLINE LABEL END === */
+/* === PHASE X14 KEEP SIGNED IN ACCENT FIX START === */
+/* Final override: keep the login remember pill synced with the selected accent. */
+.auth-root.accent-pink #rememberMeCheckBox,
+.auth-root.accent-pink .auth-remember-check { -fx-accent: #e040a0 !important; }
+.auth-root.accent-purple #rememberMeCheckBox,
+.auth-root.accent-purple .auth-remember-check { -fx-accent: #8b5cf6 !important; }
+.auth-root.accent-emerald #rememberMeCheckBox,
+.auth-root.accent-emerald .auth-remember-check { -fx-accent: #10b981 !important; }
+.auth-root.accent-blue #rememberMeCheckBox,
+.auth-root.accent-blue .auth-remember-check { -fx-accent: #3b82f6 !important; }
+.auth-root.accent-orange #rememberMeCheckBox,
+.auth-root.accent-orange .auth-remember-check { -fx-accent: #f97316 !important; }
+
+.auth-root.accent-pink #rememberMeCheckBox:hover,
+.auth-root.accent-pink .auth-remember-check:hover,
+.auth-root.accent-pink #rememberMeCheckBox:selected,
+.auth-root.accent-pink .auth-remember-check:selected { -fx-border-color: #e040a0 !important; -fx-text-fill: #ffffff !important; }
+.auth-root.accent-purple #rememberMeCheckBox:hover,
+.auth-root.accent-purple .auth-remember-check:hover,
+.auth-root.accent-purple #rememberMeCheckBox:selected,
+.auth-root.accent-purple .auth-remember-check:selected { -fx-border-color: #8b5cf6 !important; -fx-text-fill: #ffffff !important; }
+.auth-root.accent-emerald #rememberMeCheckBox:hover,
+.auth-root.accent-emerald .auth-remember-check:hover,
+.auth-root.accent-emerald #rememberMeCheckBox:selected,
+.auth-root.accent-emerald .auth-remember-check:selected { -fx-border-color: #10b981 !important; -fx-text-fill: #ffffff !important; }
+.auth-root.accent-blue #rememberMeCheckBox:hover,
+.auth-root.accent-blue .auth-remember-check:hover,
+.auth-root.accent-blue #rememberMeCheckBox:selected,
+.auth-root.accent-blue .auth-remember-check:selected { -fx-border-color: #3b82f6 !important; -fx-text-fill: #ffffff !important; }
+.auth-root.accent-orange #rememberMeCheckBox:hover,
+.auth-root.accent-orange .auth-remember-check:hover,
+.auth-root.accent-orange #rememberMeCheckBox:selected,
+.auth-root.accent-orange .auth-remember-check:selected { -fx-border-color: #f97316 !important; -fx-text-fill: #ffffff !important; }
+
+.auth-root.theme-dark.accent-pink #rememberMeCheckBox:selected,
+.auth-root.theme-dark.accent-pink .auth-remember-check:selected { -fx-background-color: rgba(224, 64, 160, 0.16) !important; }
+.auth-root.theme-dark.accent-purple #rememberMeCheckBox:selected,
+.auth-root.theme-dark.accent-purple .auth-remember-check:selected { -fx-background-color: rgba(139, 92, 246, 0.16) !important; }
+.auth-root.theme-dark.accent-emerald #rememberMeCheckBox:selected,
+.auth-root.theme-dark.accent-emerald .auth-remember-check:selected { -fx-background-color: rgba(16, 185, 129, 0.16) !important; }
+.auth-root.theme-dark.accent-blue #rememberMeCheckBox:selected,
+.auth-root.theme-dark.accent-blue .auth-remember-check:selected { -fx-background-color: rgba(59, 130, 246, 0.16) !important; }
+.auth-root.theme-dark.accent-orange #rememberMeCheckBox:selected,
+.auth-root.theme-dark.accent-orange .auth-remember-check:selected { -fx-background-color: rgba(249, 115, 22, 0.16) !important; }
+
+.auth-root.accent-pink #rememberMeCheckBox:selected > .box,
+.auth-root.accent-pink .auth-remember-check:selected > .box { -fx-background-color: #e040a0 !important; -fx-border-color: #e040a0 !important; }
+.auth-root.accent-purple #rememberMeCheckBox:selected > .box,
+.auth-root.accent-purple .auth-remember-check:selected > .box { -fx-background-color: #8b5cf6 !important; -fx-border-color: #8b5cf6 !important; }
+.auth-root.accent-emerald #rememberMeCheckBox:selected > .box,
+.auth-root.accent-emerald .auth-remember-check:selected > .box { -fx-background-color: #10b981 !important; -fx-border-color: #10b981 !important; }
+.auth-root.accent-blue #rememberMeCheckBox:selected > .box,
+.auth-root.accent-blue .auth-remember-check:selected > .box { -fx-background-color: #3b82f6 !important; -fx-border-color: #3b82f6 !important; }
+.auth-root.accent-orange #rememberMeCheckBox:selected > .box,
+.auth-root.accent-orange .auth-remember-check:selected > .box { -fx-background-color: #f97316 !important; -fx-border-color: #f97316 !important; }
+/* === PHASE X14 KEEP SIGNED IN ACCENT FIX END === */
