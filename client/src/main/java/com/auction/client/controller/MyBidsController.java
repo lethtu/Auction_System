@@ -47,7 +47,11 @@ import java.util.concurrent.TimeUnit;
 public class MyBidsController implements Initializable, SceneLifecycle {
     private static final Logger logger = LoggerFactory.getLogger(MyBidsController.class);
 
+    private static final int POLLING_INTERVAL_SECONDS = 8;
+    private static final Duration SEARCH_DEBOUNCE_DELAY = Duration.millis(180);
+
     private HttpClient client = HttpClient.newHttpClient();
+
 
     @FXML
     private ScrollPane scrollPane;
@@ -82,6 +86,9 @@ public class MyBidsController implements Initializable, SceneLifecycle {
     private final Map<String, Image> imageCache = new ConcurrentHashMap<>();
     private ScheduledExecutorService pollingScheduler;
     private final List<String> currentRenderedStates = new ArrayList<>();
+    private final PauseTransition searchDebounce = new PauseTransition(SEARCH_DEBOUNCE_DELAY);
+    private volatile String lastServerPayloadSignature = "";
+    private volatile boolean fetchInProgress;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -96,7 +103,8 @@ public class MyBidsController implements Initializable, SceneLifecycle {
 
         if (txtSearch != null) {
             txtSearch.setPromptText("Search your bids...");
-            txtSearch.textProperty().addListener((observable, oldValue, newValue) -> filterAndRenderProducts());
+            searchDebounce.setOnFinished(event -> filterAndRenderProducts());
+            txtSearch.textProperty().addListener((observable, oldValue, newValue) -> searchDebounce.playFromStart());
         }
 
         // Stable responsive spacing. Keep layout fixed across focus/click refreshes.
@@ -180,71 +188,73 @@ public class MyBidsController implements Initializable, SceneLifecycle {
             t.setDaemon(true);
             return t;
         });
-        pollingScheduler.scheduleAtFixedRate(this::fetchProductsData, 0, 5, TimeUnit.SECONDS);
+        pollingScheduler.scheduleAtFixedRate(this::fetchProductsData, 0, POLLING_INTERVAL_SECONDS, TimeUnit.SECONDS);
     }
 
     private void fetchProductsData() {
+        if (fetchInProgress) {
+            return;
+        }
+        fetchInProgress = true;
+
         try {
             Integer userId = User.getId();
             if (userId == null) {
-                logger.warn("[MyBids-DEBUG] userId is NULL, skipping fetch");
+                logger.debug("[MyBids] userId is null, skip fetch");
                 return;
             }
-            logger.info("[MyBids-DEBUG] Fetching my-bids for userId={}", userId);
+
             HttpRequest.Builder builder = HttpRequest.newBuilder()
                     .uri(URI.create(Config.API_URL + "/api/bidder/my-bids?bidderId=" + userId))
                     .GET();
             if (User.getSessionToken() != null) {
                 builder.header("X-Auth-Token", User.getSessionToken());
             }
-            HttpRequest request = builder.build();
 
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            logger.info("[MyBids-DEBUG] HTTP status={}, body length={}", response.statusCode(),
-                    response.body().length());
-            logger.info("[MyBids-DEBUG] Response body (first 500 chars): {}",
-                    response.body().substring(0, Math.min(500, response.body().length())));
+            HttpResponse<String> response = client.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+            String body = response.body() == null ? "" : response.body();
 
-            if (response.statusCode() == 200) {
-                JSONObject responseJson = new JSONObject(response.body());
-                int apiStatus = responseJson.getInt("status");
-                logger.info("[MyBids-DEBUG] API status={}", apiStatus);
-
-                if (apiStatus == 200) {
-                    Object dataObj = responseJson.get("data");
-                    logger.info("[MyBids-DEBUG] data type={}", dataObj.getClass().getSimpleName());
-                    JSONArray jsonArray = new JSONArray();
-
-                    if (dataObj instanceof JSONObject) {
-                        jsonArray = ((JSONObject) dataObj).getJSONArray("content");
-                    } else if (dataObj instanceof JSONArray) {
-                        jsonArray = (JSONArray) dataObj;
-                    }
-
-                    logger.info("[MyBids-DEBUG] jsonArray length={}", jsonArray.length());
-                    if (jsonArray.length() > 0) {
-                        logger.info("[MyBids-DEBUG] First item: {}", jsonArray.getJSONObject(0).toString().substring(0,
-                                Math.min(300, jsonArray.getJSONObject(0).toString().length())));
-                    }
-
-                    List<JSONObject> newProducts = new ArrayList<>();
-                    for (int i = 0; i < jsonArray.length(); i++) {
-                        newProducts.add(jsonArray.getJSONObject(i));
-                    }
-
-                    allProducts.clear();
-                    allProducts.addAll(newProducts);
-                    logger.info("[MyBids-DEBUG] allProducts size={}, currentTab={}", allProducts.size(), currentTab);
-
-                    Platform.runLater(this::filterAndRenderProducts);
-                } else {
-                    logger.warn("[MyBids-DEBUG] API returned non-200 status: {}", apiStatus);
-                }
-            } else {
-                logger.warn("[MyBids-DEBUG] HTTP returned non-200 status: {}", response.statusCode());
+            if (response.statusCode() != 200) {
+                logger.debug("[MyBids] HTTP status={}", response.statusCode());
+                return;
             }
+
+            JSONObject responseJson = new JSONObject(body);
+            int apiStatus = responseJson.optInt("status", response.statusCode());
+            if (apiStatus != 200) {
+                logger.debug("[MyBids] API status={}", apiStatus);
+                return;
+            }
+
+            String payloadSignature = response.statusCode() + ":" + body.hashCode();
+            if (payloadSignature.equals(lastServerPayloadSignature)) {
+                return;
+            }
+            lastServerPayloadSignature = payloadSignature;
+
+            Object dataObj = responseJson.get("data");
+            JSONArray jsonArray = new JSONArray();
+            if (dataObj instanceof JSONObject) {
+                jsonArray = ((JSONObject) dataObj).optJSONArray("content");
+                if (jsonArray == null) {
+                    jsonArray = new JSONArray();
+                }
+            } else if (dataObj instanceof JSONArray) {
+                jsonArray = (JSONArray) dataObj;
+            }
+
+            List<JSONObject> newProducts = new ArrayList<>();
+            for (int i = 0; i < jsonArray.length(); i++) {
+                newProducts.add(jsonArray.getJSONObject(i));
+            }
+
+            allProducts.clear();
+            allProducts.addAll(newProducts);
+            Platform.runLater(this::filterAndRenderProducts);
         } catch (Exception e) {
-            logger.error("Error loading products: {}", e.getMessage(), e);
+            logger.warn("Error loading products: {}", e.getMessage());
+        } finally {
+            fetchInProgress = false;
         }
     }
 
@@ -904,6 +914,8 @@ public class MyBidsController implements Initializable, SceneLifecycle {
     }
 
     private void stopMyBidsBackgroundWork() {
+        searchDebounce.stop();
+        fetchInProgress = false;
         if (pollingScheduler != null) {
             pollingScheduler.shutdownNow();
             pollingScheduler = null;
