@@ -123,6 +123,7 @@ public class SceneSwitcher {
         Parent root;
         try {
             root = loader.load();
+            attachSceneController(root, loader.getController());
             root = prepareSceneRoot(root);
         } catch (IOException | RuntimeException e) {
             if (hideStageWhileLoading) {
@@ -134,6 +135,8 @@ public class SceneSwitcher {
         if (!wasMaximized && !wasFullScreen) {
             applyTargetBounds(stage, isAuthScene, isCurrentRootAuth, targetWidth, targetHeight);
         }
+
+        cleanupSceneRoot(currentRoot);
 
         Scene scene = stage.getScene();
         if (scene == null) {
@@ -176,6 +179,32 @@ public class SceneSwitcher {
         return loader;
     }
 
+    private static void attachSceneController(Parent root, Object controller) {
+        if (root != null && controller != null) {
+            root.getProperties().put("scene-controller", controller);
+        }
+    }
+
+    private static void cleanupSceneRoot(Parent root) {
+        if (root == null) {
+            return;
+        }
+
+        Object controller = root.getProperties().remove("scene-controller");
+        if (controller instanceof SceneLifecycle lifecycle) {
+            try {
+                lifecycle.onSceneHidden();
+            } catch (Exception e) {
+                logger.warn("Scene cleanup failed for {}", controller.getClass().getSimpleName(), e);
+            }
+        }
+
+        for (Node child : root.getChildrenUnmodifiable()) {
+            if (child instanceof Parent childParent) {
+                cleanupSceneRoot(childParent);
+            }
+        }
+    }
     private static void applyTargetBounds(Stage stage, boolean isAuthScene, boolean isCurrentRootAuth,
             Integer targetWidth, Integer targetHeight) {
         double desiredWidth = stage.getWidth();

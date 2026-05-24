@@ -2,6 +2,7 @@ package com.auction.client.controller;
 
 
 import com.auction.client.util.AlertUtil;
+import com.auction.client.util.CacheManager;
 import javafx.scene.control.*;
 import javafx.fxml.FXMLLoader;
 import org.slf4j.Logger;
@@ -66,7 +67,7 @@ import java.time.LocalDateTime;
 
 import javafx.scene.control.ScrollPane;
 
-public class MainController implements Initializable {
+public class MainController implements Initializable, SceneLifecycle {
     private static final Logger logger = LoggerFactory.getLogger(MainController.class);
 
     static {
@@ -926,23 +927,18 @@ public class MainController implements Initializable {
 
         String imageUrl = buildImageUrl(imagePath);
         if (!imageUrl.isBlank()) {
-            Image cached = imageCache.get(imageUrl);
-            if (cached == null || cached.isError()) {
-                cached = new Image(imageUrl, true);
-                imageCache.put(imageUrl, cached);
-            }
-            imageView.setImage(cached);
-            imageWrapper.getChildren().add(imageView);
-            cached.errorProperty().addListener((obs, oldValue, isError) -> {
-                if (isError) {
-                    Platform.runLater(() -> {
-                        imageWrapper.getChildren().remove(imageView);
-                        if (!imageWrapper.getChildren().contains(imageStatusLabel)) {
-                            imageWrapper.getChildren().add(0, imageStatusLabel);
-                        }
-                    });
+            Image cached = CacheManager.getCachedImage(imageUrl, updatedImage -> {
+                if (updatedImage != null && !updatedImage.isError()) {
+                    imageView.setImage(updatedImage);
+                    imageWrapper.getChildren().setAll(imageView);
                 }
             });
+            if (cached != null && !cached.isError()) {
+                imageView.setImage(cached);
+                imageWrapper.getChildren().add(imageView);
+            } else {
+                imageWrapper.getChildren().add(imageStatusLabel);
+            }
         } else {
             imageWrapper.getChildren().add(imageStatusLabel);
         }
@@ -2564,5 +2560,17 @@ public class MainController implements Initializable {
 
     private String formatCurrencyWithSymbol(java.math.BigDecimal amount) {
         return "\u20AB " + formatCurrency(amount);
+    }
+    @Override
+    public void onSceneHidden() {
+        stopDashboardBackgroundWork();
+    }
+
+    private void stopDashboardBackgroundWork() {
+        stopCountdownTimeline();
+        if (pollingScheduler != null) {
+            pollingScheduler.shutdownNow();
+            pollingScheduler = null;
+        }
     }
 }

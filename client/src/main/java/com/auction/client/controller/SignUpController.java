@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.auction.client.util.AlertUtil;
+import com.auction.client.util.TermsDialog;
 public class SignUpController {
     private HttpClient client = HttpClientSingleton.getInstance().getHttpClient();
     private static final Logger logger = LoggerFactory.getLogger(SignUpController.class);
@@ -80,6 +81,20 @@ public class SignUpController {
         if (txtPassword != null) {
             txtPassword.textProperty().addListener((obs, oldV, newV) -> updatePasswordStrength(newV));
         }
+        if (chkTerms != null) {
+            chkTerms.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, event -> {
+                if (!chkTerms.isSelected()) {
+                    event.consume();
+                    showTermsAndCheck(chkTerms);
+                }
+            });
+            chkTerms.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
+                if (event.getCode() == javafx.scene.input.KeyCode.SPACE && !chkTerms.isSelected()) {
+                    event.consume();
+                    showTermsAndCheck(chkTerms);
+                }
+            });
+        }
         showFallbackProduct();
         loadActiveProducts();
     }
@@ -109,6 +124,38 @@ public class SignUpController {
             lblStrength.setText("Strong password");
             lblStrength.setStyle("-fx-text-fill: #22c55e; -fx-font-family: 'DM Sans'; -fx-font-size: 11px;");
         }
+    }
+    @FXML
+    private void handleTermsClick() {
+        showTermsAndCheck(chkTerms);
+    }
+
+    private void showTermsAndCheck(javafx.scene.control.CheckBox checkBox) {
+        if (checkBox == null) {
+            return;
+        }
+
+        String termsText = "BidPop Marketplace Terms & Conditions\n\n"
+                + "Welcome to BidPop. By creating an account, you agree to follow these marketplace rules.\n\n"
+                + "1. Account information\n"
+                + "You must provide accurate account information and keep your login credentials secure.\n\n"
+                + "2. Bidding rules\n"
+                + "All bids submitted from your account are your responsibility. Fake bids, bid manipulation, or disruptive behavior are not allowed.\n\n"
+                + "3. Product and seller responsibility\n"
+                + "Sellers must provide truthful item descriptions and complete transactions fairly after an auction ends.\n\n"
+                + "4. Platform safety\n"
+                + "BidPop may restrict accounts that violate auction rules, abuse the system, or harm other users.\n\n"
+                + "5. Disputes and limitations\n"
+                + "BidPop provides marketplace tools, but users remain responsible for their own listings, bids, and communications.\n\n"
+                + "Please scroll to the bottom, then choose Accept & Continue to confirm.";
+
+        boolean accepted = TermsDialog.show(
+                checkBox.getScene() == null ? null : checkBox.getScene().getWindow(),
+                "Terms & Conditions",
+                "Please read to the bottom before accepting.",
+                termsText
+        );
+        checkBox.setSelected(accepted);
     }
 
     @FXML

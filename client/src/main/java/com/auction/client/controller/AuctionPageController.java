@@ -46,7 +46,7 @@ import java.text.DecimalFormatSymbols;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
-public class AuctionPageController {
+public class AuctionPageController implements SceneLifecycle {
     private static final Logger logger = LoggerFactory.getLogger(AuctionPageController.class);
 
     @FXML private MenuButton userMenuButton;
@@ -1990,5 +1990,11 @@ public class AuctionPageController {
     @FXML
     private void handleClose(javafx.event.ActionEvent event) {
         SceneSwitcher.handleClose(event);
+    }
+    @Override
+    public void onSceneHidden() {
+        disconnectSocket();
+        stopTimeline();
+        stopBidTimeout();
     }
 }

@@ -23,11 +23,17 @@ import java.net.http.HttpResponse;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class NotificationSocketService {
     private static final Logger logger = LoggerFactory.getLogger(NotificationSocketService.class);
     private static NotificationSocketService instance;
+    private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
+    private static final long AUCTION_END_FETCH_COOLDOWN_MS = 10_000L;
 
     private Socket socket;
     private PrintWriter out;
@@ -35,6 +41,13 @@ public class NotificationSocketService {
     private Thread listenerThread;
     private volatile boolean running = false;
     private Integer userId;
+
+    private final Map<Integer, Long> auctionEndFetchMarks = new ConcurrentHashMap<>();
+    private final ExecutorService notificationWorker = Executors.newSingleThreadExecutor(r -> {
+        Thread thread = new Thread(r, "NotificationSocketWorker");
+        thread.setDaemon(true);
+        return thread;
+    });
 
     private final List<WeakReference<SocketEventListener>> listeners = new CopyOnWriteArrayList<>();
 
@@ -81,6 +94,7 @@ public class NotificationSocketService {
             listenerThread.interrupt();
             listenerThread = null;
         }
+        auctionEndFetchMarks.clear();
         logger.info("NotificationSocketService stopped.");
     }
 
@@ -147,7 +161,7 @@ public class NotificationSocketService {
         if (line == null || line.isBlank()) {
             return;
         }
-        logger.info("Notification socket received: {}", line);
+        logger.debug("Notification socket received: {}", line);
         try {
             if (line.startsWith("EVENT:")) {
                 JSONObject event = new JSONObject(line.substring("EVENT:".length()));
@@ -236,7 +250,11 @@ public class NotificationSocketService {
     }
 
     private void fetchAndNotifyAuctionEnd(int sessionId) {
-        Thread worker = new Thread(() -> {
+        if (shouldSkipAuctionEndFetch(sessionId)) {
+            return;
+        }
+
+        notificationWorker.execute(() -> {
             try {
                 JSONObject session = fetchSession(sessionId);
                 if (session == null) {
@@ -271,9 +289,18 @@ public class NotificationSocketService {
             } catch (Exception e) {
                 logger.warn("Could not create auction-end notification for session {}: {}", sessionId, e.getMessage());
             }
-        }, "NotificationAuctionEndFetchThread");
-        worker.setDaemon(true);
-        worker.start();
+        });
+    }
+
+    private boolean shouldSkipAuctionEndFetch(int sessionId) {
+        long now = System.currentTimeMillis();
+        auctionEndFetchMarks.entrySet().removeIf(entry -> now - entry.getValue() > AUCTION_END_FETCH_COOLDOWN_MS * 6);
+        Long lastFetch = auctionEndFetchMarks.get(sessionId);
+        if (lastFetch != null && now - lastFetch < AUCTION_END_FETCH_COOLDOWN_MS) {
+            return true;
+        }
+        auctionEndFetchMarks.put(sessionId, now);
+        return false;
     }
 
     private JSONObject fetchSession(int sessionId) throws Exception {
@@ -281,7 +308,7 @@ public class NotificationSocketService {
                 .uri(URI.create(Config.API_URL + "/api/auctions/" + sessionId))
                 .GET()
                 .build();
-        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() != 200 || response.body() == null || response.body().isBlank()) {
             return null;
         }
@@ -294,7 +321,7 @@ public class NotificationSocketService {
                 .uri(URI.create(Config.API_URL + "/api/auctions/" + sessionId + "/bid-history"))
                 .GET()
                 .build();
-        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() != 200 || response.body() == null || response.body().isBlank()) {
             return false;
         }

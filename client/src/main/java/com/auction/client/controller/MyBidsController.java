@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
+import com.auction.client.util.CacheManager;
 import javafx.application.Platform;
 import javafx.animation.PauseTransition;
 import javafx.event.ActionEvent;
@@ -43,7 +44,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class MyBidsController implements Initializable {
+public class MyBidsController implements Initializable, SceneLifecycle {
     private static final Logger logger = LoggerFactory.getLogger(MyBidsController.class);
 
     private HttpClient client = HttpClient.newHttpClient();
@@ -171,6 +172,9 @@ public class MyBidsController implements Initializable {
     }
 
     private void startPolling() {
+        if (pollingScheduler != null && !pollingScheduler.isShutdown()) {
+            return;
+        }
         pollingScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r);
             t.setDaemon(true);
@@ -457,21 +461,16 @@ public class MyBidsController implements Initializable {
         String imageUrl = buildImageUrl(imagePath);
         imageWrapper.getChildren().add(imageStatusLabel);
         if (!imageUrl.isBlank()) {
-            Image cached = imageCache.get(imageUrl);
-            if (cached == null || cached.isError()) {
-                cached = new Image(imageUrl, true);
-                imageCache.put(imageUrl, cached);
-            }
-            imageView.setImage(cached);
-            imageWrapper.getChildren().add(imageView);
-            cached.errorProperty().addListener((obs, oldValue, isError) -> {
-                if (isError) {
-                    imageWrapper.getChildren().remove(imageView);
-                    if (!imageWrapper.getChildren().contains(imageStatusLabel)) {
-                        imageWrapper.getChildren().add(0, imageStatusLabel);
-                    }
+            Image cached = CacheManager.getCachedImage(imageUrl, updatedImage -> {
+                if (updatedImage != null && !updatedImage.isError()) {
+                    imageView.setImage(updatedImage);
+                    imageWrapper.getChildren().setAll(imageView);
                 }
             });
+            if (cached != null && !cached.isError()) {
+                imageView.setImage(cached);
+                imageWrapper.getChildren().setAll(imageView);
+            }
         }
 
         // Clip the image wrapper to keep rounded corners
@@ -899,4 +898,15 @@ public class MyBidsController implements Initializable {
         return df.format(price);
     }
 
+    @Override
+    public void onSceneHidden() {
+        stopMyBidsBackgroundWork();
+    }
+
+    private void stopMyBidsBackgroundWork() {
+        if (pollingScheduler != null) {
+            pollingScheduler.shutdownNow();
+            pollingScheduler = null;
+        }
+    }
 }
