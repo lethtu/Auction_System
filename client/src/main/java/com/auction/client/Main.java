@@ -35,8 +35,8 @@ public class Main extends Application {
         }
 Scene scene = new Scene(root, 1000, 700);
         scene.setFill(Color.TRANSPARENT);
-        // Auth screens keep their dedicated pink/white design; app themes are applied after login.
-        AppStyleManager.clearCurrentStyle(scene);
+        // Auth screens stay light, but still sync the selected accent color.
+        AppStyleManager.applyAuthAccentStyle(scene);
         primaryStage.initStyle(StageStyle.TRANSPARENT);
         primaryStage.setScene(scene);
 

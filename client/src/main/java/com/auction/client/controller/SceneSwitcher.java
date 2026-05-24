@@ -144,7 +144,7 @@ public class SceneSwitcher {
         }
         scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
         if (isAuthScene) {
-            AppStyleManager.clearCurrentStyle(scene);
+            AppStyleManager.applyAuthAccentStyle(scene);
         } else {
             AppStyleManager.applyCurrentStyle(scene);
         }

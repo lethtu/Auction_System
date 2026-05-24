@@ -153,4 +153,86 @@ public final class AppStyleManager {
     private static String safeLower(String value) {
         return value == null ? "" : value.trim().toLowerCase();
     }
+    public static void applyAuthAccentStyle(Scene scene) {
+        if (scene == null) return;
+        applyAuthAccentToCollection(scene.getStylesheets());
+        if (scene.getRoot() != null) {
+            applyAuthAccentToCollection(scene.getRoot().getStylesheets());
+            updateAuthAccentClass(scene.getRoot());
+        }
+    }
+
+    public static void applyAuthAccentStyle(Parent root) {
+        if (root == null) return;
+        applyAuthAccentToCollection(root.getStylesheets());
+        Scene scene = root.getScene();
+        if (scene == null) {
+            Platform.runLater(() -> {
+                if (root.getScene() != null) {
+                    applyAuthAccentToCollection(root.getScene().getStylesheets());
+                    applyAuthAccentToCollection(root.getScene().getRoot().getStylesheets());
+                    updateAuthAccentClass(root.getScene().getRoot());
+                }
+            });
+        } else {
+            applyAuthAccentToCollection(scene.getStylesheets());
+            if (scene.getRoot() != null) {
+                applyAuthAccentToCollection(scene.getRoot().getStylesheets());
+                updateAuthAccentClass(scene.getRoot());
+            }
+        }
+    }
+
+    private static void applyAuthAccentToCollection(javafx.collections.ObservableList<String> stylesheets) {
+        if (stylesheets == null) return;
+        stylesheets.removeIf(s -> s.contains("theme-dark.css") || s.contains("theme-light.css")
+                || s.contains("accent-pink.css") || s.contains("accent-purple.css")
+                || s.contains("accent-emerald.css") || s.contains("accent-blue.css")
+                || s.contains("accent-orange.css"));
+        addStylesheet(stylesheets, getAccentStylesheetFile());
+    }
+
+    private static void updateAuthAccentClass(Parent root) {
+        if (root == null) return;
+        root.getStyleClass().remove("theme-dark");
+        root.getStyleClass().remove("theme-light");
+        root.getStyleClass().remove("accent-pink");
+        root.getStyleClass().remove("accent-purple");
+        root.getStyleClass().remove("accent-emerald");
+        root.getStyleClass().remove("accent-blue");
+        root.getStyleClass().remove("accent-orange");
+        root.getStyleClass().add("theme-light");
+        root.getStyleClass().add(getAccentStyleClass());
+    }
+
+    private static String getAccentStylesheetFile() {
+        SettingsService settings = SettingsService.getInstance();
+        String colorName = settings.getPrimaryColor().toLowerCase();
+        if (colorName.contains("purple")) {
+            return "accent-purple.css";
+        } else if (colorName.contains("emerald") || colorName.contains("green")) {
+            return "accent-emerald.css";
+        } else if (colorName.contains("blue")) {
+            return "accent-blue.css";
+        } else if (colorName.contains("orange")) {
+            return "accent-orange.css";
+        }
+        return "accent-pink.css";
+    }
+
+    private static String getAccentStyleClass() {
+        SettingsService settings = SettingsService.getInstance();
+        String colorName = settings.getPrimaryColor().toLowerCase();
+        if (colorName.contains("purple")) {
+            return "accent-purple";
+        } else if (colorName.contains("emerald") || colorName.contains("green")) {
+            return "accent-emerald";
+        } else if (colorName.contains("blue")) {
+            return "accent-blue";
+        } else if (colorName.contains("orange")) {
+            return "accent-orange";
+        }
+        return "accent-pink";
+    }
+
 }
