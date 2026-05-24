@@ -12,6 +12,7 @@ import com.auction.client.HttpClientSingleton;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -44,7 +45,7 @@ public class SignUpController {
     private static final DateTimeFormatter SERVER_DATE_TIME = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
     private static final DateTimeFormatter DISPLAY_DATE_TIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
-    private static record FeaturedProduct(String name, String type, String imageUrl, String priceText) {}
+    private record FeaturedProduct(int id, JSONObject sessionObj, JSONObject itemObj, String name, String type, String imageUrl, String priceText) {}
 
     private final List<FeaturedProduct> featuredProducts = new ArrayList<>();
     private int featuredProductIndex = 0;
@@ -79,6 +80,23 @@ public class SignUpController {
     public void initialize() {
         if (txtPassword != null) {
             txtPassword.textProperty().addListener((obs, oldV, newV) -> updatePasswordStrength(newV));
+        }
+        if (activeProductCarousel != null) {
+            activeProductCarousel.setCursor(javafx.scene.Cursor.HAND);
+            activeProductCarousel.setPickOnBounds(true);
+            activeProductCarousel.setOnMouseClicked(event -> {
+                if (featuredProducts.isEmpty()) return;
+                FeaturedProduct currentProd = featuredProducts.get(featuredProductIndex);
+                if (currentProd != null && currentProd.sessionObj() != null && currentProd.itemObj() != null) {
+                    try {
+                        FXMLLoader loader = SceneSwitcher.switchScene(event, "AuctionPage.fxml", 1280, 800);
+                        AuctionPageController controller = loader.getController();
+                        controller.setItem(currentProd.sessionObj(), currentProd.itemObj());
+                    } catch (IOException e) {
+                        logger.error("Failed to open auction page from carousel", e);
+                    }
+                }
+            });
         }
         showFallbackProduct();
         loadActiveProducts();
@@ -256,12 +274,21 @@ public class SignUpController {
     }
 
     private FeaturedProduct toFeaturedProduct(JSONObject session) {
+        int id = session.optInt("id", 0);
+        JSONObject itemObj = session.optJSONObject("item");
+        if (itemObj == null) {
+            itemObj = new JSONObject();
+            itemObj.put("name", session.optString("productName", ""));
+            itemObj.put("type", session.optString("productType", ""));
+            itemObj.put("description", session.optString("description", ""));
+            itemObj.put("imagePath", session.optString("imagePath", ""));
+        }
         String name = session.optString("productName", "Live auction item");
         String type = session.optString("productType", "Active auction");
         String imageUrl = buildImageUrl(session.optString("imagePath", ""));
         String endTimeText = formatEndTime(session.optString("endTime", ""));
 
-        return new FeaturedProduct(name, type, imageUrl, endTimeText);
+        return new FeaturedProduct(id, session, itemObj, name, type, imageUrl, endTimeText);
     }
 
     private void setFeaturedProducts(List<FeaturedProduct> products) {
@@ -316,6 +343,9 @@ public class SignUpController {
 
     private void showFallbackProduct() {
         showFeaturedProduct(new FeaturedProduct(
+                0,
+                null,
+                null,
                 "Discover live auctions",
                 "Featured marketplace",
                 FALLBACK_PRODUCT_IMAGE,

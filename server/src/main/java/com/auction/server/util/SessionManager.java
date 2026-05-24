@@ -49,7 +49,7 @@ public class SessionManager {
         if (user.getRole() != null) {
             role = user.getRole().toLowerCase();
         }
-        
+
         SessionUser sessionUser = new SessionUser(user.getId(), user.getUsername(), role);
         activeSessions.put(token, sessionUser);
         return token;

@@ -38,7 +38,7 @@
             </BorderPane.margin>
             <!-- Header Section inside Center -->
             <HBox fx:id="mainPageHeader" alignment="CENTER_LEFT" spacing="20.0" style="-fx-padding: 0 0 0 0;">
-                <Label fx:id="lblPageTitle" id="mainPageTitle" text="Live Auctions" style="-fx-text-fill: #e040a0; -fx-font-weight: 900; -fx-font-size: 32px;">
+                <Label fx:id="lblPageTitle" id="mainPageTitle" text="Live Auctions" style="-fx-text-fill: -fx-accent; -fx-font-weight: 900; -fx-font-size: 32px;">
 
                     <font>
 
@@ -48,11 +48,11 @@
 
                 </Label>
 
-                
+
 
                 <Region HBox.hgrow="ALWAYS" />
 
-                
+
 
                 <!-- Filter controls mapping to cbCategory and cbStatus -->
                 <HBox fx:id="filterControlsBox" spacing="12.0" alignment="CENTER_RIGHT" styleClass="filter-controls-bar">
@@ -86,7 +86,7 @@
 
             </HBox>
 
-            
+
 
             <ScrollPane fx:id="scrollPane"
                         fitToWidth="true"
@@ -106,13 +106,10 @@
 
     </center>
 
-    
+
 
 </BorderPane>
 
     <VBox fx:id="toastContainer" pickOnBounds="false" alignment="BOTTOM_RIGHT" spacing="10" style="-fx-padding: 30px;" />
 
 </StackPane>
-
-
-

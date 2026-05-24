@@ -177,6 +177,8 @@ public class AuctionService {
                         currentPrice, null, item.getHighestBidderId());
             }
 
+            Integer previousHighestBidderId = item.getHighestBidderId();
+
             // Step 2: Find Old Top Bidder (current highest bidder)
             User oldTopBidder = null;
             BigDecimal oldBidAmount = BigDecimal.ZERO;
@@ -252,7 +254,8 @@ public class AuctionService {
                         BidderId,
                         bidCount,
                         time.toString(),
-                        bid.getId()
+                        bid.getId(),
+                        previousHighestBidderId
                 );
             }
             catch (Exception e) {
@@ -432,6 +435,8 @@ public class AuctionService {
             return null;
         }
 
+        Integer previousHighestBidderId = session.getHighestBidderId();
+
         // Find Old Top Bidder
         User oldTopBidder = null;
         BigDecimal oldBidAmount = BigDecimal.ZERO;
@@ -510,7 +515,8 @@ public class AuctionService {
                     winner.getBidderId(),
                     bidCount,
                     time.toString(),
-                    bid.getId()
+                    bid.getId(),
+                    previousHighestBidderId
             );
         } catch (Exception e) {
             logger.error("AUTO-BID: Error saving to DB", e);

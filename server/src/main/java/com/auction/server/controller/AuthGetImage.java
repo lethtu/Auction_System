@@ -152,11 +152,11 @@ public class AuthGetImage {
             Files.createDirectories(itemFolderPath);
 
             String originalName = file.getOriginalFilename();
-            String extension = originalName != null && originalName.contains(".") 
+            String extension = originalName != null && originalName.contains(".")
                     ? originalName.substring(originalName.lastIndexOf('.')) : ".glb";
 
             Path destination = itemFolderPath.resolve(finalUuid + extension).normalize();
-            
+
             // Use standard Java NIO Files.copy for maximum compatibility and resilience
             Files.copy(file.getInputStream(), destination, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
 
@@ -252,7 +252,7 @@ public class AuthGetImage {
     private boolean isSafeImageExtension(String extension) {
         if (extension == null) return false;
         String ext = extension.toLowerCase();
-        return ext.equals(".png") || ext.equals(".jpg") || ext.equals(".jpeg") 
+        return ext.equals(".png") || ext.equals(".jpg") || ext.equals(".jpeg")
                 || ext.equals(".gif") || ext.equals(".webp") || ext.equals(".bmp");
     }
 

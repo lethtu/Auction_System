@@ -44,8 +44,17 @@ public class ClientHandler implements Runnable {
                 } else if (inputLine.startsWith("AUTOBID:")) {
                     handleAutoBidMessage(inputLine.substring(8));
 
-                } else if ("JOIN_HOME".equals(inputLine)) {
-                    SocketServer.joinHome(out);
+                } else if (inputLine.startsWith("JOIN_HOME")) {
+                    if (inputLine.contains(":")) {
+                        try {
+                            int userId = Integer.parseInt(inputLine.substring("JOIN_HOME:".length()));
+                            SocketServer.joinHome(userId, out);
+                        } catch (NumberFormatException e) {
+                            logger.error("Invalid JOIN_HOME format: {}", inputLine);
+                        }
+                    } else {
+                        SocketServer.joinHome(out);
+                    }
                 }
             }
 
@@ -174,6 +183,25 @@ public class ClientHandler implements Runnable {
         }
 
         SocketServer.broadcastToRoom(auctionId, "NOTICE:" + notice);
+
+        if (response.getPreviousHighestBidderId() != null) {
+            JSONObject homeNotice = new JSONObject(notice.toString());
+            homeNotice.put("auctionId", auctionId);
+            homeNotice.put("previousHighestBidderId", response.getPreviousHighestBidderId());
+
+            String itemName = "Unknown Item";
+            try {
+                com.auction.server.model.AuctionSession session = biddingController.getAuctionService().getSessionById(auctionId);
+                if (session != null && session.getItem() != null) {
+                    itemName = session.getItem().getName();
+                }
+            } catch (Exception e) {
+                logger.warn("Could not retrieve item name for notice broadcast: {}", e.getMessage());
+            }
+            homeNotice.put("itemName", itemName);
+
+            SocketServer.sendToHomeUser(response.getPreviousHighestBidderId(), "NOTICE:" + homeNotice);
+        }
     }
 
     private String generateMaskedCode(Integer sessionId, Integer bidderId) {

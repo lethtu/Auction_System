@@ -2,6 +2,7 @@ package com.auction.client.service;
 
 import com.auction.client.model.notification.AppNotification;
 import com.auction.client.model.notification.NotificationType;
+import com.auction.client.model.audio.SoundEvent;
 import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -61,6 +62,33 @@ public class NotificationCenterService {
                 notifications.remove(100, notifications.size());
             }
         });
+        // Trigger sound (SoundManager internally checks if sound is enabled)
+        if (!notification.isSoundMuted()) {
+            SoundEvent sEvent = mapToSoundEvent(notification.getType());
+            // Play sound with dedup if ENDING_SOON
+            if (sEvent == SoundEvent.AUCTION_ENDING_SOON) {
+                // If the notification has auctionId
+                Integer auctionId = notification.getAuctionId();
+                SoundManager.getInstance().playSound(sEvent, auctionId);
+            } else {
+                SoundManager.getInstance().playSound(sEvent);
+            }
+        }
+    }
+
+    private SoundEvent mapToSoundEvent(NotificationType type) {
+        if (type == null) return SoundEvent.NOTIFICATION;
+        switch (type) {
+            case OUTBID: return SoundEvent.OUTBID;
+            case BID_SUCCESS: return SoundEvent.BID_SUCCESS;
+            case BID_FAILED: return SoundEvent.BID_ERROR;
+            case ENDING_SOON: return SoundEvent.AUCTION_ENDING_SOON;
+            case AUCTION_END_WIN:
+            case AUCTION_WON: return SoundEvent.AUCTION_WON;
+            case AUCTION_END_LOSE:
+            case AUCTION_LOST: return SoundEvent.AUCTION_LOST;
+            default: return SoundEvent.NOTIFICATION;
+        }
     }
 
     public void markAsRead(String id) {

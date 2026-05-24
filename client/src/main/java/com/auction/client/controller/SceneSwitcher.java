@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.net.URL;
 import javafx.scene.control.MenuItem;
 import com.auction.client.util.ResizeHelper;
+import com.auction.client.service.AppStyleManager;
 
 public class SceneSwitcher {
     private static final Logger logger = LoggerFactory.getLogger(SceneSwitcher.class);
@@ -86,10 +87,25 @@ public class SceneSwitcher {
             throw new RuntimeException("Cannot determine current Stage for scene switching!");
         }
 
-        boolean wasMaximized = ResizeHelper.isMaximized(stage);
+        boolean originallyMaximizedOrFS = ResizeHelper.isMaximized(stage) || stage.isMaximized() || stage.isFullScreen();
+        boolean wasMaximized = ResizeHelper.isMaximized(stage) || stage.isMaximized();
         boolean wasFullScreen = stage.isFullScreen();
         boolean isAuthScene = fxmlFile.equals("Login.fxml") || fxmlFile.equals("SignUp.fxml")
                 || fxmlFile.equals("ForgotPassword.fxml");
+
+        if (isAuthScene) {
+            if (stage.isMaximized()) {
+                stage.setMaximized(false);
+            }
+            if (ResizeHelper.isMaximized(stage)) {
+                ResizeHelper.restore(stage);
+            }
+            if (stage.isFullScreen()) {
+                stage.setFullScreen(false);
+            }
+            wasMaximized = false;
+            wasFullScreen = false;
+        }
 
         Parent currentRoot = stage.getScene() != null ? stage.getScene().getRoot() : null;
         boolean isCurrentRootAuth = false;
@@ -127,11 +143,22 @@ public class SceneSwitcher {
             scene.setRoot(root);
         }
         scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
+        AppStyleManager.applyCurrentStyle(scene);
         ResizeHelper.install(stage, root);
 
         stage.setMinWidth(isAuthScene ? AUTH_WIDTH : MIN_WIDTH);
         stage.setMinHeight(isAuthScene ? AUTH_HEIGHT : MIN_HEIGHT);
         stage.setResizable(!isAuthScene);
+
+        if (isAuthScene && originallyMaximizedOrFS) {
+            final boolean finalIsCurrentRootAuth = isCurrentRootAuth;
+            final Stage finalStage = stage;
+            final Integer finalTargetWidth = targetWidth;
+            final Integer finalTargetHeight = targetHeight;
+            Platform.runLater(() -> {
+                applyTargetBounds(finalStage, true, finalIsCurrentRootAuth, finalTargetWidth, finalTargetHeight);
+            });
+        }
 
         if (wasMaximized) {
             final Stage finalStage = stage;

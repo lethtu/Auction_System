@@ -26,8 +26,8 @@
             </BorderPane.margin>
             <!-- Header Title -->
             <VBox spacing="10.0" style="-fx-padding: 0 0 10px 0;">
-                <Label id="supportPageTitle" text="HELP &amp; SUPPORT CENTER" style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #e040a0;" />
-                <Label id="supportPageSubtitle" text="We are always ready to answer your questions and support you during the auction process." style="-fx-font-size: 15px; -fx-font-weight: 700; -fx-text-fill: #604868;" />
+                <Label id="supportPageTitle" text="HELP &amp; SUPPORT CENTER" style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: -fx-accent;" />
+                <Label id="supportPageSubtitle" text="We are always ready to answer your questions and support you during the auction process." style="-fx-font-size: 15px; -fx-font-weight: 700; -fx-text-fill: -app-text-muted;" />
             </VBox>
             
             <ScrollPane fitToWidth="true" hbarPolicy="NEVER" style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
@@ -36,27 +36,27 @@
                 <!-- 2-Column Grid Area -->
                 <HBox spacing="40.0" alignment="TOP_LEFT">
                     <!-- Column 1: Contact Form (Left) -->
-                    <VBox spacing="24.0" prefWidth="480.0" minWidth="400.0" HBox.hgrow="ALWAYS" style="-fx-background-color: #ffffff; -fx-padding: 30px; -fx-background-radius: 24px; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.06), 20, 0, 0, 6);">
-                        <Label text="SUBMIT SUPPORT REQUEST" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #e040a0;" />
+                    <VBox spacing="24.0" prefWidth="480.0" minWidth="400.0" HBox.hgrow="ALWAYS" style="-fx-background-color: -app-card; -fx-padding: 30px; -fx-background-radius: 24px; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-08, 20, 0, 0, 6);">
+                        <Label text="SUBMIT SUPPORT REQUEST" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: -fx-accent;" />
                         
                         <VBox spacing="8.0">
-                            <Label text="Contact Email *" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #604868;" />
-                            <TextField fx:id="txtEmail" promptText="Enter your email..." style="-fx-background-color: #ffffff; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 12px; -fx-background-radius: 12px; -fx-padding: 12px 16px; -fx-text-fill: #2e1a28; -fx-font-size: 14px;" />
+                            <Label text="Contact Email *" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -app-text-muted;" />
+                            <TextField fx:id="txtEmail" promptText="Enter your email..." style="-fx-background-color: -app-input-bg; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 12px; -fx-background-radius: 12px; -fx-padding: 12px 16px; -fx-text-fill: -app-input-text; -fx-font-size: 14px;" />
                         </VBox>
-
+ 
                         <VBox spacing="8.0">
-                            <Label text="Subject *" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #604868;" />
-                            <TextField fx:id="txtSubject" promptText="Enter support topic..." style="-fx-background-color: #ffffff; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 12px; -fx-background-radius: 12px; -fx-padding: 12px 16px; -fx-text-fill: #2e1a28; -fx-font-size: 14px;" />
+                            <Label text="Subject *" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -app-text-muted;" />
+                            <TextField fx:id="txtSubject" promptText="Enter support topic..." style="-fx-background-color: -app-input-bg; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 12px; -fx-background-radius: 12px; -fx-padding: 12px 16px; -fx-text-fill: -app-input-text; -fx-font-size: 14px;" />
                         </VBox>
-
+ 
                         <VBox spacing="8.0">
-                            <Label text="Message Content *" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #604868;" />
-                            <TextArea fx:id="txtAreaMessage" prefHeight="160.0" wrapText="true" promptText="Enter details of your support request..." style="-fx-background-color: #ffffff; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 12px; -fx-background-radius: 12px; -fx-padding: 8px; -fx-text-fill: #2e1a28; -fx-font-size: 14px;" />
+                            <Label text="Message Content *" style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: -app-text-muted;" />
+                            <TextArea fx:id="txtAreaMessage" prefHeight="160.0" wrapText="true" promptText="Enter details of your support request..." style="-fx-background-color: -app-input-bg; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 12px; -fx-background-radius: 12px; -fx-padding: 8px; -fx-text-fill: -app-input-text; -fx-font-size: 14px;" />
                         </VBox>
-
+ 
                         <Label fx:id="lblMessageStatus" text="" visible="false" managed="false" style="-fx-font-size: 14px; -fx-font-weight: bold;" />
-
-                        <Button fx:id="btnSendSupport" onAction="#handleSendSupport" text="Send Message" maxWidth="Infinity" prefHeight="48.0" style="-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 24px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.3), 12, 0, 0, 4);">
+ 
+                        <Button fx:id="btnSendSupport" onAction="#handleSendSupport" text="Send Message" maxWidth="Infinity" prefHeight="48.0" style="-fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 24px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-30, 12, 0, 0, 4);">
                             <graphic>
                                 <Label text="&#xe163;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: white;" translateY="2.0" />
                             </graphic>
@@ -66,45 +66,45 @@
                     <!-- Column 2: FAQ & Contacts (Right) -->
                     <VBox spacing="24.0" HBox.hgrow="ALWAYS">
                         <!-- FAQ Header -->
-                        <VBox spacing="16.0" style="-fx-background-color: #ffffff; -fx-padding: 30px; -fx-background-radius: 24px; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.06), 20, 0, 0, 6);">
-                            <Label text="FREQUENTLY ASKED QUESTIONS (FAQ)" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #e040a0;" />
+                        <VBox spacing="16.0" style="-fx-background-color: -app-card; -fx-padding: 30px; -fx-background-radius: 24px; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-08, 20, 0, 0, 6);">
+                            <Label text="FREQUENTLY ASKED QUESTIONS (FAQ)" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: -fx-accent;" />
                             
                             <!-- Question 1 -->
-                            <VBox spacing="6.0" style="-fx-border-color: #f2e8f2; -fx-border-width: 0 0 1px 0; -fx-padding: 0 0 12px 0;">
-                                <Label text="How do I bid on a product?" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;" />
-                                <Label text="Simply find the product you want, enter the auction room and place a valid bid higher than the current price plus the minimum step price." wrapText="true" style="-fx-font-size: 13.5px; -fx-text-fill: #604868;" />
+                            <VBox spacing="6.0" style="-fx-border-color: -app-border; -fx-border-width: 0 0 1px 0; -fx-padding: 0 0 12px 0;">
+                                <Label text="How do I bid on a product?" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: -app-text;" />
+                                <Label text="Simply find the product you want, enter the auction room and place a valid bid higher than the current price plus the minimum step price." wrapText="true" style="-fx-font-size: 13.5px; -fx-text-fill: -app-text-muted;" />
                             </VBox>
-
+ 
                             <!-- Question 2 -->
-                            <VBox spacing="6.0" style="-fx-border-color: #f2e8f2; -fx-border-width: 0 0 1px 0; -fx-padding: 0 0 12px 0;">
-                                <Label text="How do I deposit funds into my account?" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;" />
-                                <Label text="Click the account icon in the top navigation bar, select 'Deposit' and make a transfer following the displayed instructions." wrapText="true" style="-fx-font-size: 13.5px; -fx-text-fill: #604868;" />
+                            <VBox spacing="6.0" style="-fx-border-color: -app-border; -fx-border-width: 0 0 1px 0; -fx-padding: 0 0 12px 0;">
+                                <Label text="How do I deposit funds into my account?" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: -app-text;" />
+                                <Label text="Click the account icon in the top navigation bar, select 'Deposit' and make a transfer following the displayed instructions." wrapText="true" style="-fx-font-size: 13.5px; -fx-text-fill: -app-text-muted;" />
                             </VBox>
-
+ 
                             <!-- Question 3 -->
                             <VBox spacing="6.0" style="-fx-padding: 0 0 4px 0;">
-                                <Label text="How can I become a Seller?" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;" />
-                                <Label text="Click the 'Start Selling' button on the left sidebar (if you are not a Seller yet), read the terms carefully and click 'Upgrade Now'." wrapText="true" style="-fx-font-size: 13.5px; -fx-text-fill: #604868;" />
+                                <Label text="How can I become a Seller?" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: -app-text;" />
+                                <Label text="Click the 'Start Selling' button on the left sidebar (if you are not a Seller yet), read the terms carefully and click 'Upgrade Now'." wrapText="true" style="-fx-font-size: 13.5px; -fx-text-fill: -app-text-muted;" />
                             </VBox>
                         </VBox>
 
                         <!-- Contact Channels Card -->
-                        <VBox spacing="16.0" style="-fx-background-color: #ffffff; -fx-padding: 30px; -fx-background-radius: 24px; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.06), 20, 0, 0, 6);">
-                            <Label text="DIRECT CONTACT CHANNELS" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #e040a0;" />
+                        <VBox spacing="16.0" style="-fx-background-color: -app-card; -fx-padding: 30px; -fx-background-radius: 24px; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-08, 20, 0, 0, 6);">
+                            <Label text="DIRECT CONTACT CHANNELS" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: -fx-accent;" />
                             
                             <HBox spacing="12.0" alignment="CENTER_LEFT">
-                                <Label text="&#xe0b0;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #e040a0;" />
-                                <Label text="Support hotline: 1900 6868 (8:00 - 22:00)" style="-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-font-weight: bold;" />
+                                <Label text="&#xe0b0;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: -fx-accent;" />
+                                <Label text="Support hotline: 1900 6868 (8:00 - 22:00)" style="-fx-font-size: 14px; -fx-text-fill: -app-text; -fx-font-weight: bold;" />
                             </HBox>
-
+ 
                             <HBox spacing="12.0" alignment="CENTER_LEFT">
-                                <Label text="&#xe158;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #e040a0;" />
-                                <Label text="Email: lethanhtungbot01@gmail.com" style="-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-font-weight: bold;" />
+                                <Label text="&#xe158;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: -fx-accent;" />
+                                <Label text="Email: lethanhtungbot01@gmail.com" style="-fx-font-size: 14px; -fx-text-fill: -app-text; -fx-font-weight: bold;" />
                             </HBox>
-
+ 
                             <HBox spacing="12.0" alignment="CENTER_LEFT">
-                                <Label text="&#xe0c8;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #e040a0;" />
-                                <Label text="Address: Hanoi" wrapText="true" style="-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-font-weight: bold;" />
+                                <Label text="&#xe0c8;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: -fx-accent;" />
+                                <Label text="Address: Hanoi" wrapText="true" style="-fx-font-size: 14px; -fx-text-fill: -app-text; -fx-font-weight: bold;" />
                             </HBox>
                         </VBox>
                     </VBox>

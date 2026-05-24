@@ -1,0 +1,200 @@
+/* ====== LIGHT THEME: token definitions ====== */
+.root {
+    -app-bg:          #fff7fc;
+    -app-bg-gradient: linear-gradient(to bottom right, #fffbff 0%, #fff6fb 52%, #fffaf6 100%);
+    -app-topbar-bg: rgba(255, 251, 255, 0.97);
+    -app-topbar-border: rgba(246, 221, 234, 0.95);
+    -app-panel-bg: linear-gradient(to bottom right, rgba(255, 251, 255, 0.90), rgba(254, 247, 255, 0.96));
+    -app-panel-border: rgba(244, 221, 235, 0.95);
+    -app-sidebar-bg: rgba(255, 255, 255, 0.97);
+    -app-sidebar-border: #f2a6d8;
+    -app-surface:     #fffafc;
+    -app-surface-2:   #fff5fa;
+    -app-card:        #ffffff;
+    -app-text:        #201427;
+    -app-text-muted:  #6f5c7d;
+    -app-border:      rgba(224,64,160,0.18);
+    -app-input-bg:    #ffffff;
+    -app-input-text:  #201427;
+    -app-placeholder: #8f7b96;
+}
+
+/* ====== BACKGROUNDS ====== */
+.rounded-window-content,
+.theme-light .app-content-panel,
+.theme-light .app-content-scroll,
+.content-area,
+.app-topbar,
+.app-topbar-even,
+.theme-light .app-sidebar-content,
+.theme-light .app-sidebar-content-collapsed,
+.admin-bidpop-topbar {
+    -fx-background-color: -app-bg;
+}
+
+/* ====== ALL TEXT / LABELS ====== */
+.label,
+.text {
+    -fx-text-fill: -app-text;
+    -fx-fill:      -app-text;
+}
+
+/* ====== BUTTONS ====== */
+.button {
+    -fx-text-fill: -app-text;
+}
+
+/* ====== CHECKBOXES & RADIO ====== */
+.check-box,
+.check-box .text,
+.radio-button,
+.radio-button .text {
+    -fx-text-fill: -app-text;
+}
+.check-box:disabled .text,
+.radio-button:disabled .text {
+    -fx-text-fill: -app-text-muted;
+}
+
+/* ====== INPUTS ====== */
+.text-field,
+.password-field,
+.text-area {
+    -fx-background-color: -app-input-bg;
+    -fx-text-fill:        -app-input-text;
+    -fx-prompt-text-fill: -app-placeholder;
+    -fx-border-color:     -app-border;
+    -fx-border-radius:    6;
+    -fx-background-radius: 6;
+}
+.text-area .content {
+    -fx-background-color: -app-input-bg;
+    -fx-text-fill:        -app-input-text;
+}
+
+/* ====== COMBO BOX ====== */
+.combo-box,
+.combo-box-base {
+    -fx-background-color: -app-input-bg;
+    -fx-text-fill:        -app-input-text;
+    -fx-border-color:     -app-border;
+    -fx-border-radius:    6;
+    -fx-background-radius: 6;
+}
+.combo-box .label,
+.combo-box .text,
+.combo-box-base .label {
+    -fx-text-fill: -app-input-text;
+}
+.combo-box .list-cell,
+.combo-box-popup .list-view,
+.combo-box-popup .list-cell {
+    -fx-background-color: -app-input-bg;
+    -fx-text-fill:        -app-input-text;
+}
+
+/* ====== SCROLL PANES ====== */
+.scroll-pane,
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+/* ====== TABLES ====== */
+.table-view {
+    -fx-background-color: -app-surface-2;
+    -fx-table-cell-border-color: -app-border;
+}
+.table-row-cell {
+    -fx-background-color: -app-card;
+    -fx-text-fill: -app-text;
+}
+.table-row-cell:odd {
+    -fx-background-color: -app-surface-2;
+}
+.table-cell {
+    -fx-text-fill: -app-text;
+}
+.column-header,
+.column-header .label,
+.column-header-background {
+    -fx-background-color: -app-surface;
+    -fx-text-fill:        -app-text;
+}
+.placeholder .label {
+    -fx-text-fill: -app-text-muted;
+}
+
+/* ====== CARDS ====== */
+.settings-card,
+.auction-card,
+.dashboard-card,
+.support-card,
+.seller-summary-card,
+.table-container,
+.faq-card,
+.account-form-card,
+.account-stat-card,
+.profile-summary-card {
+    -fx-background-color: -app-card;
+    -fx-border-color:     -app-border;
+    -fx-opacity: 1.0;
+}
+
+/* ====== SPECIFIC TEXT CLASSES ====== */
+.settings-card-title,
+.section-title,
+.card-title,
+.stat-value,
+.table-header-label,
+.account-page-title,
+.account-form-title,
+.profile-name,
+.account-stat-value {
+    -fx-text-fill: -app-text;
+    -fx-fill:      -app-text;
+}
+
+.settings-card-subtitle,
+.section-subtitle,
+.card-subtitle,
+.stat-label,
+.help-subtitle,
+.help-title,
+.account-page-subtitle,
+.profile-email,
+.account-stat-label,
+.account-form-label {
+    -fx-text-fill: -app-text-muted;
+    -fx-fill:      -app-text-muted;
+}
+
+/* ====== SIDEBAR ====== */
+.app-sidebar-content .button {
+    -fx-text-fill: -app-text-muted;
+}
+.app-sidebar-content .button:hover {
+    -fx-text-fill: -app-text;
+}
+
+/* ====== MENU / CONTEXT ====== */
+.context-menu,
+.menu-item {
+    -fx-background-color: -app-card;
+    -fx-text-fill: -app-text;
+}
+.menu-item .label {
+    -fx-text-fill: -app-text;
+}
+
+/* ====== EMPTY STATE CARD OVERRIDES ====== */
+.theme-light .empty-state-card {
+    -fx-background-color: rgba(255, 255, 255, 0.58);
+    -fx-border-color: rgba(244, 221, 235, 0.85);
+}
+
+/* ====== APP CONTENT PANEL OVERRIDES ====== */
+.theme-light .app-content-panel,
+.theme-light .app-content-scroll {
+    -fx-border-color: -app-accent-opacity-78;
+}

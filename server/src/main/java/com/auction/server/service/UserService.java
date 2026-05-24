@@ -110,6 +110,34 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    public User changePassword(Integer id, String oldPassword, String newPassword) {
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("Invalid userId");
+        }
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (user.getPasswordSet() == null || !user.getPasswordSet() || user.getPassword() == null) {
+            throw new IllegalArgumentException("Please set a password for this account first.");
+        }
+
+        if (oldPassword == null || oldPassword.isEmpty()) {
+            throw new IllegalArgumentException("Current password cannot be empty.");
+        }
+
+        if (!com.auction.server.util.PasswordUtil.checkPassword(oldPassword, user.getPassword())) {
+            throw new IllegalArgumentException("Incorrect current password.");
+        }
+
+        if (newPassword == null || newPassword.trim().length() < 6) {
+            throw new IllegalArgumentException("New password must be at least 6 characters long.");
+        }
+
+        user.setPassword(com.auction.server.util.PasswordUtil.hashPassword(newPassword));
+        return userRepository.save(user);
+    }
+
     private String firstNonBlank(String first, String second) {
         String normalizedFirst = normalizeOptional(first);
         return normalizedFirst != null ? normalizedFirst : normalizeOptional(second);

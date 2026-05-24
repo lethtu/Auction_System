@@ -28,6 +28,7 @@ import com.auction.client.service.NotificationCenterService;
 import com.auction.client.util.GltfImporterJFX;
 import com.auction.client.util.CacheManager;
 import javafx.scene.Node;
+import com.auction.client.service.SettingsService;
 
 import java.io.BufferedReader;
 import java.io.EOFException;
@@ -154,8 +155,9 @@ public class AuctionPageController {
     private PrintWriter out;
     private BufferedReader in;
     private Thread listenerThread;
-
+    
     private int currentSessionId;
+    private boolean endingSoonNotified = false;
     private BigDecimal currentPrice = BigDecimal.ZERO;
     private BigDecimal stepPrice = BigDecimal.ZERO;
     private BigDecimal startingPrice = BigDecimal.ZERO;
@@ -167,6 +169,7 @@ public class AuctionPageController {
 
     private Timeline timeline;
     private Timeline bidTimeout;
+    private boolean bidErrorSoundPlayedForCurrentAttempt = false;
 
 
 
@@ -247,6 +250,7 @@ public class AuctionPageController {
     }
 
     public void setItem(JSONObject sessionObj, JSONObject itemObj) {
+        endingSoonNotified = false;
         if (sessionObj == null) return;
         this.currentSessionId = sessionObj.optInt("id", 0);
         applySessionData(sessionObj, itemObj);
@@ -352,7 +356,7 @@ public class AuctionPageController {
         root.setPrefWidth(460);
 
         VBox mainCard = new VBox(15);
-        mainCard.setStyle("-fx-padding: 24; -fx-background-color: #fef7ff; -fx-background-radius: 18; -fx-border-color: #f2e8f2; -fx-border-radius: 18; -fx-border-width: 2;");
+        mainCard.setStyle("-fx-padding: 24; -fx-background-color: #fef7ff; -fx-background-radius: 18;  -fx-border-radius: 18; -fx-border-width: 2;");
         javafx.scene.effect.DropShadow shadow = new javafx.scene.effect.DropShadow();
         shadow.setColor(javafx.scene.paint.Color.rgb(46, 26, 40, 0.15));
         shadow.setRadius(20);
@@ -364,32 +368,32 @@ public class AuctionPageController {
         titleBar.setStyle("-fx-padding: 0 0 10 0; -fx-cursor: move;");
         
         Label titleLbl = new Label("⚡ Auto-bidding Configuration");
-        titleLbl.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
+        titleLbl.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; ");
         
         javafx.scene.layout.Region titleSpacer = new javafx.scene.layout.Region();
         javafx.scene.layout.HBox.setHgrow(titleSpacer, javafx.scene.layout.Priority.ALWAYS);
         
         Button minBtn = new Button("−");
-        minBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold; -fx-text-fill: #907898; -fx-cursor: hand; -fx-font-size: 16px;");
+        minBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px;");
         minBtn.setOnAction(ev -> dialog.setIconified(true));
-        minBtn.setOnMouseEntered(ev -> minBtn.setStyle("-fx-background-color: #f2e8f2; -fx-font-weight: bold; -fx-text-fill: #2e1a28; -fx-cursor: hand; -fx-font-size: 16px; -fx-background-radius: 8;"));
-        minBtn.setOnMouseExited(ev -> minBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold; -fx-text-fill: #907898; -fx-cursor: hand; -fx-font-size: 16px;"));
+        minBtn.setOnMouseEntered(ev -> minBtn.setStyle("-fx-background-color: #f2e8f2; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px; -fx-background-radius: 8;"));
+        minBtn.setOnMouseExited(ev -> minBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px;"));
 
         Button maxBtn = new Button("◻");
-        maxBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold; -fx-text-fill: #907898; -fx-cursor: hand; -fx-font-size: 16px;");
+        maxBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px;");
         maxBtn.setOnAction(ev -> {
             boolean isMax = dialog.isMaximized();
             dialog.setMaximized(!isMax);
             maxBtn.setText(isMax ? "◻" : "❐");
         });
-        maxBtn.setOnMouseEntered(ev -> maxBtn.setStyle("-fx-background-color: #f2e8f2; -fx-font-weight: bold; -fx-text-fill: #2e1a28; -fx-cursor: hand; -fx-font-size: 16px; -fx-background-radius: 8;"));
-        maxBtn.setOnMouseExited(ev -> maxBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold; -fx-text-fill: #907898; -fx-cursor: hand; -fx-font-size: 16px;"));
+        maxBtn.setOnMouseEntered(ev -> maxBtn.setStyle("-fx-background-color: #f2e8f2; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px; -fx-background-radius: 8;"));
+        maxBtn.setOnMouseExited(ev -> maxBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px;"));
 
         Button closeBtn = new Button("✕");
-        closeBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold; -fx-text-fill: #907898; -fx-cursor: hand; -fx-font-size: 14px;");
+        closeBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 14px;");
         closeBtn.setOnAction(ev -> dialog.close());
         closeBtn.setOnMouseEntered(ev -> closeBtn.setStyle("-fx-background-color: #ffe4e4; -fx-font-weight: bold; -fx-text-fill: #d32f2f; -fx-cursor: hand; -fx-font-size: 14px; -fx-background-radius: 8;"));
-        closeBtn.setOnMouseExited(ev -> closeBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold; -fx-text-fill: #907898; -fx-cursor: hand; -fx-font-size: 14px;"));
+        closeBtn.setOnMouseExited(ev -> closeBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 14px;"));
         
         titleBar.getChildren().addAll(titleLbl, titleSpacer, minBtn, maxBtn, closeBtn);
 
@@ -399,7 +403,7 @@ public class AuctionPageController {
         titleBar.setOnMouseDragged(ev -> { dialog.setX(ev.getScreenX() - xOffset[0]); dialog.setY(ev.getScreenY() - yOffset[0]); });
 
         Label subtitleLabel = new Label("The system will automatically bid when someone outbids you.");
-        subtitleLabel.setStyle("-fx-font-size: 13px; -fx-font-family: 'DM Sans'; -fx-text-fill: #907898;");
+        subtitleLabel.setStyle("-fx-font-size: 13px; -fx-font-family: 'DM Sans'; ");
         subtitleLabel.setWrapText(true);
 
         Label priceBadge = new Label("💰 Current price: " + MONEY_PREFIX + formatPrice(currentPrice));
@@ -410,7 +414,7 @@ public class AuctionPageController {
                 "-fx-font-family: 'DM Sans';" +
                 "-fx-font-size: 14px;" +
                 "-fx-font-weight: bold;" +
-                "-fx-text-fill: #e040a0;" +
+                "-fx-text-fill: -fx-accent;" +
                 "-fx-border-color: #ffe8f2;" +
                 "-fx-border-radius: 8px;" +
                 "-fx-border-width: 1px;"
@@ -418,7 +422,7 @@ public class AuctionPageController {
         priceBadge.setMaxWidth(Double.MAX_VALUE);
 
         Label maxBidLabel = new Label("Max Bid");
-        maxBidLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
+        maxBidLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; ");
         Label maxBidHint = new Label("Maximum price you are willing to pay");
         maxBidHint.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-text-fill: #a890a8;");
 
@@ -436,14 +440,14 @@ public class AuctionPageController {
         );
         maxBidField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
             if (isFocused) {
-                maxBidField.setStyle(maxBidField.getStyle() + "-fx-border-color: #e040a0;");
+                maxBidField.setStyle(maxBidField.getStyle() + "-fx-border-color: -fx-accent;");
             } else {
-                maxBidField.setStyle(maxBidField.getStyle().replace("-fx-border-color: #e040a0;", "-fx-border-color: #e8d8e8;"));
+                maxBidField.setStyle(maxBidField.getStyle().replace("-fx-border-color: -fx-accent;", "-fx-border-color: #e8d8e8;"));
             }
         });
 
         Label incLabel = new Label("Auto Increment");
-        incLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;");
+        incLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; ");
         Label incHint = new Label("The system will add this increment each time");
         incHint.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-text-fill: #a890a8;");
 
@@ -461,9 +465,9 @@ public class AuctionPageController {
         );
         incrementField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
             if (isFocused) {
-                incrementField.setStyle(incrementField.getStyle() + "-fx-border-color: #e040a0;");
+                incrementField.setStyle(incrementField.getStyle() + "-fx-border-color: -fx-accent;");
             } else {
-                incrementField.setStyle(incrementField.getStyle().replace("-fx-border-color: #e040a0;", "-fx-border-color: #e8d8e8;"));
+                incrementField.setStyle(incrementField.getStyle().replace("-fx-border-color: -fx-accent;", "-fx-border-color: #e8d8e8;"));
             }
         });
 
@@ -477,7 +481,7 @@ public class AuctionPageController {
         Button cancelBtn = new Button("Cancel");
         cancelBtn.setStyle(
                 "-fx-background-color: #f2e8f2;" +
-                "-fx-text-fill: #604868;" +
+                "" +
                 "-fx-font-family: 'DM Sans';" +
                 "-fx-font-weight: bold;" +
                 "-fx-font-size: 14px;" +
@@ -489,7 +493,7 @@ public class AuctionPageController {
 
         Button activateBtn = new Button("Activate");
         activateBtn.setStyle(
-                "-fx-background-color: linear-gradient(to right, #e040a0, #f06292);" +
+                "-fx-background-color: linear-gradient(to right, -fx-accent, #f06292);" +
                 "-fx-text-fill: white;" +
                 "-fx-font-family: 'DM Sans';" +
                 "-fx-font-weight: bold;" +
@@ -624,7 +628,7 @@ public class AuctionPageController {
 
     private void renderMiniChart() {
         if (chartContainer == null) return; chartContainer.getChildren().clear();
-        if (allBidPoints.isEmpty()) { Label el = new Label("No bids yet"); el.setStyle("-fx-font-family:'DM Sans';-fx-font-size:11px;-fx-text-fill:#907898;"); chartContainer.getChildren().add(el); return; }
+        if (allBidPoints.isEmpty()) { Label el = new Label("No bids yet"); el.setStyle("-fx-font-family:'DM Sans';-fx-font-size:11px;"); chartContainer.getChildren().add(el); return; }
         int n = allBidPoints.size(), start = Math.max(0, n - MINI_CHART_POINTS);
         java.util.List<com.auction.client.model.BidChartPoint> recent = new java.util.ArrayList<>(allBidPoints.subList(start, n));
         javafx.scene.chart.NumberAxis xa = new javafx.scene.chart.NumberAxis(-0.3, recent.size()-1+0.3, 1);
@@ -656,7 +660,7 @@ public class AuctionPageController {
             }
             @Override public Number fromString(String s) { return 0; }
         });
-        ya.setStyle("-fx-tick-label-font-family: 'DM Sans'; -fx-tick-label-font-size: 11px; -fx-tick-label-fill: #604868; -fx-font-weight: bold;");
+        ya.setStyle("-fx-tick-label-font-family: 'DM Sans'; -fx-tick-label-font-size: 11px; -fx-tick-label-fill: -app-text-muted; -fx-font-weight: bold;");
 
         javafx.scene.chart.AreaChart<Number,Number> mc = new javafx.scene.chart.AreaChart<>(xa, ya);
         mc.setLegendVisible(false); mc.setAnimated(false); mc.setCreateSymbols(true); mc.setHorizontalGridLinesVisible(true); mc.setVerticalGridLinesVisible(false);
@@ -665,12 +669,12 @@ public class AuctionPageController {
         for (int i = 0; i < recent.size(); i++) s.getData().add(new javafx.scene.chart.XYChart.Data<>(i, recent.get(i).getAmount().doubleValue()));
         mc.getData().add(s);
         Platform.runLater(() -> { try {
-            javafx.scene.Node ln = mc.lookup(".default-color0.chart-series-area-line"); if (ln != null) ln.setStyle("-fx-stroke:#e040a0;-fx-stroke-width:3px;");
+            javafx.scene.Node ln = mc.lookup(".default-color0.chart-series-area-line"); if (ln != null) ln.setStyle("-fx-stroke:-fx-accent;-fx-stroke-width:3px;");
             javafx.scene.Node fl = mc.lookup(".default-color0.chart-series-area-fill"); if (fl != null) fl.setStyle("-fx-fill:linear-gradient(to bottom,rgba(224,64,160,0.35),rgba(224,64,160,0.02));");
             javafx.scene.Node bg = mc.lookup(".chart-plot-background"); if (bg != null) bg.setStyle("-fx-background-color:transparent; -fx-border-color: transparent transparent #dcc8e0 #dcc8e0; -fx-border-width: 0 0 1 1;");
             javafx.scene.Node hgl = mc.lookup(".chart-horizontal-grid-lines"); if (hgl != null) hgl.setStyle("-fx-stroke: #f2e8f2; -fx-stroke-dash-array: 4 4;");
             for (int i = 0; i < s.getData().size(); i++) { javafx.scene.Node sym = s.getData().get(i).getNode(); if (sym != null) {
-                boolean last = (i == s.getData().size()-1); sym.setStyle("-fx-background-color:#e040a0,white;-fx-background-insets:0,2;-fx-background-radius:"+(last?"10px":"7px")+";-fx-padding:"+(last?"5":"3.5")+";");
+                boolean last = (i == s.getData().size()-1); sym.setStyle("-fx-background-color:-fx-accent,white;-fx-background-insets:0,2;-fx-background-radius:"+(last?"10px":"7px")+";-fx-padding:"+(last?"5":"3.5")+";");
                 com.auction.client.model.BidChartPoint p = recent.get(i);
                 
                 String timeStr = p.getBidTime() != null ? p.getBidTime().replace("T", " ") : "";
@@ -692,7 +696,7 @@ public class AuctionPageController {
             try { sec = Duration.between(LocalDateTime.parse(recent.get(i).getBidTime()), LocalDateTime.now()).getSeconds(); } catch(Exception ignored){}
             String labelTxt = last ? (sec <= 60 ? "NOW" : "LATEST") : formatShortRelative(recent.get(i).getBidTime());
             Label lbl = new Label(labelTxt);
-            lbl.setStyle("-fx-font-family:'DM Sans';-fx-font-size:11px;-fx-font-weight:900;"+(last?"-fx-text-fill:#e040a0;":"-fx-text-fill:#604868;"));
+            lbl.setStyle("-fx-font-family:'DM Sans';-fx-font-size:11px;-fx-font-weight:900;"+(last?"-fx-text-fill:-fx-accent;":""));
             javafx.scene.layout.HBox.setHgrow(lbl, javafx.scene.layout.Priority.ALWAYS); lbl.setMaxWidth(Double.MAX_VALUE); lbl.setAlignment(javafx.geometry.Pos.CENTER); xLabels.getChildren().add(lbl); }
         chartContainer.getChildren().addAll(mc, xLabels);
     }
@@ -724,10 +728,10 @@ public class AuctionPageController {
             javafx.scene.layout.HBox row = new javafx.scene.layout.HBox(10); row.setAlignment(javafx.geometry.Pos.CENTER);
             row.setOpacity(ACTIVITY_OPACITY[Math.min(i, ACTIVITY_OPACITY.length-1)]);
             String dn = pt.isMine() ? pt.getMaskedBidderCode()+" (You)" : pt.getDisplayName();
-            Label nl = new Label(dn); nl.setStyle("-fx-font-family:'DM Sans';-fx-font-size:12px;-fx-font-weight:bold;-fx-text-fill:#2e1a28;");
+            Label nl = new Label(dn); nl.setStyle("-fx-font-family:'DM Sans';-fx-font-size:12px;-fx-font-weight:bold;");
             javafx.scene.layout.Region sp = new javafx.scene.layout.Region(); javafx.scene.layout.HBox.setHgrow(sp, javafx.scene.layout.Priority.ALWAYS);
-            Label al = new Label("₫ "+formatPrice(pt.getAmount())); al.setStyle("-fx-font-family:'DM Sans';-fx-font-size:13px;-fx-font-weight:900;-fx-text-fill:#2e1a28;");
-            Label tl = new Label(pt.getRelativeTime()); tl.setStyle("-fx-font-family:'DM Sans';-fx-font-size:10px;-fx-text-fill:#907898;"); tl.setPrefWidth(60); tl.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+            Label al = new Label("₫ "+formatPrice(pt.getAmount())); al.setStyle("-fx-font-family:'DM Sans';-fx-font-size:13px;-fx-font-weight:900;");
+            Label tl = new Label(pt.getRelativeTime()); tl.setStyle("-fx-font-family:'DM Sans';-fx-font-size:10px;"); tl.setPrefWidth(60); tl.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
             row.getChildren().addAll(nl, sp, al, tl); bidHistoryContainer.getChildren().add(row);
         }
     }
@@ -750,7 +754,7 @@ public class AuctionPageController {
         root.setPrefSize(780, 740);
 
         VBox mainCard = new VBox(15);
-        mainCard.setStyle("-fx-padding: 24; -fx-background-color: #fef7ff; -fx-background-radius: 18; -fx-border-color: #f2e8f2; -fx-border-radius: 18; -fx-border-width: 2;");
+        mainCard.setStyle("-fx-padding: 24; -fx-background-color: #fef7ff; -fx-background-radius: 18;  -fx-border-radius: 18; -fx-border-width: 2;");
         javafx.scene.effect.DropShadow shadow = new javafx.scene.effect.DropShadow();
         shadow.setColor(javafx.scene.paint.Color.rgb(46, 26, 40, 0.15));
         shadow.setRadius(20);
@@ -760,11 +764,11 @@ public class AuctionPageController {
         root.getChildren().add(mainCard);
         
         // CSS cho TableView vµ Chart
-        String css = ".table-view { -fx-background-color: transparent; -fx-border-color: #f2e8f2; -fx-border-radius: 8px; -fx-background-radius: 8px; } " +
+        String css = ".table-view { -fx-background-color: transparent;  -fx-border-radius: 8px; -fx-background-radius: 8px; } " +
                      ".table-view .column-header-background { -fx-background-color: #faf6fa; -fx-background-radius: 8px 8px 0 0; } " +
                      ".table-view .column-header, .table-view .filler { -fx-background-color: transparent; -fx-size: 40px; -fx-border-color: #e8d8e8; -fx-border-width: 0 0 1 0; } " +
-                     ".table-view .column-header .label { -fx-text-fill: #907898; -fx-font-weight: 900; -fx-font-size: 13px; -fx-font-family: 'DM Sans'; } " +
-                     ".table-view .table-row-cell { -fx-background-color: white; -fx-border-color: #f2e8f2; -fx-border-width: 0 0 1 0; -fx-cell-size: 45px; } " +
+                     ".table-view .column-header .label {  -fx-font-weight: 900; -fx-font-size: 13px; -fx-font-family: 'DM Sans'; } " +
+                     ".table-view .table-row-cell {   -fx-border-width: 0 0 1 0; -fx-cell-size: 45px; } " +
                      ".table-view .table-row-cell:hover { -fx-background-color: #fff0f8; } " +
                      ".table-view .table-row-cell:selected { -fx-background-color: #ffe4f2; -fx-background-insets: 0; } " +
                      ".table-view .table-cell { -fx-font-size: 13px; -fx-font-family: 'DM Sans'; } " +
@@ -778,7 +782,7 @@ public class AuctionPageController {
                      ".chart-vertical-grid-lines { -fx-stroke: transparent; } " +
                      ".chart-horizontal-grid-lines { -fx-stroke: #f2e8f2; -fx-stroke-dash-array: 4 4; } " +
                      ".axis { -fx-tick-label-fill: #907898; -fx-tick-label-font-size: 11px; } " +
-                     ".axis-label { -fx-text-fill: #604868; -fx-font-weight: bold; -fx-font-size: 12px; }";
+                     ".axis-label {  -fx-font-weight: bold; -fx-font-size: 12px; }";
         try {
             java.io.File cssFile = java.io.File.createTempFile("popupStyle", ".css");
             cssFile.deleteOnExit();
@@ -791,32 +795,32 @@ public class AuctionPageController {
         titleBar.setStyle("-fx-padding: 0 0 10 0; -fx-cursor: move;");
         
         Label titleLbl = new Label("📊 Bid Trajectory & Full History");
-        titleLbl.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
+        titleLbl.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; ");
         
         javafx.scene.layout.Region titleSpacer = new javafx.scene.layout.Region();
         javafx.scene.layout.HBox.setHgrow(titleSpacer, javafx.scene.layout.Priority.ALWAYS);
         
         Button minBtn = new Button("−");
-        minBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold; -fx-text-fill: #907898; -fx-cursor: hand; -fx-font-size: 16px;");
+        minBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px;");
         minBtn.setOnAction(ev -> popup.setIconified(true));
-        minBtn.setOnMouseEntered(ev -> minBtn.setStyle("-fx-background-color: #f2e8f2; -fx-font-weight: bold; -fx-text-fill: #2e1a28; -fx-cursor: hand; -fx-font-size: 16px; -fx-background-radius: 8;"));
-        minBtn.setOnMouseExited(ev -> minBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold; -fx-text-fill: #907898; -fx-cursor: hand; -fx-font-size: 16px;"));
+        minBtn.setOnMouseEntered(ev -> minBtn.setStyle("-fx-background-color: #f2e8f2; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px; -fx-background-radius: 8;"));
+        minBtn.setOnMouseExited(ev -> minBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px;"));
 
         Button maxBtn = new Button("◻");
-        maxBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold; -fx-text-fill: #907898; -fx-cursor: hand; -fx-font-size: 16px;");
+        maxBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px;");
         maxBtn.setOnAction(ev -> {
             boolean isMax = popup.isMaximized();
             popup.setMaximized(!isMax);
             maxBtn.setText(isMax ? "◻" : "❐");
         });
-        maxBtn.setOnMouseEntered(ev -> maxBtn.setStyle("-fx-background-color: #f2e8f2; -fx-font-weight: bold; -fx-text-fill: #2e1a28; -fx-cursor: hand; -fx-font-size: 16px; -fx-background-radius: 8;"));
-        maxBtn.setOnMouseExited(ev -> maxBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold; -fx-text-fill: #907898; -fx-cursor: hand; -fx-font-size: 16px;"));
+        maxBtn.setOnMouseEntered(ev -> maxBtn.setStyle("-fx-background-color: #f2e8f2; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px; -fx-background-radius: 8;"));
+        maxBtn.setOnMouseExited(ev -> maxBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px;"));
 
         Button closeBtn = new Button("✕");
-        closeBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold; -fx-text-fill: #907898; -fx-cursor: hand; -fx-font-size: 14px;");
+        closeBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 14px;");
         closeBtn.setOnAction(ev -> { fullHistoryPopup = null; fullHistoryUpdater = null; popup.close(); });
         closeBtn.setOnMouseEntered(ev -> closeBtn.setStyle("-fx-background-color: #ffe4e4; -fx-font-weight: bold; -fx-text-fill: #d32f2f; -fx-cursor: hand; -fx-font-size: 14px; -fx-background-radius: 8;"));
-        closeBtn.setOnMouseExited(ev -> closeBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold; -fx-text-fill: #907898; -fx-cursor: hand; -fx-font-size: 14px;"));
+        closeBtn.setOnMouseExited(ev -> closeBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 14px;"));
         
         titleBar.getChildren().addAll(titleLbl, titleSpacer, minBtn, maxBtn, closeBtn);
 
@@ -827,7 +831,7 @@ public class AuctionPageController {
 
         javafx.scene.layout.HBox hdr = new javafx.scene.layout.HBox(12); hdr.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
         javafx.scene.control.ComboBox<String> flt = new javafx.scene.control.ComboBox<>(); flt.getItems().addAll("Last 10","Last 50","Full History"); 
-        flt.setStyle("-fx-background-color: #ffffff; -fx-border-color: #e8d8e8; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 4 8; -fx-font-family:'DM Sans'; -fx-font-weight: bold; -fx-text-fill: #e040a0; -fx-cursor: hand;");
+        flt.setStyle(" -fx-border-color: #e8d8e8; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 4 8; -fx-font-family:'DM Sans'; -fx-font-weight: bold; -fx-text-fill: -fx-accent; -fx-cursor: hand;");
         hdr.getChildren().addAll(flt);
         javafx.scene.chart.NumberAxis fxa = new javafx.scene.chart.NumberAxis(); fxa.setLabel("Time"); fxa.setAutoRanging(true); fxa.setForceZeroInRange(false); fxa.setTickMarkVisible(false); fxa.setMinorTickVisible(false);
         fxa.setTickLabelFormatter(new javafx.util.StringConverter<Number>() {
@@ -846,10 +850,10 @@ public class AuctionPageController {
             @Override public Number fromString(String s) { return 0; }
         });
         javafx.scene.chart.LineChart<Number,Number> fc = new javafx.scene.chart.LineChart<>(fxa, fya); fc.setLegendVisible(false); fc.setAnimated(false); fc.setCreateSymbols(true); fc.setPrefHeight(240);
-        javafx.scene.layout.HBox sb = new javafx.scene.layout.HBox(16); sb.setStyle("-fx-padding:16;-fx-background-color:#fff0f8;-fx-background-radius:12;-fx-border-color:#f2e8f2;-fx-border-radius:12;-fx-border-width:1;");
+        javafx.scene.layout.HBox sb = new javafx.scene.layout.HBox(16); sb.setStyle("-fx-padding:16;-fx-background-color:#fff0f8;-fx-background-radius:12;-fx-border-radius:12;-fx-border-width:1;");
         
         javafx.scene.control.TableView<com.auction.client.model.BidChartPoint> tbl = new javafx.scene.control.TableView<>();
-        tbl.setStyle("-fx-background-color: transparent; -fx-font-family: 'DM Sans'; -fx-border-color: #f2e8f2; -fx-border-width: 1; -fx-border-radius: 8; -fx-background-radius: 8;");
+        tbl.setStyle("-fx-background-color: transparent; -fx-font-family: 'DM Sans';  -fx-border-width: 1; -fx-border-radius: 8; -fx-background-radius: 8;");
         
         javafx.scene.control.TableColumn<com.auction.client.model.BidChartPoint,String> c1 = new javafx.scene.control.TableColumn<>("Time");
         c1.setCellValueFactory(cd -> {
@@ -860,17 +864,17 @@ public class AuctionPageController {
                 return new javafx.beans.property.SimpleStringProperty(dt.format(dtf));
             } catch (Exception ex) { return new javafx.beans.property.SimpleStringProperty(cd.getValue().getBidTime()); }
         });
-        c1.setStyle("-fx-font-weight: bold; -fx-text-fill: #604868;");
+        c1.setStyle("-fx-font-weight: bold; ");
         javafx.scene.control.TableColumn<com.auction.client.model.BidChartPoint,String> c2 = new javafx.scene.control.TableColumn<>("Bidder");
         c2.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getDisplayName()));
-        c2.setStyle("-fx-font-weight: 900; -fx-text-fill: #2e1a28;");
+        c2.setStyle("-fx-font-weight: 900; ");
         javafx.scene.control.TableColumn<com.auction.client.model.BidChartPoint,String> c3 = new javafx.scene.control.TableColumn<>("Amount");
         c3.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty("₫ "+formatPrice(cd.getValue().getAmount())));
-        c3.setStyle("-fx-alignment: CENTER-RIGHT; -fx-font-weight: 900; -fx-text-fill: #2e1a28; -fx-font-size: 14px;");
+        c3.setStyle("-fx-alignment: CENTER-RIGHT; -fx-font-weight: 900;  -fx-font-size: 14px;");
         javafx.scene.control.TableColumn<com.auction.client.model.BidChartPoint,String> c4 = new javafx.scene.control.TableColumn<>("Increment");
         c4.setCellValueFactory(cd -> { int idx = allBidPoints.indexOf(cd.getValue()); if (idx<=0) return new javafx.beans.property.SimpleStringProperty("-");
             return new javafx.beans.property.SimpleStringProperty("+₫ "+formatPrice(cd.getValue().getAmount().subtract(allBidPoints.get(idx-1).getAmount()))); });
-        c4.setStyle("-fx-alignment: CENTER-RIGHT; -fx-text-fill: #e040a0; -fx-font-weight: 900; -fx-font-size: 14px;");
+        c4.setStyle("-fx-alignment: CENTER-RIGHT; -fx-text-fill: -fx-accent; -fx-font-weight: 900; -fx-font-size: 14px;");
         
         tbl.getColumns().addAll(java.util.List.of(c1,c2,c3,c4)); tbl.setColumnResizePolicy(javafx.scene.control.TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS); VBox.setVgrow(tbl, javafx.scene.layout.Priority.ALWAYS);
         
@@ -888,12 +892,12 @@ public class AuctionPageController {
             fc.getData().clear(); javafx.scene.chart.XYChart.Series<Number,Number> fs = new javafx.scene.chart.XYChart.Series<>();
             for (com.auction.client.model.BidChartPoint p : sub) fs.getData().add(new javafx.scene.chart.XYChart.Data<>(p.getEpochMillis(), p.getAmount().doubleValue()));
             fc.getData().add(fs); Platform.runLater(() -> { 
-                javafx.scene.Node l = fc.lookup(".default-color0.chart-series-line"); if (l!=null) l.setStyle("-fx-stroke:#e040a0;-fx-stroke-width:2.5px;"); 
+                javafx.scene.Node l = fc.lookup(".default-color0.chart-series-line"); if (l!=null) l.setStyle("-fx-stroke:-fx-accent;-fx-stroke-width:2.5px;"); 
                 javafx.scene.Node bg = fc.lookup(".chart-plot-background"); if (bg != null) bg.setStyle("-fx-background-color:transparent; -fx-border-color: transparent transparent #dcc8e0 #dcc8e0; -fx-border-width: 0 0 1 1;");
                 for (int i = 0; i < fs.getData().size(); i++) {
                     javafx.scene.Node sym = fs.getData().get(i).getNode();
                     if (sym != null) {
-                        sym.setStyle("-fx-background-color: #e040a0, white; -fx-background-insets: 0, 2; -fx-background-radius: 6px; -fx-padding: 4px;");
+                        sym.setStyle("-fx-background-color: -fx-accent, white; -fx-background-insets: 0, 2; -fx-background-radius: 6px; -fx-padding: 4px;");
                         sym.setCursor(javafx.scene.Cursor.HAND);
                         com.auction.client.model.BidChartPoint p = sub.get(i);
                         String timeStr = p.getBidTime() != null ? p.getBidTime().replace("T", " ") : "";
@@ -914,8 +918,8 @@ public class AuctionPageController {
             String lt = allBidPoints.isEmpty()?"-":formatRelativeTime(allBidPoints.get(allBidPoints.size()-1).getBidTime());
             String[][] sts={{"Total Bids",""+allBidPoints.size()},{"Highest","₫ "+formatPrice(hi)},{"Start","₫ "+formatPrice(lo)},{"Max Δ","+₫ "+formatPrice(mxi)},{"Last Bid",lt}};
             for (String[] st : sts) { VBox sv = new VBox(4); sv.setAlignment(javafx.geometry.Pos.CENTER);
-                Label k = new Label(st[0]); k.setStyle("-fx-font-family:'DM Sans';-fx-font-size:11px;-fx-font-weight:700;-fx-text-fill:#907898;");
-                Label v = new Label(st[1]); v.setStyle("-fx-font-family:'DM Sans';-fx-font-size:16px;-fx-font-weight:900;-fx-text-fill:#2e1a28;");
+                Label k = new Label(st[0]); k.setStyle("-fx-font-family:'DM Sans';-fx-font-size:11px;-fx-font-weight:700;");
+                Label v = new Label(st[1]); v.setStyle("-fx-font-family:'DM Sans';-fx-font-size:16px;-fx-font-weight:900;");
                 sv.getChildren().addAll(k,v); javafx.scene.layout.HBox.setHgrow(sv, javafx.scene.layout.Priority.ALWAYS); sb.getChildren().add(sv); }
             javafx.collections.ObservableList<com.auction.client.model.BidChartPoint> items = javafx.collections.FXCollections.observableArrayList();
             for (int i=sub.size()-1;i>=0;i--) items.add(sub.get(i)); tbl.setItems(items); 
@@ -1005,15 +1009,15 @@ public class AuctionPageController {
         double bidFieldFont = Math.max(12, Math.min(24, windowWidth * 0.017));
 
         setNodeStyle(currentPriceLabel,
-                "-fx-font-family: 'DM Sans'; -fx-font-size: " + (int) priceFont + "px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;"
+                "-fx-font-family: 'DM Sans'; -fx-font-size: " + (int) priceFont + "px; -fx-font-weight: 900; "
         );
 
         setNodeStyle(highestBidTitleLabel,
-                "-fx-font-family: 'DM Sans'; -fx-font-size: " + (int) Math.max(10, Math.min(14, windowWidth * 0.01)) + "px; -fx-font-weight: 900; -fx-text-fill: #604868;"
+                "-fx-font-family: 'DM Sans'; -fx-font-size: " + (int) Math.max(10, Math.min(14, windowWidth * 0.01)) + "px; -fx-font-weight: 900; "
         );
 
         setNodeStyle(remainingTimeLabel,
-                "-fx-font-family: 'DM Sans'; -fx-font-size: " + (int) timeFont + "px; -fx-font-weight: 900; -fx-text-fill: #e040a0;"
+                "-fx-font-family: 'DM Sans'; -fx-font-size: " + (int) timeFont + "px; -fx-font-weight: 900; -fx-text-fill: -fx-accent;"
         );
 
         setNodeStyle(endingInTitleLabel,
@@ -1029,7 +1033,7 @@ public class AuctionPageController {
         );
 
         setNodeStyle(bidAmountField,
-                "-fx-background-color: white; -fx-border-color: #ece2ec; -fx-border-width: 2; " +
+                " -fx-border-color: #ece2ec; -fx-border-width: 2; " +
                         "-fx-border-radius: 999; -fx-padding: 16 16 16 48; " +
                         "-fx-font-family: 'DM Sans'; -fx-font-size: " + (int) bidFieldFont + "px; -fx-font-weight: 900;"
         );
@@ -1318,27 +1322,9 @@ public class AuctionPageController {
 
             if (noticeObj.has("newEndTime")) {
                 handleAuctionExtended(noticeObj.getString("newEndTime"));
-                AppNotification notif = new AppNotification(NotificationType.AUCTION_EXTENDED, NotificationSeverity.INFO, 
-                    "Session extended", "A bid was placed in the last seconds so the session was extended.");
-                notif.setAuctionId(currentSessionId);
-                notif.setItemName(productNameLabel.getText());
-                NotificationCenterService.getInstance().addNotification(notif);
             } else {
                 if (User.getId() == null || highestBidderId == null || !highestBidderId.equals(User.getId())) {
                     showInfo("Someone just placed a new bid!");
-                    if (myLastBidAmount != null && newPrice.compareTo(myLastBidAmount) > 0) {
-                        AppNotification notif = new AppNotification(NotificationType.OUTBID, NotificationSeverity.WARNING, 
-                            "You have been outbid", "Product " + productNameLabel.getText() + " is now at ₫ " + formatPrice(newPrice));
-                        notif.setAuctionId(currentSessionId);
-                        notif.setItemName(productNameLabel.getText());
-                        NotificationCenterService.getInstance().addNotification(notif);
-                    } else if (User.watchlistIds.contains(currentSessionId) || myLastBidAmount != null) {
-                        AppNotification notif = new AppNotification(NotificationType.NEW_BID, NotificationSeverity.INFO, 
-                            "New bid", "Product " + productNameLabel.getText() + " has a new bid: ₫ " + formatPrice(newPrice));
-                        notif.setAuctionId(currentSessionId);
-                        notif.setItemName(productNameLabel.getText());
-                        NotificationCenterService.getInstance().addNotification(notif);
-                    }
                 }
             }
         });
@@ -1375,6 +1361,11 @@ public class AuctionPageController {
                     "Bid failed", responseObj.optString("message", "Bid placement failed."));
                 notif.setAuctionId(currentSessionId);
                 notif.setItemName(productNameLabel.getText());
+                if (bidErrorSoundPlayedForCurrentAttempt) {
+                    notif.setSoundMuted(true);
+                } else {
+                    bidErrorSoundPlayedForCurrentAttempt = true;
+                }
                 NotificationCenterService.getInstance().addNotification(notif);
             }
         });
@@ -1475,12 +1466,17 @@ public class AuctionPageController {
             Platform.runLater(() -> {
                 finishBidProcessing();
                 showError("Không gửi được yêu cầu đặt giá tới server");
+                if (!bidErrorSoundPlayedForCurrentAttempt) {
+                    com.auction.client.service.SoundManager.getInstance().playSound(com.auction.client.model.audio.SoundEvent.BID_ERROR);
+                    bidErrorSoundPlayedForCurrentAttempt = true;
+                }
             });
             return;
         }
     }
 
     private void showBidProcessing() {
+        bidErrorSoundPlayedForCurrentAttempt = false;
         placeBidBtn.setDisable(true);
         messageLabel.setStyle(WARNING_STYLE);
         messageLabel.setText(PROCESSING_MESSAGE);
@@ -1501,6 +1497,10 @@ public class AuctionPageController {
             if (PROCESSING_MESSAGE.equals(messageLabel.getText())) {
                 messageLabel.setStyle(WARNING_STYLE);
                 messageLabel.setText("Server response is slow, please check connection or try again.");
+                if (!bidErrorSoundPlayedForCurrentAttempt) {
+                    com.auction.client.service.SoundManager.getInstance().playSound(com.auction.client.model.audio.SoundEvent.BID_ERROR);
+                    bidErrorSoundPlayedForCurrentAttempt = true;
+                }
             }
         }));
 
@@ -1562,26 +1562,24 @@ public class AuctionPageController {
         long seconds = secondsLeft % 60;
 
         remainingTimeLabel.setText(String.format("%02d:%02d:%02d", hours, minutes, seconds));
+
+        // ENDING_SOON logic (e.g., 5 minutes = 300 seconds)
+        if (secondsLeft <= 300 && !endingSoonNotified) {
+            endingSoonNotified = true;
+            if (SettingsService.getInstance().isEndingSoonNotificationEnabled()) {
+                AppNotification notif = new AppNotification(NotificationType.ENDING_SOON, NotificationSeverity.WARNING,
+                    "Auction ending soon", "The auction for " + productNameLabel.getText() + " is ending in 5 minutes!");
+                notif.setAuctionId(currentSessionId);
+                notif.setItemName(productNameLabel.getText());
+                NotificationCenterService.getInstance().addNotification(notif);
+            }
+        }
     }
 
     private void handleAuctionEnd() {
         placeBidBtn.setDisable(true);
         bidAmountField.setDisable(true);
         disconnectSocket();
-        
-        if (highestBidderId != null && User.getId() != null && highestBidderId.equals(User.getId())) {
-            AppNotification notif = new AppNotification(NotificationType.AUCTION_END_WIN, NotificationSeverity.SUCCESS, 
-                "You won!", "You are the highest bidder for " + productNameLabel.getText());
-            notif.setAuctionId(currentSessionId);
-            notif.setItemName(productNameLabel.getText());
-            NotificationCenterService.getInstance().addNotification(notif);
-        } else if (User.getId() != null && myLastBidAmount != null) {
-            AppNotification notif = new AppNotification(NotificationType.AUCTION_END_LOSE, NotificationSeverity.INFO, 
-                "Auction ended", "Unfortunately, you did not win the auction for " + productNameLabel.getText());
-            notif.setAuctionId(currentSessionId);
-            notif.setItemName(productNameLabel.getText());
-            NotificationCenterService.getInstance().addNotification(notif);
-        }
     }
 
     private void stopTimeline() {
