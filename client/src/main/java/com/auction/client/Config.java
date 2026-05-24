@@ -11,6 +11,7 @@ public class Config {
     public static final Integer PORT_SOCKET = 8081;
 
     public static final String CACHE_3D_DIR = "client/cache/models";
+    public static final String CACHE_IMAGES_DIR = "client/cache/images";
 
     public static volatile long imageCacheBuster = System.currentTimeMillis();
 
