@@ -738,3 +738,200 @@
     -fx-background-color: -app-accent-chip-bg !important;
 }
 /* === AUTH ACCENT SYNC PHASE K2 END === */
+
+/* === AUTH TRUE DARK PHASE Q START === */
+/* Auth screens now support true dark mode while keeping accent sync. */
+.auth-root.theme-dark {
+    -fx-background-color: transparent;
+    -app-auth-bg: #0f172a;
+    -app-auth-shell: #111827;
+    -app-auth-shell-2: #172033;
+    -app-auth-card: #182235;
+    -app-auth-card-2: #1f2937;
+    -app-auth-input: #1f2937;
+    -app-auth-input-focus: #243244;
+    -app-auth-text: #f8fafc;
+    -app-auth-muted: #cbd5e1;
+    -app-auth-soft: #94a3b8;
+    -app-auth-border: rgba(148, 163, 184, 0.22);
+    -app-auth-border-strong: rgba(148, 163, 184, 0.36);
+    -app-auth-white-08: rgba(255, 255, 255, 0.08);
+    -app-auth-white-12: rgba(255, 255, 255, 0.12);
+    -app-auth-white-18: rgba(255, 255, 255, 0.18);
+}
+
+.auth-root.theme-dark .auth-shadow-wrapper {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.52), 42, 0.18, 0, 12);
+}
+
+.auth-root.theme-dark .auth-shell {
+    -fx-background-color: -app-auth-shell !important;
+    -fx-border-color: -app-accent-opacity-25 !important;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.28), 18, 0.10, 0, 2);
+}
+
+.auth-root.theme-dark .auth-brand-panel {
+    -fx-background-color: -app-accent-gradient-dark !important;
+}
+
+.auth-root.theme-dark .auth-blob,
+.auth-root.theme-dark .auth-blob-strong {
+    -fx-fill: rgba(255, 255, 255, 0.12);
+}
+
+.auth-root.theme-dark .auth-brand-title,
+.auth-root.theme-dark .auth-stat-title {
+    -fx-text-fill: #ffffff !important;
+}
+
+.auth-root.theme-dark .auth-brand-subtitle,
+.auth-root.theme-dark .auth-stat-subtitle,
+.auth-root.theme-dark .auth-intensity-label {
+    -fx-text-fill: rgba(255, 255, 255, 0.84) !important;
+}
+
+.auth-root.theme-dark .auth-card-overlay {
+    -fx-background-color: rgba(15, 23, 42, 0.22) !important;
+    -fx-border-color: rgba(255, 255, 255, 0.20) !important;
+}
+
+.auth-root.theme-dark .auth-product-carousel,
+.auth-root.theme-dark .auth-product-image-container {
+    -fx-background-color: -app-auth-card !important;
+}
+
+.auth-root.theme-dark .auth-product-details-container {
+    -fx-background-color: -app-auth-card-2 !important;
+    -fx-border-color: -app-auth-border transparent transparent transparent !important;
+}
+
+.auth-root.theme-dark .auth-title,
+.auth-root.theme-dark .auth-product-name,
+.auth-root.theme-dark .auth-input-label,
+.auth-root.theme-dark .auth-footer-text,
+.auth-root.theme-dark .auth-trust-label,
+.auth-root.theme-dark .auth-remember-check,
+.auth-root.theme-dark .remember-me-pill,
+.auth-root.theme-dark .auth-check-box {
+    -fx-text-fill: -app-auth-text !important;
+}
+
+.auth-root.theme-dark .auth-subtitle,
+.auth-root.theme-dark .auth-footer-text,
+.auth-root.theme-dark .auth-trust-label {
+    -fx-text-fill: -app-auth-muted !important;
+}
+
+.auth-root.theme-dark .auth-product-type,
+.auth-root.theme-dark .auth-product-price,
+.auth-root.theme-dark .auth-secondary-link,
+.auth-root.theme-dark .auth-secondary-link .text {
+    -fx-text-fill: -fx-accent !important;
+}
+
+.auth-root.theme-dark .auth-input {
+    -fx-background-color: -app-auth-input !important;
+    -fx-text-fill: -app-auth-text !important;
+    -fx-prompt-text-fill: -app-auth-soft !important;
+    -fx-border-color: -app-auth-border !important;
+    -fx-border-width: 1.4px !important;
+}
+
+.auth-root.theme-dark .auth-input:focused {
+    -fx-background-color: -app-auth-input-focus !important;
+    -fx-border-color: -fx-accent !important;
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-25, 12, 0, 0, 4) !important;
+}
+
+.auth-root.theme-dark .auth-social-button {
+    -fx-background-color: -app-auth-card-2 !important;
+    -fx-border-color: -app-auth-border-strong !important;
+    -fx-text-fill: -app-auth-text !important;
+}
+
+.auth-root.theme-dark .auth-social-button:hover {
+    -fx-background-color: -app-auth-input-focus !important;
+    -fx-border-color: -fx-accent !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.auth-root.theme-dark .auth-footer {
+    -fx-border-color: -app-auth-border !important;
+}
+
+.auth-root.theme-dark #rememberMeCheckBox,
+.auth-root.theme-dark .remember-me-pill,
+.auth-root.theme-dark .auth-remember-check,
+.auth-root.theme-dark .auth-check-box {
+    -fx-background-color: -app-auth-card-2 !important;
+    -fx-border-color: -app-auth-border-strong !important;
+    -fx-text-fill: -app-auth-text !important;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.22), 8, 0.10, 0, 2) !important;
+}
+
+.auth-root.theme-dark #rememberMeCheckBox:hover,
+.auth-root.theme-dark .remember-me-pill:hover,
+.auth-root.theme-dark .auth-remember-check:hover,
+.auth-root.theme-dark .auth-check-box:hover {
+    -fx-background-color: -app-auth-input-focus !important;
+    -fx-border-color: -fx-accent !important;
+    -fx-text-fill: -fx-accent !important;
+}
+
+.auth-root.theme-dark #rememberMeCheckBox .box,
+.auth-root.theme-dark #rememberMeCheckBox > .box,
+.auth-root.theme-dark .remember-me-pill .box,
+.auth-root.theme-dark .remember-me-pill > .box,
+.auth-root.theme-dark .auth-remember-check .box,
+.auth-root.theme-dark .auth-remember-check > .box,
+.auth-root.theme-dark .auth-check-box .box,
+.auth-root.theme-dark .auth-check-box > .box {
+    -fx-background-color: -app-auth-input !important;
+    -fx-border-color: -app-auth-border-strong !important;
+}
+
+.auth-root.theme-dark #rememberMeCheckBox:selected,
+.auth-root.theme-dark .remember-me-pill:selected,
+.auth-root.theme-dark .auth-remember-check:selected,
+.auth-root.theme-dark .auth-check-box:selected {
+    -fx-background-color: -app-accent-opacity-16 !important;
+    -fx-border-color: -fx-accent !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+.auth-root.theme-dark #rememberMeCheckBox:selected .box,
+.auth-root.theme-dark #rememberMeCheckBox:selected > .box,
+.auth-root.theme-dark .remember-me-pill:selected .box,
+.auth-root.theme-dark .remember-me-pill:selected > .box,
+.auth-root.theme-dark .auth-remember-check:selected .box,
+.auth-root.theme-dark .auth-remember-check:selected > .box,
+.auth-root.theme-dark .auth-check-box:selected .box,
+.auth-root.theme-dark .auth-check-box:selected > .box {
+    -fx-background-color: -fx-accent !important;
+    -fx-border-color: -fx-accent !important;
+}
+
+.auth-root.theme-dark .auth-progress-track,
+.auth-root.theme-dark .strength-empty {
+    -fx-background-color: -app-auth-border-strong !important;
+}
+
+.auth-root.theme-dark .window-control-btn:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.10) !important;
+}
+
+.auth-root.theme-dark .window-control-icon {
+    -fx-text-fill: -app-auth-muted !important;
+}
+
+.auth-root.theme-dark .auth-live-badge,
+.auth-root.theme-dark .auth-stat-icon,
+.auth-root.theme-dark .auth-primary-button {
+    -fx-text-fill: #ffffff !important;
+}
+
+/* Light auth keeps its original bright design, but this makes the intent explicit. */
+.auth-root.theme-light .auth-shell {
+    -fx-background-color: #ffffff;
+}
+/* === AUTH TRUE DARK PHASE Q END === */
