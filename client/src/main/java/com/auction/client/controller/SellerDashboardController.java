@@ -46,9 +46,12 @@ import java.time.LocalDateTime;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
-public class SellerDashboardController {
+public class SellerDashboardController implements SceneLifecycle {
     private static final Logger logger = LoggerFactory.getLogger(SellerDashboardController.class);
+    private volatile boolean sellerDashboardDisposed = false;
+    private int sessionLoadRequestId = 0;
 
     @FXML
     private StackPane modalOverlay;
@@ -202,6 +205,7 @@ public class SellerDashboardController {
 
     @FXML
     public void initialize() {
+        sellerDashboardDisposed = false;
         productTypeCombo.setItems(FXCollections.observableArrayList(
                 "Electronics", "Art", "Vehicle"));
         productTypeCombo.setValue("Electronics");
@@ -2160,6 +2164,35 @@ public class SellerDashboardController {
             return;
         }
 
+        sellerDashboardDisposed = false;
+        final int requestId = ++sessionLoadRequestId;
+
+        CompletableFuture.supplyAsync(() -> fetchSellerSessions(sellerId))
+                .thenAccept(result -> javafx.application.Platform.runLater(() -> {
+                    if (sellerDashboardDisposed || requestId != sessionLoadRequestId) {
+                        return;
+                    }
+                    if (!result.success) {
+                        showAlert(Alert.AlertType.ERROR, result.title, result.message);
+                        return;
+                    }
+                    allSessions.clear();
+                    allSessions.addAll(result.sessions);
+                    renderSessions(allSessions);
+                    updateStats();
+                }))
+                .exceptionally(ex -> {
+                    logger.error("Cannot load seller data from server: {}", ex.getMessage(), ex);
+                    javafx.application.Platform.runLater(() -> {
+                        if (!sellerDashboardDisposed && requestId == sessionLoadRequestId) {
+                            showAlert(Alert.AlertType.ERROR, "Network Error", "Cannot load seller data from server.");
+                        }
+                    });
+                    return null;
+                });
+    }
+
+    private SellerSessionsLoadResult fetchSellerSessions(Integer sellerId) {
         try {
             HttpRequest request = newRequestBuilder()
                     .uri(URI.create(Config.API_URL + "/api/seller/my-sessions/" + sellerId))
@@ -2167,25 +2200,48 @@ public class SellerDashboardController {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
             ApiArrayResult api = extractDataArray(response.body(), response.statusCode());
             if (!api.success) {
-                showAlert(Alert.AlertType.ERROR, "Error", api.message);
-                return;
+                return SellerSessionsLoadResult.error("Error", api.message);
             }
 
-            allSessions.clear();
+            List<SessionItem> sessions = new ArrayList<>();
             for (int i = 0; i < api.data.length(); i++) {
-                allSessions.add(parseSession(api.data.getJSONObject(i)));
+                sessions.add(parseSession(api.data.getJSONObject(i)));
             }
-
-            renderSessions(allSessions);
-            updateStats();
-
+            return SellerSessionsLoadResult.success(sessions);
         } catch (Exception e) {
             logger.error("Cannot connect to server: {}", e.getMessage(), e);
-            showAlert(Alert.AlertType.ERROR, "Network Error", "Cannot load seller data from server.");
+            return SellerSessionsLoadResult.error("Network Error", "Cannot load seller data from server.");
         }
+    }
+
+    private static class SellerSessionsLoadResult {
+        final boolean success;
+        final String title;
+        final String message;
+        final List<SessionItem> sessions;
+
+        private SellerSessionsLoadResult(boolean success, String title, String message, List<SessionItem> sessions) {
+            this.success = success;
+            this.title = title;
+            this.message = message;
+            this.sessions = sessions;
+        }
+
+        static SellerSessionsLoadResult success(List<SessionItem> sessions) {
+            return new SellerSessionsLoadResult(true, null, null, sessions);
+        }
+
+        static SellerSessionsLoadResult error(String title, String message) {
+            return new SellerSessionsLoadResult(false, title, message, new ArrayList<>());
+        }
+    }
+
+    @Override
+    public void onSceneHidden() {
+        sellerDashboardDisposed = true;
+        sessionLoadRequestId++;
     }
 
     private SessionItem parseSession(JSONObject item) {
