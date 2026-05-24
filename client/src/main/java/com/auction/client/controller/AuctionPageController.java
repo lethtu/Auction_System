@@ -1284,7 +1284,14 @@ public class AuctionPageController {
             currentPrice = newPrice;
             currentPriceLabel.setText(MONEY_PREFIX + formatPrice(newPrice));
 
+            Integer previousLocalHighestBidderId = highestBidderId;
+            Integer noticePreviousHighestBidderId = getOptionalInt(noticeObj, "previousHighestBidderId");
             highestBidderId = getOptionalInt(noticeObj, "highestBidderId");
+            boolean currentUserWasOutbid = User.getId() != null
+                    && highestBidderId != null
+                    && !highestBidderId.equals(User.getId())
+                    && ((noticePreviousHighestBidderId != null && noticePreviousHighestBidderId.equals(User.getId()))
+                        || (previousLocalHighestBidderId != null && previousLocalHighestBidderId.equals(User.getId())));
             bidCount = getOptionalIntOrDefault(noticeObj, "bidCount", bidCount);
             updateBidInfoLabels();
 
@@ -1309,7 +1316,7 @@ public class AuctionPageController {
             } else {
                 if (User.getId() == null || highestBidderId == null || !highestBidderId.equals(User.getId())) {
                     showInfo("Someone just placed a new bid!");
-                    if (myLastBidAmount != null && newPrice.compareTo(myLastBidAmount) > 0) {
+                    if (currentUserWasOutbid || (myLastBidAmount != null && newPrice.compareTo(myLastBidAmount) > 0)) {
                         AppNotification notif = new AppNotification(NotificationType.OUTBID, NotificationSeverity.WARNING, 
                             "You have been outbid", "Product " + productNameLabel.getText() + " is now at ₫ " + formatPrice(newPrice));
                         notif.setAuctionId(currentSessionId);
