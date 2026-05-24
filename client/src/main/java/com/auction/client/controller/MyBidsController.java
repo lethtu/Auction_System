@@ -43,7 +43,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class MyBidsController implements Initializable {
+public class MyBidsController implements Initializable, SceneLifecycle {
     private static final Logger logger = LoggerFactory.getLogger(MyBidsController.class);
 
     private HttpClient client = HttpClient.newHttpClient();
@@ -171,6 +171,9 @@ public class MyBidsController implements Initializable {
     }
 
     private void startPolling() {
+        if (pollingScheduler != null && !pollingScheduler.isShutdown()) {
+            return;
+        }
         pollingScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r);
             t.setDaemon(true);
@@ -899,4 +902,15 @@ public class MyBidsController implements Initializable {
         return df.format(price);
     }
 
+    @Override
+    public void onSceneHidden() {
+        stopMyBidsBackgroundWork();
+    }
+
+    private void stopMyBidsBackgroundWork() {
+        if (pollingScheduler != null) {
+            pollingScheduler.shutdownNow();
+            pollingScheduler = null;
+        }
+    }
 }

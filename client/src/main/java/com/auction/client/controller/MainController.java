@@ -66,7 +66,7 @@ import java.time.LocalDateTime;
 
 import javafx.scene.control.ScrollPane;
 
-public class MainController implements Initializable {
+public class MainController implements Initializable, SceneLifecycle {
     private static final Logger logger = LoggerFactory.getLogger(MainController.class);
 
     static {
@@ -2564,5 +2564,17 @@ public class MainController implements Initializable {
 
     private String formatCurrencyWithSymbol(java.math.BigDecimal amount) {
         return "\u20AB " + formatCurrency(amount);
+    }
+    @Override
+    public void onSceneHidden() {
+        stopDashboardBackgroundWork();
+    }
+
+    private void stopDashboardBackgroundWork() {
+        stopCountdownTimeline();
+        if (pollingScheduler != null) {
+            pollingScheduler.shutdownNow();
+            pollingScheduler = null;
+        }
     }
 }
