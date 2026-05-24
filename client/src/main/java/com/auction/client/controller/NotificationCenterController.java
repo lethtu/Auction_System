@@ -21,29 +21,50 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class NotificationCenterController {
+public class NotificationCenterController implements SceneLifecycle {
     @FXML private Label lblUnreadCount;
     @FXML private VBox listContainer;
     @FXML private Button tabAll, tabUnread, tabAuction, tabSystem;
 
     private NotificationCenterService service = NotificationCenterService.getInstance();
     private String currentFilter = "ALL";
+    private boolean active = true;
+    private boolean renderQueued = false;
+    private final ListChangeListener<AppNotification> notificationListener = c -> requestRender();
 
     @FXML
     public void initialize() {
+        active = true;
         lblUnreadCount.textProperty().bind(service.unreadCountProperty().asString().concat(" unread"));
-        
-        service.getNotifications().addListener((ListChangeListener<AppNotification>) c -> {
-            Platform.runLater(this::renderList);
-        });
-        
+        service.getNotifications().addListener(notificationListener);
         renderList();
+    }
+
+    @Override
+    public void onSceneHidden() {
+        active = false;
+        service.getNotifications().removeListener(notificationListener);
+        lblUnreadCount.textProperty().unbind();
+        listContainer.getChildren().clear();
+    }
+
+    private void requestRender() {
+        if (!active || renderQueued) {
+            return;
+        }
+        renderQueued = true;
+        Platform.runLater(() -> {
+            renderQueued = false;
+            if (active) {
+                renderList();
+            }
+        });
     }
 
     @FXML
     private void handleMarkAllRead(ActionEvent event) {
         service.markAllAsRead();
-        renderList();
+        requestRender();
     }
 
     @FXML private void filterAll(ActionEvent event) { setFilter("ALL", tabAll); }
@@ -61,7 +82,7 @@ public class NotificationCenterController {
         
         activeTab.setStyle(getActiveTabStyle());
         
-        renderList();
+        requestRender();
     }
 
     private String getActiveTabStyle() {
@@ -73,6 +94,9 @@ public class NotificationCenterController {
     }
 
     private void renderList() {
+        if (!active) {
+            return;
+        }
         listContainer.getChildren().clear();
         
         List<AppNotification> filtered = service.getNotifications().stream().filter(n -> {
@@ -80,7 +104,7 @@ public class NotificationCenterController {
             if ("AUCTION".equals(currentFilter)) return n.getType() == NotificationType.NEW_BID || n.getType() == NotificationType.OUTBID || n.getType() == NotificationType.BID_SUCCESS || n.getType() == NotificationType.AUCTION_END_WIN || n.getType() == NotificationType.AUCTION_END_LOSE;
             if ("SYSTEM".equals(currentFilter)) return n.getType() == NotificationType.SYSTEM_ERROR;
             return true;
-        }).collect(Collectors.toList());
+        }).limit(150).collect(Collectors.toList());
 
         if (filtered.isEmpty()) {
             VBox emptyState = new VBox(10);
