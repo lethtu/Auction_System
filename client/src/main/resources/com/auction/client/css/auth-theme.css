@@ -935,3 +935,200 @@
     -fx-background-color: #ffffff;
 }
 /* === AUTH TRUE DARK PHASE Q END === */
+
+.auth-link-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+    -fx-padding: 2 4 2 0;
+    -fx-font-family: "DM Sans";
+    -fx-font-size: 13px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #df49aa;
+    -fx-cursor: hand;
+}
+
+.auth-link-button:hover {
+    -fx-text-fill: #ff6fbc;
+    -fx-underline: true;
+}
+
+.auth-terms-dialog {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 24;
+    -fx-border-color: rgba(224, 64, 160, 0.24);
+    -fx-border-radius: 24;
+    -fx-border-width: 1;
+    -fx-padding: 18;
+}
+
+.auth-terms-dialog > .button-bar > .container {
+    -fx-background-color: transparent;
+}
+
+.auth-terms-dialog .button {
+    -fx-background-color: linear-gradient(to right, #e13b9d, #df49aa);
+    -fx-background-radius: 999;
+    -fx-text-fill: white;
+    -fx-font-weight: 800;
+    -fx-padding: 8 20;
+    -fx-cursor: hand;
+}
+
+.auth-terms-box {
+    -fx-background-color: transparent;
+    -fx-padding: 4 8 4 8;
+}
+
+.auth-terms-title {
+    -fx-font-family: "DM Sans";
+    -fx-font-size: 22px;
+    -fx-font-weight: 900;
+    -fx-text-fill: #2e1a28;
+}
+
+.auth-terms-content {
+    -fx-font-family: "DM Sans";
+    -fx-font-size: 14px;
+    -fx-text-fill: #604868;
+    -fx-line-spacing: 4;
+}
+
+.auth-terms-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-pref-width: 520;
+    -fx-pref-height: 360;
+}
+
+/* === PHASE X9 TERMS CHECKBOX FIX START === */
+.auth-root .auth-terms-check {
+    -fx-background-color: transparent !important;
+    -fx-background-radius: 0 !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0 !important;
+    -fx-padding: 0 0 0 0 !important;
+    -fx-effect: none !important;
+    -fx-font-family: "DM Sans" !important;
+    -fx-font-size: 14px !important;
+    -fx-font-weight: 800 !important;
+    -fx-text-fill: -app-auth-text !important;
+    -fx-focus-color: transparent !important;
+    -fx-faint-focus-color: transparent !important;
+    -fx-cursor: hand !important;
+}
+
+.auth-root .auth-terms-check:hover,
+.auth-root .auth-terms-check:selected {
+    -fx-background-color: transparent !important;
+    -fx-border-color: transparent !important;
+    -fx-text-fill: -app-auth-text !important;
+}
+
+.auth-root .auth-terms-check > .box,
+.auth-root .auth-terms-check .box {
+    -fx-min-width: 24px !important;
+    -fx-pref-width: 24px !important;
+    -fx-max-width: 24px !important;
+    -fx-min-height: 24px !important;
+    -fx-pref-height: 24px !important;
+    -fx-max-height: 24px !important;
+    -fx-background-color: -app-auth-input !important;
+    -fx-background-radius: 8px !important;
+    -fx-border-color: -app-auth-border-strong !important;
+    -fx-border-width: 1.6px !important;
+    -fx-border-radius: 8px !important;
+    -fx-padding: 4px !important;
+    -fx-effect: none !important;
+}
+
+.auth-root .auth-terms-check:selected > .box,
+.auth-root .auth-terms-check:selected .box {
+    -fx-background-color: -fx-accent !important;
+    -fx-border-color: -fx-accent !important;
+}
+
+.auth-root .auth-terms-check:selected > .box > .mark,
+.auth-root .auth-terms-check:selected .mark {
+    -fx-background-color: #ffffff !important;
+}
+/* === PHASE X9 TERMS CHECKBOX FIX END === */
+
+/* === PHASE X10 TERMS ACCEPT FLOW START === */
+.auth-root .auth-terms-link {
+    -fx-text-fill: -fx-accent !important;
+    -fx-font-weight: 900 !important;
+    -fx-background-color: transparent !important;
+    -fx-border-color: transparent !important;
+    -fx-cursor: hand !important;
+}
+
+.auth-root .auth-terms-link:hover {
+    -fx-text-fill: -app-accent-hover !important;
+    -fx-underline: true !important;
+}
+
+.auth-root .auth-terms-check {
+    -fx-background-color: transparent !important;
+    -fx-border-color: transparent !important;
+    -fx-padding: 0 !important;
+    -fx-effect: none !important;
+    -fx-font-family: "DM Sans" !important;
+    -fx-font-size: 14px !important;
+    -fx-font-weight: 800 !important;
+    -fx-text-fill: -app-auth-text !important;
+    -fx-cursor: hand !important;
+}
+
+.auth-root .auth-terms-check:selected,
+.auth-root .auth-terms-check:hover {
+    -fx-background-color: transparent !important;
+    -fx-border-color: transparent !important;
+    -fx-text-fill: -app-auth-text !important;
+}
+
+.auth-root .auth-terms-check > .box,
+.auth-root .auth-terms-check .box {
+    -fx-min-width: 24px !important;
+    -fx-pref-width: 24px !important;
+    -fx-max-width: 24px !important;
+    -fx-min-height: 24px !important;
+    -fx-pref-height: 24px !important;
+    -fx-max-height: 24px !important;
+    -fx-background-color: -app-auth-input !important;
+    -fx-background-radius: 8px !important;
+    -fx-border-color: -app-auth-border-strong !important;
+    -fx-border-width: 1.6px !important;
+    -fx-border-radius: 8px !important;
+    -fx-padding: 4px !important;
+    -fx-effect: none !important;
+}
+
+.auth-root .auth-terms-check:selected > .box,
+.auth-root .auth-terms-check:selected .box {
+    -fx-background-color: -fx-accent !important;
+    -fx-border-color: -fx-accent !important;
+}
+
+.auth-root .auth-terms-check:selected > .box > .mark,
+.auth-root .auth-terms-check:selected .mark {
+    -fx-background-color: white !important;
+}
+/* === PHASE X10 TERMS ACCEPT FLOW END === */
+
+/* === PHASE X11 TERMS INLINE LABEL START === */
+.auth-root .auth-terms-inline-link {
+    -fx-background-color: transparent !important;
+    -fx-border-color: transparent !important;
+    -fx-padding: 0 !important;
+    -fx-text-fill: -fx-accent !important;
+    -fx-font-family: "DM Sans" !important;
+    -fx-font-size: 14px !important;
+    -fx-font-weight: 900 !important;
+    -fx-cursor: hand !important;
+}
+
+.auth-root .auth-terms-inline-link:hover {
+    -fx-text-fill: -app-accent-hover !important;
+    -fx-underline: true !important;
+}
+/* === PHASE X11 TERMS INLINE LABEL END === */
