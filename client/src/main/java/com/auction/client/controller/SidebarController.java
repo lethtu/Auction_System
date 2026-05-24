@@ -227,7 +227,7 @@ public class SidebarController {
                     if (tooltipText != null && !tooltipText.isEmpty()) {
                         Tooltip tooltip = new Tooltip(tooltipText);
                         tooltip.setStyle(
-                                "-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 6px 12px; -fx-font-size: 13px;");
+                                "-fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 6px 12px; -fx-font-size: 13px;");
 
                         PauseTransition pause = new PauseTransition(Duration.millis(300));
                         pause.setOnFinished(e -> {
@@ -258,7 +258,7 @@ public class SidebarController {
                     }
                     if (btn == btnStartSelling) {
                         btn.setStyle(
-                                "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 22px; -fx-padding: 0px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.3), 16, 0, 0, 4);");
+                                "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 22px; -fx-padding: 0px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.18), 16, 0, 0, 4);");
                     }
                 } else if (node instanceof Label) {
                     node.setVisible(false);
@@ -308,7 +308,7 @@ public class SidebarController {
                 btn.setAlignment(Pos.CENTER_LEFT);
                 if (btn == btnStartSelling) {
                     btn.setStyle(
-                            "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 0 12px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.3), 16, 0, 0, 4);");
+                            "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 0 12px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.18), 16, 0, 0, 4);");
                 }
             } else if (node instanceof Label) {
                 node.setVisible(true);
@@ -356,8 +356,8 @@ public class SidebarController {
         if (button == null)
             return;
 
-        String textColor = active ? "#e040a0" : "#604868";
-        String backgroundColor = active ? "rgba(224, 64, 160, 0.15)" : "transparent";
+        String textColor = active ? "-fx-accent" : "-app-text-muted";
+        String backgroundColor = active ? "-app-surface-2" : "transparent";
         String padding = isSidebarCollapsed ? "0px" : "7px 16px";
         String radius = isSidebarCollapsed ? "22px" : "20px";
 

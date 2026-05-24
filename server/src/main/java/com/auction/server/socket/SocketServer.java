@@ -30,6 +30,7 @@ public class SocketServer {
 
     private static final ConcurrentHashMap<Integer, List<PrintWriter>> rooms = new ConcurrentHashMap<>();
     private static final List<PrintWriter> homeClients = new CopyOnWriteArrayList<>();
+    private static final ConcurrentHashMap<Integer, List<PrintWriter>> homeUserClients = new ConcurrentHashMap<>();
 
     @Autowired
     public SocketServer(BiddingController biddingController) {
@@ -87,11 +88,37 @@ public class SocketServer {
         logger.info("SERVER: Home Client connected for global events.");
     }
 
+    public static void joinHome(Integer userId, PrintWriter out) {
+        homeUserClients.computeIfAbsent(userId, k -> new CopyOnWriteArrayList<>()).add(out);
+        logger.info("SERVER: Home Client connected for user ID: {}", userId);
+    }
+
+    public static void sendToHomeUser(Integer userId, String message) {
+        List<PrintWriter> clients = homeUserClients.get(userId);
+        if (clients != null) {
+            clients.forEach(out -> {
+                try {
+                    out.println(message);
+                    out.flush();
+                } catch (Exception e) {
+                    logger.error("Error sending message to user {}: {}", userId, e.getMessage());
+                }
+            });
+        }
+    }
+
     public static void broadcastToAll(String message) {
         // Send to all Home clients
         homeClients.forEach(out -> {
             out.println(message);
             out.flush();
+        });
+        // Send to all targeted Home clients
+        homeUserClients.values().forEach(clients -> {
+            clients.forEach(out -> {
+                out.println(message);
+                out.flush();
+            });
         });
         // Send to all clients in auction rooms
         rooms.values().forEach(clients -> {
@@ -109,6 +136,7 @@ public class SocketServer {
             }
         });
         homeClients.remove(out);
+        homeUserClients.values().forEach(clients -> clients.remove(out));
     }
 
     private static void broadcastCounts(Integer sessionId) {

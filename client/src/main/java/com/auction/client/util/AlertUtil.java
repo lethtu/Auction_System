@@ -1,5 +1,7 @@
 package com.auction.client.util;
 
+import com.auction.client.service.AppStyleManager;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -96,14 +98,15 @@ public final class AlertUtil {
         TextField input = new TextField();
         input.setPromptText("Enter content...");
         input.setMaxWidth(330);
-        input.setStyle("-fx-background-color: #fff5fb;"
-                + " -fx-border-color: #f4addb;"
+        input.setStyle("-fx-background-color: -app-input-bg;"
+                + " -fx-border-color: -app-border;"
                 + " -fx-border-width: 1.2px;"
                 + " -fx-border-radius: 16px;"
                 + " -fx-background-radius: 16px;"
                 + " -fx-padding: 11px 14px;"
                 + " -fx-font-size: 14px;"
-                + " -fx-text-fill: #241229;");
+                + " -fx-text-fill: -app-text;"
+                + " -fx-prompt-text-fill: -app-text-muted;");
 
         final String[] value = {null};
 
@@ -138,26 +141,29 @@ public final class AlertUtil {
         pane.setMinWidth(380);
         pane.setPrefWidth(430);
         pane.setMaxWidth(500);
-        pane.setStyle("-fx-background-color: white;"
-                + " -fx-border-color: #f5a6d8;"
-                + " -fx-border-width: 1.4px;"
+        pane.setStyle("-fx-background-color: -app-card;"
+                + " -fx-border-color: -app-border;"
+                + " -fx-border-width: 1.3px;"
                 + " -fx-border-radius: 24px;"
                 + " -fx-background-radius: 24px;"
                 + " -fx-padding: 22px;"
                 + " -fx-font-family: 'DM Sans';"
-                + " -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.18), 24, 0, 0, 8);");
+                + " -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-20, 24, 0, 0, 8);");
 
         keepDialogSceneTransparent(pane);
 
         pane.lookupAll(".header-panel").forEach(node -> node.setStyle("-fx-background-color: transparent;"));
-        pane.lookupAll(".header-panel .label").forEach(node -> node.setStyle("-fx-text-fill: #211427; -fx-font-size: 20px; -fx-font-weight: 900;"));
-        pane.lookupAll(".content.label").forEach(node -> node.setStyle("-fx-text-fill: #6a4a72; -fx-font-size: 14px; -fx-font-weight: 600;"));
-        pane.lookupAll(".text-field").forEach(node -> node.setStyle("-fx-background-color: #fff5fb;"
-                + " -fx-border-color: #f3b3dd;"
+        pane.lookupAll(".header-panel .label").forEach(node -> node.setStyle("-fx-text-fill: -app-text; -fx-font-size: 20px; -fx-font-weight: 900;"));
+        pane.lookupAll(".content.label").forEach(node -> node.setStyle("-fx-text-fill: -app-text-muted; -fx-font-size: 14px; -fx-font-weight: 600;"));
+        pane.lookupAll(".text-field").forEach(node -> node.setStyle("-fx-background-color: -app-input-bg;"
+                + " -fx-border-color: -app-border;"
                 + " -fx-border-radius: 14px;"
                 + " -fx-background-radius: 14px;"
                 + " -fx-padding: 10px 14px;"
-                + " -fx-font-size: 14px;"));
+                + " -fx-font-size: 14px;"
+                + " -fx-text-fill: -app-text;"
+                + " -fx-prompt-text-fill: -app-text-muted;"));
+        applyThemeToPane(pane);
         pane.lookupAll(".button").forEach(AlertUtil::styleDialogButton);
     }
 
@@ -222,7 +228,37 @@ public final class AlertUtil {
     private static Scene createTransparentScene(StackPane root) {
         Scene scene = new Scene(root);
         scene.setFill(Color.TRANSPARENT);
+        applyThemeToScene(scene);
         return scene;
+    }
+
+    private static void applyThemeToScene(Scene scene) {
+        if (scene == null) {
+            return;
+        }
+        addMainStylesheet(scene.getStylesheets());
+        AppStyleManager.applyCurrentStyle(scene);
+    }
+
+    private static void applyThemeToPane(DialogPane pane) {
+        if (pane == null) {
+            return;
+        }
+        addMainStylesheet(pane.getStylesheets());
+        AppStyleManager.applyCurrentStyle(pane);
+    }
+
+    private static void addMainStylesheet(javafx.collections.ObservableList<String> stylesheets) {
+        if (stylesheets == null) {
+            return;
+        }
+        java.net.URL url = AlertUtil.class.getResource("/com/auction/client/view/styles.css");
+        if (url != null) {
+            String css = url.toExternalForm();
+            if (!stylesheets.contains(css)) {
+                stylesheets.add(css);
+            }
+        }
     }
 
     private static void keepDialogSceneTransparent(DialogPane pane) {
@@ -247,12 +283,12 @@ public final class AlertUtil {
         card.setMinWidth(380);
         card.setPrefWidth(430);
         card.setMaxWidth(470);
-        card.setStyle("-fx-background-color: white;"
+        card.setStyle("-fx-background-color: -app-card;"
                 + " -fx-background-radius: 30px;"
                 + " -fx-border-radius: 30px;"
-                + " -fx-border-color: #f5a6d8;"
+                + " -fx-border-color: -app-border;"
                 + " -fx-border-width: 1.4px;"
-                + " -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.24), 32, 0, 0, 12);"
+                + " -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-24, 32, 0, 0, 12);"
                 + " -fx-font-family: 'DM Sans';");
 
         StackPane iconCircle = new StackPane();
@@ -261,7 +297,7 @@ public final class AlertUtil {
         iconCircle.setMaxSize(66, 66);
         iconCircle.setStyle("-fx-background-color: " + softIconBackground(type) + ";"
                 + " -fx-background-radius: 24px;"
-                + " -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.13), 12, 0, 0, 4);");
+                + " -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-12, 12, 0, 0, 4);");
 
         Label icon = new Label(iconText(type));
         icon.setStyle("-fx-text-fill: " + iconColor(type) + "; -fx-font-size: 34px; -fx-font-weight: 900;");
@@ -271,13 +307,13 @@ public final class AlertUtil {
         titleLabel.setAlignment(Pos.CENTER);
         titleLabel.setWrapText(true);
         titleLabel.setMaxWidth(350);
-        titleLabel.setStyle("-fx-text-fill: #211427; -fx-font-size: 24px; -fx-font-weight: 900;");
+        titleLabel.setStyle("-fx-text-fill: -app-text; -fx-font-size: 24px; -fx-font-weight: 900;");
 
         Label messageLabel = new Label(message);
         messageLabel.setAlignment(Pos.CENTER);
         messageLabel.setWrapText(true);
         messageLabel.setMaxWidth(355);
-        messageLabel.setStyle("-fx-text-fill: #6a4a72; -fx-font-size: 15px; -fx-font-weight: 600; -fx-line-spacing: 2px;");
+        messageLabel.setStyle("-fx-text-fill: -app-text-muted; -fx-font-size: 15px; -fx-font-weight: 600; -fx-line-spacing: 2px;");
 
         card.getChildren().setAll(iconCircle, titleLabel, messageLabel);
         return card;
@@ -290,14 +326,14 @@ public final class AlertUtil {
         button.setMaxWidth(250);
         button.setMinHeight(44);
         button.setPrefHeight(44);
-        button.setStyle("-fx-background-color: #e040a0;"
+        button.setStyle("-fx-background-color: -fx-accent;"
                 + " -fx-text-fill: white;"
                 + " -fx-font-size: 15px;"
                 + " -fx-font-weight: 900;"
                 + " -fx-background-radius: 22px;"
                 + " -fx-padding: 10px 26px;"
                 + " -fx-cursor: hand;"
-                + " -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.24), 12, 0, 0, 4);");
+                + " -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-24, 12, 0, 0, 4);");
         return button;
     }
 
@@ -305,12 +341,12 @@ public final class AlertUtil {
         Button button = new Button(text);
         button.setMinWidth(104);
         button.setMinHeight(42);
-        button.setStyle("-fx-background-color: #fff1fa;"
-                + " -fx-text-fill: #8a2b66;"
+        button.setStyle("-fx-background-color: -app-accent-opacity-08;"
+                + " -fx-text-fill: -fx-accent;"
                 + " -fx-font-size: 14px;"
                 + " -fx-font-weight: 800;"
                 + " -fx-background-radius: 20px;"
-                + " -fx-border-color: #f2a6d4;"
+                + " -fx-border-color: -fx-accent;"
                 + " -fx-border-radius: 20px;"
                 + " -fx-padding: 9px 22px;"
                 + " -fx-cursor: hand;");
@@ -324,23 +360,23 @@ public final class AlertUtil {
             if (primary || "OK".equalsIgnoreCase(button.getText())) {
                 button.setMinWidth(112);
                 button.setMinHeight(40);
-                button.setStyle("-fx-background-color: #e040a0;"
+                button.setStyle("-fx-background-color: -fx-accent;"
                         + " -fx-text-fill: white;"
                         + " -fx-font-size: 14px;"
                         + " -fx-font-weight: 900;"
                         + " -fx-background-radius: 18px;"
                         + " -fx-padding: 9px 24px;"
                         + " -fx-cursor: hand;"
-                        + " -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.22), 10, 0, 0, 3);");
+                        + " -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-20, 10, 0, 0, 3);");
             } else {
                 button.setMinWidth(92);
                 button.setMinHeight(40);
-                button.setStyle("-fx-background-color: #fff1fa;"
-                        + " -fx-text-fill: #8a2b66;"
+                button.setStyle("-fx-background-color: -app-accent-opacity-08;"
+                        + " -fx-text-fill: -fx-accent;"
                         + " -fx-font-size: 13px;"
                         + " -fx-font-weight: 800;"
                         + " -fx-background-radius: 18px;"
-                        + " -fx-border-color: #f2a6d4;"
+                        + " -fx-border-color: -fx-accent;"
                         + " -fx-border-radius: 18px;"
                         + " -fx-padding: 9px 20px;"
                         + " -fx-cursor: hand;");
@@ -364,7 +400,7 @@ public final class AlertUtil {
         if (type == Alert.AlertType.WARNING) {
             return "!";
         }
-        return "OK";
+        return "✓";
     }
 
     private static String iconColor(Alert.AlertType type) {

@@ -487,3 +487,254 @@
     -fx-background-color: white;
 }
 /* === AUTH CHECKBOX POLISH 20260522 END === */
+
+/* === AUTH ACCENT SYNC PHASE K START === */
+/* Auth screens stay visually light for readability, but the selected accent color is synced. */
+.auth-root,
+.auth-root.accent-pink {
+    -fx-accent: #e040a0;
+    -fx-focus-color: #e040a0;
+    -fx-faint-focus-color: rgba(224, 64, 160, 0.16);
+    -app-accent-hover: #c83090;
+    -app-accent-light: #f080c0;
+    -app-accent-gradient: linear-gradient(to bottom right, #f080c0, #e040a0);
+    -app-accent-gradient-horizontal: linear-gradient(to right, #e040a0, #c83090);
+    -app-accent-gradient-dark: linear-gradient(to bottom right, #e040a0, #b2368f);
+    -app-accent-chip-bg: #fff5fa;
+    -app-accent-chip-border: #f7ddeb;
+    -app-accent-opacity-08: rgba(224, 64, 160, 0.08);
+    -app-accent-opacity-12: rgba(224, 64, 160, 0.12);
+    -app-accent-opacity-16: rgba(224, 64, 160, 0.16);
+    -app-accent-opacity-25: rgba(224, 64, 160, 0.25);
+    -app-accent-opacity-40: rgba(224, 64, 160, 0.40);
+}
+.auth-root.accent-purple {
+    -fx-accent: #8b5cf6;
+    -fx-focus-color: #8b5cf6;
+    -fx-faint-focus-color: rgba(139, 92, 246, 0.16);
+    -app-accent-hover: #7c3aed;
+    -app-accent-light: #a78bfa;
+    -app-accent-gradient: linear-gradient(to bottom right, #a78bfa, #8b5cf6);
+    -app-accent-gradient-horizontal: linear-gradient(to right, #8b5cf6, #7c3aed);
+    -app-accent-gradient-dark: linear-gradient(to bottom right, #8b5cf6, #6d28d9);
+    -app-accent-chip-bg: #f5f3ff;
+    -app-accent-chip-border: #ddd6fe;
+    -app-accent-opacity-08: rgba(139, 92, 246, 0.08);
+    -app-accent-opacity-12: rgba(139, 92, 246, 0.12);
+    -app-accent-opacity-16: rgba(139, 92, 246, 0.16);
+    -app-accent-opacity-25: rgba(139, 92, 246, 0.25);
+    -app-accent-opacity-40: rgba(139, 92, 246, 0.40);
+}
+.auth-root.accent-emerald {
+    -fx-accent: #10b981;
+    -fx-focus-color: #10b981;
+    -fx-faint-focus-color: rgba(16, 185, 129, 0.16);
+    -app-accent-hover: #059669;
+    -app-accent-light: #34d399;
+    -app-accent-gradient: linear-gradient(to bottom right, #34d399, #10b981);
+    -app-accent-gradient-horizontal: linear-gradient(to right, #10b981, #059669);
+    -app-accent-gradient-dark: linear-gradient(to bottom right, #10b981, #047857);
+    -app-accent-chip-bg: #ecfdf5;
+    -app-accent-chip-border: #d1fae5;
+    -app-accent-opacity-08: rgba(16, 185, 129, 0.08);
+    -app-accent-opacity-12: rgba(16, 185, 129, 0.12);
+    -app-accent-opacity-16: rgba(16, 185, 129, 0.16);
+    -app-accent-opacity-25: rgba(16, 185, 129, 0.25);
+    -app-accent-opacity-40: rgba(16, 185, 129, 0.40);
+}
+.auth-root.accent-blue {
+    -fx-accent: #3b82f6;
+    -fx-focus-color: #3b82f6;
+    -fx-faint-focus-color: rgba(59, 130, 246, 0.16);
+    -app-accent-hover: #2563eb;
+    -app-accent-light: #60a5fa;
+    -app-accent-gradient: linear-gradient(to bottom right, #60a5fa, #3b82f6);
+    -app-accent-gradient-horizontal: linear-gradient(to right, #3b82f6, #2563eb);
+    -app-accent-gradient-dark: linear-gradient(to bottom right, #3b82f6, #1d4ed8);
+    -app-accent-chip-bg: #eff6ff;
+    -app-accent-chip-border: #dbeafe;
+    -app-accent-opacity-08: rgba(59, 130, 246, 0.08);
+    -app-accent-opacity-12: rgba(59, 130, 246, 0.12);
+    -app-accent-opacity-16: rgba(59, 130, 246, 0.16);
+    -app-accent-opacity-25: rgba(59, 130, 246, 0.25);
+    -app-accent-opacity-40: rgba(59, 130, 246, 0.40);
+}
+.auth-root.accent-orange {
+    -fx-accent: #f97316;
+    -fx-focus-color: #f97316;
+    -fx-faint-focus-color: rgba(249, 115, 22, 0.16);
+    -app-accent-hover: #ea580c;
+    -app-accent-light: #fb923c;
+    -app-accent-gradient: linear-gradient(to bottom right, #fb923c, #f97316);
+    -app-accent-gradient-horizontal: linear-gradient(to right, #f97316, #ea580c);
+    -app-accent-gradient-dark: linear-gradient(to bottom right, #f97316, #c2410c);
+    -app-accent-chip-bg: #fff7ed;
+    -app-accent-chip-border: #ffedd5;
+    -app-accent-opacity-08: rgba(249, 115, 22, 0.08);
+    -app-accent-opacity-12: rgba(249, 115, 22, 0.12);
+    -app-accent-opacity-16: rgba(249, 115, 22, 0.16);
+    -app-accent-opacity-25: rgba(249, 115, 22, 0.25);
+    -app-accent-opacity-40: rgba(249, 115, 22, 0.40);
+}
+
+.auth-root .auth-brand-panel {
+    -fx-background-color: -app-accent-gradient !important;
+}
+.auth-root .button.auth-primary-button,
+.auth-root .auth-primary-button {
+    -fx-background-color: -app-accent-gradient-horizontal !important;
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-25, 30, 0, 0, 12) !important;
+}
+.auth-root .button.auth-primary-button:hover,
+.auth-root .auth-primary-button:hover {
+    -fx-background-color: -app-accent-gradient-dark !important;
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-40, 35, 0, 0, 15) !important;
+}
+.auth-root .auth-live-badge,
+.auth-root .auth-stat-icon,
+.auth-root .remember-me-pill:selected > .box,
+.auth-root .auth-check-box:selected > .box {
+    -fx-background-color: -fx-accent !important;
+    -fx-border-color: -fx-accent !important;
+}
+.auth-root .auth-input:focused {
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-16, 10, 0, 0, 4) !important;
+}
+.auth-root .hyperlink.auth-secondary-link,
+.auth-root .hyperlink.auth-secondary-link .text,
+.auth-root .auth-product-type,
+.auth-root .auth-product-price {
+    -fx-text-fill: -fx-accent !important;
+}
+.auth-root .auth-social-button:hover {
+    -fx-border-color: -fx-accent !important;
+}
+/* === AUTH ACCENT SYNC PHASE K END === */
+/* === AUTH ACCENT SYNC PHASE K2 START === */
+/* Stronger auth override: keep the auth pages light, but route all pink controls through the selected accent. */
+.auth-root.accent-pink,
+.auth-root.accent-purple,
+.auth-root.accent-emerald,
+.auth-root.accent-blue,
+.auth-root.accent-orange {
+    -fx-background-color: transparent;
+}
+
+.auth-root.accent-pink .auth-brand-panel,
+.auth-root.accent-purple .auth-brand-panel,
+.auth-root.accent-emerald .auth-brand-panel,
+.auth-root.accent-blue .auth-brand-panel,
+.auth-root.accent-orange .auth-brand-panel {
+    -fx-background-color: -app-accent-gradient !important;
+}
+
+.auth-root.accent-pink .auth-primary-button,
+.auth-root.accent-purple .auth-primary-button,
+.auth-root.accent-emerald .auth-primary-button,
+.auth-root.accent-blue .auth-primary-button,
+.auth-root.accent-orange .auth-primary-button {
+    -fx-background-color: -app-accent-gradient-horizontal !important;
+    -fx-border-color: transparent !important;
+    -fx-text-fill: white !important;
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-25, 30, 0, 0, 12) !important;
+}
+
+.auth-root.accent-pink .auth-primary-button:hover,
+.auth-root.accent-purple .auth-primary-button:hover,
+.auth-root.accent-emerald .auth-primary-button:hover,
+.auth-root.accent-blue .auth-primary-button:hover,
+.auth-root.accent-orange .auth-primary-button:hover {
+    -fx-background-color: -app-accent-gradient-dark !important;
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-40, 35, 0, 0, 15) !important;
+}
+
+.auth-root.accent-pink .auth-input:focused,
+.auth-root.accent-purple .auth-input:focused,
+.auth-root.accent-emerald .auth-input:focused,
+.auth-root.accent-blue .auth-input:focused,
+.auth-root.accent-orange .auth-input:focused {
+    -fx-border-color: -fx-accent !important;
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-16, 10, 0, 0, 4) !important;
+}
+
+.auth-root.accent-pink .auth-live-badge,
+.auth-root.accent-purple .auth-live-badge,
+.auth-root.accent-emerald .auth-live-badge,
+.auth-root.accent-blue .auth-live-badge,
+.auth-root.accent-orange .auth-live-badge,
+.auth-root.accent-pink .auth-stat-icon,
+.auth-root.accent-purple .auth-stat-icon,
+.auth-root.accent-emerald .auth-stat-icon,
+.auth-root.accent-blue .auth-stat-icon,
+.auth-root.accent-orange .auth-stat-icon,
+.auth-root.accent-pink .remember-me-pill:selected > .box,
+.auth-root.accent-purple .remember-me-pill:selected > .box,
+.auth-root.accent-emerald .remember-me-pill:selected > .box,
+.auth-root.accent-blue .remember-me-pill:selected > .box,
+.auth-root.accent-orange .remember-me-pill:selected > .box,
+.auth-root.accent-pink .auth-remember-check:selected > .box,
+.auth-root.accent-purple .auth-remember-check:selected > .box,
+.auth-root.accent-emerald .auth-remember-check:selected > .box,
+.auth-root.accent-blue .auth-remember-check:selected > .box,
+.auth-root.accent-orange .auth-remember-check:selected > .box {
+    -fx-background-color: -fx-accent !important;
+    -fx-border-color: -fx-accent !important;
+}
+
+.auth-root.accent-pink .auth-product-type,
+.auth-root.accent-purple .auth-product-type,
+.auth-root.accent-emerald .auth-product-type,
+.auth-root.accent-blue .auth-product-type,
+.auth-root.accent-orange .auth-product-type,
+.auth-root.accent-pink .auth-product-price,
+.auth-root.accent-purple .auth-product-price,
+.auth-root.accent-emerald .auth-product-price,
+.auth-root.accent-blue .auth-product-price,
+.auth-root.accent-orange .auth-product-price,
+.auth-root.accent-pink .auth-secondary-link,
+.auth-root.accent-purple .auth-secondary-link,
+.auth-root.accent-emerald .auth-secondary-link,
+.auth-root.accent-blue .auth-secondary-link,
+.auth-root.accent-orange .auth-secondary-link,
+.auth-root.accent-pink .auth-secondary-link .text,
+.auth-root.accent-purple .auth-secondary-link .text,
+.auth-root.accent-emerald .auth-secondary-link .text,
+.auth-root.accent-blue .auth-secondary-link .text,
+.auth-root.accent-orange .auth-secondary-link .text {
+    -fx-text-fill: -fx-accent !important;
+}
+
+.auth-root.accent-pink .auth-social-button:hover,
+.auth-root.accent-purple .auth-social-button:hover,
+.auth-root.accent-emerald .auth-social-button:hover,
+.auth-root.accent-blue .auth-social-button:hover,
+.auth-root.accent-orange .auth-social-button:hover,
+.auth-root.accent-pink .auth-remember-check:hover,
+.auth-root.accent-purple .auth-remember-check:hover,
+.auth-root.accent-emerald .auth-remember-check:hover,
+.auth-root.accent-blue .auth-remember-check:hover,
+.auth-root.accent-orange .auth-remember-check:hover,
+.auth-root.accent-pink .remember-me-pill:hover,
+.auth-root.accent-purple .remember-me-pill:hover,
+.auth-root.accent-emerald .remember-me-pill:hover,
+.auth-root.accent-blue .remember-me-pill:hover,
+.auth-root.accent-orange .remember-me-pill:hover {
+    -fx-border-color: -fx-accent !important;
+    -fx-text-fill: -fx-accent !important;
+}
+
+.auth-root.accent-pink .auth-remember-check:selected,
+.auth-root.accent-purple .auth-remember-check:selected,
+.auth-root.accent-emerald .auth-remember-check:selected,
+.auth-root.accent-blue .auth-remember-check:selected,
+.auth-root.accent-orange .auth-remember-check:selected,
+.auth-root.accent-pink .remember-me-pill:selected,
+.auth-root.accent-purple .remember-me-pill:selected,
+.auth-root.accent-emerald .remember-me-pill:selected,
+.auth-root.accent-blue .remember-me-pill:selected,
+.auth-root.accent-orange .remember-me-pill:selected {
+    -fx-border-color: -fx-accent !important;
+    -fx-text-fill: -fx-accent !important;
+    -fx-background-color: -app-accent-chip-bg !important;
+}
+/* === AUTH ACCENT SYNC PHASE K2 END === */

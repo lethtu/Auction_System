@@ -82,3 +82,29 @@
     -fx-background-color: #3b82f6;
     -fx-text-fill: white;
 }
+
+
+/* Theme refactor phase 3: override remaining accent-sensitive components. */
+.accent-blue .page-title,
+.accent-blue .section-title,
+.accent-blue .settings-card-title,
+.accent-blue .filter-label,
+.accent-blue .app-logo {
+    -fx-text-fill: #3b82f6;
+    -fx-fill: #3b82f6;
+}
+.accent-blue .view-toggle-button-active,
+.accent-blue .primary-btn,
+.accent-blue .button.primary-btn {
+    -fx-background-color: linear-gradient(to right, #3b82f6, #60a5fa);
+    -fx-border-color: #3b82f6;
+    -fx-effect: dropshadow(gaussian, rgba(59,130,246,0.28), 18, 0.16, 0, 5);
+}
+.accent-blue .filter-combo:focused,
+.accent-blue .combo-box-base:focused,
+.accent-blue .search-box:focused-within {
+    -fx-border-color: #3b82f6;
+}
+.accent-blue .scroll-bar:vertical .thumb {
+    -fx-background-color: #3b82f6;
+}

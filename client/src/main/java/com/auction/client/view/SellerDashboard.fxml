@@ -42,18 +42,18 @@
                     <!-- Header Area -->
                     <HBox alignment="CENTER_LEFT" spacing="20.0">
                         <VBox spacing="4.0" HBox.hgrow="ALWAYS">
-                            <Label text="Seller Dashboard" style="-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;"/>
-                            <Label text="Manage your inventory and monitor active auctions." style="-fx-text-fill: #604868; -fx-font-size: 14px;"/>
+                            <Label text="Seller Dashboard" style="-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: -fx-accent;"/>
+                            <Label text="Manage your inventory and monitor active auctions." style="-fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
                         </VBox>
                         
                         <HBox alignment="CENTER" spacing="12.0">
                             <HBox styleClass="search-box" alignment="CENTER_LEFT">
                                 <FontIcon iconLiteral="mdi2m-magnify" iconSize="20" iconColor="#907898"/>
-                                <TextField fx:id="txtSearch" promptText="Search auctions..." style="-fx-background-color: transparent; -fx-pref-width: 200px;" />
+                                <TextField fx:id="txtSearch" promptText="Search auctions..." style="-fx-background-color: transparent; -fx-control-inner-background: transparent; -fx-background-insets: 0; -fx-background-radius: 0; -fx-border-color: transparent; -fx-border-width: 0; -fx-border-insets: 0; -fx-padding: 12px 0; -fx-pref-width: 200px;" />
                             </HBox>
                             <Button text="Add New Item" onAction="#handleShowAddModal" styleClass="action-btn-primary">
                                 <graphic>
-                                    <FontIcon iconLiteral="mdi2p-plus" iconSize="20" iconColor="white"/>
+                                    <FontIcon iconLiteral="mdi2p-plus" iconSize="20" styleClass="add-item-plus-icon"/>
                                 </graphic>
                             </Button>
                         </HBox>
@@ -74,8 +74,8 @@
                         <VBox styleClass="bento-card" GridPane.columnIndex="0" spacing="16.0">
                             <HBox alignment="TOP_LEFT">
                                 <VBox HBox.hgrow="ALWAYS" spacing="4.0">
-                                    <Label text="TOTAL REVENUE" style="-fx-text-fill: #604868; -fx-font-size: 12px; -fx-font-weight: bold;"/>
-                                    <Label fx:id="lblTotalRevenue" text="\$0.00" style="-fx-text-fill: #e040a0; -fx-font-size: 36px; -fx-font-weight: 900;"/>
+                                    <Label text="TOTAL REVENUE" style="-fx-text-fill: -app-text-muted; -fx-font-size: 12px; -fx-font-weight: bold;"/>
+                                    <Label fx:id="lblTotalRevenue" text="\$0.00" style="-fx-text-fill: -fx-accent; -fx-font-size: 36px; -fx-font-weight: 900;"/>
                                 </VBox>
                                 <StackPane style="-fx-background-color: #ffd6ee; -fx-background-radius: 999px; -fx-padding: 12px;">
                                     <FontIcon iconLiteral="mdi2c-cash" iconSize="24" iconColor="#a02070"/>
@@ -89,7 +89,7 @@
 
                         <!-- Active Auctions Card -->
                         <VBox styleClass="bento-card" GridPane.columnIndex="1" spacing="8.0">
-                            <Label text="Active Auctions" style="-fx-text-fill: #604868; -fx-font-weight: bold; -fx-font-size: 14px;"/>
+                            <Label text="Active Auctions" style="-fx-text-fill: -app-text-muted; -fx-font-weight: bold; -fx-font-size: 14px;"/>
                             <Label fx:id="lblActiveAuctions" text="0" style="-fx-text-fill: #7c52aa; -fx-font-size: 28px; -fx-font-weight: 900;"/>
                             <ProgressBar progress="0.66" prefWidth="200.0" style="-fx-accent: #7c52aa; -fx-control-inner-background: #eedcff;"/>
                             <Label text="6 ending today" style="-fx-text-fill: #4a3068; -fx-font-size: 12px;"/>
@@ -97,8 +97,8 @@
 
                         <!-- Total Bids Card -->
                         <VBox styleClass="bento-card" GridPane.columnIndex="2" spacing="8.0">
-                            <Label text="Total Bids" style="-fx-text-fill: #604868; -fx-font-weight: bold; -fx-font-size: 14px;"/>
-                            <Label fx:id="lblTotalBids" text="0" style="-fx-text-fill: #0096cc; -fx-font-size: 28px; -fx-font-weight: 900;"/>
+                            <Label text="Total Bids" style="-fx-text-fill: -app-text-muted; -fx-font-weight: bold; -fx-font-size: 14px;"/>
+                            <Label fx:id="lblTotalBids" text="0" style="-fx-text-fill: -fx-accent; -fx-font-size: 28px; -fx-font-weight: 900;"/>
                             <HBox spacing="-8.0">
                                 <Circle radius="16" fill="#cccccc" stroke="white" strokeWidth="2"/>
                                 <Circle radius="16" fill="#aaaaaa" stroke="white" strokeWidth="2"/>
@@ -116,7 +116,7 @@
                     <VBox styleClass="seller-listings-card">
                         
                         <HBox alignment="CENTER_LEFT" styleClass="seller-listings-header">
-                            <Label text="Manage Listings" style="-fx-font-size: 20px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;"/>
+                            <Label text="Manage Listings" style="-fx-font-size: 20px; -fx-font-weight: 900; -fx-text-fill: -fx-accent;"/>
                             <Region HBox.hgrow="ALWAYS" />
                             <HBox spacing="8.0">
                                 <Button styleClass="action-btn">
@@ -143,7 +143,7 @@
 
                         <!-- Pagination Footer -->
                         <HBox alignment="CENTER_LEFT" styleClass="seller-listings-footer">
-                            <Label text="Showing 1-10 of many items" style="-fx-text-fill: #604868; -fx-font-size: 14px;"/>
+                            <Label text="Showing 1-10 of many items" style="-fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
                             <Region HBox.hgrow="ALWAYS" />
                             </HBox>
 
@@ -155,10 +155,10 @@
     </BorderPane>
 
     <StackPane fx:id="modalOverlay" styleClass="modal-overlay" visible="false">
-        <VBox fx:id="modalDialog" style="-fx-background-color: #ffffff; -fx-background-radius: 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.3), 80, 0, 0, 32);" maxWidth="512" maxHeight="850" alignment="TOP_CENTER">
+        <VBox fx:id="modalDialog" style="-fx-background-color: -app-card; -fx-background-radius: 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.3), 80, 0, 0, 32);" maxWidth="512" maxHeight="850" alignment="TOP_CENTER">
             
             <!-- Header -->
-            <HBox alignment="CENTER_LEFT" style="-fx-background-color: #e040a0; -fx-padding: 24px 32px; -fx-background-radius: 16px 16px 0 0;">
+            <HBox alignment="CENTER_LEFT" style="-fx-background-color: -fx-accent; -fx-padding: 24px 32px; -fx-background-radius: 16px 16px 0 0;">
                 <Label fx:id="modalTitle" text="Add New Listing" style="-fx-font-size: 24px; -fx-font-weight: 900; -fx-text-fill: #ffffff;"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Button onAction="#handleCloseModal" style="-fx-background-color: transparent; -fx-cursor: hand;">
@@ -172,37 +172,37 @@
                     
                     
                     <VBox spacing="8">
-                        <Label text="Item Title" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
+                        <Label text="Item Title" style="-fx-font-weight: bold; -fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
                         <TextField fx:id="productNameField" promptText="Enter product title" styleClass="custom-text-input"/>
                         <HBox fx:id="errorTitle" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
                             <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" iconColor="#e040a0"/>
-                            <Label text="Product name cannot be empty" style="-fx-text-fill: #e040a0; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                            <Label text="Product name cannot be empty" style="-fx-text-fill: -fx-accent; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                         </HBox>
                     </VBox>
 
                     <HBox spacing="16">
                         <VBox spacing="8" HBox.hgrow="ALWAYS" prefWidth="250">
-                            <Label text="Category" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
+                            <Label text="Category" style="-fx-font-weight: bold; -fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
                             <ComboBox fx:id="productTypeCombo" maxWidth="Infinity" styleClass="custom-combo-box" style="-fx-padding: 8px 16px;"/>
                             <HBox fx:id="errorCategory" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
                                 <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" iconColor="#e040a0"/>
-                                <Label text="Please select a product type" style="-fx-text-fill: #e040a0; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                                <Label text="Please select a product type" style="-fx-text-fill: -fx-accent; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                             </HBox>
                         </VBox>
                         <VBox spacing="8" HBox.hgrow="ALWAYS" prefWidth="250">
-                            <Label text="Starting Price (VND)" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
+                            <Label text="Starting Price (VND)" style="-fx-font-weight: bold; -fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
                             <TextField fx:id="startingPriceField" promptText="0" styleClass="custom-text-input" maxWidth="Infinity"/>
                             <HBox fx:id="errorPrice" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
                                 <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" iconColor="#e040a0"/>
-                                <Label fx:id="lblErrorPrice" text="Invalid starting price" style="-fx-text-fill: #e040a0; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                                <Label fx:id="lblErrorPrice" text="Invalid starting price" style="-fx-text-fill: -fx-accent; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                             </HBox>
                         </VBox>
                         <VBox spacing="8" HBox.hgrow="ALWAYS" prefWidth="250">
-                            <Label text="Reserve Price (VND)" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
+                            <Label text="Reserve Price (VND)" style="-fx-font-weight: bold; -fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
                             <TextField fx:id="reservePriceField" promptText="Any" styleClass="custom-text-input" maxWidth="Infinity"/>
                             <HBox fx:id="errorReservePrice" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
                                 <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" iconColor="#e040a0"/>
-                                <Label fx:id="lblErrorReservePrice" text="Invalid reserve price" style="-fx-text-fill: #e040a0; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                                <Label fx:id="lblErrorReservePrice" text="Invalid reserve price" style="-fx-text-fill: -fx-accent; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                             </HBox>
                         </VBox>
                     </HBox>
@@ -210,59 +210,59 @@
 
                     <HBox spacing="16">
                         <VBox spacing="8" HBox.hgrow="ALWAYS" prefWidth="250">
-                            <Label text="Start Time (Required)" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
+                            <Label text="Start Time (Required)" style="-fx-font-weight: bold; -fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
                             <HBox fx:id="wrapperStartDT" alignment="CENTER_LEFT" spacing="2" styleClass="custom-segmented-input" maxWidth="Infinity">
                                 <Button onAction="#handleShowStartCalendar" style="-fx-background-color: transparent; -fx-padding: 0; -fx-cursor: hand;">
                                     <graphic><FontIcon iconLiteral="mdi2c-calendar" iconSize="18" iconColor="#907898"/></graphic>
                                 </Button>
                                 <Region prefWidth="4"/>
                                 <TextField fx:id="txtStartDay" promptText="dd" prefWidth="28" styleClass="transparent-time-picker" style="-fx-alignment: center;"/>
-                                <Label text="/" style="-fx-text-fill: #907898;"/>
+                                <Label text="/" style="-fx-text-fill: -app-text-muted;"/>
                                 <TextField fx:id="txtStartMonth" promptText="mm" prefWidth="28" styleClass="transparent-time-picker" style="-fx-alignment: center;"/>
-                                <Label text="/" style="-fx-text-fill: #907898;"/>
+                                <Label text="/" style="-fx-text-fill: -app-text-muted;"/>
                                 <TextField fx:id="txtStartYear" promptText="yyyy" prefWidth="42" styleClass="transparent-time-picker" style="-fx-alignment: center;"/>
                                 <Region prefWidth="8"/>
                                 <TextField fx:id="txtStartHour" promptText="HH" prefWidth="28" styleClass="transparent-time-picker" style="-fx-alignment: center;"/>
-                                <Label text=":" style="-fx-text-fill: #907898;"/>
+                                <Label text=":" style="-fx-text-fill: -app-text-muted;"/>
                                 <TextField fx:id="txtStartMin" promptText="MM" prefWidth="28" styleClass="transparent-time-picker" style="-fx-alignment: center;"/>
                                 <DatePicker fx:id="datePickerStart" visible="false" managed="false"/>
                             </HBox>
                             <HBox fx:id="errorStartDT" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
                                 <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" iconColor="#e040a0"/>
-                                <Label fx:id="lblErrorStartDT" text="Please enter a valid start date and time!" style="-fx-text-fill: #e040a0; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                                <Label fx:id="lblErrorStartDT" text="Please enter a valid start date and time!" style="-fx-text-fill: -fx-accent; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                             </HBox>
                         </VBox>
                         <VBox spacing="8" HBox.hgrow="ALWAYS" prefWidth="250">
-                            <Label text="End Time (Required)" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
+                            <Label text="End Time (Required)" style="-fx-font-weight: bold; -fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
                             <HBox fx:id="wrapperEndDT" alignment="CENTER_LEFT" spacing="2" styleClass="custom-segmented-input" maxWidth="Infinity">
                                 <Button onAction="#handleShowEndCalendar" style="-fx-background-color: transparent; -fx-padding: 0; -fx-cursor: hand;">
                                     <graphic><FontIcon iconLiteral="mdi2c-calendar" iconSize="18" iconColor="#907898"/></graphic>
                                 </Button>
                                 <Region prefWidth="4"/>
                                 <TextField fx:id="txtEndDay" promptText="dd" prefWidth="28" styleClass="transparent-time-picker" style="-fx-alignment: center;"/>
-                                <Label text="/" style="-fx-text-fill: #907898;"/>
+                                <Label text="/" style="-fx-text-fill: -app-text-muted;"/>
                                 <TextField fx:id="txtEndMonth" promptText="mm" prefWidth="28" styleClass="transparent-time-picker" style="-fx-alignment: center;"/>
-                                <Label text="/" style="-fx-text-fill: #907898;"/>
+                                <Label text="/" style="-fx-text-fill: -app-text-muted;"/>
                                 <TextField fx:id="txtEndYear" promptText="yyyy" prefWidth="42" styleClass="transparent-time-picker" style="-fx-alignment: center;"/>
                                 <Region prefWidth="8"/>
                                 <TextField fx:id="txtEndHour" promptText="HH" prefWidth="28" styleClass="transparent-time-picker" style="-fx-alignment: center;"/>
-                                <Label text=":" style="-fx-text-fill: #907898;"/>
+                                <Label text=":" style="-fx-text-fill: -app-text-muted;"/>
                                 <TextField fx:id="txtEndMin" promptText="MM" prefWidth="28" styleClass="transparent-time-picker" style="-fx-alignment: center;"/>
                                 <DatePicker fx:id="datePickerEnd" visible="false" managed="false"/>
                             </HBox>
                             <HBox fx:id="errorEndDT" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
                                 <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" iconColor="#e040a0"/>
-                                <Label fx:id="lblErrorEndDT" text="End time must be after start time" style="-fx-text-fill: #e040a0; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                                <Label fx:id="lblErrorEndDT" text="End time must be after start time" style="-fx-text-fill: -fx-accent; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                             </HBox>
                         </VBox>
                     </HBox>
 
                     <VBox spacing="8">
-                        <Label text="Product Image" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
+                        <Label text="Product Image" style="-fx-font-weight: bold; -fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
                         <!-- Drag and Drop Area -->
-                        <VBox fx:id="imageUploadArea" alignment="CENTER" spacing="8" style="-fx-border-color: #dcc8e0; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 32px; -fx-cursor: hand; -fx-background-color: transparent;">
+                        <VBox fx:id="imageUploadArea" alignment="CENTER" spacing="8" style="-fx-border-color: -app-border; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 32px; -fx-cursor: hand; -fx-background-color: transparent;">
                             <FontIcon iconLiteral="mdi2c-cloud-upload" iconSize="36" iconColor="#907898"/>
-                            <Label text="Click or drag to upload" style="-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #604868;"/>
+                            <Label text="Click or drag to upload" style="-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: -app-text-muted;"/>
                             <Label fx:id="lblImageFileName" text="" style="-fx-font-size: 11px; -fx-text-fill: #a02070;"/>
                         </VBox>
                         <!-- Hidden text field for storing the URL internally if needed -->
@@ -270,17 +270,17 @@
                     </VBox>
                     
                     <VBox spacing="8">
-                        <Label text="Description" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
+                        <Label text="Description" style="-fx-font-weight: bold; -fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
                         <TextArea fx:id="descriptionArea" prefRowCount="3" promptText="Describe the item..." styleClass="transparent-text-area" style="-fx-padding: 12px;"/>
                     </VBox>
                 </VBox>
             </ScrollPane>
             
             <!-- Footer -->
-            <HBox spacing="16" style="-fx-padding: 24px 32px; -fx-background-color: #ffffff; -fx-background-radius: 0 0 16px 16px;">
-                <Button fx:id="btnDraftOrReset" text="Save as Draft" onAction="#handleSaveDraftAction" prefWidth="200" HBox.hgrow="ALWAYS" style="-fx-background-color: #f2e8f2; -fx-text-fill: #604868; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 12px 24px; -fx-background-radius: 999px; -fx-cursor: hand;"/>
+            <HBox spacing="16" style="-fx-padding: 24px 32px; -fx-background-color: -app-card; -fx-background-radius: 0 0 16px 16px;">
+                <Button fx:id="btnDraftOrReset" text="Save as Draft" onAction="#handleSaveDraftAction" prefWidth="200" HBox.hgrow="ALWAYS" style="-fx-background-color: #f2e8f2; -fx-text-fill: -app-text-muted; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 12px 24px; -fx-background-radius: 999px; -fx-cursor: hand;"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Button fx:id="btnSubmit" text="Launch Auction" onAction="#handleSaveAction" prefWidth="200" HBox.hgrow="ALWAYS" style="-fx-background-color: #e040a0; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 12px 24px; -fx-background-radius: 999px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.4), 16, 0, 0, 4);"/>
+                <Button fx:id="btnSubmit" text="Launch Auction" onAction="#handleSaveAction" prefWidth="200" HBox.hgrow="ALWAYS" style="-fx-background-color: -fx-accent; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 12px 24px; -fx-background-radius: 999px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.4), 16, 0, 0, 4);"/>
             </HBox>
             
         </VBox>

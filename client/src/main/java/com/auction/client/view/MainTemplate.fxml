@@ -38,7 +38,7 @@
             </BorderPane.margin>
             <!-- Header Section inside Center -->
             <HBox fx:id="mainPageHeader" alignment="CENTER_LEFT" spacing="20.0" style="-fx-padding: 0 0 0 0;">
-                <Label fx:id="lblPageTitle" id="mainPageTitle" text="Live Auctions" style="-fx-text-fill: #e040a0; -fx-font-weight: 900; -fx-font-size: 32px;">
+                <Label fx:id="lblPageTitle" id="mainPageTitle" text="Live Auctions" styleClass="page-title main-page-title" style="-fx-font-weight: 900; -fx-font-size: 32px; -fx-text-fill: -fx-accent;">
 
                     <font>
 
@@ -57,7 +57,7 @@
                 <!-- Filter controls mapping to cbCategory and cbStatus -->
                 <HBox fx:id="filterControlsBox" spacing="12.0" alignment="CENTER_RIGHT" styleClass="filter-controls-bar">
 
-                    <Label text="Filter:" textFill="#604868" styleClass="filter-label" />
+                    <Label text="Filter:" styleClass="filter-label" />
 
                     <ComboBox fx:id="cbCategory" promptText="Category" prefWidth="150.0" styleClass="filter-combo" />
 
