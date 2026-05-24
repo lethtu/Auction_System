@@ -353,31 +353,72 @@ public class SidebarController {
     }
 
     private void applySidebarButtonStyle(Button button, boolean active) {
-        if (button == null)
+        if (button == null) {
             return;
+        }
 
-        String textColor = active ? "-fx-accent" : "-app-text-muted";
-        String backgroundColor = active ? "-app-surface-2" : "transparent";
-        String padding = isSidebarCollapsed ? "0px" : "7px 16px";
-        String radius = isSidebarCollapsed ? "22px" : "20px";
+        applySidebarButtonVisual(button, active, false);
+        installExpandedHoverEffect(button, active);
 
-        button.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: "
-                + backgroundColor
-                + "; -fx-text-fill: "
-                + textColor
-                + "; -fx-font-weight: bold; -fx-background-radius: " + radius + "; -fx-padding: " + padding
-                + "; -fx-cursor: hand;");
         if (!isSidebarCollapsed) {
             button.setMinHeight(40);
             button.setPrefHeight(40);
             button.setMaxHeight(40);
         }
+    }
+
+    private void installExpandedHoverEffect(Button button, boolean active) {
+        if (button == null || isSidebarCollapsed) {
+            return;
+        }
+
+        button.setScaleX(1.0);
+        button.setScaleY(1.0);
+        button.setEffect(null);
+
+        button.setOnMouseEntered(event -> applySidebarButtonVisual(button, true, true));
+        button.setOnMouseExited(event -> applySidebarButtonVisual(button, active, false));
+        button.setOnMousePressed(event -> {
+            button.setScaleX(0.99);
+            button.setScaleY(0.99);
+        });
+        button.setOnMouseReleased(event -> {
+            button.setScaleX(1.0);
+            button.setScaleY(1.0);
+            applySidebarButtonVisual(button, active || button.isHover(), button.isHover());
+        });
+    }
+
+    private void applySidebarButtonVisual(Button button, boolean emphasized, boolean hover) {
+        String textColor = emphasized ? "-fx-accent" : "-app-text-muted";
+        String backgroundColor = emphasized ? "-app-surface-2" : "transparent";
+        String padding = isSidebarCollapsed ? "0px" : "7px 16px";
+        String radius = isSidebarCollapsed ? "22px" : "20px";
+
+        button.setScaleX(1.0);
+        button.setScaleY(1.0);
+        button.setEffect(null);
+        button.setStyle("-fx-font-family: 'DM Sans';"
+                + " -fx-font-size: 14px;"
+                + " -fx-background-color: " + backgroundColor + ";"
+                + " -fx-text-fill: " + textColor + ";"
+                + " -fx-font-weight: bold;"
+                + " -fx-background-radius: " + radius + ";"
+                + " -fx-border-radius: " + radius + ";"
+                + " -fx-border-width: 0px;"
+                + " -fx-padding: " + padding + ";"
+                + " -fx-cursor: hand;"
+                + " -fx-effect: none;"
+                + " -fx-translate-x: 0px;");
 
         if (button.getGraphic() instanceof Label) {
-            ((Label) button.getGraphic()).setStyle(
-                    "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: "
-                            + textColor
-                            + ";");
+            Label icon = (Label) button.getGraphic();
+            icon.setEffect(null);
+            icon.setStyle("-fx-font-family: 'Material Symbols Outlined';"
+                    + " -fx-font-size: 20px;"
+                    + " -fx-font-weight: normal;"
+                    + " -fx-text-fill: " + textColor + ";"
+                    + " -fx-effect: none;");
         }
     }
 

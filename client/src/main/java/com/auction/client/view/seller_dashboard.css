@@ -285,7 +285,7 @@
     -fx-background-color: -fx-error-container !important;
 }
 
-/* ── Context Menu (Dropdown menus) ── */
+/* â”€â”€ Context Menu (Dropdown menus) â”€â”€ */
 .context-menu {
     -fx-background-color: -app-card;
     -fx-background-radius: 12px;
@@ -894,3 +894,183 @@
     -fx-scale-x: 0.99;
     -fx-scale-y: 0.99;
 }
+
+/* === Z6 SIDEBAR FRIEND HOVER + SELLER LISTINGS BOTTOM START === */
+/* Keep the seller listings card rounded at the bottom and prevent table/footer square bleed. */
+.seller-dashboard-surface .seller-listings-card {
+    -fx-background-color: -app-card;
+    -fx-background-radius: 28;
+    -fx-border-color: -app-border;
+    -fx-border-radius: 28;
+    -fx-border-width: 1.2;
+    -fx-padding: 0;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.13), 24, 0.10, 0, 8);
+}
+
+.seller-dashboard-surface .seller-listings-header {
+    -fx-background-color: -app-card;
+    -fx-background-radius: 28 28 0 0;
+    -fx-border-color: -app-border;
+    -fx-border-width: 0 0 1 0;
+}
+
+.seller-dashboard-surface .seller-listings-footer {
+    -fx-background-color: -app-card;
+    -fx-background-radius: 0 0 28 28;
+    -fx-border-color: -app-border;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 18 24 22 24;
+}
+
+.seller-dashboard-surface .custom-table {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0 10 0 10;
+}
+
+.seller-dashboard-surface .custom-table .virtual-flow,
+.seller-dashboard-surface .custom-table .virtual-flow > .viewport,
+.seller-dashboard-surface .custom-table .virtual-flow > .clipped-container,
+.seller-dashboard-surface .custom-table .virtual-flow .sheet,
+.seller-dashboard-surface .custom-table .placeholder {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+}
+
+.seller-dashboard-surface .custom-table .column-header-background,
+.seller-dashboard-surface .custom-table .column-header,
+.seller-dashboard-surface .custom-table .filler {
+    -fx-background-color: -app-card;
+    -fx-background-radius: 0;
+    -fx-border-color: -app-border;
+}
+/* === Z6 SIDEBAR FRIEND HOVER + SELLER LISTINGS BOTTOM END === */
+
+/* === Z7 SELLER TABLE BOTTOM FINISH START === */
+/* Final pass: remove the square TableView/scrollbar bleed at the bottom of Manage Listings. */
+.seller-dashboard-surface .seller-listings-card {
+    -fx-background-color: -app-card;
+    -fx-background-radius: 28;
+    -fx-border-radius: 28;
+    -fx-border-color: -app-border;
+    -fx-border-width: 1.2;
+    -fx-padding: 0;
+    -fx-background-insets: 0;
+    -fx-border-insets: 0;
+}
+
+.seller-dashboard-surface .seller-listings-card .custom-table {
+    -fx-background-color: -app-card;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+}
+
+.seller-dashboard-surface .seller-listings-card .custom-table .virtual-flow,
+.seller-dashboard-surface .seller-listings-card .custom-table .virtual-flow > .viewport,
+.seller-dashboard-surface .seller-listings-card .custom-table .virtual-flow > .clipped-container,
+.seller-dashboard-surface .seller-listings-card .custom-table .virtual-flow .sheet,
+.seller-dashboard-surface .seller-listings-card .custom-table .placeholder,
+.seller-dashboard-surface .seller-listings-card .custom-table .corner {
+    -fx-background-color: -app-card;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.seller-dashboard-surface .seller-listings-card .custom-table .scroll-bar:horizontal,
+.seller-dashboard-surface .seller-listings-card .custom-table .scroll-bar:horizontal .track,
+.seller-dashboard-surface .seller-listings-card .custom-table .scroll-bar:horizontal .thumb,
+.seller-dashboard-surface .seller-listings-card .custom-table .scroll-bar:horizontal .increment-button,
+.seller-dashboard-surface .seller-listings-card .custom-table .scroll-bar:horizontal .decrement-button,
+.seller-dashboard-surface .seller-listings-card .custom-table .scroll-bar:horizontal .increment-arrow,
+.seller-dashboard-surface .seller-listings-card .custom-table .scroll-bar:horizontal .decrement-arrow {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-opacity: 0;
+    -fx-pref-height: 0;
+    -fx-min-height: 0;
+    -fx-max-height: 0;
+}
+
+.seller-dashboard-surface .seller-listings-card .seller-listings-footer {
+    -fx-background-color: -app-card;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0 0 28 28;
+    -fx-border-color: -app-border;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 16 24 20 24;
+}
+
+.seller-dashboard-surface .seller-listings-card .custom-table .table-row-cell,
+.seller-dashboard-surface .seller-listings-card .custom-table .table-cell {
+    -fx-background-color: -app-card;
+    -fx-background-insets: 0;
+}
+
+.seller-dashboard-surface .seller-listings-card .custom-table .table-row-cell:empty,
+.seller-dashboard-surface .seller-listings-card .custom-table .table-row-cell:empty .table-cell {
+    -fx-background-color: -app-card;
+    -fx-border-color: transparent;
+}
+/* === Z7 SELLER TABLE BOTTOM FINISH END === */
+
+/* === Z8 LIGHT SIDEBAR TABLE CLEANUP START === */
+/* Remove light-theme grey/shadow bleed around Manage Listings bottom. */
+.seller-listings-card,
+.seller-dashboard-surface .seller-listings-card {
+    -fx-effect: none;
+    -fx-background-color: -app-card;
+    -fx-background-radius: 28;
+    -fx-border-color: -app-border;
+    -fx-border-radius: 28;
+    -fx-border-width: 1;
+}
+
+.seller-listings-card .custom-table,
+.seller-dashboard-surface .seller-listings-card .custom-table,
+.seller-listings-card .custom-table .virtual-flow,
+.seller-listings-card .custom-table .virtual-flow > .viewport,
+.seller-listings-card .custom-table .virtual-flow > .clipped-container,
+.seller-listings-card .custom-table .virtual-flow .sheet,
+.seller-listings-card .custom-table .placeholder,
+.seller-listings-card .custom-table .corner {
+    -fx-effect: none;
+    -fx-background-color: -app-card;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.seller-listings-card .seller-listings-footer,
+.seller-dashboard-surface .seller-listings-card .seller-listings-footer {
+    -fx-effect: none;
+    -fx-background-color: -app-card;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0 0 28 28;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 16 24 20 24;
+}
+
+.seller-listings-card .custom-table .scroll-bar:horizontal,
+.seller-listings-card .custom-table .scroll-bar:horizontal .track,
+.seller-listings-card .custom-table .scroll-bar:horizontal .thumb,
+.seller-listings-card .custom-table .scroll-bar:horizontal .increment-button,
+.seller-listings-card .custom-table .scroll-bar:horizontal .decrement-button {
+    -fx-background-color: transparent;
+    -fx-opacity: 0;
+    -fx-pref-height: 0;
+    -fx-min-height: 0;
+    -fx-max-height: 0;
+}
+/* === Z8 LIGHT SIDEBAR TABLE CLEANUP END === */
