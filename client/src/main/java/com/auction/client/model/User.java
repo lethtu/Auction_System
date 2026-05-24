@@ -113,6 +113,10 @@ public class User {
             com.auction.client.service.NotificationSocketService.getInstance().stop();
         } catch (Exception ignored) {
         }
+        try {
+            com.auction.client.service.NotificationCenterService.getInstance().clearAll();
+        } catch (Exception ignored) {
+        }
     }
 
 
