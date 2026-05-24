@@ -182,6 +182,12 @@ public class ClientHandler implements Runnable {
             notice.put("bidId", response.getBidId());
         }
 
+        if (response.getPreviousHighestBidderId() != null) {
+
+            notice.put("previousHighestBidderId", response.getPreviousHighestBidderId());
+
+        }
+
         SocketServer.broadcastToRoom(auctionId, "NOTICE:" + notice);
 
         if (response.getPreviousHighestBidderId() != null) {
