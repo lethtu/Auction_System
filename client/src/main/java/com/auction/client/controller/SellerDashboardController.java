@@ -2617,12 +2617,19 @@ public class SellerDashboardController {
 
         JSONObject obj = new JSONObject(response.body());
         JSONObject data = obj.optJSONObject("data");
+        String imageUrl = data != null ? data.optString("imageUrl", "") : obj.optString("imageUrl", "");
         String imagePath = data != null ? data.optString("imagePath", "") : obj.optString("imagePath", "");
+
+        if (imageUrl != null && (imageUrl.startsWith("http://") || imageUrl.startsWith("https://"))) {
+            return imageUrl.trim();
+        }
+
         if (imagePath.isBlank()) {
             throw new IOException("Image upload response did not contain imagePath.");
         }
         return normalizeImagePathForStorage(imagePath);
     }
+
 
     private String normalizeImagePathForStorage(String rawPath) {
         if (rawPath == null || rawPath.isBlank()) {
