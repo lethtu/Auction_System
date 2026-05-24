@@ -201,7 +201,9 @@ public final class AppStyleManager {
         root.getStyleClass().remove("accent-emerald");
         root.getStyleClass().remove("accent-blue");
         root.getStyleClass().remove("accent-orange");
-        root.getStyleClass().add("theme-light");
+        SettingsService settings = SettingsService.getInstance();
+        String theme = safeLower(settings.getTheme());
+        root.getStyleClass().add(theme.contains("dark") ? "theme-dark" : "theme-light");
         root.getStyleClass().add(getAccentStyleClass());
     }
 
