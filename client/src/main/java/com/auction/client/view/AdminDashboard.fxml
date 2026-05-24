@@ -16,13 +16,12 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
-<?import javafx.scene.layout.StackPane?>
 
-<StackPane stylesheets="@styles.css" styleClass="rounded-window-root" style="-fx-font-family: 'DM Sans'; -fx-background-color: #fff8fd; -fx-background-radius: 32; -fx-border-radius: 32;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.AdminDashboardController">
+<StackPane stylesheets="@styles.css" styleClass="rounded-window-root" style="-fx-font-family: 'DM Sans';" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.AdminDashboardController">
     
     <Region styleClass="admin-solid-window-backdrop" />
 <!-- Káº¿t há»£p cáº£ style class cÅ© vÃ  má»›i Ä‘á»ƒ trÃ¡nh lá»—i hiá»ƒn thá»‹ -->
-    <BorderPane style=" -fx-background-color: #fff8fd; -fx-background-radius: 30; -fx-border-radius: 30; -fx-border-color: #ffe2f1; -fx-border-width: 1;" prefWidth="1280" prefHeight="720" styleClass="admin-bidpop-root rounded-window-content">
+    <BorderPane prefWidth="1280" prefHeight="720" styleClass="admin-bidpop-root rounded-window-content">
 
         <top>
             <HBox alignment="CENTER_LEFT" spacing="18" styleClass="admin-bidpop-topbar">
