@@ -142,21 +142,18 @@ public class UserService {
 
         BigDecimal pendingMoney = BigDecimal.ZERO;
         List<AuctionSession> leadingSessions = auctionSessionRepository
-                .findByHighestBidderIdAndStatus(user.getId(), AuctionStatus.ACTIVE);
+                .findLeadingSessionsByUserIdAndStatus(user.getId(), AuctionStatus.ACTIVE);
         for (AuctionSession session : leadingSessions) {
             if (session != null && session.getCurrentPrice() != null) {
                 pendingMoney = pendingMoney.add(session.getCurrentPrice());
             }
         }
 
-        BigDecimal totalMoney = user.getBalance();
-        if (totalMoney == null) {
-            totalMoney = BigDecimal.ZERO;
-        }
-        BigDecimal currentMoney = totalMoney.subtract(pendingMoney);
-        if (currentMoney.compareTo(BigDecimal.ZERO) < 0) {
+        BigDecimal currentMoney = user.getBalance();
+        if (currentMoney == null) {
             currentMoney = BigDecimal.ZERO;
         }
+
         user.setPendingMoney(pendingMoney);
         user.setCurrentMoney(currentMoney);
         return user;

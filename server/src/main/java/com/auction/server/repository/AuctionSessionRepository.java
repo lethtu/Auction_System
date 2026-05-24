@@ -30,6 +30,8 @@ public interface AuctionSessionRepository extends JpaRepository<AuctionSession, 
     List<AuctionSession> findBySeller_IdAndStatus(Integer sellerId, AuctionStatus status);
 
     List<AuctionSession> findByHighestBidderIdAndStatus(Integer highestBidderId, AuctionStatus status);
+    @Query("SELECT s FROM AuctionSession s WHERE s.status = :status AND (s.highestBidderId = :userId OR s.winner.id = :userId)")
+    List<AuctionSession> findLeadingSessionsByUserIdAndStatus(@Param("userId") Integer userId, @Param("status") AuctionStatus status);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT s FROM AuctionSession s WHERE s.id = :id")

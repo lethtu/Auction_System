@@ -103,9 +103,10 @@ public class User {
         }
     }
 
-    public static void setWalletSummary(BigDecimal CurrentMoney, BigDecimal PendingMoney) {
-        currentMoney = CurrentMoney == null ? getBalance() : CurrentMoney;
-        pendingMoney = PendingMoney == null ? BigDecimal.ZERO : PendingMoney;
+    public static void setWalletSummary(BigDecimal balanceFromServer, BigDecimal currentFromServer, BigDecimal pendingFromServer) {
+        balance = balanceFromServer == null ? BigDecimal.ZERO : balanceFromServer;
+        currentMoney = balance;
+        pendingMoney = pendingFromServer == null ? BigDecimal.ZERO : pendingFromServer;
     }
 
     public static void setAvatarUrl(String AvatarUrl) {
@@ -180,8 +181,12 @@ public class User {
         return balance == null ? BigDecimal.ZERO : balance;
     }
 
+    public static BigDecimal getTotalMoney() {
+        return getBalance().add(getPendingMoney());
+    }
+
     public static BigDecimal getCurrentMoney() {
-        return currentMoney == null ? getBalance() : currentMoney;
+        return getBalance();
     }
 
     public static BigDecimal getPendingMoney() {
