@@ -6187,3 +6187,38 @@
     -fx-fill: white;
 }
 /* === FIX Z5: final combo popup hover END === */
+
+/* === Z11 SIDEBAR REMOVE TEXT GLOW START === */
+/* Keep accent colors, but remove the green/purple glow below menu text/icons. */
+.app-sidebar-scroll,
+.app-sidebar-scroll-collapsed {
+    -fx-effect: null;
+}
+
+.app-sidebar-content,
+.app-sidebar-content-collapsed {
+    -fx-effect: null;
+}
+
+.app-sidebar-scroll .button,
+.app-sidebar-scroll-collapsed .button,
+.app-sidebar-scroll .button:hover,
+.app-sidebar-scroll-collapsed .button:hover,
+.app-sidebar-scroll .button:focused,
+.app-sidebar-scroll-collapsed .button:focused,
+.app-sidebar-scroll .button:armed,
+.app-sidebar-scroll-collapsed .button:armed,
+.app-sidebar-scroll .label,
+.app-sidebar-scroll-collapsed .label,
+.app-sidebar-scroll .text,
+.app-sidebar-scroll-collapsed .text {
+    -fx-effect: null;
+}
+
+.app-sidebar-scroll .button .text,
+.app-sidebar-scroll-collapsed .button .text,
+.app-sidebar-scroll .button .label,
+.app-sidebar-scroll-collapsed .button .label {
+    -fx-effect: null;
+}
+/* === Z11 SIDEBAR REMOVE TEXT GLOW END === */
