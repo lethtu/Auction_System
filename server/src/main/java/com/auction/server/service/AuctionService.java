@@ -442,6 +442,10 @@ public class AuctionService {
 
     /**
      * Execute auto-bid: update session, save bid to DB, deactivate expired configs.
+     *
+     * This method intentionally keeps the existing "hold balance" behavior, but fixes
+     * the amount required when the auto-bidder is already the current highest bidder:
+     * only the difference is needed, not the whole new price.
      */
     private BidResponse executeAutoBid(
             AuctionSession session,
@@ -450,56 +454,58 @@ public class AuctionService {
             BigDecimal newPrice,
             BigDecimal previousPrice
     ) {
-        // Check user exists
         User bidder = userRepository.findById(winner.getBidderId()).orElse(null);
         if (bidder == null) {
             logger.error("AUTO-BID: User ID={} not found", winner.getBidderId());
             return null;
         }
 
-        // ============ HOLD BALANCE: Auto-bid Anti Joy-Bidding ============
-        // Validate auto-bidder balance
-        if (bidder.getBalance().compareTo(newPrice) < 0) {
-            logger.warn("AUTO-BID: User ID={} insufficient balance ({}) for auto-bid ({})",
-                    winner.getBidderId(), bidder.getBalance(), newPrice);
+        Integer previousHighestBidderId = session.getHighestBidderId();
+
+        User oldTopBidder = null;
+        BigDecimal oldBidAmount = BigDecimal.ZERO;
+        if (session.getHighestBidderId() != null) {
+            oldTopBidder = userRepository.findById(session.getHighestBidderId()).orElse(null);
+            oldBidAmount = previousPrice == null ? BigDecimal.ZERO : previousPrice;
+        }
+
+        boolean sameBidderAlreadyLeading =
+                oldTopBidder != null && oldTopBidder.getId().equals(winner.getBidderId());
+
+        BigDecimal requiredBalance = sameBidderAlreadyLeading
+                ? newPrice.subtract(oldBidAmount)
+                : newPrice;
+
+        if (requiredBalance.compareTo(BigDecimal.ZERO) < 0) {
+            requiredBalance = BigDecimal.ZERO;
+        }
+
+        BigDecimal bidderBalance = bidder.getBalance() == null ? BigDecimal.ZERO : bidder.getBalance();
+        if (bidderBalance.compareTo(requiredBalance) < 0) {
+            logger.warn("AUTO-BID: User ID={} insufficient balance ({}) for required amount {} at newPrice {}",
+                    winner.getBidderId(), bidderBalance, requiredBalance, newPrice);
             winner.setActive(false);
             autoBidConfigRepository.save(winner);
             return null;
         }
 
-        Integer previousHighestBidderId = session.getHighestBidderId();
-
-        // Find Old Top Bidder
-        User oldTopBidder = null;
-        BigDecimal oldBidAmount = BigDecimal.ZERO;
-        if (session.getHighestBidderId() != null) {
-            oldTopBidder = userRepository.findById(session.getHighestBidderId()).orElse(null);
-            oldBidAmount = previousPrice;
+        if (requiredBalance.compareTo(BigDecimal.ZERO) > 0) {
+            bidder.setBalance(bidderBalance.subtract(requiredBalance));
+            userRepository.save(bidder);
         }
 
-        // Deduct auto-bidder balance
-        if (oldTopBidder != null && oldTopBidder.getId().equals(winner.getBidderId())) {
-            // Same person -> only deduct difference
-            BigDecimal diff = newPrice.subtract(oldBidAmount);
-            bidder.setBalance(bidder.getBalance().subtract(diff));
-        } else {
-            bidder.setBalance(bidder.getBalance().subtract(newPrice));
-        }
-        userRepository.save(bidder);
-
-        // Refund Old Top Bidder (if different from auto-bidder)
         if (oldTopBidder != null && !oldTopBidder.getId().equals(winner.getBidderId())) {
-            oldTopBidder.setBalance(oldTopBidder.getBalance().add(oldBidAmount));
+            BigDecimal oldBalance = oldTopBidder.getBalance() == null ? BigDecimal.ZERO : oldTopBidder.getBalance();
+            oldTopBidder.setBalance(oldBalance.add(oldBidAmount));
             userRepository.save(oldTopBidder);
             logger.info("AUTO-BID: Refunded {} to Old Top Bidder ID={}", oldBidAmount, oldTopBidder.getId());
         }
-        // ==================================================================
 
         LocalDateTime time = LocalDateTime.now();
         session.setCurrentPrice(newPrice);
         session.setHighestBidderId(winner.getBidderId());
+        session.setWinner(bidder);
 
-        // Anti-sniping
         String updatedEndTimeStr = null;
         LocalDateTime currentEndTime = session.getEndTime();
         if (currentEndTime != null) {
@@ -516,7 +522,6 @@ public class AuctionService {
             }
         }
 
-        // Save Bid to DB
         Bid bid = new Bid(session, bidder, newPrice, time);
         session.addBid(bid);
 
@@ -526,7 +531,6 @@ public class AuctionService {
 
             int bidCount = Math.toIntExact(bidRepository.countBySessionId(session.getId()));
 
-            // Deactivate configs that have exceeded maxBid
             for (com.auction.server.model.AutoBidConfig cfg : allConfigs) {
                 if (newPrice.compareTo(cfg.getMaxBid()) >= 0 && !cfg.getId().equals(winner.getId())) {
                     cfg.setActive(false);
@@ -536,8 +540,8 @@ public class AuctionService {
                 }
             }
 
-            logger.info("AUTO-BID O(1) successful: sessionId={}, winner={}, newPrice={}",
-                    session.getId(), winner.getBidderId(), newPrice);
+            logger.info("AUTO-BID O(1) successful: sessionId={}, winner={}, newPrice={}, requiredBalance={}",
+                    session.getId(), winner.getBidderId(), newPrice, requiredBalance);
 
             return new BidResponse(
                     true,
@@ -555,7 +559,6 @@ public class AuctionService {
             return null;
         }
     }
-
     // ==========================================
     // BID HISTORY (CHART DATA)
     // ==========================================
