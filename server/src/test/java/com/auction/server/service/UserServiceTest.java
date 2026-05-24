@@ -1,6 +1,8 @@
 package com.auction.server.service;
 
+import com.auction.server.model.AuctionStatus;
 import com.auction.server.model.User;
+import com.auction.server.repository.AuctionSessionRepository;
 import com.auction.server.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,6 +29,9 @@ class UserServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private AuctionSessionRepository auctionSessionRepository;
+
     @InjectMocks
     private UserService userService;
 
@@ -51,6 +56,7 @@ class UserServiceTest {
         when(userRepository.findByUsername("newuser")).thenReturn(Optional.empty());
         when(userRepository.findByEmail("new@example.com")).thenReturn(Optional.empty());
         when(userRepository.save(user)).thenReturn(user);
+        when(auctionSessionRepository.findLeadingSessionsByUserIdAndStatus(10, AuctionStatus.ACTIVE)).thenReturn(List.of());
 
         Map<String, String> request = Map.of(
                 "username", "  newuser  ",
@@ -116,6 +122,7 @@ class UserServiceTest {
         user.setId(5);
         when(userRepository.findById(5)).thenReturn(Optional.of(user));
         when(userRepository.save(user)).thenReturn(user);
+        when(auctionSessionRepository.findLeadingSessionsByUserIdAndStatus(5, AuctionStatus.ACTIVE)).thenReturn(List.of());
 
         User result = userService.updateAvatarUrl(5, "/api/files/avatar/a.png");
 
