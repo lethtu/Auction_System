@@ -5530,3 +5530,192 @@
     -fx-effect: dropshadow(gaussian, -app-accent-opacity-16, 12, 0.16, 0, 4);
 }
 /* === Phase R2: My Account save button clean END === */
+
+
+.model-3d-overlay {
+    -fx-background-color: -app-surface-2;
+    -fx-background-radius: 32;
+    -fx-border-color: -app-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 32;
+}
+/* === THEME POPUP FONT FIX V1 START === */
+/* Final override: keep ComboBox text readable in create/edit seller forms and follow theme tokens. */
+.combo-box,
+.combo-box-base,
+.filter-combo,
+.custom-combo-box,
+.theme-dark .combo-box,
+.theme-light .combo-box,
+.theme-dark .filter-combo,
+.theme-light .filter-combo,
+.theme-dark .custom-combo-box,
+.theme-light .custom-combo-box {
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -app-input-text;
+    -fx-prompt-text-fill: -app-text-muted;
+}
+
+.combo-box > .list-cell,
+.combo-box-base > .list-cell,
+.filter-combo > .list-cell,
+.combo-box.filter-combo > .list-cell,
+.custom-combo-box > .list-cell,
+.theme-dark .combo-box > .list-cell,
+.theme-light .combo-box > .list-cell,
+.theme-dark .custom-combo-box > .list-cell,
+.theme-light .custom-combo-box > .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -app-input-text;
+    -fx-opacity: 1;
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+}
+
+.combo-box .text,
+.combo-box-base .text,
+.filter-combo .text,
+.custom-combo-box .text {
+    -fx-fill: -app-input-text;
+}
+
+.combo-box .arrow,
+.combo-box-base .arrow,
+.filter-combo .arrow,
+.custom-combo-box .arrow {
+    -fx-background-color: -app-input-text;
+    -fx-opacity: 0.76;
+}
+
+.combo-box-popup .list-view,
+.combo-box-popup > .list-view,
+.theme-dark .combo-box-popup .list-view,
+.theme-light .combo-box-popup .list-view {
+    -fx-background-color: -app-card;
+    -fx-background: -app-card;
+    -fx-control-inner-background: -app-card;
+    -fx-border-color: -fx-accent;
+    -fx-border-width: 1.5px;
+    -fx-background-radius: 16px;
+    -fx-border-radius: 16px;
+    -fx-padding: 7px;
+}
+
+.combo-box-popup .list-cell,
+.combo-box-popup .list-cell:filled,
+.combo-box-popup .list-view .list-cell,
+.theme-dark .combo-box-popup .list-cell,
+.theme-light .combo-box-popup .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -app-input-text;
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+    -fx-padding: 10px 14px;
+    -fx-background-radius: 11px;
+}
+
+.combo-box-popup .list-cell:filled:hover,
+.combo-box-popup .list-cell:filled:focused,
+.combo-box-popup .list-cell:filled:selected,
+.combo-box-popup .list-cell:filled:selected:hover {
+    -fx-background-color: -fx-accent;
+    -fx-text-fill: white;
+    -fx-font-weight: 900;
+}
+
+.dialog-pane,
+.dialog-pane > .content,
+.dialog-pane .content,
+.dialog-pane .header-panel,
+.dialog-pane .button-bar {
+    -fx-background-color: -app-card;
+}
+
+.dialog-pane .content.label,
+.dialog-pane .header-panel .label {
+    -fx-text-fill: -app-input-text;
+}
+
+.dialog-pane .button {
+    -fx-font-family: 'DM Sans';
+}
+/* === THEME POPUP FONT FIX V1 END === */
+/* === THEME CATEGORY COMBO READABILITY FIX V2 START === */
+/* Fix clipped/faint selected text in Seller Add New Listing category ComboBox. */
+.seller-category-combo,
+.custom-combo-box.seller-category-combo,
+.theme-dark .seller-category-combo,
+.theme-light .seller-category-combo {
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+    -fx-text-fill: -app-input-text;
+    -fx-prompt-text-fill: -app-text-muted;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 4px 12px;
+    -fx-background-color: -app-input-bg;
+    -fx-background-radius: 18px;
+    -fx-border-color: -fx-accent;
+    -fx-border-width: 2px;
+    -fx-border-radius: 18px;
+}
+
+.seller-category-combo > .list-cell,
+.custom-combo-box.seller-category-combo > .list-cell,
+.theme-dark .seller-category-combo > .list-cell,
+.theme-light .seller-category-combo > .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -app-input-text;
+    -fx-opacity: 1;
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 14px;
+    -fx-font-weight: 900;
+    -fx-padding: 0 8px 0 12px;
+    -fx-alignment: CENTER_LEFT;
+    -fx-content-display: text-only;
+    -fx-min-height: 34px;
+    -fx-pref-height: 34px;
+    -fx-cell-size: 34px;
+}
+
+.seller-category-combo > .list-cell .text,
+.custom-combo-box.seller-category-combo > .list-cell .text,
+.seller-category-combo .text {
+    -fx-fill: -app-input-text;
+    -fx-opacity: 1;
+}
+
+.seller-category-combo .arrow-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0 8px 0 6px;
+}
+
+.seller-category-combo .arrow {
+    -fx-background-color: -app-input-text;
+    -fx-opacity: 0.82;
+}
+
+.seller-category-combo-popup-cell,
+.combo-box-popup .seller-category-combo-popup-cell,
+.combo-box-popup .list-view .seller-category-combo-popup-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -app-input-text;
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+    -fx-padding: 10px 14px;
+    -fx-background-radius: 10px;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.combo-box-popup .seller-category-combo-popup-cell:filled:hover,
+.combo-box-popup .seller-category-combo-popup-cell:filled:focused,
+.combo-box-popup .seller-category-combo-popup-cell:filled:selected {
+    -fx-background-color: -fx-accent;
+    -fx-text-fill: white;
+}
+/* === THEME CATEGORY COMBO READABILITY FIX V2 END === */

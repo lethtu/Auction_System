@@ -80,6 +80,12 @@ public class SellerDashboardController {
     @FXML
     private Label lblImageFileName;
     @FXML
+    private VBox modelUploadArea;
+    @FXML
+    private Label lblModelFileName;
+    @FXML
+    private TextField modelUrlField;
+    @FXML
     private DatePicker datePickerStart;
     @FXML
     private TextField txtStartDay;
@@ -159,15 +165,51 @@ public class SellerDashboardController {
     public void setHttpClient(HttpClient client) {
         this.httpClient = client;
     }
+    private void setupProductTypeComboDisplay() {
+        if (productTypeCombo == null) {
+            return;
+        }
+
+        if (!productTypeCombo.getStyleClass().contains("seller-category-combo")) {
+            productTypeCombo.getStyleClass().add("seller-category-combo");
+        }
+
+        productTypeCombo.setButtonCell(createProductTypeComboCell(false));
+        productTypeCombo.setCellFactory(listView -> createProductTypeComboCell(true));
+    }
+
+    private ListCell<String> createProductTypeComboCell(boolean popupCell) {
+        return new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+
+                setGraphic(null);
+                setContentDisplay(ContentDisplay.TEXT_ONLY);
+
+                if (popupCell && !getStyleClass().contains("seller-category-combo-popup-cell")) {
+                    getStyleClass().add("seller-category-combo-popup-cell");
+                }
+
+                if (empty || item == null || item.isBlank()) {
+                    setText(null);
+                } else {
+                    setText(item);
+                }
+            }
+        };
+    }
 
     @FXML
     public void initialize() {
         productTypeCombo.setItems(FXCollections.observableArrayList(
                 "Electronics", "Art", "Vehicle"));
         productTypeCombo.setValue("Electronics");
+        setupProductTypeComboDisplay();
 
         setupTable();
         setupImageUpload();
+        setupModelUpload();
         setupSplitDatetimePickers();
 
         if (topbarController != null) {
@@ -307,6 +349,65 @@ public class SellerDashboardController {
                 lblImageFileName.setText(selectedFile.getName());
             }
         });
+    }
+
+    private void setupModelUpload() {
+        if (modelUploadArea == null) {
+            return;
+        }
+
+        modelUploadArea.setOnDragOver(event -> {
+            if (event.getGestureSource() != modelUploadArea && event.getDragboard().hasFiles()) {
+                event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
+                modelUploadArea.setStyle(
+                        "-fx-border-color: -fx-accent; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 24px; -fx-cursor: hand; -fx-background-color: #ffd6ee;");
+            }
+            event.consume();
+        });
+
+        modelUploadArea.setOnDragExited(event -> {
+            modelUploadArea.setStyle(
+                    "-fx-border-color: #dcc8e0; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 24px; -fx-cursor: hand; -fx-background-color: transparent;");
+            event.consume();
+        });
+
+        modelUploadArea.setOnDragDropped(event -> {
+            Dragboard db = event.getDragboard();
+            boolean success = false;
+            if (db.hasFiles()) {
+                success = acceptModelFile(db.getFiles().get(0));
+            }
+            event.setDropCompleted(success);
+            event.consume();
+        });
+
+        modelUploadArea.setOnMouseClicked(event -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Select 3D Model File");
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("GLB Files", "*.glb"));
+            File selectedFile = fileChooser.showOpenDialog(modelUploadArea.getScene().getWindow());
+            if (selectedFile != null) {
+                acceptModelFile(selectedFile);
+            }
+        });
+    }
+
+    private boolean acceptModelFile(File file) {
+        if (file == null) {
+            return false;
+        }
+
+        String name = file.getName().toLowerCase(java.util.Locale.ROOT);
+        if (!name.endsWith(".glb")) {
+            showAlert(Alert.AlertType.WARNING, "Invalid File Type", "Please upload a .glb 3D model file.");
+            return false;
+        }
+
+        modelUrlField.setText(file.getAbsolutePath());
+        if (lblModelFileName != null) {
+            lblModelFileName.setText(file.getName());
+        }
+        return true;
     }
 
     private boolean isDarkThemeActive() {
@@ -666,6 +767,16 @@ public class SellerDashboardController {
                 lblImageFileName.setText("");
             }
         }
+        if (modelUrlField != null && lblModelFileName != null) {
+            String uuid = extractUuid(item.imageUrl);
+            if (uuid != null && !uuid.isBlank()) {
+                modelUrlField.setText("/api/files/models-3d/" + uuid + "/" + uuid + ".glb");
+                lblModelFileName.setText("Model linked: " + uuid + ".glb");
+            } else {
+                modelUrlField.clear();
+                lblModelFileName.setText("");
+            }
+        }
         descriptionArea.setText(item.description);
         startingPriceField.setText(item.startingPrice != null ? item.startingPrice.toString() : "0");
         if (reservePriceField != null) {
@@ -774,6 +885,9 @@ public class SellerDashboardController {
         String existingUuid = (editingSession != null) ? extractUuid(editingSession.imageUrl) : null;
         String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField), existingUuid);
         if (imageUrl == null) {
+            return;
+        }
+        if (!uploadModelIfSelected(imageUrl)) {
             return;
         }
         String description = productNameOrEmpty(descriptionArea);
@@ -1039,6 +1153,9 @@ public class SellerDashboardController {
         if (imageUrl == null) {
             return;
         }
+        if (!uploadModelIfSelected(imageUrl)) {
+            return;
+        }
         String description = productNameOrEmpty(descriptionArea);
         String startingPriceText = productNameOrEmpty(startingPriceField);
 
@@ -1301,6 +1418,9 @@ public class SellerDashboardController {
         String existingUuid = (editingSession != null) ? extractUuid(editingSession.imageUrl) : null;
         String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField), existingUuid);
         if (imageUrl == null) {
+            return;
+        }
+        if (!uploadModelIfSelected(imageUrl)) {
             return;
         }
         String description = productNameOrEmpty(descriptionArea);
@@ -1611,6 +1731,9 @@ public class SellerDashboardController {
         String existingUuid = (editingSession != null) ? extractUuid(editingSession.imageUrl) : null;
         String imageUrl = prepareImagePathForSave(productNameOrEmpty(imageUrlField), existingUuid);
         if (imageUrl == null) {
+            return;
+        }
+        if (!uploadModelIfSelected(imageUrl)) {
             return;
         }
         String description = productNameOrEmpty(descriptionArea);
@@ -2185,6 +2308,10 @@ public class SellerDashboardController {
         startingPriceField.clear();
         if (lblImageFileName != null)
             lblImageFileName.setText("");
+        if (modelUrlField != null)
+            modelUrlField.clear();
+        if (lblModelFileName != null)
+            lblModelFileName.setText("");
 
         if (startingPriceField != null)
             startingPriceField.setDisable(false);
@@ -2402,6 +2529,60 @@ public class SellerDashboardController {
         return normalizeImagePathForStorage(path);
     }
 
+    private boolean uploadModelIfSelected(String imagePath) {
+        String rawModelPath = productNameOrEmpty(modelUrlField);
+        if (rawModelPath.isBlank()) {
+            return true;
+        }
+
+        String uuid = extractUuid(imagePath);
+        if (uuid == null || uuid.isBlank()) {
+            showAlert(Alert.AlertType.ERROR, "Model Upload Error", "Please upload/select a product image before attaching a 3D model.");
+            return false;
+        }
+
+        String modelPath = prepareModelPathForSave(rawModelPath, uuid);
+        return modelPath != null;
+    }
+
+    private String prepareModelPathForSave(String rawPath, String uuid) {
+        if (rawPath == null || rawPath.isBlank()) {
+            return "";
+        }
+
+        String path = rawPath.trim();
+        File localModel = toExistingLocalFile(path);
+        if (localModel != null) {
+            try {
+                return uploadProductModel3D(localModel, uuid);
+            } catch (Exception e) {
+                logger.error("Cannot upload 3D model: {}", e.getMessage(), e);
+                showAlert(Alert.AlertType.ERROR, "Model Upload Error", "Cannot upload 3D model to the server.");
+                return null;
+            }
+        }
+
+        return path;
+    }
+
+    private String uploadProductModel3D(File modelFile, String existingUuid) throws Exception {
+        String uploadPath = "/api/files/models-3d" + (existingUuid != null ? "?uuid=" + existingUuid : "");
+        HttpResponse<String> response = HttpRequestUtil.uploadImage(Config.API_URL, uploadPath, modelFile);
+        if (response.statusCode() < 200 || response.statusCode() >= 300) {
+            throw new IOException("3D model upload failed with status " + response.statusCode());
+        }
+
+        JSONObject obj = new JSONObject(response.body());
+        JSONObject data = obj.optJSONObject("data");
+        String model3dPath = data != null ? data.optString("model3dPath", "") : obj.optString("model3dPath", "");
+        if (model3dPath.isBlank()) {
+            throw new IOException("3D model upload response did not contain model3dPath.");
+        }
+
+        Config.triggerImageCacheBuster();
+        return model3dPath;
+    }
+
     private File toExistingLocalFile(String rawPath) {
         if (rawPath == null || rawPath.isBlank()) {
             return null;
@@ -2572,12 +2753,12 @@ public class SellerDashboardController {
         container.setPadding(new javafx.geometry.Insets(32));
         container.setPrefWidth(360);
         container.setStyle(
-                "-fx-background-color: white; -fx-background-radius: 16px; -fx-border-color: #ffe8f2; -fx-border-width: 1px; -fx-border-radius: 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 30, 0, 0, 10);");
+                "-fx-background-color: -app-card; -fx-background-radius: 18px; -fx-border-color: -app-border; -fx-border-width: 1.2px; -fx-border-radius: 18px; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-24, 30, 0, 0, 10);");
 
         StackPane iconCircle = new StackPane();
         iconCircle.setPrefSize(64, 64);
         iconCircle.setMaxSize(64, 64);
-        iconCircle.setStyle("-fx-background-color: rgba(224, 64, 160, 0.1); -fx-background-radius: 32px;");
+        iconCircle.setStyle("-fx-background-color: -app-accent-opacity-12; -fx-background-radius: 32px;");
 
         FontIcon timerIcon = new FontIcon("mdi2t-timer-outline");
         timerIcon.setIconSize(36);
@@ -2608,7 +2789,7 @@ public class SellerDashboardController {
         btnEdit.setPrefHeight(44);
         btnEdit.setMaxWidth(Double.MAX_VALUE);
         btnEdit.setStyle(
-                "-fx-background-color: transparent; -fx-border-color: #dcc8e0; -fx-border-width: 2px; -fx-border-radius: 22px; -fx-background-radius: 22px; -fx-text-fill: -app-text-muted; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
+                "-fx-background-color: -app-accent-opacity-08; -fx-border-color: -app-border; -fx-border-width: 1.5px; -fx-border-radius: 22px; -fx-background-radius: 22px; -fx-text-fill: -app-input-text; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
 
         btnBox.getChildren().addAll(btnStartNow, btnEdit);
         container.getChildren().addAll(iconCircle, titleLabel, descLabel, btnBox);
@@ -2645,12 +2826,12 @@ public class SellerDashboardController {
         container.setPadding(new javafx.geometry.Insets(32));
         container.setPrefWidth(360);
         container.setStyle(
-                "-fx-background-color: white; -fx-background-radius: 16px; -fx-border-color: #ffe8f2; -fx-border-width: 1px; -fx-border-radius: 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 30, 0, 0, 10);");
+                "-fx-background-color: -app-card; -fx-background-radius: 18px; -fx-border-color: -app-border; -fx-border-width: 1.2px; -fx-border-radius: 18px; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-24, 30, 0, 0, 10);");
 
         StackPane iconCircle = new StackPane();
         iconCircle.setPrefSize(64, 64);
         iconCircle.setMaxSize(64, 64);
-        iconCircle.setStyle("-fx-background-color: rgba(224, 64, 160, 0.1); -fx-background-radius: 32px;");
+        iconCircle.setStyle("-fx-background-color: -app-accent-opacity-12; -fx-background-radius: 32px;");
 
         FontIcon publishIcon = new FontIcon("mdi2p-publish");
         publishIcon.setIconSize(36);
@@ -2681,7 +2862,7 @@ public class SellerDashboardController {
         btnCancel.setPrefHeight(44);
         btnCancel.setMaxWidth(Double.MAX_VALUE);
         btnCancel.setStyle(
-                "-fx-background-color: transparent; -fx-border-color: #dcc8e0; -fx-border-width: 2px; -fx-border-radius: 22px; -fx-background-radius: 22px; -fx-text-fill: -app-text-muted; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
+                "-fx-background-color: -app-accent-opacity-08; -fx-border-color: -app-border; -fx-border-width: 1.5px; -fx-border-radius: 22px; -fx-background-radius: 22px; -fx-text-fill: -app-input-text; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
 
         btnBox.getChildren().addAll(btnConfirm, btnCancel);
         container.getChildren().addAll(iconCircle, titleLabel, descLabel, btnBox);
