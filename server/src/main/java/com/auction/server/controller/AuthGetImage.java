@@ -1,8 +1,10 @@
 package com.auction.server.controller;
 
 import com.auction.server.dto.ApiResponse;
+import com.auction.server.service.CloudinaryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -28,6 +30,9 @@ import java.util.UUID;
 public class AuthGetImage {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthGetImage.class);
+
+    @Autowired(required = false)
+    private CloudinaryService cloudinaryService;
 
     private static final String DEFAULT_UPLOAD_ROOT_DIRECTORY = "upload/images";
     private static final String UPLOAD_DIR_SYSTEM_PROPERTY = "auction.upload.dir";
@@ -56,32 +61,62 @@ public class AuthGetImage {
         try {
             validateImageFile(file);
 
-            Path root = getRootLocation();
-            Files.createDirectories(root);
-
             String safeUuid = normalizeOptionalUuid(uuid);
-            Path itemFolderPath = safeUuid == null ? createItemFolder(root) : root.resolve(safeUuid).normalize();
-            Files.createDirectories(itemFolderPath);
-
-            String storedFileName = safeUuid == null
-                    ? buildStoredFileName(file.getOriginalFilename())
-                    : safeUuid + getSafeExtension(file.getOriginalFilename());
-            Path destination = itemFolderPath.resolve(storedFileName).normalize();
-
-            if (!isInsideRootLocation(destination)) {
-                return badRequest(INVALID_FILE_PATH_MESSAGE);
+            if (safeUuid == null) {
+                safeUuid = UUID.randomUUID().toString();
             }
 
-            Files.copy(file.getInputStream(), destination, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            String cloudinaryUrl = null;
+            if (cloudinaryService != null && cloudinaryService.isConfigured()) {
+                try {
+                    cloudinaryUrl = cloudinaryService.uploadFileWithPublicId(
+                            file,
+                            "auction_system/items/images",
+                            safeUuid,
+                            false
+                    );
+                    logger.info("Image file uploaded to Cloudinary: {}", cloudinaryUrl);
+                } catch (Exception e) {
+                    logger.warn("Cloudinary image upload failed, falling back to local storage: {}", e.getMessage(), e);
+                }
+            }
 
-            String imagePath = toClientImagePath(destination);
-            logger.info("Image file uploaded: {}", destination);
+            String localImagePath = null;
+            String localImageUrl = null;
+            try {
+                Path root = getRootLocation();
+                Files.createDirectories(root);
+
+                Path itemFolderPath = root.resolve(safeUuid).normalize();
+                Files.createDirectories(itemFolderPath);
+
+                String storedFileName = safeUuid + getSafeExtension(file.getOriginalFilename());
+                Path destination = itemFolderPath.resolve(storedFileName).normalize();
+
+                if (!isInsideRootLocation(destination)) {
+                    return badRequest(INVALID_FILE_PATH_MESSAGE);
+                }
+
+                Files.copy(file.getInputStream(), destination, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+                localImagePath = toClientImagePath(destination);
+                localImageUrl = "/api/files/images/" + localImagePath;
+                logger.info("Image file uploaded locally: {}", destination);
+            } catch (Exception e) {
+                if (cloudinaryUrl == null) {
+                    throw e;
+                }
+                logger.warn("Local image mirror failed after Cloudinary upload: {}", e.getMessage(), e);
+            }
+
+            String imagePath = cloudinaryUrl != null ? cloudinaryUrl : localImagePath;
+            String imageUrl = cloudinaryUrl != null ? cloudinaryUrl : localImageUrl;
 
             return ResponseEntity.ok(ApiResponse.success(
                     UPLOAD_SUCCESS_MESSAGE,
                     Map.of(
                             IMAGE_PATH_KEY, imagePath,
-                            IMAGE_URL_KEY, "/api/files/images/" + imagePath
+                            IMAGE_URL_KEY, imageUrl
                     )
             ));
 
@@ -93,6 +128,7 @@ public class AuthGetImage {
             return ResponseEntity.internalServerError().body(ApiResponse.error(UPLOAD_FAILED_MESSAGE));
         }
     }
+
 
     @PostMapping(value = "/models-3d", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<Map<String, String>>> uploadModel3D(
@@ -107,23 +143,47 @@ public class AuthGetImage {
                 safeUuid = UUID.randomUUID().toString();
             }
 
-            Path root = getModel3DRootLocation();
-            Files.createDirectories(root);
-
-            Path itemFolderPath = root.resolve(safeUuid).normalize();
-            Files.createDirectories(itemFolderPath);
-
-            String extension = getSafeModel3DExtension(file.getOriginalFilename());
-            Path destination = itemFolderPath.resolve(safeUuid + extension).normalize();
-
-            if (!destination.startsWith(root)) {
-                return badRequest(INVALID_FILE_PATH_MESSAGE);
+            String cloudinaryUrl = null;
+            if (cloudinaryService != null && cloudinaryService.isConfigured()) {
+                try {
+                    cloudinaryUrl = cloudinaryService.uploadFileWithPublicId(
+                            file,
+                            "auction_system/items/models_3d",
+                            safeUuid,
+                            true
+                    );
+                    logger.info("3D model uploaded to Cloudinary: {}", cloudinaryUrl);
+                } catch (Exception e) {
+                    logger.warn("Cloudinary 3D upload failed, falling back to local storage: {}", e.getMessage(), e);
+                }
             }
 
-            Files.copy(file.getInputStream(), destination, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            String localModelUrl = null;
+            Path root = getModel3DRootLocation();
+            try {
+                Files.createDirectories(root);
 
-            String modelUrl = "/api/files/models-3d/" + safeUuid + "/" + safeUuid + extension;
-            logger.info("3D model uploaded: {}", destination);
+                Path itemFolderPath = root.resolve(safeUuid).normalize();
+                Files.createDirectories(itemFolderPath);
+
+                String extension = getSafeModel3DExtension(file.getOriginalFilename());
+                Path destination = itemFolderPath.resolve(safeUuid + extension).normalize();
+
+                if (!destination.startsWith(root)) {
+                    return badRequest(INVALID_FILE_PATH_MESSAGE);
+                }
+
+                Files.copy(file.getInputStream(), destination, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                localModelUrl = "/api/files/models-3d/" + safeUuid + "/" + safeUuid + extension;
+                logger.info("3D model uploaded locally: {}", destination);
+            } catch (Exception e) {
+                if (cloudinaryUrl == null) {
+                    throw e;
+                }
+                logger.warn("Local 3D model mirror failed after Cloudinary upload: {}", e.getMessage(), e);
+            }
+
+            String modelUrl = cloudinaryUrl != null ? cloudinaryUrl : localModelUrl;
 
             return ResponseEntity.ok(ApiResponse.success(
                     "3D model uploaded successfully.",
@@ -140,6 +200,7 @@ public class AuthGetImage {
             return ResponseEntity.internalServerError().body(ApiResponse.error("3D model upload failed."));
         }
     }
+
 
     @GetMapping("/models-3d/{folder}/{filename:.+}")
     public ResponseEntity<Resource> serveModel3D(
