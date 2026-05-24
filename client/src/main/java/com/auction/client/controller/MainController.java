@@ -155,6 +155,8 @@ public class MainController implements Initializable, SceneLifecycle {
     private ScheduledExecutorService pollingScheduler;
     private final List<Integer> currentRenderedIds = new ArrayList<>();
     private final Map<Integer, JSONObject> lastSnapshot = new ConcurrentHashMap<>();
+    private PauseTransition filterDebounce;
+    private PauseTransition gridLayoutDebounce;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -178,9 +180,15 @@ public class MainController implements Initializable, SceneLifecycle {
 
         updateViewToggleButton(false);
 
+        filterDebounce = new PauseTransition(Duration.millis(180));
+        filterDebounce.setOnFinished(event -> filterAndRenderProducts());
+
+        gridLayoutDebounce = new PauseTransition(Duration.millis(80));
+        gridLayoutDebounce.setOnFinished(event -> updateGridLayout());
+
         // Listen for real-time filter events
         if (txtSearch != null) {
-            txtSearch.textProperty().addListener((observable, oldValue, newValue) -> filterAndRenderProducts());
+            txtSearch.textProperty().addListener((observable, oldValue, newValue) -> scheduleFilterRender());
         }
         cbCategory.setOnAction(event -> filterAndRenderProducts());
         cbStatus.setOnAction(event -> filterAndRenderProducts());
@@ -188,9 +196,7 @@ public class MainController implements Initializable, SceneLifecycle {
         loadProductsFromServer();
         connectHomeSocket();
         // Dynamic Space-Evenly algorithm for product list
-        scrollPane.viewportBoundsProperty().addListener((obs, oldBounds, newBounds) -> {
-            updateGridLayout();
-        });
+        scrollPane.viewportBoundsProperty().addListener((obs, oldBounds, newBounds) -> scheduleGridLayoutUpdate());
         updateGridLayout();
         Platform.runLater(this::updateGridLayout);
 
@@ -555,6 +561,24 @@ public class MainController implements Initializable, SceneLifecycle {
         return "-fx-background-color: " + (active ? accent : "transparent") + ";"
                 + "-fx-text-fill: " + (active ? "#ffffff" : accent) + ";"
                 + "-fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-padding: 8px 12px;";
+    }
+
+    private void scheduleFilterRender() {
+        if (filterDebounce == null) {
+            filterAndRenderProducts();
+            return;
+        }
+        filterDebounce.stop();
+        filterDebounce.playFromStart();
+    }
+
+    private void scheduleGridLayoutUpdate() {
+        if (gridLayoutDebounce == null) {
+            updateGridLayout();
+            return;
+        }
+        gridLayoutDebounce.stop();
+        gridLayoutDebounce.playFromStart();
     }
 
     private void filterAndRenderProducts() {
@@ -2568,6 +2592,12 @@ public class MainController implements Initializable, SceneLifecycle {
 
     private void stopDashboardBackgroundWork() {
         stopCountdownTimeline();
+        if (filterDebounce != null) {
+            filterDebounce.stop();
+        }
+        if (gridLayoutDebounce != null) {
+            gridLayoutDebounce.stop();
+        }
         if (pollingScheduler != null) {
             pollingScheduler.shutdownNow();
             pollingScheduler = null;
