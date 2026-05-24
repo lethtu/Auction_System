@@ -16,11 +16,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.FileTime;
 import java.security.MessageDigest;
 import java.time.Duration;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 public final class CacheManager {
@@ -31,11 +34,14 @@ public final class CacheManager {
             .connectTimeout(Duration.ofSeconds(5))
             .build();
 
-    private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool(runnable -> {
+    private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(2, runnable -> {
         Thread thread = new Thread(runnable, "asset-cache-worker");
         thread.setDaemon(true);
         return thread;
     });
+
+    private static final Duration REMOTE_RECHECK_INTERVAL = Duration.ofMinutes(10);
+    private static final Set<String> IN_FLIGHT = ConcurrentHashMap.newKeySet();
 
     private CacheManager() {
     }
@@ -117,14 +123,25 @@ public final class CacheManager {
     }
 
     private static void validateAndDownloadAsync(String url, Path cachedFile, Path metaFile, Consumer<Boolean> onComplete) {
+        String inFlightKey = url + " -> " + cachedFile.toAbsolutePath();
+        if (!IN_FLIGHT.add(inFlightKey)) {
+            return;
+        }
+
         EXECUTOR.submit(() -> {
             try {
+                if (Files.exists(cachedFile) && Files.exists(metaFile) && isRecentlyChecked(metaFile)) {
+                    onComplete.accept(false);
+                    return;
+                }
+
                 AssetMeta remoteMeta = fetchRemoteMeta(url);
                 boolean needsDownload = needsDownload(cachedFile, metaFile, remoteMeta);
 
                 if (needsDownload) {
                     downloadAndCache(url, cachedFile, metaFile, remoteMeta, onComplete);
                 } else {
+                    markMetaChecked(metaFile);
                     onComplete.accept(false);
                 }
             } catch (Exception e) {
@@ -134,8 +151,27 @@ public final class CacheManager {
                 } else {
                     onComplete.accept(false);
                 }
+            } finally {
+                IN_FLIGHT.remove(inFlightKey);
             }
         });
+    }
+
+    private static boolean isRecentlyChecked(Path metaFile) {
+        try {
+            long ageMillis = System.currentTimeMillis() - Files.getLastModifiedTime(metaFile).toMillis();
+            return ageMillis >= 0 && ageMillis < REMOTE_RECHECK_INTERVAL.toMillis();
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    private static void markMetaChecked(Path metaFile) {
+        try {
+            Files.setLastModifiedTime(metaFile, FileTime.fromMillis(System.currentTimeMillis()));
+        } catch (IOException ignored) {
+            // Cache freshness is only an optimization.
+        }
     }
 
     private static AssetMeta fetchRemoteMeta(String url) throws IOException, InterruptedException {
