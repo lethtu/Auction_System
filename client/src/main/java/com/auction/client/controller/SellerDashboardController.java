@@ -2718,12 +2718,12 @@ public class SellerDashboardController {
         container.setPadding(new javafx.geometry.Insets(32));
         container.setPrefWidth(360);
         container.setStyle(
-                "-fx-background-color: white; -fx-background-radius: 16px; -fx-border-color: #ffe8f2; -fx-border-width: 1px; -fx-border-radius: 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 30, 0, 0, 10);");
+                "-fx-background-color: -app-card; -fx-background-radius: 18px; -fx-border-color: -app-border; -fx-border-width: 1.2px; -fx-border-radius: 18px; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-24, 30, 0, 0, 10);");
 
         StackPane iconCircle = new StackPane();
         iconCircle.setPrefSize(64, 64);
         iconCircle.setMaxSize(64, 64);
-        iconCircle.setStyle("-fx-background-color: rgba(224, 64, 160, 0.1); -fx-background-radius: 32px;");
+        iconCircle.setStyle("-fx-background-color: -app-accent-opacity-12; -fx-background-radius: 32px;");
 
         FontIcon timerIcon = new FontIcon("mdi2t-timer-outline");
         timerIcon.setIconSize(36);
@@ -2754,7 +2754,7 @@ public class SellerDashboardController {
         btnEdit.setPrefHeight(44);
         btnEdit.setMaxWidth(Double.MAX_VALUE);
         btnEdit.setStyle(
-                "-fx-background-color: transparent; -fx-border-color: #dcc8e0; -fx-border-width: 2px; -fx-border-radius: 22px; -fx-background-radius: 22px; -fx-text-fill: -app-text-muted; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
+                "-fx-background-color: -app-accent-opacity-08; -fx-border-color: -app-border; -fx-border-width: 1.5px; -fx-border-radius: 22px; -fx-background-radius: 22px; -fx-text-fill: -app-input-text; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
 
         btnBox.getChildren().addAll(btnStartNow, btnEdit);
         container.getChildren().addAll(iconCircle, titleLabel, descLabel, btnBox);
@@ -2791,12 +2791,12 @@ public class SellerDashboardController {
         container.setPadding(new javafx.geometry.Insets(32));
         container.setPrefWidth(360);
         container.setStyle(
-                "-fx-background-color: white; -fx-background-radius: 16px; -fx-border-color: #ffe8f2; -fx-border-width: 1px; -fx-border-radius: 16px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 30, 0, 0, 10);");
+                "-fx-background-color: -app-card; -fx-background-radius: 18px; -fx-border-color: -app-border; -fx-border-width: 1.2px; -fx-border-radius: 18px; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-24, 30, 0, 0, 10);");
 
         StackPane iconCircle = new StackPane();
         iconCircle.setPrefSize(64, 64);
         iconCircle.setMaxSize(64, 64);
-        iconCircle.setStyle("-fx-background-color: rgba(224, 64, 160, 0.1); -fx-background-radius: 32px;");
+        iconCircle.setStyle("-fx-background-color: -app-accent-opacity-12; -fx-background-radius: 32px;");
 
         FontIcon publishIcon = new FontIcon("mdi2p-publish");
         publishIcon.setIconSize(36);
@@ -2827,7 +2827,7 @@ public class SellerDashboardController {
         btnCancel.setPrefHeight(44);
         btnCancel.setMaxWidth(Double.MAX_VALUE);
         btnCancel.setStyle(
-                "-fx-background-color: transparent; -fx-border-color: #dcc8e0; -fx-border-width: 2px; -fx-border-radius: 22px; -fx-background-radius: 22px; -fx-text-fill: -app-text-muted; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
+                "-fx-background-color: -app-accent-opacity-08; -fx-border-color: -app-border; -fx-border-width: 1.5px; -fx-border-radius: 22px; -fx-background-radius: 22px; -fx-text-fill: -app-input-text; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
 
         btnBox.getChildren().addAll(btnConfirm, btnCancel);
         container.getChildren().addAll(iconCircle, titleLabel, descLabel, btnBox);
