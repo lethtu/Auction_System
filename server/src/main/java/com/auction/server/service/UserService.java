@@ -1,5 +1,13 @@
 package com.auction.server.service;
 
+
+
+
+
+import java.math.BigDecimal;
+import com.auction.server.repository.AuctionSessionRepository;
+import com.auction.server.model.AuctionStatus;
+import com.auction.server.model.AuctionSession;
 import com.auction.server.model.User;
 import com.auction.server.repository.UserRepository;
 import com.auction.server.util.PasswordUtil;
@@ -15,12 +23,15 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private AuctionSessionRepository auctionSessionRepository;
+
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
     public User getUserById(Integer id) {
-        return userRepository.findById(id).orElse(null);
+        return enrichWalletSummary(userRepository.findById(id).orElse(null));
     }
 
     public User updateProfile(Integer id, Map<String, String> request) {
@@ -59,7 +70,7 @@ public class UserService {
         user.setDob(dob);
         user.setPlaceOfBirth(placeOfBirth);
 
-        return userRepository.save(user);
+        return enrichWalletSummary(userRepository.save(user));
     }
 
     public User updateAvatarUrl(Integer userId, String avatarUrl) {
@@ -71,7 +82,7 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         user.setAvatarUrl(avatarUrl);
-        return userRepository.save(user);
+        return enrichWalletSummary(userRepository.save(user));
     }
 
 
@@ -93,7 +104,7 @@ public class UserService {
 
         user.setPassword(PasswordUtil.hashPassword(password));
         user.setPasswordSet(true);
-        return userRepository.save(user);
+        return enrichWalletSummary(userRepository.save(user));
     }
 
     public User changePassword(Integer id, String oldPassword, String newPassword) {
@@ -122,9 +133,31 @@ public class UserService {
 
         user.setPassword(PasswordUtil.hashPassword(newPassword));
         user.setPasswordSet(true);
-        return userRepository.save(user);
+        return enrichWalletSummary(userRepository.save(user));
     }
+    private User enrichWalletSummary(User user) {
+        if (user == null || user.getId() == null) {
+            return user;
+        }
 
+        BigDecimal pendingMoney = BigDecimal.ZERO;
+        List<AuctionSession> leadingSessions = auctionSessionRepository
+                .findLeadingSessionsByUserIdAndStatus(user.getId(), AuctionStatus.ACTIVE);
+        for (AuctionSession session : leadingSessions) {
+            if (session != null && session.getCurrentPrice() != null) {
+                pendingMoney = pendingMoney.add(session.getCurrentPrice());
+            }
+        }
+
+        BigDecimal currentMoney = user.getBalance();
+        if (currentMoney == null) {
+            currentMoney = BigDecimal.ZERO;
+        }
+
+        user.setPendingMoney(pendingMoney);
+        user.setCurrentMoney(currentMoney);
+        return user;
+    }
     private String normalizeRequired(String value, String errorMessage) {
         String normalized = normalizeOptional(value);
         if (normalized == null) {

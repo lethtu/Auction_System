@@ -37,6 +37,12 @@ public class User {
 
     private BigDecimal balance = BigDecimal.ZERO;
 
+    @Transient
+    private BigDecimal currentMoney = BigDecimal.ZERO;
+
+    @Transient
+    private BigDecimal pendingMoney = BigDecimal.ZERO;
+
     @Column(name = "role", insertable = false, updatable = false)
     private String accountType;
 
@@ -137,6 +143,22 @@ public class User {
 
     public void setBalance(BigDecimal balance) {
         this.balance = balance == null ? BigDecimal.ZERO : balance;
+    }
+
+    public BigDecimal getCurrentMoney() {
+        return currentMoney == null ? getBalance() : currentMoney;
+    }
+
+    public void setCurrentMoney(BigDecimal currentMoney) {
+        this.currentMoney = currentMoney == null ? getBalance() : currentMoney;
+    }
+
+    public BigDecimal getPendingMoney() {
+        return pendingMoney == null ? BigDecimal.ZERO : pendingMoney;
+    }
+
+    public void setPendingMoney(BigDecimal pendingMoney) {
+        this.pendingMoney = pendingMoney == null ? BigDecimal.ZERO : pendingMoney;
     }
 
     public String getAccountType() {

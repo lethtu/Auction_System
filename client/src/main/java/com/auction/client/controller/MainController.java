@@ -1648,43 +1648,41 @@ public class MainController implements Initializable {
             btn.setText("Change Avatar");
         }
     }
-
     private VBox buildAccountStats() {
         VBox statsColumn = new VBox(14);
         statsColumn.setAlignment(Pos.TOP_LEFT);
-        statsColumn.setMinWidth(200);
-        statsColumn.setPrefWidth(280);
-        statsColumn.setMaxWidth(320);
+        statsColumn.setMinWidth(260);
+        statsColumn.setPrefWidth(320);
+        statsColumn.setMaxWidth(360);
 
         statsColumn.getChildren().addAll(
-                createProfileStatCard("Account Balance", "₫ " + formatPrice(User.getBalance()), "\uE227"),
-                createProfileStatCard("Role", safeText(User.getRole(), "Unknown"), "\uE7FD"),
-                createProfileStatCard("User ID", String.valueOf(User.getId()), "\uE838"));
+                createProfileStatCard("Total Money", formatCurrencyWithSymbol(User.getTotalMoney())),
+                createProfileStatCard("Current Money", formatCurrencyWithSymbol(User.getCurrentMoney())),
+                createProfileStatCard("Pending Money", formatCurrencyWithSymbol(User.getPendingMoney())),
+                createProfileStatCard("Role", safeText(User.getRole(), "Unknown")),
+                createProfileStatCard("User ID", String.valueOf(User.getId())));
         return statsColumn;
     }
 
-    private VBox createProfileStatCard(String title, String value, String iconCode) {
-        VBox box = new VBox(6);
+    private VBox createProfileStatCard(String title, String value) {
+        VBox box = new VBox(8);
         box.getStyleClass().add("account-stat-card");
         box.setAlignment(Pos.CENTER_LEFT);
         box.setMaxWidth(Double.MAX_VALUE);
+        box.setMinHeight(108);
 
-        HBox row = new HBox(12);
-        row.setAlignment(Pos.CENTER_LEFT);
-
-        Label icon = new Label(iconCode);
-        icon.getStyleClass().add("account-stat-icon");
-
-        VBox textBox = new VBox(2);
         Label titleLabel = new Label(title);
         titleLabel.getStyleClass().add("account-stat-label");
-        Label valueLabel = new Label(value);
-        valueLabel.getStyleClass().add("account-stat-value");
-        valueLabel.setWrapText(true);
-        textBox.getChildren().addAll(titleLabel, valueLabel);
+        titleLabel.setMaxWidth(Double.MAX_VALUE);
+        titleLabel.setWrapText(false);
 
-        row.getChildren().addAll(icon, textBox);
-        box.getChildren().add(row);
+        Label valueLabel = new Label(value == null ? "" : value);
+        valueLabel.getStyleClass().add("account-stat-value");
+        valueLabel.setWrapText(false);
+        valueLabel.setMinWidth(0);
+        valueLabel.setMaxWidth(Double.MAX_VALUE);
+
+        box.getChildren().addAll(titleLabel, valueLabel);
         return box;
     }
 
@@ -1833,8 +1831,13 @@ public class MainController implements Initializable {
 
     private void applyUserProfileFromJson(JSONObject data) {
         String avatarUrl = data.optString("avatarUrl", data.optString("avatar_url", null));
-        if ("null".equals(avatarUrl))
+        if ("null".equals(avatarUrl)) {
             avatarUrl = null;
+        }
+
+        BigDecimal balance = parseMoney(data.opt("balance"), User.getBalance());
+        BigDecimal currentMoney = parseMoney(data.opt("currentMoney"), balance);
+        BigDecimal pendingMoney = parseMoney(data.opt("pendingMoney"), BigDecimal.ZERO);
 
         User.updateProfile(
                 data.optString("username", safeText(User.getUsername(), "")),
@@ -1843,8 +1846,10 @@ public class MainController implements Initializable {
                 data.optString("dob", safeText(User.getDob(), "")),
                 data.optString("placeOfBirth",
                         data.optString("place_of_birth", safeText(User.getPlace_of_birth(), ""))),
-                parseMoney(data.opt("balance"), User.getBalance()),
+                balance,
                 avatarUrl);
+
+        User.setWalletSummary(balance, currentMoney, pendingMoney);
     }
 
     private void updateAccountProfile(String username, String fullname, String email, String dob, String placeOfBirth) {
@@ -2549,5 +2554,15 @@ public class MainController implements Initializable {
         countdownTimeline.setCycleCount(Timeline.INDEFINITE);
         countdownTimeline.play();
     }
+    private String formatCurrency(java.math.BigDecimal amount) {
+        java.math.BigDecimal safeAmount = amount == null ? java.math.BigDecimal.ZERO : amount;
+        java.text.NumberFormat formatter = java.text.NumberFormat.getNumberInstance(new java.util.Locale("vi", "VN"));
+        formatter.setMaximumFractionDigits(0);
+        formatter.setMinimumFractionDigits(0);
+        return formatter.format(safeAmount);
+    }
 
+    private String formatCurrencyWithSymbol(java.math.BigDecimal amount) {
+        return "\u20AB " + formatCurrency(amount);
+    }
 }

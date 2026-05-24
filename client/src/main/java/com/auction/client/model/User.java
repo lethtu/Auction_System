@@ -19,6 +19,10 @@ public class User {
 
     private static BigDecimal balance = BigDecimal.ZERO;
 
+    private static BigDecimal currentMoney = BigDecimal.ZERO;
+
+    private static BigDecimal pendingMoney = BigDecimal.ZERO;
+
     private static String avatarUrl;
 
     private static String sessionToken;
@@ -62,6 +66,8 @@ public class User {
         avatarUrl = AvatarUrl;
         passwordSet = true;
         balance = BigDecimal.ZERO;
+        currentMoney = BigDecimal.ZERO;
+        pendingMoney = BigDecimal.ZERO;
         watchlistIds.clear();
         if (username != null) {
             watchlistIds.addAll(com.auction.client.service.ClientLogger.loadUserFavorites(username));
@@ -92,6 +98,15 @@ public class User {
 
     public static void setBalance(BigDecimal Balance) {
         balance = Balance == null ? BigDecimal.ZERO : Balance;
+        if (currentMoney == null || currentMoney.compareTo(BigDecimal.ZERO) == 0) {
+            currentMoney = balance;
+        }
+    }
+
+    public static void setWalletSummary(BigDecimal balanceFromServer, BigDecimal currentFromServer, BigDecimal pendingFromServer) {
+        balance = balanceFromServer == null ? BigDecimal.ZERO : balanceFromServer;
+        currentMoney = balance;
+        pendingMoney = pendingFromServer == null ? BigDecimal.ZERO : pendingFromServer;
     }
 
     public static void setAvatarUrl(String AvatarUrl) {
@@ -111,6 +126,8 @@ public class User {
         place_of_birth = null;
         role = null;
         balance = BigDecimal.ZERO;
+        currentMoney = BigDecimal.ZERO;
+        pendingMoney = BigDecimal.ZERO;
         avatarUrl = null;
         sessionToken = null;
         passwordSet = true;
@@ -162,6 +179,18 @@ public class User {
 
     public static BigDecimal getBalance() {
         return balance == null ? BigDecimal.ZERO : balance;
+    }
+
+    public static BigDecimal getTotalMoney() {
+        return getBalance().add(getPendingMoney());
+    }
+
+    public static BigDecimal getCurrentMoney() {
+        return getBalance();
+    }
+
+    public static BigDecimal getPendingMoney() {
+        return pendingMoney == null ? BigDecimal.ZERO : pendingMoney;
     }
 
     public static String getAvatarUrl() {
