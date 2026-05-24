@@ -1657,7 +1657,9 @@ public class MainController implements Initializable {
         statsColumn.setMaxWidth(320);
 
         statsColumn.getChildren().addAll(
-                createProfileStatCard("Account Balance", "₫ " + formatPrice(User.getBalance()), "\uE227"),
+                createProfileStatCard("Total Money", "\u20AB " + formatPrice(User.getBalance()), "\uE227"),
+                createProfileStatCard("Current Money", "\u20AB " + formatPrice(User.getCurrentMoney()), "\uE850"),
+                createProfileStatCard("Pending Money", "\u20AB " + formatPrice(User.getPendingMoney()), "\uE8B5"),
                 createProfileStatCard("Role", safeText(User.getRole(), "Unknown"), "\uE7FD"),
                 createProfileStatCard("User ID", String.valueOf(User.getId()), "\uE838"));
         return statsColumn;
