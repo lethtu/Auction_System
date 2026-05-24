@@ -944,6 +944,18 @@ public class MainController implements Initializable, SceneLifecycle {
         vbox.setPrefHeight(360.0);
         vbox.setMinHeight(360.0);
         vbox.setStyle(productCardStyle());
+        vbox.setOnMouseEntered(e -> {
+            vbox.setStyle(productCardHoverStyle());
+            vbox.setScaleX(1.006);
+            vbox.setScaleY(1.006);
+            vbox.setCursor(javafx.scene.Cursor.HAND);
+        });
+        vbox.setOnMouseExited(e -> {
+            vbox.setStyle(productCardStyle());
+            vbox.setScaleX(1.0);
+            vbox.setScaleY(1.0);
+            vbox.setCursor(null);
+        });
 
         StackPane imageWrapper = new StackPane();
         imageWrapper.setPrefHeight(192.0);
@@ -2495,6 +2507,17 @@ public class MainController implements Initializable, SceneLifecycle {
                 + "-fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.05), 10, 0, 0, 2);";
     }
 
+    private String productCardHoverStyle() {
+        String accent = accentHex();
+        if (isDarkThemeActive()) {
+            return "-fx-border-color: " + accent + "; -fx-border-width: 1.5px; -fx-border-radius: 20px; "
+                    + "-fx-background-radius: 20px; -fx-padding: 16px; -fx-background-color: #241a2f; "
+                    + "-fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.32), 12, 0, 0, 3);";
+        }
+        return "-fx-border-color: " + accent + "; -fx-border-width: 1.5px; -fx-border-radius: 20px; "
+                + "-fx-background-radius: 20px; -fx-padding: 16px; -fx-background-color: #ffffff; "
+                + "-fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.10), 10, 0, 0, 2);";
+    }
     private String productImageWrapperStyle() {
         if (isDarkThemeActive()) {
             return "-fx-background-color: #2a2035; -fx-background-radius: 12px; -fx-border-radius: 12px; "
