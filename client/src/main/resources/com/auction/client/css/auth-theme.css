@@ -1188,3 +1188,54 @@
 .auth-root.accent-orange #rememberMeCheckBox:selected > .box,
 .auth-root.accent-orange .auth-remember-check:selected > .box { -fx-background-color: #f97316 !important; -fx-border-color: #f97316 !important; }
 /* === PHASE X14 KEEP SIGNED IN ACCENT FIX END === */
+
+/* === PHASE Y8 REMEMBER LIGHT READABILITY START === */
+/* Light theme: keep the remember-login pill readable while still following accent color. */
+.auth-root.theme-light #rememberMeCheckBox,
+.auth-root.theme-light .auth-remember-check,
+.auth-root.theme-light .remember-me-pill {
+    -fx-background-color: rgba(255, 255, 255, 0.72) !important;
+    -fx-text-fill: #2e1a28 !important;
+    -fx-border-width: 1.6px !important;
+}
+
+.auth-root.theme-light #rememberMeCheckBox .text,
+.auth-root.theme-light .auth-remember-check .text,
+.auth-root.theme-light .remember-me-pill .text {
+    -fx-fill: #2e1a28 !important;
+}
+
+.auth-root.theme-light #rememberMeCheckBox:hover,
+.auth-root.theme-light .auth-remember-check:hover,
+.auth-root.theme-light .remember-me-pill:hover {
+    -fx-text-fill: -fx-accent !important;
+}
+
+.auth-root.theme-light #rememberMeCheckBox:hover .text,
+.auth-root.theme-light .auth-remember-check:hover .text,
+.auth-root.theme-light .remember-me-pill:hover .text {
+    -fx-fill: -fx-accent !important;
+}
+
+.auth-root.theme-light #rememberMeCheckBox:selected,
+.auth-root.theme-light .auth-remember-check:selected,
+.auth-root.theme-light .remember-me-pill:selected {
+    -fx-background-color: rgba(255, 255, 255, 0.88) !important;
+    -fx-border-color: -fx-accent !important;
+    -fx-text-fill: #2e1a28 !important;
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-25, 12, 0.18, 0, 3) !important;
+}
+
+.auth-root.theme-light #rememberMeCheckBox:selected .text,
+.auth-root.theme-light .auth-remember-check:selected .text,
+.auth-root.theme-light .remember-me-pill:selected .text {
+    -fx-fill: #2e1a28 !important;
+}
+
+.auth-root.theme-light #rememberMeCheckBox:selected > .box,
+.auth-root.theme-light .auth-remember-check:selected > .box,
+.auth-root.theme-light .remember-me-pill:selected > .box {
+    -fx-background-color: -fx-accent !important;
+    -fx-border-color: -fx-accent !important;
+}
+/* === PHASE Y8 REMEMBER LIGHT READABILITY END === */
