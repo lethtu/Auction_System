@@ -319,6 +319,47 @@ public class AuthGetImage {
         return DEFAULT_UPLOAD_ROOT_DIRECTORY;
     }
 
+    private void validateModel3DFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("3D model file is empty.");
+        }
+
+        getSafeModel3DExtension(file.getOriginalFilename());
+    }
+
+    private Path getModel3DRootLocation() {
+        Path imageRoot = getRootLocation();
+        Path uploadRoot = imageRoot.getParent();
+        if (uploadRoot == null) {
+            uploadRoot = Paths.get("upload").toAbsolutePath().normalize();
+        }
+        return uploadRoot.resolve("models-3d").toAbsolutePath().normalize();
+    }
+
+    private String getSafeModel3DExtension(String fileName) {
+        if (!hasText(fileName)) {
+            throw new IllegalArgumentException("Only .glb 3D model files are accepted.");
+        }
+
+        String lowerFileName = fileName.trim().toLowerCase();
+        if (!lowerFileName.endsWith(".glb")) {
+            throw new IllegalArgumentException("Only .glb 3D model files are accepted.");
+        }
+
+        return ".glb";
+    }
+
+    private String normalizeOptionalUuid(String uuid) {
+        if (!hasText(uuid)) {
+            return null;
+        }
+
+        try {
+            return UUID.fromString(uuid.trim()).toString();
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid uuid.");
+        }
+    }
     private boolean hasText(String value) {
         return value != null && !value.isBlank();
     }
