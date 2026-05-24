@@ -130,7 +130,7 @@ public class AuthGetImage {
 
             if (cloudinaryService != null && cloudinaryService.isConfigured()) {
                 try {
-                    String cloudinaryUrl = cloudinaryService.uploadFileWithPublicId(file, "auction_system/items/models_3d", finalUuid, true);
+                    String cloudinaryUrl = cloudinaryService.uploadFileWithPublicId(file, "auction_system/items/models_3d", finalUuid + ".glb", true);
                     logger.info("3D model uploaded to Cloudinary: {}", cloudinaryUrl);
                     return ResponseEntity.ok(ApiResponse.success(
                             "3D model uploaded successfully.",
@@ -151,12 +151,10 @@ public class AuthGetImage {
             Path itemFolderPath = root.resolve(finalUuid).normalize();
             Files.createDirectories(itemFolderPath);
 
-            String originalName = file.getOriginalFilename();
-            String extension = originalName != null && originalName.contains(".") 
-                    ? originalName.substring(originalName.lastIndexOf('.')) : ".glb";
+            String extension = ".glb";
 
             Path destination = itemFolderPath.resolve(finalUuid + extension).normalize();
-            
+
             // Use standard Java NIO Files.copy for maximum compatibility and resilience
             Files.copy(file.getInputStream(), destination, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
 
@@ -252,7 +250,7 @@ public class AuthGetImage {
     private boolean isSafeImageExtension(String extension) {
         if (extension == null) return false;
         String ext = extension.toLowerCase();
-        return ext.equals(".png") || ext.equals(".jpg") || ext.equals(".jpeg") 
+        return ext.equals(".png") || ext.equals(".jpg") || ext.equals(".jpeg")
                 || ext.equals(".gif") || ext.equals(".webp") || ext.equals(".bmp");
     }
 

@@ -2,128 +2,167 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Font?>
 
 <StackPane prefWidth="1280.0" prefHeight="800.0" stylesheets="@styles.css" styleClass="rounded-window-root" style="-fx-font-family: 'DM Sans';" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.SettingsController">
-<BorderPane styleClass="rounded-window-content">
+    <BorderPane styleClass="rounded-window-content">
+        <top>
+            <fx:include source="Topbar.fxml" fx:id="topbar" />
+        </top>
 
-    <top>
-        <fx:include source="Topbar.fxml" fx:id="topbar"/>
-    </top>
+        <left>
+            <fx:include source="Sidebar.fxml" fx:id="sidebar">
+                <BorderPane.margin>
+                    <Insets top="14.0" right="0.0" bottom="14.0" left="14.0" />
+                </BorderPane.margin>
+            </fx:include>
+        </left>
 
-    <left>
-        <fx:include source="Sidebar.fxml" fx:id="sidebar">
-            <BorderPane.margin>
-                <Insets top="14.0" right="0.0" bottom="14.0" left="14.0" />
-            </BorderPane.margin>
-        </fx:include>
-    </left>
+        <center>
+            <VBox spacing="20.0" styleClass="app-content-panel">
+                <BorderPane.margin>
+                    <Insets top="14.0" right="14.0" bottom="14.0" left="14.0" />
+                </BorderPane.margin>
 
-    <center>
-        <VBox spacing="20.0" styleClass="app-content-panel">
-            <BorderPane.margin>
-                <Insets top="14.0" right="14.0" bottom="14.0" left="14.0" />
-            </BorderPane.margin>
-            <!-- Header Title -->
-            <VBox spacing="10.0" style="-fx-padding: 0 0 10px 0;">
-                <Label text="CONFIGURATION &amp; SYSTEM SETTINGS" style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;" />
-                <Label text="Customize notifications, app interface and your auction experience." style="-fx-font-size: 15px; -fx-text-fill: #604868;" />
-            </VBox>
-            
-            <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
-                <VBox spacing="35.0" style="-fx-padding: 10px 0px;">
-
-                    <!-- Set Password Card for Google users who haven't set a password -->
-                    <VBox fx:id="passwordSetBox" spacing="16.0" style="-fx-background-color: #fff9e6; -fx-padding: 24px 30px; -fx-background-radius: 20px; -fx-border-color: #ffe0b2; -fx-border-width: 2px; -fx-border-radius: 20px; -fx-effect: dropshadow(three-pass-box, rgba(255, 152, 0, 0.05), 15, 0, 0, 4);">
-                        <HBox spacing="10.0" alignment="CENTER_LEFT">
-                            <Label text="&#xe8a6;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px; -fx-text-fill: #e65100;" />
-                            <Label text="THIẾT LẬP MẬT KHẨU TÀI KHOẢN (1 LẦN DUY NHẤT)" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #e65100;" />
-                        </HBox>
-                        <Label text="Vì bạn đăng nhập bằng Google, tài khoản này chưa có mật khẩu riêng. Vui lòng thiết lập mật khẩu dưới đây để có thể đăng nhập trực tiếp bằng tài khoản/email sau này." wrapText="true" style="-fx-font-size: 14px; -fx-text-fill: #5d4037; -fx-line-spacing: 4px;" />
-                        <HBox spacing="20.0" alignment="CENTER_LEFT">
-                            <PasswordField fx:id="txtNewPassword" promptText="Mật khẩu mới (tối thiểu 6 ký tự)" prefWidth="250.0" style="-fx-background-color: #ffffff; -fx-border-color: #ffe0b2; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 10px; -fx-font-size: 14px;" />
-                            <PasswordField fx:id="txtConfirmPassword" promptText="Xác nhận mật khẩu mới" prefWidth="250.0" style="-fx-background-color: #ffffff; -fx-border-color: #ffe0b2; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 10px; -fx-font-size: 14px;" />
-                            <Button fx:id="btnSetPassword" onAction="#handleSetPassword" text="Thiết Lập Mật Khẩu" prefHeight="40.0" style="-fx-background-color: #e65100; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-cursor: hand; -fx-padding: 8px 24px;" />
-                        </HBox>
+                <HBox spacing="10.0" alignment="BOTTOM_LEFT" style="-fx-padding: 0 0 10px 0;">
+                    <VBox spacing="10.0">
+                        <Label text="System Settings" styleClass="settings-page-title" style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: -fx-accent;" />
+                        <Label text="Customize notifications, app interface and your auction experience." styleClass="settings-page-subtitle" style="-fx-font-size: 15px;" />
                     </VBox>
-
-                <!-- 2-Column Grid Area -->
-                <HBox spacing="40.0" alignment="TOP_LEFT">
-                    <!-- Column 1: Config Form (Left) -->
-                    <VBox spacing="24.0" prefWidth="540.0" minWidth="440.0" HBox.hgrow="ALWAYS" style="-fx-background-color: #ffffff; -fx-padding: 30px; -fx-background-radius: 24px; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.06), 20, 0, 0, 6);">
-                        <Label text="APP CONFIGURATION" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #e040a0;" />
-                        
-                        <!-- Notifications -->
-                        <VBox spacing="12.0">
-                            <Label text="NOTIFICATIONS &amp; SOUNDS" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #e040a0; -fx-padding: 0 0 4px 0;" />
-                            
-                            <CheckBox fx:id="chkOutbid" text="Receive notification when outbid" style="-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-cursor: hand;" />
-                            <CheckBox fx:id="chkSound" text="Play notification sounds" style="-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-cursor: hand;" />
-                        </VBox>
-
-                        <Separator style="-fx-background-color: #ffe8e8; -fx-opacity: 0.5;" />
-
-                        <!-- UI Experience -->
-                        <VBox spacing="16.0">
-                            <Label text="INTERFACE &amp; EXPERIENCE" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #e040a0; -fx-padding: 0 0 4px 0;" />
-                            
-                            <CheckBox fx:id="chkCollapse" text="Auto-collapse sidebar" style="-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-cursor: hand;" />
-
-                            <!-- Language -->
-                            <HBox spacing="10.0" alignment="CENTER_LEFT">
-                                <Label text="App language:" style="-fx-font-size: 14px; -fx-text-fill: #2e1a28;" />
-                                <Region HBox.hgrow="ALWAYS" />
-                                <ComboBox fx:id="cbLang" prefWidth="180.0" style="-fx-background-color: #ffffff; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-cursor: hand;" />
-                            </HBox>
-
-                            <!-- Accent Color -->
-                            <HBox spacing="10.0" alignment="CENTER_LEFT">
-                                <Label text="Primary color tone:" style="-fx-font-size: 14px; -fx-text-fill: #2e1a28;" />
-                                <Region HBox.hgrow="ALWAYS" />
-                                <ComboBox fx:id="cbColor" prefWidth="180.0" style="-fx-background-color: #ffffff; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-cursor: hand;" />
-                            </HBox>
-                        </VBox>
-
-                        <Label fx:id="lblStatus" text="" visible="false" managed="false" style="-fx-font-size: 14px; -fx-font-weight: bold;" />
-
-                        <Button fx:id="btnSaveSettings" onAction="#handleSaveSettings" text="Save Settings" maxWidth="Infinity" prefHeight="48.0" style="-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 24px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.3), 12, 0, 0, 4);">
-                            <graphic>
-                                <Label text="&#xe876;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: white;" translateY="2.0" />
-                            </graphic>
-                        </Button>
-                    </VBox>
-
-                    <!-- Column 2: Quick Actions (Right) -->
-                    <VBox spacing="24.0" HBox.hgrow="ALWAYS">
-                        <VBox spacing="20.0" style="-fx-background-color: #ffffff; -fx-padding: 30px; -fx-background-radius: 24px; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.06), 20, 0, 0, 6);">
-                            <Label text="QUICK ACTIONS" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #e040a0;" />
-                            <Label text="Below are some shortcuts to adjust search filters and resynchronize data directly from the auction server." wrapText="true" style="-fx-font-size: 14px; -fx-text-fill: #604868;" />
-
-                            <HBox spacing="15.0">
-                                <Button fx:id="btnResetFilters" onAction="#handleResetFilters" text="Reset Filters" prefHeight="40.0" style="-fx-background-color: #fff1fa; -fx-text-fill: #8a2b66; -fx-font-weight: bold; -fx-background-radius: 10px; -fx-border-color: #f6a6d7; -fx-border-radius: 10px; -fx-padding: 8px 20px; -fx-cursor: hand;" />
-                                <Button fx:id="btnReloadData" onAction="#handleReloadData" text="Reload Data" prefHeight="40.0" style="-fx-background-color: #fff1fa; -fx-text-fill: #8a2b66; -fx-font-weight: bold; -fx-background-radius: 10px; -fx-border-color: #f6a6d7; -fx-border-radius: 10px; -fx-padding: 8px 20px; -fx-cursor: hand;" />
-                            </HBox>
-                        </VBox>
-
-                        <VBox spacing="16.0" style="-fx-background-color: #ffffff; -fx-padding: 30px; -fx-background-radius: 24px; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.06), 20, 0, 0, 6);">
-                            <Label text="SYSTEM INFORMATION" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #e040a0;" />
-                            
-                            <HBox spacing="12.0" alignment="CENTER_LEFT">
-                                <Label text="&#xe8d4;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #e040a0;" />
-                                <Label text="App version: 0.1 (Stable)" style="-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-font-weight: bold;" />
-                            </HBox>
-
-                            <HBox spacing="12.0" alignment="CENTER_LEFT">
-                                <Label text="&#xe1b1;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #e040a0;" />
-                                <Label text="Server status: Connected" style="-fx-font-size: 14px; -fx-text-fill: #2e1a28; -fx-font-weight: bold;" />
-                            </HBox>
-                        </VBox>
-                    </VBox>
+                    <Region HBox.hgrow="ALWAYS" />
+                    <Button fx:id="btnSaveSettingsTop" onAction="#handleSaveSettings" text="Save Changes" prefHeight="40.0" styleClass="primary-btn" style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-cursor: hand;">
+                        <graphic>
+                            <Label text="&#xe876;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 18px; -fx-text-fill: white;" translateY="1.0" />
+                        </graphic>
+                    </Button>
                 </HBox>
+
+                <ScrollPane fitToWidth="true" styleClass="scroll-pane" VBox.vgrow="ALWAYS">
+                    <VBox spacing="24.0" style="-fx-padding: 10px;">
+                        <VBox fx:id="passwordSetBox" spacing="16.0" styleClass="password-security-card password-security-card-warning">
+                            <HBox spacing="10.0" alignment="CENTER_LEFT">
+                                <Label text="&#xe8a6;" styleClass="password-security-icon" />
+                                <Label text="Set account password" styleClass="password-security-title" />
+                            </HBox>
+                            <Label text="This account was created through Google sign-in and does not have a local password yet." wrapText="true" styleClass="password-security-description" />
+                            <HBox spacing="20.0" alignment="CENTER_LEFT">
+                                <PasswordField fx:id="txtNewPassword" promptText="New password, at least 6 characters" prefWidth="260.0" />
+                                <PasswordField fx:id="txtConfirmPassword" promptText="Confirm new password" prefWidth="220.0" />
+                                <Button fx:id="btnSetPassword" onAction="#handleSetPassword" text="Set Password" prefHeight="40.0" styleClass="password-security-primary-btn" />
+                            </HBox>
+                        </VBox>
+
+                        <VBox fx:id="passwordChangeBox" spacing="16.0" styleClass="password-security-card">
+                            <HBox spacing="10.0" alignment="CENTER_LEFT">
+                                <Label text="&#xe897;" styleClass="password-security-icon" />
+                                <Label text="Change password" styleClass="password-security-title" />
+                            </HBox>
+                            <Label text="Update your local password. Use a password with at least 6 characters." wrapText="true" styleClass="password-security-description" />
+                            <HBox spacing="20.0" alignment="CENTER_LEFT">
+                                <PasswordField fx:id="txtCurrentPassword" promptText="Current password" prefWidth="220.0" />
+                                <PasswordField fx:id="txtChangeNewPassword" promptText="New password" prefWidth="220.0" />
+                                <PasswordField fx:id="txtChangeConfirmPassword" promptText="Confirm new password" prefWidth="220.0" />
+                                <Button fx:id="btnChangePassword" onAction="#handleChangePassword" text="Change Password" prefHeight="40.0" styleClass="password-security-primary-btn" />
+                            </HBox>
+                        </VBox>
+
+                        <FlowPane hgap="30.0" vgap="30.0" prefWrapLength="1000.0">
+                            <VBox spacing="20.0" prefWidth="480.0" styleClass="settings-card" style="-fx-padding: 24px; -fx-background-radius: 16px; -fx-border-radius: 16px; -fx-border-width: 1px;">
+                                <HBox alignment="CENTER_LEFT" spacing="10">
+                                    <Label text="&#xe7f4;" styleClass="accent-icon" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px;" />
+                                    <Label text="Notifications &amp; Sounds" styleClass="settings-card-title" />
+                                </HBox>
+                                <Separator />
+                                <CheckBox fx:id="chkNotificationsEnabled" text="Enable app notifications" styleClass="setting-switch" />
+                                <CheckBox fx:id="chkOutbid" text="Notify when outbid" styleClass="setting-switch" />
+                                <CheckBox fx:id="chkEndingSoon" text="Notify when auction ending soon" styleClass="setting-switch" />
+                                <CheckBox fx:id="chkAuctionResult" text="Notify on auction win/loss" styleClass="setting-switch" />
+                                <Separator />
+                                <CheckBox fx:id="chkSound" text="Play sound effects" styleClass="setting-switch" />
+                                <HBox spacing="15" alignment="CENTER_LEFT">
+                                    <Label text="Volume:" styleClass="setting-label" />
+                                    <Slider fx:id="sliderVolume" min="0" max="100" value="60" HBox.hgrow="ALWAYS" />
+                                    <Label fx:id="lblVolumeValue" text="60%" styleClass="setting-label" />
+                                </HBox>
+                                <Button text="Test Notification Sound" onAction="#handleTestSound" styleClass="secondary-btn" />
+                            </VBox>
+
+                            <VBox spacing="20.0" prefWidth="480.0" styleClass="settings-card" style="-fx-padding: 24px; -fx-background-radius: 16px; -fx-border-radius: 16px; -fx-border-width: 1px;">
+                                <HBox alignment="CENTER_LEFT" spacing="10">
+                                    <Label text="&#xe3b5;" styleClass="accent-icon" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px;" />
+                                    <Label text="Appearance" styleClass="settings-card-title" />
+                                </HBox>
+                                <Separator />
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <Label text="Theme:" styleClass="setting-label" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <ComboBox fx:id="cbTheme" prefWidth="180" />
+                                </HBox>
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <Label text="Accent Color:" styleClass="setting-label" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <ComboBox fx:id="cbColor" prefWidth="180" />
+                                </HBox>
+                                <Separator />
+                                <CheckBox fx:id="chkCollapse" text="Auto-collapse sidebar" styleClass="setting-switch" />
+                                <CheckBox fx:id="chkRememberPage" text="Remember last page on startup" styleClass="setting-switch" />
+                            </VBox>
+
+                            <VBox spacing="20.0" prefWidth="480.0" styleClass="settings-card" style="-fx-padding: 24px; -fx-background-radius: 16px; -fx-border-radius: 16px; -fx-border-width: 1px;">
+                                <HBox alignment="CENTER_LEFT" spacing="10">
+                                    <Label text="&#xe8d0;" styleClass="accent-icon" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px;" />
+                                    <Label text="Auction Preferences" styleClass="settings-card-title" />
+                                </HBox>
+                                <Separator />
+                                <CheckBox fx:id="chkConfirmBid" text="Confirm before placing bid" styleClass="setting-switch" />
+                                <CheckBox fx:id="chkQuickBid" text="Enable Quick Bid buttons" styleClass="setting-switch" />
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <Label text="High bid warning (VND):" styleClass="setting-label" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <TextField fx:id="txtHighBidWarning" prefWidth="140" />
+                                </HBox>
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <Label text="Default bid increment (VND):" styleClass="setting-label" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <TextField fx:id="txtDefaultIncrement" prefWidth="140" />
+                                </HBox>
+                            </VBox>
+
+                            <VBox spacing="20.0" prefWidth="480.0" styleClass="settings-card" style="-fx-padding: 24px; -fx-background-radius: 16px; -fx-border-radius: 16px; -fx-border-width: 1px;">
+                                <HBox alignment="CENTER_LEFT" spacing="10">
+                                    <Label text="&#xe871;" styleClass="accent-icon" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px;" />
+                                    <Label text="Dashboard Display" styleClass="settings-card-title" />
+                                </HBox>
+                                <Separator />
+                                <CheckBox fx:id="chkShowEnded" text="Show ended auctions by default" styleClass="setting-switch" />
+                                <CheckBox fx:id="chkSortActive" text="Sort active auctions first" styleClass="setting-switch" />
+                                <CheckBox fx:id="chkShowCountdown" text="Show countdown timers" styleClass="setting-switch" />
+                                <CheckBox fx:id="chkCompactCards" text="Use compact product cards" styleClass="setting-switch" />
+                            </VBox>
+
+                            <VBox spacing="20.0" prefWidth="480.0" styleClass="settings-card" style="-fx-padding: 24px; -fx-background-radius: 16px; -fx-border-radius: 16px; -fx-border-width: 1px;">
+                                <HBox alignment="CENTER_LEFT" spacing="10">
+                                    <Label text="&#xe8b8;" styleClass="accent-icon" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px;" />
+                                    <Label text="System &amp; Data" styleClass="settings-card-title" />
+                                </HBox>
+                                <Separator />
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <Label text="App Version:" styleClass="setting-label" />
+                                    <Label text="0.1.0 Stable" styleClass="setting-label" />
+                                </HBox>
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <Label text="Server Status:" styleClass="setting-label" />
+                                    <Label text="Connected" style="-fx-text-fill: #10b981;" />
+                                </HBox>
+                                <HBox spacing="15" style="-fx-padding: 10px 0 0 0;">
+                                    <Button onAction="#handleResetFilters" text="Reset Filters" styleClass="secondary-btn" />
+                                    <Button onAction="#handleReloadData" text="Sync Latest Data" styleClass="secondary-btn" />
+                                </HBox>
+                            </VBox>
+                        </FlowPane>
+                    </VBox>
+                </ScrollPane>
             </VBox>
-        </ScrollPane>
-        </VBox>
-    </center>
-</BorderPane>
+        </center>
+    </BorderPane>
     <VBox fx:id="toastContainer" pickOnBounds="false" alignment="BOTTOM_RIGHT" spacing="10" style="-fx-padding: 30px;" />
 </StackPane>

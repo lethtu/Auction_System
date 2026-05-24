@@ -49,7 +49,7 @@ public class SessionManager {
         if (user.getRole() != null) {
             role = user.getRole().toLowerCase();
         }
-        
+
         SessionUser sessionUser = new SessionUser(user.getId(), user.getUsername(), role);
         activeSessions.put(token, sessionUser);
         return token;
@@ -71,6 +71,21 @@ public class SessionManager {
     public void removeSession(String token) {
         if (token != null) {
             activeSessions.remove(token);
+        }
+    }
+
+    /**
+     * Updates the role for all active sessions of a given user ID.
+     */
+    public void updateRoleByUserId(Integer userId, String newRole) {
+        if (userId == null || newRole == null) {
+            return;
+        }
+        for (Map.Entry<String, SessionUser> entry : activeSessions.entrySet()) {
+            SessionUser su = entry.getValue();
+            if (userId.equals(su.getUserId())) {
+                activeSessions.put(entry.getKey(), new SessionUser(su.getUserId(), su.getUsername(), newRole));
+            }
         }
     }
 

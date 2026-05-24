@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Comparator;
 
 @RestController
 @RequestMapping("/api/auctions")
@@ -45,6 +46,10 @@ public class PublicAuctionController {
         List<SessionResponseDTO> sessions = auctionSessionRepository.findAll()
                 .stream()
                 .filter(this::isProductVisible)
+                .sorted(Comparator
+                        .comparing(AuctionSession::getStartTime, Comparator.nullsLast(Comparator.naturalOrder()))
+                        .reversed()
+                        .thenComparing(AuctionSession::getId, Comparator.nullsLast(Comparator.reverseOrder())))
                 .map(SessionResponseMapper::toDTO)
                 .toList();
 

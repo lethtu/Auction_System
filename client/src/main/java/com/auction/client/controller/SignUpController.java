@@ -12,6 +12,7 @@ import com.auction.client.HttpClientSingleton;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -35,6 +36,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.auction.client.util.AlertUtil;
+import com.auction.client.util.TermsDialog;
+
 public class SignUpController {
     private HttpClient client = HttpClientSingleton.getInstance().getHttpClient();
     private static final Logger logger = LoggerFactory.getLogger(SignUpController.class);
@@ -44,7 +47,7 @@ public class SignUpController {
     private static final DateTimeFormatter SERVER_DATE_TIME = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
     private static final DateTimeFormatter DISPLAY_DATE_TIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
-    private static record FeaturedProduct(String name, String type, String imageUrl, String priceText) {}
+    private record FeaturedProduct(int id, JSONObject sessionObj, JSONObject itemObj, String name, String type, String imageUrl, String priceText) {}
 
     private final List<FeaturedProduct> featuredProducts = new ArrayList<>();
     private int featuredProductIndex = 0;
@@ -79,6 +82,37 @@ public class SignUpController {
     public void initialize() {
         if (txtPassword != null) {
             txtPassword.textProperty().addListener((obs, oldV, newV) -> updatePasswordStrength(newV));
+        }
+        if (chkTerms != null) {
+            chkTerms.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, event -> {
+                if (!chkTerms.isSelected()) {
+                    event.consume();
+                    showTermsAndCheck(chkTerms, true);
+                }
+            });
+            chkTerms.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
+                if (event.getCode() == javafx.scene.input.KeyCode.SPACE && !chkTerms.isSelected()) {
+                    event.consume();
+                    showTermsAndCheck(chkTerms, true);
+                }
+            });
+        }
+        if (activeProductCarousel != null) {
+            activeProductCarousel.setCursor(javafx.scene.Cursor.HAND);
+            activeProductCarousel.setPickOnBounds(true);
+            activeProductCarousel.setOnMouseClicked(event -> {
+                if (featuredProducts.isEmpty()) return;
+                FeaturedProduct currentProd = featuredProducts.get(featuredProductIndex);
+                if (currentProd != null && currentProd.sessionObj() != null && currentProd.itemObj() != null) {
+                    try {
+                        FXMLLoader loader = SceneSwitcher.switchScene(event, "AuctionPage.fxml", 1280, 800);
+                        AuctionPageController controller = loader.getController();
+                        controller.setItem(currentProd.sessionObj(), currentProd.itemObj());
+                    } catch (IOException e) {
+                        logger.error("Failed to open auction page from carousel", e);
+                    }
+                }
+            });
         }
         showFallbackProduct();
         loadActiveProducts();
@@ -256,12 +290,21 @@ public class SignUpController {
     }
 
     private FeaturedProduct toFeaturedProduct(JSONObject session) {
+        int id = session.optInt("id", 0);
+        JSONObject itemObj = session.optJSONObject("item");
+        if (itemObj == null) {
+            itemObj = new JSONObject();
+            itemObj.put("name", session.optString("productName", ""));
+            itemObj.put("type", session.optString("productType", ""));
+            itemObj.put("description", session.optString("description", ""));
+            itemObj.put("imagePath", session.optString("imagePath", ""));
+        }
         String name = session.optString("productName", "Live auction item");
         String type = session.optString("productType", "Active auction");
         String imageUrl = buildImageUrl(session.optString("imagePath", ""));
         String endTimeText = formatEndTime(session.optString("endTime", ""));
 
-        return new FeaturedProduct(name, type, imageUrl, endTimeText);
+        return new FeaturedProduct(id, session, itemObj, name, type, imageUrl, endTimeText);
     }
 
     private void setFeaturedProducts(List<FeaturedProduct> products) {
@@ -316,6 +359,9 @@ public class SignUpController {
 
     private void showFallbackProduct() {
         showFeaturedProduct(new FeaturedProduct(
+                0,
+                null,
+                null,
                 "Discover live auctions",
                 "Featured marketplace",
                 FALLBACK_PRODUCT_IMAGE,
@@ -423,5 +469,47 @@ public class SignUpController {
     @FXML
     private void handleClose(javafx.event.ActionEvent event) {
         SceneSwitcher.handleClose(event);
+    }
+
+    private void showTermsAndCheck(javafx.scene.control.CheckBox checkBox, boolean isSignUp) {
+        String title, subtitle, termsText;
+        if (isSignUp) {
+            title = "Terms & Conditions";
+            subtitle = "Please read and scroll to the bottom to accept the BidPop terms.";
+            termsText = "BidPop Marketplace Terms & Conditions\n\n"
+                    + "Welcome to BidPop! By creating an account, you agree to comply with and be bound by the following terms of service. Please review them carefully.\n\n"
+                    + "1. Acceptance of Terms\n"
+                    + "By accessing or using BidPop, you agree to be bound by these Terms. If you do not agree, please do not use the application.\n\n"
+                    + "2. Account Registration\n"
+                    + "You must provide accurate and complete information during registration. You are responsible for keeping your credentials secure and confidential.\n\n"
+                    + "3. User Conduct\n"
+                    + "You agree not to engage in any prohibited activities, including bid shilling, fraud, or violating laws and rights of others.\n\n"
+                    + "4. Termination\n"
+                    + "We reserve the right to suspend or terminate accounts that violate our policies or engage in disruptive behavior.\n\n"
+                    + "5. Liability & Disclaimers\n"
+                    + "BidPop is provided 'as is' without warranties. We are not liable for transaction disputes between buyers and sellers.\n\n"
+                    + "Please scroll to the bottom to confirm you have read and accepted these terms.";
+        } else {
+            title = "Seller Policy Agreement";
+            subtitle = "Read the merchant terms before selling on BidPop.";
+            termsText = "BidPop Seller Terms & Policies\n\n"
+                    + "Welcome to the BidPop Seller Program! To upgrade your account and start selling, you must agree to these Seller Policies.\n\n"
+                    + "1. Product Listings\n"
+                    + "Sellers must describe their items accurately. Listing illegal, counterfeit, or prohibited items is strictly forbidden.\n\n"
+                    + "2. Auction Rules\n"
+                    + "Sellers agree to fulfill orders at the final winning bid. Shill bidding or manipulation is subject to immediate ban.\n\n"
+                    + "3. Fees & Commissions\n"
+                    + "BidPop charges fees on completed auctions. Detailed fee schedules are published under the Help Center.\n\n"
+                    + "4. Dispute Resolution\n"
+                    + "Sellers must cooperate with our support team to resolve buyer complaints. Failure to do so will affect your seller rating.\n\n"
+                    + "Please scroll to the bottom to confirm you have read and accepted the seller policies.";
+        }
+
+        boolean accepted = TermsDialog.show(checkBox.getScene().getWindow(), title, subtitle, termsText);
+        if (accepted) {
+            checkBox.setSelected(true);
+        } else {
+            checkBox.setSelected(false);
+        }
     }
 }

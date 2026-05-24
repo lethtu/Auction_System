@@ -1,0 +1,73 @@
+/* Global UI components styling mapped to tokens */
+.rounded-window-content {
+    -fx-background-color: -app-bg;
+}
+.app-topbar, .app-topbar-even, .admin-bidpop-topbar {
+    -fx-background-color: -app-surface;
+    -fx-border-color: -app-border;
+}
+.app-sidebar-content, .app-sidebar-content-collapsed {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+.app-content-panel, .app-content-scroll {
+    -fx-background-color: -app-surface-2;
+    -fx-border-color: -app-border;
+}
+
+.text-field, .text-area, .combo-box {
+    -fx-background-color: -app-input-bg;
+    -fx-text-fill: -app-input-text;
+    -fx-prompt-text-fill: -app-text-muted;
+    -fx-border-color: -app-border;
+}
+.text-area .content {
+    -fx-background-color: -app-input-bg;
+}
+
+.combo-box .list-cell {
+    -fx-text-fill: -app-input-text;
+}
+.combo-box-popup .list-view {
+    -fx-background-color: -app-surface;
+    -fx-border-color: -app-border;
+}
+.combo-box-popup .list-cell {
+    -fx-text-fill: -app-input-text;
+}
+.combo-box-popup .list-cell:filled:hover {
+    -fx-background-color: -app-primary;
+    -fx-text-fill: white;
+}
+
+.label, .text, .brand-title, .page-title {
+    -fx-text-fill: -app-text;
+}
+.brand-subtitle, .page-subtitle, .settings-card-subtitle, .setting-description, .faq-text, .contact-text {
+    -fx-text-fill: -app-text-muted;
+}
+.settings-card, .support-card, .auction-card, .dashboard-card, .notification-card, .hero-card, .section-card, .mini-stat-card {
+    -fx-background-color: -app-card;
+    -fx-border-color: -app-border;
+}
+.settings-card-title, .setting-label, .settings-section-title {
+    -fx-text-fill: -app-text;
+}
+.scroll-pane, .scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+.table-view, .list-view, .table-row-cell, .list-cell {
+    -fx-background-color: -app-surface;
+}
+.table-view .column-header-background, .table-view .column-header {
+    -fx-background-color: -app-surface-2;
+}
+.setting-switch .box {
+    -fx-background-color: -app-border;
+}
+.setting-switch .text {
+    -fx-fill: -app-text;
+}
+.button {
+    /* If any button needs specific fix */
+}

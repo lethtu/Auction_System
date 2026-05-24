@@ -1,137 +1,241 @@
 package com.auction.client.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.auction.client.util.SettingsDialog;
-import javafx.collections.FXCollections;
+import javafx.application.Platform;
+import com.auction.client.Config;
+import com.auction.client.model.User;
+import com.auction.client.model.audio.SoundEvent;
+import com.auction.client.service.AppStyleManager;
+import com.auction.client.service.SettingsService;
+import com.auction.client.service.SoundManager;
+import javafx.animation.PauseTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.*;
+import javafx.scene.Node;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.Slider;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.ResourceBundle;
-import java.util.prefs.Preferences;
 
 public class SettingsController implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(SettingsController.class);
-    private static final Preferences prefs = Preferences.userNodeForPackage(SettingsDialog.class);
-
-    @FXML private CheckBox chkOutbid;
-    @FXML private CheckBox chkSound;
-    @FXML private CheckBox chkCollapse;
-    @FXML private ComboBox<String> cbLang;
-    @FXML private ComboBox<String> cbColor;
-    @FXML private Label lblStatus;
-
-    @FXML private VBox passwordSetBox;
-    @FXML private PasswordField txtNewPassword;
-    @FXML private PasswordField txtConfirmPassword;
-    @FXML private Button btnSetPassword;
-
-    @FXML private Button btnSaveSettings;
-    @FXML private Button btnResetFilters;
-    @FXML private Button btnReloadData;
 
     @FXML private SidebarController sidebarController;
     @FXML private TopbarController topbarController;
+    @FXML private VBox toastContainer;
+
+    @FXML private CheckBox chkNotificationsEnabled;
+    @FXML private CheckBox chkOutbid;
+    @FXML private CheckBox chkEndingSoon;
+    @FXML private CheckBox chkAuctionResult;
+
+    @FXML private CheckBox chkSound;
+    @FXML private Slider sliderVolume;
+    @FXML private Label lblVolumeValue;
+
+    @FXML private ComboBox<String> cbTheme;
+    @FXML private ComboBox<String> cbColor;
+    @FXML private CheckBox chkCollapse;
+    @FXML private CheckBox chkRememberPage;
+
+    @FXML private CheckBox chkConfirmBid;
+    @FXML private CheckBox chkQuickBid;
+    @FXML private TextField txtHighBidWarning;
+    @FXML private TextField txtDefaultIncrement;
+
+    @FXML private CheckBox chkShowEnded;
+    @FXML private CheckBox chkSortActive;
+    @FXML private CheckBox chkShowCountdown;
+    @FXML private CheckBox chkCompactCards;
+
+    @FXML private VBox passwordSetBox;
+    @FXML private VBox passwordChangeBox;
+    @FXML private PasswordField txtNewPassword;
+    @FXML private PasswordField txtConfirmPassword;
+    @FXML private PasswordField txtCurrentPassword;
+    @FXML private PasswordField txtChangeNewPassword;
+    @FXML private PasswordField txtChangeConfirmPassword;
+    @FXML private Button btnSetPassword;
+    @FXML private Button btnChangePassword;
+
+    private SettingsService settingsService;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        settingsService = SettingsService.getInstance();
+
         if (topbarController != null) {
             topbarController.setSearchVisible(false);
             topbarController.highlightSettingsButton();
             if (sidebarController != null) {
                 topbarController.setSidebarController(sidebarController);
             }
-        }
-
-        // Search on settings page: bind enter key to switch to main page and search
-        if (topbarController != null && topbarController.getTxtSearch() != null) {
-            topbarController.getTxtSearch().setOnAction(e -> {
-                try {
-                    String query = topbarController.getTxtSearch().getText();
-                    if (query != null && !query.trim().isEmpty()) {
-                        // Switch back to MainTemplate and filter
-                        MainController.initialHomeFilterMode = "SEARCH:" + query.trim();
-                        SceneSwitcher.switchScene(e, "MainTemplate.fxml", 1280, 800);
+            if (topbarController.getTxtSearch() != null) {
+                topbarController.getTxtSearch().setOnAction(e -> {
+                    try {
+                        String query = topbarController.getTxtSearch().getText();
+                        if (query != null && !query.trim().isEmpty()) {
+                            MainController.initialHomeFilterMode = "SEARCH:" + query.trim();
+                            SceneSwitcher.switchScene(e, "MainTemplate.fxml", 1280, 800);
+                        }
+                    } catch (IOException ex) {
+                        logger.error("Error switching page: ", ex);
                     }
-                } catch (IOException ex) {
-                    logger.error("Error switching page: ", ex);
-                }
-            });
+                });
+            }
         }
 
-        // Highlight Settings active button in sidebar
         if (sidebarController != null) {
             sidebarController.setActiveSettings();
         }
 
-        // Load Prefs
-        chkOutbid.setSelected(prefs.getBoolean(SettingsDialog.KEY_OUTBID, true));
-        chkSound.setSelected(prefs.getBoolean(SettingsDialog.KEY_SOUND, true));
-        chkCollapse.setSelected(prefs.getBoolean(SettingsDialog.KEY_AUTO_COLLAPSE, false));
+        setupDisabledControls();
+        setupPasswordSection();
+        loadSettingsToUI();
 
-        cbLang.setItems(FXCollections.observableArrayList("English"));
-        cbLang.setValue(prefs.get(SettingsDialog.KEY_LANGUAGE, "English"));
+        sliderVolume.valueProperty().addListener((obs, oldVal, newVal) ->
+                lblVolumeValue.setText(String.format("%.0f%%", newVal.doubleValue())));
+    }
 
-        cbColor.setItems(FXCollections.observableArrayList("Rose Pink (Default)", "Royal Purple", "Emerald Green"));
-        cbColor.setValue(prefs.get(SettingsDialog.KEY_ACCENT_COLOR, "Rose Pink (Default)"));
+    private void setupDisabledControls() {
+        Tooltip comingSoon = new Tooltip("Coming soon");
 
-        if (com.auction.client.model.User.isPasswordSet()) {
-            passwordSetBox.setVisible(false);
-            passwordSetBox.setManaged(false);
+        chkRememberPage.setDisable(true);
+        chkRememberPage.setTooltip(comingSoon);
+
+        chkShowEnded.setDisable(true);
+        chkShowEnded.setTooltip(comingSoon);
+
+        chkSortActive.setDisable(true);
+        chkSortActive.setTooltip(comingSoon);
+
+        chkCompactCards.setDisable(true);
+        chkCompactCards.setTooltip(comingSoon);
+    }
+
+    private void setupPasswordSection() {
+        boolean needsPassword = !User.isPasswordSet();
+        if (passwordSetBox != null) {
+            passwordSetBox.setVisible(needsPassword);
+            passwordSetBox.setManaged(needsPassword);
+        }
+        if (passwordChangeBox != null) {
+            passwordChangeBox.setVisible(!needsPassword);
+            passwordChangeBox.setManaged(!needsPassword);
+        }
+    }
+
+    private void loadSettingsToUI() {
+        chkNotificationsEnabled.setSelected(settingsService.isNotificationsEnabled());
+        chkOutbid.setSelected(settingsService.isOutbidNotificationEnabled());
+        chkEndingSoon.setSelected(settingsService.isEndingSoonNotificationEnabled());
+        chkAuctionResult.setSelected(settingsService.isAuctionResultNotificationEnabled());
+
+        chkSound.setSelected(settingsService.isSoundEnabled());
+        sliderVolume.setValue(settingsService.getSoundVolume() * 100.0);
+        lblVolumeValue.setText(String.format("%.0f%%", sliderVolume.getValue()));
+
+        cbTheme.getItems().setAll("Light", "Dark");
+        cbTheme.setValue(settingsService.getTheme());
+
+        cbColor.getItems().setAll("Rose Pink (Default)", "Purple", "Emerald", "Blue", "Orange");
+        cbColor.setValue(settingsService.getPrimaryColor());
+
+        chkCollapse.setSelected(settingsService.isAutoCollapseSidebar());
+        chkRememberPage.setSelected(settingsService.isRememberLastPage());
+
+        chkConfirmBid.setSelected(settingsService.isConfirmBeforeBid());
+        chkQuickBid.setSelected(settingsService.isQuickBidEnabled());
+        txtHighBidWarning.setText(String.valueOf(settingsService.getHighBidWarningThreshold()));
+        txtDefaultIncrement.setText(String.valueOf(settingsService.getDefaultBidIncrement()));
+
+        chkShowEnded.setSelected(settingsService.isShowEndedAuctions());
+        chkSortActive.setSelected(settingsService.isSortActiveFirst());
+        chkShowCountdown.setSelected(settingsService.isShowCountdownTimer());
+        chkCompactCards.setSelected(settingsService.isCompactCards());
+    }
+
+    @FXML
+    public void handleSaveSettings(ActionEvent event) {
+        long highBidWarning;
+        long defaultInc;
+        try {
+            highBidWarning = Long.parseLong(txtHighBidWarning.getText().trim());
+            defaultInc = Long.parseLong(txtDefaultIncrement.getText().trim());
+        } catch (NumberFormatException e) {
+            showToast("Invalid number format for Auction Preferences.", true);
+            return;
+        }
+
+        boolean oldAutoCollapse = settingsService.isAutoCollapseSidebar();
+
+        settingsService.setNotificationsEnabled(chkNotificationsEnabled.isSelected());
+        settingsService.setOutbidNotificationEnabled(chkOutbid.isSelected());
+        settingsService.setEndingSoonNotificationEnabled(chkEndingSoon.isSelected());
+        settingsService.setAuctionResultNotificationEnabled(chkAuctionResult.isSelected());
+
+        settingsService.setSoundEnabled(chkSound.isSelected());
+        settingsService.setSoundVolume(sliderVolume.getValue() / 100.0);
+
+        settingsService.setTheme(cbTheme.getValue());
+        settingsService.setPrimaryColor(cbColor.getValue());
+        settingsService.setAutoCollapseSidebar(chkCollapse.isSelected());
+        settingsService.setRememberLastPage(chkRememberPage.isSelected());
+
+        settingsService.setConfirmBeforeBid(chkConfirmBid.isSelected());
+        settingsService.setQuickBidEnabled(chkQuickBid.isSelected());
+        settingsService.setHighBidWarningThreshold(highBidWarning);
+        settingsService.setDefaultBidIncrement(defaultInc);
+
+        settingsService.setShowEndedAuctions(chkShowEnded.isSelected());
+        settingsService.setSortActiveFirst(chkSortActive.isSelected());
+        settingsService.setShowCountdownTimer(chkShowCountdown.isSelected());
+        settingsService.setCompactCards(chkCompactCards.isSelected());
+
+        if (oldAutoCollapse != chkCollapse.isSelected() && sidebarController != null) {
+            sidebarController.toggleSidebar();
+        }
+
+        if (event.getSource() instanceof Node sourceNode && sourceNode.getScene() != null) {
+            sourceNode.getScene().setFill(javafx.scene.paint.Color.TRANSPARENT);
+            AppStyleManager.applyCurrentStyle(sourceNode.getScene());
+        }
+
+        showToast("Settings saved successfully.", false);
+    }
+
+    @FXML
+    public void handleTestSound(ActionEvent event) {
+        if (!chkSound.isSelected()) {
+            showToast("Enable sounds to test audio.", true);
+            return;
+        }
+
+        double vol = sliderVolume.getValue() / 100.0;
+        boolean result = SoundManager.getInstance().playSound(SoundEvent.NOTIFICATION, vol, true);
+        if (result) {
+            showToast("Notification sound played.", false);
         } else {
-            passwordSetBox.setVisible(true);
-            passwordSetBox.setManaged(true);
+            showToast("The notification sound file is missing or invalid.", true);
         }
-    }
-
-    @FXML
-    private void handleSaveSettings(ActionEvent event) {
-        prefs.putBoolean(SettingsDialog.KEY_OUTBID, chkOutbid.isSelected());
-        prefs.putBoolean(SettingsDialog.KEY_SOUND, chkSound.isSelected());
-        
-        boolean oldAutoCollapse = prefs.getBoolean(SettingsDialog.KEY_AUTO_COLLAPSE, false);
-        boolean newAutoCollapse = chkCollapse.isSelected();
-        prefs.putBoolean(SettingsDialog.KEY_AUTO_COLLAPSE, newAutoCollapse);
-        
-        prefs.put(SettingsDialog.KEY_LANGUAGE, cbLang.getValue());
-        prefs.put(SettingsDialog.KEY_ACCENT_COLOR, cbColor.getValue());
-
-        if (oldAutoCollapse != newAutoCollapse) {
-            if (sidebarController != null) {
-                sidebarController.toggleSidebar();
-            }
-        }
-
-        lblStatus.setText("Settings saved successfully!");
-        lblStatus.setStyle("-fx-text-fill: #137333; -fx-font-weight: bold;");
-        lblStatus.setVisible(true);
-        lblStatus.setManaged(true);
-    }
-
-    @FXML
-    private void handleResetFilters(ActionEvent event) {
-        MainController.initialHomeFilterMode = "ALL";
-        
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Settings");
-        alert.setHeaderText(null);
-        alert.setContentText("All search filters on the homepage have been reset to defaults.");
-        alert.getDialogPane().setStyle("-fx-font-family: 'DM Sans';");
-        alert.showAndWait();
-    }
-
-    @FXML
-    private void handleReloadData(ActionEvent event) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Settings");
-        alert.setHeaderText(null);
-        alert.setContentText("Data reload from server requested successfully.");
-        alert.getDialogPane().setStyle("-fx-font-family: 'DM Sans';");
-        alert.showAndWait();
     }
 
     @FXML
@@ -140,60 +244,139 @@ public class SettingsController implements Initializable {
         String confirmPass = txtConfirmPassword.getText();
 
         if (newPass == null || newPass.trim().isEmpty()) {
-            showAlert(Alert.AlertType.ERROR, "Error", "Mật khẩu không được để trống.");
+            showAlert(Alert.AlertType.ERROR, "Error", "Mat khau khong duoc de trong.");
             return;
         }
 
         if (newPass.length() < 6) {
-            showAlert(Alert.AlertType.ERROR, "Error", "Mật khẩu phải chứa ít nhất 6 ký tự.");
+            showAlert(Alert.AlertType.ERROR, "Error", "Mat khau phai chua it nhat 6 ky tu.");
             return;
         }
 
         if (!newPass.equals(confirmPass)) {
-            showAlert(Alert.AlertType.ERROR, "Error", "Xác nhận mật khẩu không khớp.");
+            showAlert(Alert.AlertType.ERROR, "Error", "Xac nhan mat khau khong khop.");
             return;
         }
 
-        // Call backend API
         try {
-            int userId = com.auction.client.model.User.getId();
-            String token = com.auction.client.model.User.getSessionToken();
+            Integer userId = User.getId();
+            String token = User.getSessionToken();
 
-            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
-            org.json.JSONObject payload = new org.json.JSONObject();
+            JSONObject payload = new JSONObject();
             payload.put("password", newPass);
 
-            java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create(com.auction.client.Config.API_URL + "/api/users/" + userId + "/set-password"))
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(Config.API_URL + "/api/users/" + userId + "/set-password"))
                     .header("Content-Type", "application/json")
-                    .header("Authorization", "Bearer " + token)
-                    .POST(java.net.http.HttpRequest.BodyPublishers.ofString(payload.toString()))
-                    .build();
+                    .POST(HttpRequest.BodyPublishers.ofString(payload.toString()));
+            if (token != null) {
+                builder.header("X-Auth-Token", token);
+            }
+            HttpRequest req = builder.build();
 
-            java.net.http.HttpResponse<String> resp = client.send(req, java.net.http.HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> resp = HttpClient.newHttpClient().send(req, HttpResponse.BodyHandlers.ofString());
 
             if (resp.statusCode() == 200) {
-                com.auction.client.model.User.setPasswordSet(true);
-                passwordSetBox.setVisible(false);
-                passwordSetBox.setManaged(false);
-                showAlert(Alert.AlertType.INFORMATION, "Success", "Thiết lập mật khẩu thành công! Bạn có thể sử dụng mật khẩu này từ bây giờ.");
+                User.setPasswordSet(true);
+                setupPasswordSection();
+                showAlert(Alert.AlertType.INFORMATION, "Success", "Password set successfully.");
             } else {
-                org.json.JSONObject errObj = new org.json.JSONObject(resp.body());
-                String errMsg = errObj.optString("message", "Đã xảy ra lỗi khi lưu mật khẩu.");
+                JSONObject errObj = new JSONObject(resp.body());
+                String errMsg = errObj.optString("message", "Could not save password.");
                 showAlert(Alert.AlertType.ERROR, "Error", errMsg);
             }
         } catch (Exception e) {
             logger.error("Failed to set password: ", e);
-            showAlert(Alert.AlertType.ERROR, "Error", "Không thể kết nối đến máy chủ: " + e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Error", "Cannot connect to server: " + e.getMessage());
         }
     }
 
+    @FXML
+    private void handleChangePassword(ActionEvent event) {
+        String oldPass = txtCurrentPassword.getText();
+        String newPass = txtChangeNewPassword.getText();
+        String confirmPass = txtChangeConfirmPassword.getText();
+
+        if (oldPass == null || oldPass.isBlank()) {
+            showAlert(Alert.AlertType.ERROR, "Error", "Current password cannot be empty.");
+            return;
+        }
+
+        if (newPass == null || newPass.length() < 6) {
+            showAlert(Alert.AlertType.ERROR, "Error", "New password must be at least 6 characters long.");
+            return;
+        }
+
+        if (!newPass.equals(confirmPass)) {
+            showAlert(Alert.AlertType.ERROR, "Error", "New password confirmation does not match.");
+            return;
+        }
+
+        try {
+            Integer userId = User.getId();
+            String token = User.getSessionToken();
+
+            JSONObject payload = new JSONObject();
+            payload.put("oldPassword", oldPass);
+            payload.put("newPassword", newPass);
+
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(Config.API_URL + "/api/users/" + userId + "/change-password"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(payload.toString()));
+            if (token != null) {
+                builder.header("X-Auth-Token", token);
+            }
+
+            HttpResponse<String> resp = HttpClient.newHttpClient().send(builder.build(), HttpResponse.BodyHandlers.ofString());
+            JSONObject body = new JSONObject(resp.body());
+            int status = body.optInt("status", resp.statusCode());
+            if (resp.statusCode() == 200 && status == 200) {
+                txtCurrentPassword.clear();
+                txtChangeNewPassword.clear();
+                txtChangeConfirmPassword.clear();
+                showAlert(Alert.AlertType.INFORMATION, "Success", body.optString("message", "Password changed successfully."));
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Error", body.optString("message", "Could not change password."));
+            }
+        } catch (Exception e) {
+            logger.error("Failed to change password: ", e);
+            showAlert(Alert.AlertType.ERROR, "Error", "Cannot connect to server: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    public void handleResetFilters(ActionEvent event) {
+        MainController.initialHomeFilterMode = "ALL";
+        showToast("Filters reset to default.", false);
+    }
+
+    @FXML
+    public void handleReloadData(ActionEvent event) {
+        showToast("Synchronizing data from server...", false);
+    }
+
     private void showAlert(Alert.AlertType type, String title, String content) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.getDialogPane().setStyle("-fx-font-family: 'DM Sans';");
-        alert.showAndWait();
+        if (!Platform.isFxApplicationThread()) {
+            Platform.runLater(() -> showAlert(type, title, content));
+            return;
+        }
+        com.auction.client.util.AlertUtil.show(type, title, content);
+    }
+
+    private void showToast(String message, boolean isError) {
+        if (toastContainer == null) {
+            return;
+        }
+
+        Label toast = new Label(message);
+        toast.getStyleClass().addAll("settings-toast",
+                isError ? "settings-toast-error" : "settings-toast-success");
+
+        toastContainer.getChildren().add(toast);
+
+        PauseTransition delay = new PauseTransition(Duration.seconds(3));
+        delay.setOnFinished(e -> toastContainer.getChildren().remove(toast));
+        delay.play();
     }
 }

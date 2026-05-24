@@ -27,57 +27,57 @@
             </BorderPane.margin>
             <!-- Hero Banner / Title -->
             <VBox alignment="CENTER" spacing="12.0" style="-fx-padding: 0 0 10px 0;">
-                <StackPane minWidth="80" maxWidth="80" minHeight="80" maxHeight="80" style="-fx-background-color: #ffd6ee; -fx-background-radius: 40px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 15, 0, 0, 4);">
-                    <Label text="&#xe8d1;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 42px; -fx-text-fill: #e040a0;" />
+                <StackPane minWidth="80" maxWidth="80" minHeight="80" maxHeight="80" style="-fx-background-color: -app-surface-2; -fx-background-radius: 40px; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-25, 15, 0, 0, 4);">
+                    <Label text="&#xe8d1;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 42px; -fx-text-fill: -fx-accent;" />
                 </StackPane>
-                <Label text="BECOME A SELLER" style="-fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;" />
-                <Label text="Unlock professional selling tools, reach thousands of potential customers and achieve outstanding revenue growth." wrapText="true" maxWidth="700" style="-fx-font-size: 16px; -fx-text-fill: #604868; -fx-text-alignment: center;" alignment="CENTER" />
+                <Label text="BECOME A SELLER" style="-fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: -app-text;" />
+                <Label text="Unlock professional selling tools, reach thousands of potential customers and achieve outstanding revenue growth." wrapText="true" maxWidth="700" style="-fx-font-size: 16px; -fx-text-fill: -app-text-muted; -fx-text-alignment: center;" alignment="CENTER" />
             </VBox>
             
             <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS" hbarPolicy="NEVER">
                 <VBox alignment="CENTER" spacing="35.0" style="-fx-padding: 10px 0px;">
 
-                <!-- 3 Benefits Cards -->
-                <HBox alignment="CENTER" spacing="30.0" maxWidth="1000">
-                    <!-- Card 1 -->
-                    <VBox HBox.hgrow="ALWAYS" alignment="TOP_CENTER" spacing="15.0" style="-fx-background-color: #ffffff; -fx-padding: 30px 25px; -fx-background-radius: 24px; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.08), 20, 0, 0, 6);">
-                        <StackPane minWidth="60" maxWidth="60" minHeight="60" maxHeight="60" style="-fx-background-color: #fef7ff; -fx-background-radius: 30px;">
-                            <Label text="&#xe145;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 30px; -fx-text-fill: #e040a0;" />
-                        </StackPane>
-                        <Label text="Easy Listing" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;" />
-                        <Label text="Create auction sessions quickly with flexible starting price, step price and duration options." wrapText="true" style="-fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;" alignment="CENTER" />
-                    </VBox>
+                 <!-- 3 Benefits Cards -->
+                 <HBox alignment="CENTER" spacing="30.0" maxWidth="1000">
+                     <!-- Card 1 -->
+                      <VBox HBox.hgrow="ALWAYS" alignment="TOP_CENTER" spacing="15.0" style="-fx-background-color: -app-card; -fx-padding: 30px 25px; -fx-background-radius: 24px; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-08, 20, 0, 0, 6);">
+                          <StackPane minWidth="60" maxWidth="60" minHeight="60" maxHeight="60" style="-fx-background-color: -app-surface-2; -fx-background-radius: 30px;">
+                              <Label text="&#xe145;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 30px; -fx-text-fill: -fx-accent;" />
+                          </StackPane>
+                         <Label text="Easy Listing" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: -app-text;" />
+                         <Label text="Create auction sessions quickly with flexible starting price, step price and duration options." wrapText="true" style="-fx-font-size: 14px; -fx-text-fill: -app-text-muted; -fx-text-alignment: center;" alignment="CENTER" />
+                     </VBox>
 
-                    <!-- Card 2 -->
-                    <VBox HBox.hgrow="ALWAYS" alignment="TOP_CENTER" spacing="15.0" style="-fx-background-color: #ffffff; -fx-padding: 30px 25px; -fx-background-radius: 24px; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.08), 20, 0, 0, 6);">
-                        <StackPane minWidth="60" maxWidth="60" minHeight="60" maxHeight="60" style="-fx-background-color: #fef7ff; -fx-background-radius: 30px;">
-                            <Label text="&#xe8b8;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 30px; -fx-text-fill: #e040a0;" />
-                        </StackPane>
-                        <Label text="Professional Management" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;" />
-                        <Label text="Monitor auction progress in real-time, manage buyers and orders effectively." wrapText="true" style="-fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;" alignment="CENTER" />
-                    </VBox>
+                     <!-- Card 2 -->
+                      <VBox HBox.hgrow="ALWAYS" alignment="TOP_CENTER" spacing="15.0" style="-fx-background-color: -app-card; -fx-padding: 30px 25px; -fx-background-radius: 24px; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-08, 20, 0, 0, 6);">
+                          <StackPane minWidth="60" maxWidth="60" minHeight="60" maxHeight="60" style="-fx-background-color: -app-surface-2; -fx-background-radius: 30px;">
+                              <Label text="&#xe8b8;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 30px; -fx-text-fill: -fx-accent;" />
+                          </StackPane>
+                         <Label text="Professional Management" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: -app-text;" />
+                         <Label text="Monitor auction progress in real-time, manage buyers and orders effectively." wrapText="true" style="-fx-font-size: 14px; -fx-text-fill: -app-text-muted; -fx-text-alignment: center;" alignment="CENTER" />
+                     </VBox>
 
-                    <!-- Card 3 -->
-                    <VBox HBox.hgrow="ALWAYS" alignment="TOP_CENTER" spacing="15.0" style="-fx-background-color: #ffffff; -fx-padding: 30px 25px; -fx-background-radius: 24px; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.08), 20, 0, 0, 6);">
-                        <StackPane minWidth="60" maxWidth="60" minHeight="60" maxHeight="60" style="-fx-background-color: #fef7ff; -fx-background-radius: 30px;">
-                            <Label text="&#xe227;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 30px; -fx-text-fill: #e040a0;" />
-                        </StackPane>
-                        <Label text="Outstanding Revenue" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2e1a28;" />
-                        <Label text="Reach a large community of buyers on BidPop to achieve the best price for your products." wrapText="true" style="-fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;" alignment="CENTER" />
-                    </VBox>
-                </HBox>
+                     <!-- Card 3 -->
+                      <VBox HBox.hgrow="ALWAYS" alignment="TOP_CENTER" spacing="15.0" style="-fx-background-color: -app-card; -fx-padding: 30px 25px; -fx-background-radius: 24px; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-08, 20, 0, 0, 6);">
+                          <StackPane minWidth="60" maxWidth="60" minHeight="60" maxHeight="60" style="-fx-background-color: -app-surface-2; -fx-background-radius: 30px;">
+                              <Label text="&#xe227;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 30px; -fx-text-fill: -fx-accent;" />
+                          </StackPane>
+                         <Label text="Outstanding Revenue" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: -app-text;" />
+                         <Label text="Reach a large community of buyers on BidPop to achieve the best price for your products." wrapText="true" style="-fx-font-size: 14px; -fx-text-fill: -app-text-muted; -fx-text-alignment: center;" alignment="CENTER" />
+                     </VBox>
+                 </HBox>
 
-                <!-- Action / Form Card -->
-                <VBox alignment="CENTER" spacing="20.0" maxWidth="600" style="-fx-background-color: #ffffff; -fx-padding: 35px 40px; -fx-background-radius: 24px; -fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.12), 25, 0, 0, 8);">
-                    <CheckBox fx:id="chkAgree" text="I agree to the terms and seller policies of BidPop." style="-fx-font-size: 15px; -fx-text-fill: #2e1a28; -fx-cursor: hand;"  styleClass="seller-policy-check"/>
-                    
-                    <Label fx:id="lblMessage" text="" style="-fx-font-size: 14px;" visible="false" managed="false" />
-
-                    <Button fx:id="btnUpgrade" onAction="#handleUpgrade" text="Upgrade Now" prefWidth="300" prefHeight="50" style="-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold; -fx-background-radius: 25px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.4), 20, 0, 0, 6);">
-                        <graphic><Label text="&#xe876;" translateY="2.0" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px; -fx-text-fill: white;" /></graphic>
-                    </Button>
-                </VBox>
-                </VBox>
+                 <!-- Action / Form Card -->
+                  <VBox alignment="CENTER" spacing="20.0" maxWidth="600" style="-fx-background-color: -app-card; -fx-padding: 35px 40px; -fx-background-radius: 24px; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 24px; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-12, 25, 0, 0, 8);">
+                      <CheckBox fx:id="chkAgree" text="I agree to the terms and seller policies of BidPop." style="-fx-font-size: 15px; -fx-text-fill: -app-text; -fx-cursor: hand;"  styleClass="seller-policy-check"/>
+                      
+                      <Label fx:id="lblMessage" text="" style="-fx-font-size: 14px;" visible="false" managed="false" />
+ 
+                      <Button fx:id="btnUpgrade" onAction="#handleUpgrade" text="Upgrade Now" prefWidth="300" prefHeight="50" style="-fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold; -fx-background-radius: 25px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-40, 20, 0, 0, 6);">
+                         <graphic><Label text="&#xe876;" translateY="2.0" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px; -fx-text-fill: white;" /></graphic>
+                     </Button>
+                 </VBox>
+                 </VBox>
         </ScrollPane>
         </VBox>
     </center>

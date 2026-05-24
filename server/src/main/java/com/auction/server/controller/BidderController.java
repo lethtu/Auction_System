@@ -15,6 +15,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.auction.server.service.BidderService;
+import com.auction.server.util.SessionManager;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -35,6 +36,9 @@ public class BidderController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private SessionManager sessionManager;
 
     // API to get active auction sessions (paginated)
     @GetMapping("/active-sessions")
@@ -81,6 +85,7 @@ public class BidderController {
         boolean isSuccess = (boolean) result.get("success");
         String message = (String) result.get("message");
         if (isSuccess) {
+            sessionManager.updateRoleByUserId(userId, "seller");
             return new ApiResponse<>(200, message, "SUCCESS");
         } else {
             return new ApiResponse<>(400, message, "FAILED");

@@ -26,8 +26,8 @@ import java.util.Locale;
 
 public class AdminDashboardController {
     private static final String LOGIN_FXML = "Login.fxml";
-    private static final int LOGIN_WIDTH = 400;
-    private static final int LOGIN_HEIGHT = 500;
+    private static final int LOGIN_WIDTH = 1000;
+    private static final int LOGIN_HEIGHT = 700;
 
     private static final String CURRENCY_SUFFIX = " VND";
     private static final BigDecimal PLATFORM_FEE_RATE = new BigDecimal("0.05");

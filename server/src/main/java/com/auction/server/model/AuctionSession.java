@@ -61,6 +61,21 @@ public class AuctionSession implements Serializable{
     private Integer approvedByAdminId;
     private Integer rejectedByAdminId;
 
+    @Column(name = "delivery_recipient", length = 150)
+    private String deliveryRecipient;
+
+    @Column(name = "delivery_phone", length = 30)
+    private String deliveryPhone;
+
+    @Column(name = "delivery_address", length = 500)
+    private String deliveryAddress;
+
+    @Column(name = "delivery_note", length = 500)
+    private String deliveryNote;
+
+    @Column(name = "delivery_submitted_at")
+    private LocalDateTime deliverySubmittedAt;
+
     @Column(name = "apply_min_rate")
     private Boolean applyMinRate;
 
@@ -120,6 +135,46 @@ public class AuctionSession implements Serializable{
 
     public void setWinner(User winner) {
         this.winner = winner;
+    }
+
+    public String getDeliveryRecipient() {
+        return deliveryRecipient;
+    }
+
+    public void setDeliveryRecipient(String deliveryRecipient) {
+        this.deliveryRecipient = deliveryRecipient;
+    }
+
+    public String getDeliveryPhone() {
+        return deliveryPhone;
+    }
+
+    public void setDeliveryPhone(String deliveryPhone) {
+        this.deliveryPhone = deliveryPhone;
+    }
+
+    public String getDeliveryAddress() {
+        return deliveryAddress;
+    }
+
+    public void setDeliveryAddress(String deliveryAddress) {
+        this.deliveryAddress = deliveryAddress;
+    }
+
+    public String getDeliveryNote() {
+        return deliveryNote;
+    }
+
+    public void setDeliveryNote(String deliveryNote) {
+        this.deliveryNote = deliveryNote;
+    }
+
+    public LocalDateTime getDeliverySubmittedAt() {
+        return deliverySubmittedAt;
+    }
+
+    public void setDeliverySubmittedAt(LocalDateTime deliverySubmittedAt) {
+        this.deliverySubmittedAt = deliverySubmittedAt;
     }
 
     public BigDecimal getStartingPrice() {

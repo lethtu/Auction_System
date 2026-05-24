@@ -1,0 +1,40 @@
+/* Orange Accent overrides */
+.root,
+.accent-orange {
+    -fx-accent: #f97316;
+    -fx-focus-color: #f97316;
+    
+    -app-accent-opacity-05: rgba(249, 115, 22, 0.05);
+    -app-accent-opacity-08: rgba(249, 115, 22, 0.08);
+    -app-accent-opacity-10: rgba(249, 115, 22, 0.10);
+    -app-accent-opacity-12: rgba(249, 115, 22, 0.12);
+    -app-accent-opacity-16: rgba(249, 115, 22, 0.16);
+    -app-accent-opacity-20: rgba(249, 115, 22, 0.20);
+    -app-accent-opacity-25: rgba(249, 115, 22, 0.25);
+    -app-accent-opacity-30: rgba(249, 115, 22, 0.30);
+    -app-accent-opacity-38: rgba(249, 115, 22, 0.38);
+    -app-accent-opacity-40: rgba(249, 115, 22, 0.40);
+    -app-accent-opacity-58: rgba(249, 115, 22, 0.58);
+    -app-accent-opacity-70: rgba(249, 115, 22, 0.70);
+    -app-accent-opacity-78: rgba(249, 115, 22, 0.78);
+    
+    -app-accent-hover: #ea580c;
+    -app-accent-light: #fb923c;
+    -app-accent-gradient: linear-gradient(to bottom right, #fb923c, #f97316);
+    -app-accent-gradient-horizontal: linear-gradient(to right, #f97316, #ea580c);
+    -app-accent-gradient-dark: linear-gradient(to bottom right, #f97316, #c2410c);
+    -app-accent-chip-bg: #fff7ed;
+    -app-accent-chip-border: #ffedd5;
+}
+.setting-switch:selected .box {
+    -fx-background-color: #f97316;
+}
+.button.primary-btn {
+    -fx-background-color: #f97316;
+}
+.slider .thumb {
+    -fx-background-color: #f97316;
+}
+.slider .track {
+    -fx-background-color: rgba(249, 115, 22, 0.2);
+}

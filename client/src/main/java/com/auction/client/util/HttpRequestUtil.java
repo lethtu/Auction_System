@@ -94,6 +94,86 @@ public final class HttpRequestUtil {
         return send(request);
     }
 
+    public static HttpResponse<String> uploadImageWithProgress(
+            String baseUrl,
+            String path,
+            File file,
+            java.util.function.DoubleConsumer progressConsumer
+    ) throws Exception {
+        Objects.requireNonNull(file, "File must not be null.");
+
+        String boundary = createBoundary();
+        byte[] body = buildImageMultipartBody(boundary, file);
+
+        int chunkSize = 16384; // 16KB chunks
+        int numChunks = (body.length + chunkSize - 1) / chunkSize;
+        long sleepMs = numChunks > 0 ? Math.min(15, 1200 / numChunks) : 0;
+
+        HttpRequest.BodyPublisher progressPublisher = new HttpRequest.BodyPublisher() {
+            @Override
+            public long contentLength() {
+                return body.length;
+            }
+
+            @Override
+            public void subscribe(java.util.concurrent.Flow.Subscriber<? super java.nio.ByteBuffer> subscriber) {
+                subscriber.onSubscribe(new java.util.concurrent.Flow.Subscription() {
+                    private int offset = 0;
+                    private boolean cancelled = false;
+
+                    @Override
+                    public void request(long n) {
+                        if (cancelled) return;
+                        if (n <= 0) {
+                            subscriber.onError(new IllegalArgumentException("non-positive request"));
+                            return;
+                        }
+
+                        try {
+                            for (long i = 0; i < n && offset < body.length && !cancelled; i++) {
+                                int remaining = body.length - offset;
+                                int lengthToRead = Math.min(chunkSize, remaining);
+
+                                java.nio.ByteBuffer buffer = java.nio.ByteBuffer.wrap(body, offset, lengthToRead);
+                                offset += lengthToRead;
+
+                                if (progressConsumer != null) {
+                                    double pct = (double) offset / body.length;
+                                    progressConsumer.accept(pct);
+                                }
+
+                                subscriber.onNext(buffer);
+
+                                if (sleepMs > 0) {
+                                    Thread.sleep(sleepMs);
+                                }
+                            }
+
+                            if (offset >= body.length && !cancelled) {
+                                cancelled = true;
+                                subscriber.onComplete();
+                            }
+                        } catch (Exception e) {
+                            subscriber.onError(e);
+                        }
+                    }
+
+                    @Override
+                    public void cancel() {
+                        cancelled = true;
+                    }
+                });
+            }
+        };
+
+        HttpRequest request = requestBuilder(baseUrl, path)
+                .header(HEADER_CONTENT_TYPE, CONTENT_TYPE_MULTIPART_FORM_DATA + boundary)
+                .POST(progressPublisher)
+                .build();
+
+        return send(request);
+    }
+
     public static String encode(String value) {
         return URLEncoder.encode(value == null ? "" : value, StandardCharsets.UTF_8);
     }

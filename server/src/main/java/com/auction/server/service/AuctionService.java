@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.auction.server.dto.BidHistoryDTO;
 import com.auction.server.dto.BidResponse;
+import com.auction.server.dto.DeliveryInfoRequest;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.model.Bid;
@@ -59,6 +60,75 @@ public class AuctionService {
     }
 
     @Transactional
+    public void saveDeliveryInfo(Integer sessionId, Integer winnerId, DeliveryInfoRequest request) {
+        if (request == null || isBlank(request.getRecipientName()) || isBlank(request.getPhoneNumber())
+                || isBlank(request.getAddress())) {
+            throw new IllegalArgumentException("Recipient, phone number and address are required.");
+        }
+
+        AuctionSession session = auctionSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new IllegalArgumentException("Auction session not found."));
+        if (session.getStatus() != AuctionStatus.ENDED) {
+            throw new IllegalStateException("Delivery details can be submitted only after the auction has ended.");
+        }
+        if (winnerId == null || !winnerId.equals(session.getHighestBidderId())) {
+            throw new SecurityException("Only the auction winner can submit delivery information.");
+        }
+
+        session.setDeliveryRecipient(trimToLength(request.getRecipientName(), 150));
+        session.setDeliveryPhone(trimToLength(request.getPhoneNumber(), 30));
+        session.setDeliveryAddress(trimToLength(request.getAddress(), 500));
+        session.setDeliveryNote(trimToLength(request.getNote(), 500));
+        session.setDeliverySubmittedAt(LocalDateTime.now());
+        auctionSessionRepository.save(session);
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
+    }
+
+    private String trimToLength(String value, int maxLength) {
+        if (value == null) {
+            return "";
+        }
+        String trimmed = value.trim();
+        return trimmed.length() <= maxLength ? trimmed : trimmed.substring(0, maxLength);
+    }
+
+    private void finalizeWinnerDeduction(AuctionSession session) {
+        if (session.getHighestBidderId() != null && session.getCurrentPrice() != null) {
+            BigDecimal winningPrice = session.getCurrentPrice();
+
+            // Step 1: Deduct from winner's balance and release frozen balance
+            User winner = userRepository.findById(session.getHighestBidderId()).orElse(null);
+            if (winner != null) {
+                winner.setBalance(winner.getBalance().subtract(winningPrice));
+                winner.setFrozenBalance(winner.getFrozenBalance().subtract(winningPrice));
+                userRepository.save(winner);
+                logger.info("Finalized winning bid deduction of {} for Winner ID={}",
+                        winningPrice, winner.getId());
+            }
+
+            // Step 2: Credit seller's balance with the winning price
+            if (session.getSeller() != null) {
+                User seller = userRepository.findById(session.getSeller().getId()).orElse(null);
+                if (seller != null) {
+                    seller.setBalance(seller.getBalance().add(winningPrice));
+                    userRepository.save(seller);
+                    logger.info("Credited seller ID={} with winning amount {}",
+                            seller.getId(), winningPrice);
+                } else {
+                    logger.warn("Cannot credit seller: Seller ID={} not found in DB",
+                            session.getSeller().getId());
+                }
+            } else {
+                logger.warn("Cannot credit seller: Session ID={} has no seller assigned",
+                        session.getId());
+            }
+        }
+    }
+
+    @Transactional
     public boolean endSession(Integer sessionId) {
         Optional<AuctionSession> sessionOpt = auctionSessionRepository.findById(sessionId);
         if (sessionOpt.isPresent()) {
@@ -66,28 +136,30 @@ public class AuctionService {
             if (Boolean.TRUE.equals(session.getApplyMinRate()) && session.getMinRate() != null) {
                 if (session.getCurrentPrice() != null && session.getCurrentPrice().compareTo(session.getMinRate()) >= 0) {
                     session.setStatus(AuctionStatus.ENDED);
+                    finalizeWinnerDeduction(session);
                 } else {
                     session.setStatus(AuctionStatus.CANCELED);
                     logger.info("Session ID {} canceled because final price ({}) did not meet min rate ({})",
                             session.getId(), session.getCurrentPrice(), session.getMinRate());
 
-                    // ============ REFUND WHEN SESSION IS CANCELED ============
+                    // ============ RELEASE FROZEN BALANCE WHEN SESSION IS CANCELED ============
                     if (session.getHighestBidderId() != null) {
                         User topBidder = userRepository.findById(session.getHighestBidderId()).orElse(null);
                         if (topBidder != null && session.getCurrentPrice() != null) {
-                            topBidder.setBalance(topBidder.getBalance().add(session.getCurrentPrice()));
+                            topBidder.setFrozenBalance(topBidder.getFrozenBalance().subtract(session.getCurrentPrice()));
                             userRepository.save(topBidder);
-                            logger.info("Refunded {} to User ID={} due to CANCELED session",
+                            logger.info("Released frozen balance {} for User ID={} due to CANCELED session",
                                     session.getCurrentPrice(), topBidder.getId());
                         } else {
-                            logger.warn("Cannot refund: Top Bidder ID={} does not exist in DB",
+                            logger.warn("Cannot release frozen balance: Top Bidder ID={} does not exist in DB",
                                     session.getHighestBidderId());
                         }
                     }
-                    // =========================================================
+                    // =========================================================================
                 }
             } else {
                 session.setStatus(AuctionStatus.ENDED);
+                finalizeWinnerDeduction(session);
             }
             auctionSessionRepository.save(session);
             logger.info("Auction session ID: {} ended with status: {}", sessionId, session.getStatus());
@@ -167,17 +239,10 @@ public class AuctionService {
                 return new BidResponse(false, "Error: User account does not exist!", currentPrice, null, item.getHighestBidderId());
             }
 
-            // ============ HOLD BALANCE: Anti Joy-Bidding ============
-            // Step 1: Validate balance
-            logger.info("Validating balance for Bidder ID={}: balance={}", BidderId, bidder.getBalance());
-            if (bidder.getBalance().compareTo(newBidAmount) < 0) {
-                logger.warn("Bid failed: User ID={} has balance {} but needs {}",
-                        BidderId, bidder.getBalance(), newBidAmount);
-                return new BidResponse(false, "Insufficient balance to place this bid",
-                        currentPrice, null, item.getHighestBidderId());
-            }
+            Integer previousHighestBidderId = item.getHighestBidderId();
 
-            // Step 2: Find Old Top Bidder (current highest bidder)
+            // ============ HOLD BALANCE: Anti Joy-Bidding ============
+            // Step 1: Find Old Top Bidder (current highest bidder)
             User oldTopBidder = null;
             BigDecimal oldBidAmount = BigDecimal.ZERO;
             if (item.getHighestBidderId() != null) {
@@ -185,21 +250,32 @@ public class AuctionService {
                 oldBidAmount = currentPrice; // current price is the amount Old Top bid
             }
 
-            // Step 3: Deduct New Bidder's balance
+            // Step 2: Validate available balance
+            BigDecimal available = bidder.getAvailableBalance();
+            BigDecimal neededAmount = newBidAmount;
             if (oldTopBidder != null && oldTopBidder.getId().equals(BidderId)) {
-                // Same person re-bidding -> only deduct the difference
-                BigDecimal diff = newBidAmount.subtract(oldBidAmount);
-                bidder.setBalance(bidder.getBalance().subtract(diff));
-            } else {
-                bidder.setBalance(bidder.getBalance().subtract(newBidAmount));
+                neededAmount = newBidAmount.subtract(oldBidAmount);
             }
+
+            logger.info("Validating balance for Bidder ID={}: balance={}, frozen={}, available={}", 
+                    BidderId, bidder.getBalance(), bidder.getFrozenBalance(), available);
+
+            if (available.compareTo(neededAmount) < 0) {
+                logger.warn("Bid failed: User ID={} has available balance {} but needs {}",
+                        BidderId, available, neededAmount);
+                return new BidResponse(false, "Insufficient available balance to place this bid",
+                        currentPrice, null, item.getHighestBidderId());
+            }
+
+            // Step 3: Freeze New Bidder's balance
+            bidder.setFrozenBalance(bidder.getFrozenBalance().add(neededAmount));
             userRepository.save(bidder);
 
-            // Step 4: Refund Old Top Bidder (if different from New Bidder)
+            // Step 4: Release Old Top Bidder's frozen balance (if different from New Bidder)
             if (oldTopBidder != null && !oldTopBidder.getId().equals(BidderId)) {
-                oldTopBidder.setBalance(oldTopBidder.getBalance().add(oldBidAmount));
+                oldTopBidder.setFrozenBalance(oldTopBidder.getFrozenBalance().subtract(oldBidAmount));
                 userRepository.save(oldTopBidder);
-                logger.info("Refunded {} to Old Top Bidder ID={}", oldBidAmount, oldTopBidder.getId());
+                logger.info("Released frozen bid of {} for Old Top Bidder ID={}", oldBidAmount, oldTopBidder.getId());
             }
             // ========================================================
 
@@ -252,7 +328,8 @@ public class AuctionService {
                         BidderId,
                         bidCount,
                         time.toString(),
-                        bid.getId()
+                        bid.getId(),
+                        previousHighestBidderId
                 );
             }
             catch (Exception e) {
@@ -287,8 +364,9 @@ public class AuctionService {
         if (bidder == null) {
             throw new Exception("User account does not exist.");
         }
-        if (bidder.getBalance() == null || bidder.getBalance().compareTo(maxBid) < 0) {
-            throw new Exception("Your balance is insufficient to set this max bid. Please deposit more funds.");
+        BigDecimal available = bidder.getAvailableBalance();
+        if (available.compareTo(maxBid) < 0) {
+            throw new Exception("Your available balance is insufficient to set this max bid. Please deposit more funds.");
         }
 
         Optional<com.auction.server.model.AutoBidConfig> existing =
@@ -422,15 +500,7 @@ public class AuctionService {
             return null;
         }
 
-        // ============ HOLD BALANCE: Auto-bid Anti Joy-Bidding ============
-        // Validate auto-bidder balance
-        if (bidder.getBalance().compareTo(newPrice) < 0) {
-            logger.warn("AUTO-BID: User ID={} insufficient balance ({}) for auto-bid ({})",
-                    winner.getBidderId(), bidder.getBalance(), newPrice);
-            winner.setActive(false);
-            autoBidConfigRepository.save(winner);
-            return null;
-        }
+        Integer previousHighestBidderId = session.getHighestBidderId();
 
         // Find Old Top Bidder
         User oldTopBidder = null;
@@ -440,21 +510,31 @@ public class AuctionService {
             oldBidAmount = previousPrice;
         }
 
-        // Deduct auto-bidder balance
+        // ============ HOLD BALANCE: Auto-bid Anti Joy-Bidding ============
+        // Validate auto-bidder available balance
+        BigDecimal available = bidder.getAvailableBalance();
+        BigDecimal neededAmount = newPrice;
         if (oldTopBidder != null && oldTopBidder.getId().equals(winner.getBidderId())) {
-            // Same person -> only deduct difference
-            BigDecimal diff = newPrice.subtract(oldBidAmount);
-            bidder.setBalance(bidder.getBalance().subtract(diff));
-        } else {
-            bidder.setBalance(bidder.getBalance().subtract(newPrice));
+            neededAmount = newPrice.subtract(oldBidAmount);
         }
+
+        if (available.compareTo(neededAmount) < 0) {
+            logger.warn("AUTO-BID: User ID={} insufficient available balance ({}) for auto-bid needed ({})",
+                    winner.getBidderId(), available, neededAmount);
+            winner.setActive(false);
+            autoBidConfigRepository.save(winner);
+            return null;
+        }
+
+        // Freeze auto-bidder balance (add to frozenBalance)
+        bidder.setFrozenBalance(bidder.getFrozenBalance().add(neededAmount));
         userRepository.save(bidder);
 
-        // Refund Old Top Bidder (if different from auto-bidder)
+        // Release Old Top Bidder's frozen balance (if different from auto-bidder)
         if (oldTopBidder != null && !oldTopBidder.getId().equals(winner.getBidderId())) {
-            oldTopBidder.setBalance(oldTopBidder.getBalance().add(oldBidAmount));
+            oldTopBidder.setFrozenBalance(oldTopBidder.getFrozenBalance().subtract(oldBidAmount));
             userRepository.save(oldTopBidder);
-            logger.info("AUTO-BID: Refunded {} to Old Top Bidder ID={}", oldBidAmount, oldTopBidder.getId());
+            logger.info("AUTO-BID: Released frozen bid of {} for Old Top Bidder ID={}", oldBidAmount, oldTopBidder.getId());
         }
         // ==================================================================
 
@@ -510,7 +590,8 @@ public class AuctionService {
                     winner.getBidderId(),
                     bidCount,
                     time.toString(),
-                    bid.getId()
+                    bid.getId(),
+                    previousHighestBidderId
             );
         } catch (Exception e) {
             logger.error("AUTO-BID: Error saving to DB", e);

@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -87,6 +88,10 @@ public class SellerService {
 
         return findSessionsBySellerAndStatus(sellerId, status)
                 .stream()
+                .sorted(Comparator
+                        .comparing(AuctionSession::getStartTime, Comparator.nullsLast(Comparator.naturalOrder()))
+                        .reversed()
+                        .thenComparing(AuctionSession::getId, Comparator.nullsLast(Comparator.reverseOrder())))
                 .map(SessionResponseMapper::toDTO)
                 .toList();
     }

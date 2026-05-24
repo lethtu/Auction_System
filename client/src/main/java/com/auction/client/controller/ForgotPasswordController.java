@@ -54,8 +54,8 @@ public class ForgotPasswordController {
                         stepReset.setManaged(true);
                         
                         if (lblStep1 != null && lblStep2 != null) {
-                            lblStep1.setStyle("-fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-text-fill: #907898;");
-                            lblStep2.setStyle("-fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-text-fill: #e040a0;");
+                            lblStep1.setStyle("-fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-text-fill: -app-text-muted;");
+                            lblStep2.setStyle("-fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-text-fill: -fx-accent;");
                         }
                         
                         showAlert(Alert.AlertType.INFORMATION, "Success", rq.getString("message"));
@@ -142,11 +142,11 @@ public class ForgotPasswordController {
     }
 
     private void showAlert(Alert.AlertType type, String title, String content) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
+        if (!Platform.isFxApplicationThread()) {
+            Platform.runLater(() -> showAlert(type, title, content));
+            return;
+        }
+        com.auction.client.util.AlertUtil.show(type, title, content);
     }
 
     @FXML

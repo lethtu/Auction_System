@@ -65,11 +65,11 @@ public class NotificationCenterController {
     }
 
     private String getActiveTabStyle() {
-        return "-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;";
+        return "-fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;";
     }
     
     private String getInactiveTabStyle() {
-        return "-fx-background-color: #f2e8f2; -fx-text-fill: #604868; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;";
+        return "-fx-background-color: -app-surface-2;  -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;";
     }
 
     private void renderList() {
@@ -77,7 +77,7 @@ public class NotificationCenterController {
         
         List<AppNotification> filtered = service.getNotifications().stream().filter(n -> {
             if ("UNREAD".equals(currentFilter)) return !n.isRead();
-            if ("AUCTION".equals(currentFilter)) return n.getType() == NotificationType.NEW_BID || n.getType() == NotificationType.OUTBID || n.getType() == NotificationType.BID_SUCCESS || n.getType() == NotificationType.AUCTION_END_WIN || n.getType() == NotificationType.AUCTION_END_LOSE;
+            if ("AUCTION".equals(currentFilter)) return n.getType() == NotificationType.NEW_BID || n.getType() == NotificationType.OUTBID || n.getType() == NotificationType.BID_SUCCESS || n.getType() == NotificationType.AUCTION_END_WIN || n.getType() == NotificationType.AUCTION_END_LOSE || n.getType() == NotificationType.AUCTION_WON || n.getType() == NotificationType.AUCTION_LOST;
             if ("SYSTEM".equals(currentFilter)) return n.getType() == NotificationType.SYSTEM_ERROR;
             return true;
         }).collect(Collectors.toList());
@@ -89,7 +89,7 @@ public class NotificationCenterController {
             Label icon = new Label("notifications_off");
             icon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 48px; -fx-text-fill: #dcc8e0;");
             Label msg = new Label("No notifications here");
-            msg.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #907898;");
+            msg.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: bold; ");
             emptyState.getChildren().addAll(icon, msg);
             listContainer.getChildren().add(emptyState);
             return;
@@ -103,30 +103,43 @@ public class NotificationCenterController {
     private HBox createNotificationCard(AppNotification n) {
         HBox card = new HBox(15);
         card.setAlignment(Pos.CENTER_LEFT);
-        String bgColor = n.isRead() ? "#ffffff" : "#fff0f8";
-        card.setStyle("-fx-background-color: " + bgColor + "; -fx-background-radius: 12; -fx-border-color: #f2e8f2; -fx-border-radius: 12; -fx-padding: 15;");
+        String bgColor = n.isRead() ? "-app-card" : "-app-accent-opacity-08";
+        card.setStyle("-fx-background-color: " + bgColor + "; -fx-background-radius: 12;  -fx-border-radius: 12; -fx-padding: 15;");
         
-        card.setOnMouseEntered(e -> card.setStyle("-fx-background-color: #fbf2fb; -fx-background-radius: 12; -fx-border-color: #f2e8f2; -fx-border-radius: 12; -fx-padding: 15; -fx-cursor: hand;"));
-        card.setOnMouseExited(e -> card.setStyle("-fx-background-color: " + (n.isRead() ? "#ffffff" : "#fff0f8") + "; -fx-background-radius: 12; -fx-border-color: #f2e8f2; -fx-border-radius: 12; -fx-padding: 15;"));
+        card.setOnMouseEntered(e -> card.setStyle("-fx-background-color: -app-accent-opacity-12; -fx-background-radius: 12;  -fx-border-radius: 12; -fx-padding: 15; -fx-cursor: hand;"));
+        card.setOnMouseExited(e -> card.setStyle("-fx-background-color: " + (n.isRead() ? "-app-card" : "-app-accent-opacity-08") + "; -fx-background-radius: 12;  -fx-border-radius: 12; -fx-padding: 15;"));
         card.setOnMouseClicked(e -> {
             service.markAsRead(n.getId());
         });
 
         Label icon = new Label(getIconForType(n.getType()));
-        icon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px; -fx-text-fill: " + getColorForSeverity(n.getSeverity()) + "; -fx-background-color: #fef7ff; -fx-background-radius: 50%; -fx-padding: 10;");
+        icon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px; -fx-text-fill: " + getColorForSeverity(n.getSeverity()) + "; -fx-background-color: -app-surface-2; -fx-background-radius: 50%; -fx-padding: 10;");
 
         VBox textCol = new VBox(5);
         HBox.setHgrow(textCol, Priority.ALWAYS);
         Label title = new Label(n.getTitle());
-        title.setStyle("-fx-font-family: 'DM Sans'; -fx-font-weight: " + (n.isRead() ? "bold" : "900") + "; -fx-font-size: 15px; -fx-text-fill: #2e1a28;");
+        title.setStyle("-fx-font-family: 'DM Sans'; -fx-font-weight: " + (n.isRead() ? "bold" : "900") + "; -fx-font-size: 15px; ");
         Label message = new Label(n.getMessage());
-        message.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-text-fill: #604868;");
+        message.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 13px; ");
         message.setWrapText(true);
         Label time = new Label(n.getCreatedAt().format(DateTimeFormatter.ofPattern("HH:mm · dd/MM/yyyy")));
-        time.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-text-fill: #907898;");
+        time.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 11px; ");
         textCol.getChildren().addAll(title, message, time);
 
-        Circle unreadDot = new Circle(4, Color.web("#e040a0"));
+        if (n.hasAction()) {
+            Button actionButton = new Button(n.getActionLabel());
+            actionButton.setStyle("-fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-family: 'DM Sans';"
+                    + "-fx-font-size: 12px; -fx-font-weight: 900; -fx-background-radius: 999px;"
+                    + "-fx-padding: 7px 14px; -fx-cursor: hand;");
+            actionButton.setOnAction(event -> {
+                event.consume();
+                service.markAsRead(n.getId());
+                n.getAction().run();
+            });
+            textCol.getChildren().add(actionButton);
+        }
+
+        Circle unreadDot = new Circle(4, Color.valueOf(com.auction.client.service.AppStyleManager.getAccentColorHex()));
         unreadDot.setVisible(!n.isRead());
 
         card.getChildren().addAll(icon, textCol, unreadDot);
@@ -141,7 +154,9 @@ public class NotificationCenterController {
             case BID_FAILED: return "error";
             case AUCTION_EXTENDED: return "timer";
             case AUCTION_END_WIN: return "emoji_events";
+            case AUCTION_WON: return "local_shipping";
             case AUCTION_END_LOSE: return "sentiment_dissatisfied";
+            case AUCTION_LOST: return "sentiment_dissatisfied";
             case AUTO_BID_CONFIGURED: return "bolt";
             case SYSTEM_ERROR: return "warning";
             default: return "notifications";
@@ -154,7 +169,7 @@ public class NotificationCenterController {
             case WARNING: return "#eab308";
             case DANGER: return "#e53e3e";
             case INFO:
-            default: return "#e040a0";
+            default: return "-fx-accent";
         }
     }
 

@@ -13,6 +13,10 @@ public class BiddingController {
     @Autowired
     private AuctionService auctionService;
 
+    public AuctionService getAuctionService() {
+        return this.auctionService;
+    }
+
     public void setAuctionService(AuctionService auctionService) {
         this.auctionService = auctionService;
     }

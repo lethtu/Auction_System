@@ -221,7 +221,7 @@ public class SidebarController {
                     if (tooltipText != null && !tooltipText.isEmpty()) {
                         Tooltip tooltip = new Tooltip(tooltipText);
                         tooltip.setStyle(
-                                "-fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 6px 12px; -fx-font-size: 13px;");
+                                "-fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 6px 12px; -fx-font-size: 13px;");
 
                         PauseTransition pause = new PauseTransition(Duration.millis(300));
                         pause.setOnFinished(e -> {
@@ -252,7 +252,7 @@ public class SidebarController {
                     }
                     if (btn == btnStartSelling) {
                         btn.setStyle(
-                                "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 22px; -fx-padding: 0px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.3), 16, 0, 0, 4);");
+                                "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 22px; -fx-padding: 0px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-30, 16, 0, 0, 4);");
                     }
                 } else if (node instanceof Label) {
                     node.setVisible(false);
@@ -302,7 +302,7 @@ public class SidebarController {
                 btn.setAlignment(Pos.CENTER_LEFT);
                 if (btn == btnStartSelling) {
                     btn.setStyle(
-                            "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: #e040a0; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 0 12px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.3), 16, 0, 0, 4);");
+                            "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 0 12px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-30, 16, 0, 0, 4);");
                 }
             } else if (node instanceof Label) {
                 node.setVisible(true);
@@ -350,8 +350,8 @@ public class SidebarController {
         if (button == null)
             return;
 
-        String textColor = active ? "#e040a0" : "#604868";
-        String backgroundColor = active ? "rgba(224, 64, 160, 0.15)" : "transparent";
+        String textColor = active ? "-fx-accent" : "-app-text-muted";
+        String backgroundColor = active ? "-app-accent-opacity-16" : "transparent";
         String padding = isSidebarCollapsed ? "0px" : "7px 16px";
         String radius = isSidebarCollapsed ? "22px" : "20px";
 
@@ -394,10 +394,28 @@ public class SidebarController {
         }
     }
 
+    private boolean checkLogin(ActionEvent event) {
+        if (User.getId() == null) {
+            AlertUtil.showError("Access Denied", "Please log in to use this feature.");
+            try {
+                if (onBeforeNavigate != null)
+                    onBeforeNavigate.run();
+                SceneSwitcher.switchScene(event, "Login.fxml", 1100, 700);
+            } catch (IOException e) {
+                logger.error("Error switching to Login screen!", e);
+            }
+            return false;
+        }
+        return true;
+    }
+
     @FXML
     public void handleWatchlist(ActionEvent event) {
         autoCollapse();
         setActiveWatchlist();
+        if (!checkLogin(event)) {
+            return;
+        }
         if (listener != null) {
             listener.onFilterWatchlist(event);
         } else {
@@ -416,6 +434,9 @@ public class SidebarController {
     @FXML
     public void handleStartSelling(ActionEvent event) {
         autoCollapse();
+        if (!checkLogin(event)) {
+            return;
+        }
         try {
             if (onBeforeNavigate != null)
                 onBeforeNavigate.run();
@@ -429,6 +450,9 @@ public class SidebarController {
     public void handleMyBids(ActionEvent event) {
         autoCollapse();
         setActiveMyBids();
+        if (!checkLogin(event)) {
+            return;
+        }
         try {
             Stage stage = resolveStage(event);
             int currentWidth = stage == null ? APP_WIDTH : Math.max(APP_WIDTH, (int) Math.round(stage.getWidth()));
@@ -447,6 +471,9 @@ public class SidebarController {
     public void handleSelling(ActionEvent event) {
         autoCollapse();
         setActiveSelling();
+        if (!checkLogin(event)) {
+            return;
+        }
         try {
             Stage stage = resolveStage(event);
             int currentWidth = stage == null ? APP_WIDTH : Math.max(APP_WIDTH, (int) Math.round(stage.getWidth()));
@@ -483,6 +510,9 @@ public class SidebarController {
     public void handleSettings(ActionEvent event) {
         autoCollapse();
         setActiveSettings();
+        if (!checkLogin(event)) {
+            return;
+        }
         try {
             Stage stage = resolveStage(event);
             int currentWidth = stage == null ? APP_WIDTH : Math.max(APP_WIDTH, (int) Math.round(stage.getWidth()));

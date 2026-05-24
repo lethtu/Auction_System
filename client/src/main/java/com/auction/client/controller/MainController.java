@@ -17,6 +17,7 @@ import com.auction.client.model.notification.AppNotification;
 import com.auction.client.model.notification.NotificationType;
 import com.auction.client.model.notification.NotificationSeverity;
 import com.auction.client.service.NotificationCenterService;
+import com.auction.client.util.ShippingInfoDialog;
 import javafx.geometry.Pos;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -35,15 +36,13 @@ import javafx.util.Duration;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import com.auction.client.model.User;
+import com.auction.client.service.NotificationSocketService;
 
-import java.io.BufferedReader;
 import com.auction.client.service.ClientLogger;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.math.BigDecimal;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.Socket;
 import java.net.URI;
 import java.net.URL;
 import java.net.http.HttpClient;
@@ -56,6 +55,7 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -148,8 +148,16 @@ public class MainController implements Initializable {
 
     // Executor cho Polling
     private ScheduledExecutorService pollingScheduler;
+    private final ExecutorService backgroundExecutor = Executors.newFixedThreadPool(
+            Math.max(2, Math.min(4, Runtime.getRuntime().availableProcessors())),
+            runnable -> {
+                Thread thread = new Thread(runnable, "main-controller-worker");
+                thread.setDaemon(true);
+                return thread;
+            });
     private final List<Integer> currentRenderedIds = new ArrayList<>();
     private final Map<Integer, JSONObject> lastSnapshot = new ConcurrentHashMap<>();
+    private NotificationSocketService.SocketEventListener globalSocketListener;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -286,26 +294,27 @@ public class MainController implements Initializable {
         final double cardWidth = 240.0;
         final double hgap = 28.0;
         final int maxColumns = 8;
+        final double paddingOffset = 24.0; // 12px left + 12px right padding
 
-        int columns = Math.max(1, Math.min(maxColumns, (int) Math.floor((viewportWidth + hgap) / (cardWidth + hgap))));
+        int columns = Math.max(1, Math.min(maxColumns, (int) Math.floor((viewportWidth - paddingOffset + hgap) / (cardWidth + hgap))));
         double gridWidth = columns * cardWidth + Math.max(0, columns - 1) * hgap;
 
         boolean emptyState = productContainer.getChildren().stream()
                 .anyMatch(node -> node.getStyleClass().contains("empty-state-card"));
 
         productContainer.setAlignment(emptyState ? Pos.CENTER : Pos.TOP_LEFT);
-        productContainer.setPrefWrapLength(gridWidth);
-        productContainer.setMinWidth(gridWidth);
-        productContainer.setPrefWidth(gridWidth);
-        productContainer.setMaxWidth(gridWidth);
+        productContainer.setPrefWrapLength(gridWidth + paddingOffset);
+        productContainer.setMinWidth(gridWidth + paddingOffset);
+        productContainer.setPrefWidth(gridWidth + paddingOffset);
+        productContainer.setMaxWidth(gridWidth + paddingOffset);
         productContainer.setHgap(hgap);
         productContainer.setVgap(28.0);
-        productContainer.setPadding(new Insets(10.0, 0.0, 24.0, 0.0));
+        productContainer.setPadding(new Insets(10.0, 12.0, 24.0, 12.0));
     }
 
     private void startPolling() {
-        pollingScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread t = new Thread(r);
+        pollingScheduler = Executors.newScheduledThreadPool(2, r -> {
+            Thread t = new Thread(r, "main-controller-poll");
             t.setDaemon(true); // Ensure thread stops when app closes
             return t;
         });
@@ -367,13 +376,39 @@ public class MainController implements Initializable {
                                     if (!"ENDED".equalsIgnoreCase(oldStatus) && !oldStatus.equals(newStatus)
                                             && ("ENDED".equalsIgnoreCase(newStatus)
                                                     || "FINISHED".equalsIgnoreCase(newStatus))) {
-                                        AppNotification notif = new AppNotification(NotificationType.AUCTION_END_LOSE,
-                                                NotificationSeverity.INFO,
-                                                "Auction ended", "Product " + name + " has ended.");
+                                        boolean isWinner = User.getId() != null
+                                                && User.getId().equals(newObj.optInt("highestBidderId", -1));
+                                        AppNotification notif = isWinner
+                                                ? new AppNotification(NotificationType.AUCTION_WON,
+                                                        NotificationSeverity.SUCCESS,
+                                                        "You won!",
+                                                        "Please enter delivery information for " + name + ".")
+                                                : new AppNotification(NotificationType.AUCTION_END_LOSE,
+                                                        NotificationSeverity.INFO,
+                                                        "Auction ended", "Product " + name + " has ended.");
                                         notif.setAuctionId(auctionId);
                                         notif.setItemName(name);
+                                        if (isWinner) {
+                                            notif.setActionLabel("Enter delivery info");
+                                            notif.setAction(() -> ShippingInfoDialog.show(auctionId, name));
+                                        }
                                         NotificationCenterService.getInstance().addNotification(notif);
                                     }
+                                } else if (!"ENDED".equalsIgnoreCase(oldStatus) && !oldStatus.equals(newStatus)
+                                        && ("ENDED".equalsIgnoreCase(newStatus)
+                                                || "FINISHED".equalsIgnoreCase(newStatus))
+                                        && User.getId() != null
+                                        && User.getId().equals(newObj.optInt("highestBidderId", -1))) {
+                                    String name = getItemObject(newObj).optString("name", "your winning item");
+                                    AppNotification notif = new AppNotification(NotificationType.AUCTION_WON,
+                                            NotificationSeverity.SUCCESS,
+                                            "You won!",
+                                            "Please enter delivery information for " + name + ".");
+                                    notif.setAuctionId(auctionId);
+                                    notif.setItemName(name);
+                                    notif.setActionLabel("Enter delivery info");
+                                    notif.setAction(() -> ShippingInfoDialog.show(auctionId, name));
+                                    NotificationCenterService.getInstance().addNotification(notif);
                                 }
                             }
                             lastSnapshot.put(auctionId, newObj);
@@ -411,7 +446,7 @@ public class MainController implements Initializable {
         if (pollingScheduler != null && !pollingScheduler.isShutdown()) {
             pollingScheduler.execute(this::fetchProductsData);
         } else {
-            new Thread(this::fetchProductsData).start();
+            backgroundExecutor.execute(this::fetchProductsData);
         }
     }
 
@@ -445,18 +480,18 @@ public class MainController implements Initializable {
 
         Label iconLabel = new Label(showingWatchlistOnly ? "♡" : "∅");
         iconLabel.setStyle(
-                "-fx-font-family: 'DM Sans'; -fx-font-size: 54px; -fx-font-weight: 900; -fx-text-fill: #e040a0; -fx-opacity: 0.72;");
+                "-fx-font-family: 'DM Sans'; -fx-font-size: 54px; -fx-font-weight: 900; -fx-text-fill: -fx-accent; -fx-opacity: 0.72;");
 
         Label titleLabel = new Label(getEmptyStateTitle());
         titleLabel.setStyle(
-                "-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
+                "-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: 900; -fx-text-fill: -app-text;");
 
         Label msgLabel = new Label(message == null || message.isBlank() ? getEmptyStateMessage() : message);
         msgLabel.setWrapText(true);
         msgLabel.setMaxWidth(520);
         msgLabel.setAlignment(Pos.CENTER);
         msgLabel.setStyle(
-                "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #604868; -fx-text-alignment: center;");
+                "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: -app-text-muted; -fx-text-alignment: center;");
 
         emptyBox.getChildren().addAll(iconLabel, titleLabel, msgLabel);
         return emptyBox;
@@ -490,9 +525,9 @@ public class MainController implements Initializable {
         lblPageTitle.setManaged(true);
         lblPageTitle.setOpacity(1.0);
         lblPageTitle.setText(title);
-        lblPageTitle.setTextFill(Color.web("#e040a0"));
+        lblPageTitle.setTextFill(Color.web(com.auction.client.service.AppStyleManager.getAccentColorHex()));
         lblPageTitle.setStyle(
-                "-fx-font-family: 'DM Sans'; -fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: #e040a0;");
+                "-fx-font-family: 'DM Sans'; -fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: -fx-accent;");
     }
 
     private void filterAndRenderProducts() {
@@ -564,6 +599,47 @@ public class MainController implements Initializable {
                 filtered.add(sessionObj);
             }
         }
+
+        // Sort: Active products first, then ended products. Within each group, sort by start time descending.
+        Map<JSONObject, Boolean> isEndedMap = new HashMap<>();
+        Map<JSONObject, LocalDateTime> startTimeMap = new HashMap<>();
+
+        for (JSONObject sessionObj : filtered) {
+            JSONObject itemObj = getItemObject(sessionObj);
+            int sessionId = sessionObj.optInt("id", -1);
+            String rawStatus = sessionObj.optString("status", "");
+            String itemName = itemObj.optString("name", sessionObj.optString("productName", ""));
+            String startTimeRaw = getRawTimeField(sessionObj, itemObj, "startTime", "start_time", "auctionStartTime");
+            String endTimeRaw = getRawTimeField(sessionObj, itemObj, "endTime", "end_time", "auctionEndTime", "endDate", "endDateTime");
+
+            LocalDateTime startDT = parseDateTime(startTimeRaw, sessionId, itemName, rawStatus, "startTime");
+            LocalDateTime endDT = parseDateTime(endTimeRaw, sessionId, itemName, rawStatus, "endTime");
+            String normalizedStatus = normalizeStatus(rawStatus, startDT, endDT);
+
+            boolean isEnded = "ENDED".equals(normalizedStatus) || "CLOSED".equals(normalizedStatus);
+            isEndedMap.put(sessionObj, isEnded);
+            startTimeMap.put(sessionObj, startDT);
+        }
+
+        filtered.sort((a, b) -> {
+            boolean isEndedA = isEndedMap.getOrDefault(a, false);
+            boolean isEndedB = isEndedMap.getOrDefault(b, false);
+
+            if (isEndedA != isEndedB) {
+                return isEndedA ? 1 : -1;
+            }
+
+            LocalDateTime startA = startTimeMap.get(a);
+            LocalDateTime startB = startTimeMap.get(b);
+
+            if (startA == null && startB == null) {
+                return Integer.compare(b.optInt("id", -1), a.optInt("id", -1));
+            }
+            if (startA == null) return 1;
+            if (startB == null) return -1;
+
+            return startB.compareTo(startA);
+        });
 
         stopCountdownTimeline();
         productContainer.getChildren().clear();
@@ -841,7 +917,7 @@ public class MainController implements Initializable {
                 "ProductCard id={}, name={}, rawStatus={}, startTimeRaw={}, endTimeRaw={}, normalizedStatus={}, bidEnabled={}",
                 id, name, rawStatus, startTimeRaw, endTimeRaw, normalizedStatus, bidEnabled);
 
-        String imagePath = itemObj.optString("imagePath", "default.png");
+        String imagePath = itemObj.optString("imagePath", itemObj.optString("imageUrl", ""));
 
         VBox vbox = new VBox();
         vbox.setSpacing(4.0);
@@ -851,12 +927,22 @@ public class MainController implements Initializable {
         vbox.setPrefHeight(360.0);
         vbox.setMinHeight(360.0);
         vbox.setStyle(
-                "-fx-border-color: #ffe8e8; -fx-border-width: 2px; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-padding: 16px; -fx-background-color: #ffffff; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.05), 10, 0, 0, 2);");
+                "-fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-padding: 16px; -fx-background-color: -app-card; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-05, 10, 0, 0, 2);");
+
+        // Interactive hover scaling and drop shadow micro-animation
+        vbox.setOnMouseEntered(e -> {
+            vbox.setStyle(
+                    "-fx-border-color: -fx-accent; -fx-border-width: 2px; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-padding: 16px; -fx-background-color: -app-card; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-15, 15, 0, 0, 4); -fx-scale-x: 1.02; -fx-scale-y: 1.02; -fx-cursor: hand;");
+        });
+        vbox.setOnMouseExited(e -> {
+            vbox.setStyle(
+                    "-fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 20px; -fx-background-radius: 20px; -fx-padding: 16px; -fx-background-color: -app-card; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-05, 10, 0, 0, 2); -fx-scale-x: 1.0; -fx-scale-y: 1.0;");
+        });
 
         StackPane imageWrapper = new StackPane();
         imageWrapper.setPrefHeight(192.0);
         imageWrapper.setStyle(
-                "-fx-background-radius: 12px; -fx-border-radius: 12px; -fx-border-color: #f2e8f2; -fx-border-width: 1px;");
+                "-fx-background-radius: 12px; -fx-border-radius: 12px; -fx-border-color: -app-border; -fx-border-width: 1px;");
 
         ImageView imageView = new ImageView();
         imageView.setFitHeight(192.0);
@@ -864,9 +950,13 @@ public class MainController implements Initializable {
         imageView.setPreserveRatio(true);
         imageView.setSmooth(true);
 
-        Label imageStatusLabel = new Label("No Image");
-        imageStatusLabel.setAlignment(Pos.CENTER);
-        imageStatusLabel.setStyle("-fx-text-fill: #adb5bd;");
+        VBox placeholderBox = new VBox(6);
+        placeholderBox.setAlignment(Pos.CENTER);
+        Label placeholderIcon = new Label("\uE3F4");
+        placeholderIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 32px; -fx-text-fill: -app-text-muted;");
+        Label placeholderText = new Label("No Image");
+        placeholderText.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -app-text-muted;");
+        placeholderBox.getChildren().addAll(placeholderIcon, placeholderText);
 
         String imageUrl = buildImageUrl(imagePath);
         if (!imageUrl.isBlank()) {
@@ -881,14 +971,14 @@ public class MainController implements Initializable {
                 if (isError) {
                     Platform.runLater(() -> {
                         imageWrapper.getChildren().remove(imageView);
-                        if (!imageWrapper.getChildren().contains(imageStatusLabel)) {
-                            imageWrapper.getChildren().add(0, imageStatusLabel);
+                        if (!imageWrapper.getChildren().contains(placeholderBox)) {
+                            imageWrapper.getChildren().add(0, placeholderBox);
                         }
                     });
                 }
             });
         } else {
-            imageWrapper.getChildren().add(imageStatusLabel);
+            imageWrapper.getChildren().add(placeholderBox);
         }
 
         if ("ENDED".equals(normalizedStatus) || "CLOSED".equals(normalizedStatus)) {
@@ -936,8 +1026,8 @@ public class MainController implements Initializable {
         } else if ("RUNNING".equals(normalizedStatus)) {
             timerBadge.setStyle(
                     "-fx-background-color: rgba(255, 255, 255, 0.9); -fx-background-radius: 15px; -fx-padding: 4px 8px;");
-            timerIcon.setStyle("-fx-text-fill: #e040a0; -fx-font-size: 14px;");
-            timerText.setStyle("-fx-font-weight: 900; -fx-font-size: 11px; -fx-text-fill: #e040a0;");
+            timerIcon.setStyle("-fx-text-fill: -fx-accent; -fx-font-size: 14px;");
+            timerText.setStyle("-fx-font-weight: 900; -fx-font-size: 11px; -fx-text-fill: -fx-accent;");
 
             // Calculate remaining time immediately on creation
             String displayRemaining = "Ongoing";
@@ -997,13 +1087,13 @@ public class MainController implements Initializable {
         }
 
         Label nameLabel = new Label(name);
-        nameLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 16px; -fx-text-fill: #2e1a28;");
+        nameLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 16px; -fx-text-fill: -app-text;");
         nameLabel.setWrapText(true);
         nameLabel.setMaxHeight(24.0);
         VBox.setMargin(nameLabel, new Insets(8, 0, 0, 0));
 
         Label categoryLabel = new Label(type);
-        categoryLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #604868;");
+        categoryLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: -app-text-muted;");
 
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
@@ -1013,10 +1103,10 @@ public class MainController implements Initializable {
 
         VBox priceBox = new VBox(0);
         Label lblCurrentBid = new Label("CURRENT BID");
-        lblCurrentBid.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #907898;");
+        lblCurrentBid.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: -app-text-muted;");
         Label priceLabel = new Label("₫ " + formatPrice(currentPrice));
         priceLabel.setId("priceLabel_" + id); // Set ID for fast updating
-        priceLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 18px; -fx-text-fill: #e040a0;");
+        priceLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 18px; -fx-text-fill: -fx-accent;");
         priceBox.getChildren().addAll(lblCurrentBid, priceLabel);
 
         Region hSpacer = new Region();
@@ -1046,13 +1136,13 @@ public class MainController implements Initializable {
         mainBtn.setPadding(Insets.EMPTY);
         mainBtn.setAlignment(Pos.CENTER);
         mainBtn.setStyle(
-                "-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
+                "-fx-background-color: -fx-accent; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
         Tooltip.install(mainBtn, new Tooltip("Options"));
 
         Button btnWatch = new Button();
         Label watchIcon = new Label(User.watchlistIds.contains(id) ? "\uE87D" : "\uE87E"); // heart filled or outline
-        watchIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: "
-                + (User.watchlistIds.contains(id) ? "#e040a0" : "#604868") + ";");
+        watchIcon.setStyle("-fx-font-family: 'Material Icons'; -fx-font-size: 20px; -fx-text-fill: "
+                + (User.watchlistIds.contains(id) ? "-fx-accent" : "-app-text-muted") + ";");
         watchIcon.setAlignment(Pos.CENTER);
         watchIcon.setMinSize(44.0, 44.0);
         watchIcon.setPrefSize(44.0, 44.0);
@@ -1066,7 +1156,7 @@ public class MainController implements Initializable {
         btnWatch.setPadding(Insets.EMPTY);
         btnWatch.setAlignment(Pos.CENTER);
         btnWatch.setStyle(
-                "-fx-background-color: #f2e8f2; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
+                "-fx-background-color: -app-surface-2; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
         Tooltip.install(btnWatch, new Tooltip(User.watchlistIds.contains(id) ? "Favorited" : "Add to favorites"));
 
         Button btnBid = new Button();
@@ -1086,7 +1176,7 @@ public class MainController implements Initializable {
         btnBid.setPadding(Insets.EMPTY);
         btnBid.setAlignment(Pos.CENTER);
         btnBid.setStyle(
-                "-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224,64,160,0.3), 8, 0, 0, 2);");
+                "-fx-background-color: -fx-accent; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-30, 8, 0, 0, 2);");
         Tooltip.install(btnBid, new Tooltip("Bid Now"));
 
         btnWatch.setVisible(false);
@@ -1108,18 +1198,18 @@ public class MainController implements Initializable {
             btnWatch.setOnAction(event -> {
                 event.consume();
                 if (User.getId() == null) {
-                    Alert alert = new Alert(Alert.AlertType.WARNING);
-                    alert.setTitle("Login Required");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Please log in to use the Favorites feature!");
-                    alert.show();
+                    com.auction.client.util.AlertUtil.show(
+                            Alert.AlertType.WARNING,
+                            "Login Required",
+                            "Please log in to use the Favorites feature!"
+                    );
                     return;
                 }
                 if (User.watchlistIds.contains(id)) {
                     User.watchlistIds.remove(id);
                     watchIcon.setText("\uE87E");
                     watchIcon.setStyle(
-                            "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #604868;");
+                            "-fx-font-family: 'Material Icons'; -fx-font-size: 20px; -fx-text-fill: -app-text-muted;");
                     watchIcon.setTranslateY(1.5);
                     Tooltip.install(btnWatch, new Tooltip("Add to favorites"));
                     ClientLogger.logFavorite(User.getUsername(), name, id, false);
@@ -1127,7 +1217,7 @@ public class MainController implements Initializable {
                     User.watchlistIds.add(id);
                     watchIcon.setText("\uE87D");
                     watchIcon.setStyle(
-                            "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #e040a0;");
+                            "-fx-font-family: 'Material Icons'; -fx-font-size: 20px; -fx-text-fill: -fx-accent;");
                     watchIcon.setTranslateY(1.5);
                     Tooltip.install(btnWatch, new Tooltip("Favorited"));
                     ClientLogger.logFavorite(User.getUsername(), name, id, true);
@@ -1175,7 +1265,7 @@ public class MainController implements Initializable {
             if ("UPCOMING".equals(normalizedStatus)) {
                 mainPlusIcon.setTextFill(Color.web("#ffffff"));
                 mainBtn.setStyle(
-                        "-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
+                        "-fx-background-color: -fx-accent; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
                 Tooltip.install(mainBtn, new Tooltip("View details"));
                 mainBtn.setDisable(false);
                 mainBtn.setOnAction(e -> {
@@ -1185,7 +1275,7 @@ public class MainController implements Initializable {
             } else if ("ENDED".equals(normalizedStatus)) {
                 mainPlusIcon.setTextFill(Color.web("#ffffff"));
                 mainBtn.setStyle(
-                        "-fx-background-color: #e040a0; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
+                        "-fx-background-color: -fx-accent; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
                 Tooltip.install(mainBtn, new Tooltip("View results"));
                 mainBtn.setDisable(false);
                 mainBtn.setOnAction(e -> {
@@ -1221,6 +1311,7 @@ public class MainController implements Initializable {
     @FXML
     private void handleSettings(ActionEvent event) {
         try {
+            cleanupControllerResources();
             SceneSwitcher.switchScene(event, "Settings.fxml", 1280, 800);
         } catch (IOException e) {
             logger.error("Error switching to Settings.fxml: ", e);
@@ -1368,6 +1459,7 @@ public class MainController implements Initializable {
 
         Label title = new Label("My Account");
         title.getStyleClass().add("account-page-title");
+        title.setStyle("-fx-text-fill: -fx-accent;");
         Label subtitle = new Label("Manage profile, avatar, and personal information.");
         subtitle.getStyleClass().add("account-page-subtitle");
 
@@ -1478,7 +1570,7 @@ public class MainController implements Initializable {
         StackPane placeholder = new StackPane();
         placeholder.setMinSize(size, size);
         placeholder.setMaxSize(size, size);
-        placeholder.setStyle("-fx-background-color: linear-gradient(to bottom right, #e040a0, #c83090);"
+        placeholder.setStyle("-fx-background-color: -app-accent-gradient;"
                 + " -fx-background-radius: " + (size / 2) + ";");
 
         String initials = getInitials(User.getFullname());
@@ -1522,7 +1614,7 @@ public class MainController implements Initializable {
         }
 
         // Upload on background thread
-        new Thread(() -> {
+        backgroundExecutor.execute(() -> {
             try {
                 String boundary = java.util.UUID.randomUUID().toString();
                 String fileName = file.getName();
@@ -1587,7 +1679,7 @@ public class MainController implements Initializable {
                     resetAvatarButton(btnChangeAvatar);
                 });
             }
-        }, "upload-avatar").start();
+        });
     }
 
     private void resetAvatarButton(Button btn) {
@@ -1605,7 +1697,9 @@ public class MainController implements Initializable {
         statsColumn.setMaxWidth(320);
 
         statsColumn.getChildren().addAll(
-                createProfileStatCard("Account Balance", "₫ " + formatPrice(User.getBalance()), "\uE227"),
+                createProfileStatCard("Total Money", "₫ " + formatPrice(User.getBalance()), "\uE227"),
+                createProfileStatCard("Current Money", "₫ " + formatPrice(User.getAvailableBalance()), "\uE850"),
+                createProfileStatCard("Pending Money", "₫ " + formatPrice(User.getFrozenBalance()), "\uE855"),
                 createProfileStatCard("Role", safeText(User.getRole(), "Unknown"), "\uE7FD"),
                 createProfileStatCard("User ID", String.valueOf(User.getId()), "\uE838"));
         return statsColumn;
@@ -1747,7 +1841,7 @@ public class MainController implements Initializable {
         if (User.getId() == null)
             return;
 
-        new Thread(() -> {
+        backgroundExecutor.execute(() -> {
             try {
                 HttpRequest.Builder builder = HttpRequest.newBuilder()
                         .uri(URI.create(Config.API_URL + "/api/users/" + User.getId()))
@@ -1776,7 +1870,7 @@ public class MainController implements Initializable {
             } catch (Exception e) {
                 logger.warn("Cannot reload account info: {}", e.getMessage());
             }
-        }, "load-account-profile").start();
+        });
     }
 
     private void applyUserProfileFromJson(JSONObject data) {
@@ -1792,6 +1886,7 @@ public class MainController implements Initializable {
                 data.optString("placeOfBirth",
                         data.optString("place_of_birth", safeText(User.getPlace_of_birth(), ""))),
                 parseMoney(data.opt("balance"), User.getBalance()),
+                parseMoney(data.opt("frozenBalance"), User.getFrozenBalance()),
                 avatarUrl);
     }
 
@@ -1803,7 +1898,7 @@ public class MainController implements Initializable {
         payload.put("dob", dob);
         payload.put("placeOfBirth", placeOfBirth);
 
-        new Thread(() -> {
+        backgroundExecutor.execute(() -> {
             try {
                 HttpRequest.Builder builder = HttpRequest.newBuilder()
                         .uri(URI.create(Config.API_URL + "/api/users/" + User.getId() + "/profile"))
@@ -1843,7 +1938,7 @@ public class MainController implements Initializable {
                     showError("Update Failed", "Cannot connect to server or invalid response data.");
                 });
             }
-        }, "update-account-profile").start();
+        });
     }
 
     private String buildNotificationSummary() {
@@ -1889,6 +1984,8 @@ public class MainController implements Initializable {
         ButtonType close = new ButtonType("Close", ButtonBar.ButtonData.CANCEL_CLOSE);
         dialog.getButtonTypes().setAll(resetFilters, reloadData, close);
 
+        com.auction.client.util.AlertUtil.styleDialog(dialog);
+
         Optional<ButtonType> result = dialog.showAndWait();
         if (result.isEmpty() || result.get() == close) {
             return;
@@ -1929,18 +2026,16 @@ public class MainController implements Initializable {
 
         VBox titleBox = new VBox(2);
         Label title = new Label("Compact Session List");
-        title.setStyle(
-                "-fx-font-family: 'DM Sans'; -fx-font-size: 26px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
+        title.getStyleClass().add("compact-title");
         Label subtitle = new Label("Sessions currently displayed based on filters.");
-        subtitle.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #907898;");
+        subtitle.getStyleClass().add("compact-subtitle");
         titleBox.getChildren().addAll(title, subtitle);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         Button backButton = new Button("Back to Grid");
-        backButton.setStyle(
-                "-fx-background-color: #e040a0; -fx-background-radius: 999; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-padding: 9 22 9 22; -fx-cursor: hand;");
+        backButton.getStyleClass().add("compact-back-btn");
         backButton.setOnAction(e -> returnToAuctionGrid());
         header.getChildren().addAll(titleBox, spacer, backButton);
 
@@ -1951,13 +2046,11 @@ public class MainController implements Initializable {
             VBox empty = new VBox(8);
             empty.setAlignment(Pos.CENTER);
             empty.setPadding(new Insets(60));
-            empty.setStyle(
-                    "-fx-background-color: #ffffff; -fx-background-radius: 22px; -fx-border-color: #ffe8e8; -fx-border-radius: 22px; -fx-border-width: 2px;");
+            empty.getStyleClass().add("compact-empty-card");
             Label emptyTitle = new Label("No sessions found with current filters");
-            emptyTitle.setStyle(
-                    "-fx-font-family: 'DM Sans'; -fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
+            emptyTitle.getStyleClass().add("compact-name");
             Label emptyMsg = new Label("Try changing filters or return to grid view.");
-            emptyMsg.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: #907898;");
+            emptyMsg.getStyleClass().add("compact-subtitle");
             empty.getChildren().addAll(emptyTitle, emptyMsg);
             listBox.getChildren().add(empty);
         } else {
@@ -1994,8 +2087,7 @@ public class MainController implements Initializable {
         HBox row = new HBox(14);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(14, 18, 14, 18));
-        row.setStyle(
-                "-fx-background-color: #ffffff; -fx-background-radius: 18px; -fx-border-color: #ffe8e8; -fx-border-width: 1.5px; -fx-border-radius: 18px; -fx-cursor: hand;");
+        row.getStyleClass().add("compact-row");
         row.setOnMouseClicked(event -> {
             openAuctionPage(event, sessionObj, itemObj, itemObj.optString("name", "Unknown"), sessionObj.optInt("id"),
                     currentPrice);
@@ -2005,43 +2097,38 @@ public class MainController implements Initializable {
         order.setAlignment(Pos.CENTER);
         order.setMinSize(34, 34);
         order.setPrefSize(34, 34);
-        order.setStyle(
-                "-fx-background-color: #ffd6ee; -fx-background-radius: 17px; -fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: 900; -fx-text-fill: #e040a0;");
+        order.getStyleClass().add("compact-order");
 
         VBox infoBox = new VBox(3);
         Label name = new Label("#" + sessionId + " · " + itemName);
-        name.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: 900; -fx-text-fill: #2e1a28;");
+        name.getStyleClass().add("compact-name");
         Label type = new Label(itemType);
-        type.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-text-fill: #907898;");
+        type.getStyleClass().add("compact-type");
         infoBox.getChildren().addAll(name, type);
 
         Region rowSpacer = new Region();
         HBox.setHgrow(rowSpacer, Priority.ALWAYS);
 
         Label statusBadge = new Label(status);
-        statusBadge.setStyle(
-                "-fx-background-color: #f2e8f2; -fx-background-radius: 999; -fx-padding: 5 12 5 12; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: #604868;");
+        statusBadge.getStyleClass().add("compact-status-badge");
 
         Label price = new Label("₫ " + formatPrice(currentPrice));
         price.setMinWidth(110);
         price.setAlignment(Pos.CENTER_RIGHT);
-        price.setStyle(
-                "-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: #e040a0;");
+        price.getStyleClass().add("compact-price");
 
         Button bidButton = new Button(canBid ? "Bid" : "Ended");
         bidButton.setMinWidth(92);
         bidButton.setPrefHeight(38);
         bidButton.setDisable(!canBid);
         if (canBid) {
-            bidButton.setStyle(
-                    "-fx-background-color: #e040a0; -fx-background-radius: 999; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: 900; -fx-padding: 8 18 8 18; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224,64,160,0.25), 10, 0, 0, 3);");
+            bidButton.getStyleClass().add("compact-btn-primary");
             bidButton.setOnAction(event -> {
                 event.consume();
                 openAuctionPage(event, sessionObj, itemObj, itemName, sessionId, currentPrice);
             });
         } else {
-            bidButton.setStyle(
-                    "-fx-background-color: #f2e8f2; -fx-background-radius: 999; -fx-text-fill: #907898; -fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: 900; -fx-padding: 8 18 8 18;");
+            bidButton.getStyleClass().add("compact-btn-secondary");
         }
 
         row.getChildren().addAll(order, infoBox, rowSpacer, statusBadge, price, bidButton);
@@ -2092,6 +2179,7 @@ public class MainController implements Initializable {
 
     private void handleDepositMoney(ActionEvent event) {
         try {
+            cleanupControllerResources();
             SceneSwitcher.switchScene(event, "Deposit.fxml", 1280, 800);
         } catch (IOException e) {
             logger.error("Error switching to deposit page: ", e);
@@ -2205,14 +2293,15 @@ public class MainController implements Initializable {
     }
 
     private void showAlert(Alert.AlertType type, String title, String message) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        if (!Platform.isFxApplicationThread()) {
+            Platform.runLater(() -> showAlert(type, title, message));
+            return;
+        }
+        com.auction.client.util.AlertUtil.show(type, title, message);
     }
 
     public void handleLogout(ActionEvent event) throws IOException {
+        cleanupControllerResources();
         User.clearSession();
         SceneSwitcher.switchScene(event, "Login.fxml", 1100, 700);
     }
@@ -2227,31 +2316,21 @@ public class MainController implements Initializable {
      * events.
      */
     private void connectHomeSocket() {
-        Thread homeSocketThread = new Thread(() -> {
-            try (Socket socket = new Socket(Config.SOCKET_HOST, Config.PORT_SOCKET)) {
-                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                java.io.PrintWriter out = new java.io.PrintWriter(socket.getOutputStream(), true);
-
-                // Register with server that this is Home client
-                out.println("JOIN_HOME");
-
-                String line;
-                while ((line = in.readLine()) != null) {
-                    if (line.startsWith("EVENT:")) {
-                        String json = line.substring(6);
-                        JSONObject event = new JSONObject(json);
-                        if ("AUCTION_ENDED".equals(event.optString("type"))) {
-                            int sessionId = event.getInt("sessionId");
-                            Platform.runLater(() -> markCardAsEnded(sessionId));
-                        }
-                    }
+        this.globalSocketListener = new NotificationSocketService.SocketEventListener() {
+            @Override
+            public void onEvent(JSONObject event) {
+                if ("AUCTION_ENDED".equals(event.optString("type"))) {
+                    int sessionId = event.getInt("sessionId");
+                    Platform.runLater(() -> markCardAsEnded(sessionId));
                 }
-            } catch (Exception e) {
-                logger.error("Home Socket listener error: {}", e.getMessage());
             }
-        });
-        homeSocketThread.setDaemon(true);
-        homeSocketThread.start();
+
+            @Override
+            public void onNotice(JSONObject notice) {
+                // Not used by MainController for now
+            }
+        };
+        NotificationSocketService.getInstance().addListener(this.globalSocketListener);
     }
 
     /**
@@ -2280,6 +2359,7 @@ public class MainController implements Initializable {
     @FXML
     public void handleGoToDashboard(ActionEvent event) {
         try {
+            cleanupControllerResources();
             SceneSwitcher.switchScene(event, "SellerDashboard.fxml", 1280, 800);
         } catch (Exception e) {
             logger.error("Error switching back to Seller Dashboard: ", e);
@@ -2297,6 +2377,7 @@ public class MainController implements Initializable {
         fallback.put("type", sessionObj.optString("productType", ""));
         fallback.put("description", sessionObj.optString("description", ""));
         fallback.put("imagePath", sessionObj.optString("imagePath", ""));
+        fallback.put("imageUrl", sessionObj.optString("imageUrl", ""));
         return fallback;
     }
 
@@ -2359,10 +2440,22 @@ public class MainController implements Initializable {
         }
     }
 
+    private void cleanupControllerResources() {
+        stopCountdownTimeline();
+        if (pollingScheduler != null) {
+            pollingScheduler.shutdownNow();
+            pollingScheduler = null;
+        }
+        if (globalSocketListener != null) {
+            NotificationSocketService.getInstance().removeListener(globalSocketListener);
+            globalSocketListener = null;
+        }
+    }
+
     private void openAuctionPage(javafx.event.Event event, JSONObject sessionObj, JSONObject itemObj, String name,
             int id, BigDecimal currentPrice) {
         ClientLogger.logViewHistory(User.getUsername(), name, id, currentPrice);
-        stopCountdownTimeline();
+        cleanupControllerResources();
         try {
             FXMLLoader loader = SceneSwitcher.switchScene(event, "AuctionPage.fxml", 1280, 800);
             AuctionPageController controller = loader.getController();

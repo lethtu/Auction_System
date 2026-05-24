@@ -2,6 +2,7 @@ package com.auction.server.controller;
 
 import com.auction.server.dto.ApiResponse;
 import com.auction.server.model.User;
+import com.auction.server.service.CloudinaryService;
 import com.auction.server.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,9 +45,11 @@ public class UserController {
     private static final String AVATAR_PUBLIC_PREFIX = "/api/files/avatar/";
 
     private final UserService userService;
+    private final CloudinaryService cloudinaryService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, CloudinaryService cloudinaryService) {
         this.userService = Objects.requireNonNull(userService, "userService must not be null");
+        this.cloudinaryService = cloudinaryService;
     }
 
     @GetMapping
@@ -138,29 +141,49 @@ public class UserController {
                         new ApiResponse<>(ERROR_STATUS, "Invalid file. Please select a PNG, JPG, JPEG or WEBP image under 5MB.", null));
             }
 
-            // 6. Generate safe filename
+            // 6. Prefer Cloudinary when configured
+            String oldAvatarUrl = user.getAvatarUrl();
+            if (cloudinaryService != null && cloudinaryService.isConfigured()) {
+                try {
+                    String publicId = "user_" + id;
+                    String cloudinaryUrl = cloudinaryService.uploadFileWithPublicId(
+                            file,
+                            "auction_system/users/avatars",
+                            publicId,
+                            false
+                    );
+                    userService.updateAvatarUrl(id, cloudinaryUrl);
+                    logger.info("Avatar uploaded to Cloudinary for user {}: {}", id, cloudinaryUrl);
+                    return ResponseEntity.ok(new ApiResponse<>(SUCCESS_STATUS,
+                            "Avatar updated successfully.",
+                            Map.of("avatarUrl", cloudinaryUrl)));
+                } catch (Exception e) {
+                    logger.warn("Cloudinary avatar upload failed, falling back to local storage: {}", e.getMessage(), e);
+                }
+            }
+
+            // 7. Generate safe filename
             String safeFileName = UUID.randomUUID().toString().replace("-", "") + "." + extension;
 
-            // 7. Ensure avatar directory exists
+            // 8. Ensure avatar directory exists
             Path avatarDir = Paths.get(AVATAR_UPLOAD_DIR).toAbsolutePath().normalize();
             Files.createDirectories(avatarDir);
 
-            // 8. Resolve destination and check path traversal
+            // 9. Resolve destination and check path traversal
             Path destination = avatarDir.resolve(safeFileName).normalize();
             if (!destination.startsWith(avatarDir)) {
                 return ResponseEntity.badRequest().body(
                         new ApiResponse<>(ERROR_STATUS, "Invalid file path.", null));
             }
 
-            // 9. Save file to disk
+            // 10. Save file to disk
             file.transferTo(destination);
 
-            // 10. Build public URL and update DB
+            // 11. Build public URL and update DB
             String publicUrl = AVATAR_PUBLIC_PREFIX + safeFileName;
-            String oldAvatarUrl = user.getAvatarUrl();
             userService.updateAvatarUrl(id, publicUrl);
 
-            // 11. Delete old avatar file (only after successful DB update)
+            // 12. Delete old avatar file (only after successful DB update)
             deleteOldAvatar(oldAvatarUrl, avatarDir);
 
             logger.info("Avatar uploaded for user {}: originalFilename={}, contentType={}, extension={}, safeFileName={}", 
@@ -238,6 +261,24 @@ public class UserController {
             logger.error("Error setting password for user {}: {}", id, e.getMessage(), e);
             return ResponseEntity.internalServerError().body(
                     new ApiResponse<>(500, "Failed to set password.", null));
+        }
+    }
+
+    @PostMapping("/{id}/change-password")
+    public ResponseEntity<ApiResponse<User>> changePassword(
+            @PathVariable Integer id,
+            @RequestBody Map<String, String> request) {
+        try {
+            String oldPassword = request.get("oldPassword");
+            String newPassword = request.get("newPassword");
+            User updatedUser = userService.changePassword(id, oldPassword, newPassword);
+            return ResponseEntity.ok(success("Password changed successfully.", updatedUser));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(error(e.getMessage(), null));
+        } catch (Exception e) {
+            logger.error("Error changing password for user {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.internalServerError().body(
+                    new ApiResponse<>(500, "Failed to change password.", null));
         }
     }
 

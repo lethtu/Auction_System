@@ -37,6 +37,9 @@ public class User {
 
     private BigDecimal balance = BigDecimal.ZERO;
 
+    @Column(name = "frozen_balance")
+    private BigDecimal frozenBalance = BigDecimal.ZERO;
+
     @Column(name = "role", insertable = false, updatable = false)
     private String accountType;
 
@@ -137,6 +140,20 @@ public class User {
 
     public void setBalance(BigDecimal balance) {
         this.balance = balance == null ? BigDecimal.ZERO : balance;
+    }
+
+    public BigDecimal getFrozenBalance() {
+        return frozenBalance == null ? BigDecimal.ZERO : frozenBalance;
+    }
+
+    public void setFrozenBalance(BigDecimal frozenBalance) {
+        this.frozenBalance = frozenBalance == null ? BigDecimal.ZERO : frozenBalance;
+    }
+
+    public BigDecimal getAvailableBalance() {
+        BigDecimal bal = getBalance();
+        BigDecimal frozen = getFrozenBalance();
+        return bal.subtract(frozen);
     }
 
     public String getAccountType() {

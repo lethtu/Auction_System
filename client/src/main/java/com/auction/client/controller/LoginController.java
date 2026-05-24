@@ -11,6 +11,7 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Animation;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
@@ -96,6 +97,24 @@ public class LoginController {
         if (btnFacebook != null) {
             btnFacebook.setTooltip(new Tooltip("Facebook login will be added in a future update."));
         }
+        if (activeProductCarousel != null) {
+            activeProductCarousel.setCursor(javafx.scene.Cursor.HAND);
+            activeProductCarousel.setPickOnBounds(true);
+            activeProductCarousel.setOnMouseClicked(event -> {
+                if (featuredProducts.isEmpty()) return;
+                FeaturedProduct currentProd = featuredProducts.get(featuredProductIndex);
+                if (currentProd != null && currentProd.sessionObj() != null && currentProd.itemObj() != null) {
+                    try {
+                        User.setSession(null, "guest", "Guest", "guest@bidpop.com", null, null, "guest", null);
+                        FXMLLoader loader = SceneSwitcher.switchScene(event, "AuctionPage.fxml", 1280, 800);
+                        AuctionPageController controller = loader.getController();
+                        controller.setItem(currentProd.sessionObj(), currentProd.itemObj());
+                    } catch (IOException e) {
+                        logger.error("Failed to open auction page from carousel", e);
+                    }
+                }
+            });
+        }
         showFallbackProduct();
         loadActiveProducts();
     }
@@ -147,12 +166,21 @@ public class LoginController {
     }
 
     private FeaturedProduct toFeaturedProduct(JSONObject session) {
+        int id = session.optInt("id", 0);
+        JSONObject itemObj = session.optJSONObject("item");
+        if (itemObj == null) {
+            itemObj = new JSONObject();
+            itemObj.put("name", session.optString("productName", ""));
+            itemObj.put("type", session.optString("productType", ""));
+            itemObj.put("description", session.optString("description", ""));
+            itemObj.put("imagePath", session.optString("imagePath", ""));
+        }
         String name = session.optString("productName", "Live auction item");
         String type = session.optString("productType", "Active auction");
         String imageUrl = buildImageUrl(session.optString("imagePath", ""));
         String endTimeText = formatEndTime(session.optString("endTime", ""));
 
-        return new FeaturedProduct(name, type, imageUrl, endTimeText);
+        return new FeaturedProduct(id, session, itemObj, name, type, imageUrl, endTimeText);
     }
 
     private void setFeaturedProducts(List<FeaturedProduct> products) {
@@ -207,6 +235,9 @@ public class LoginController {
 
     private void showFallbackProduct() {
         showFeaturedProduct(new FeaturedProduct(
+                0,
+                null,
+                null,
                 "Discover live auctions",
                 "Featured marketplace",
                 FALLBACK_PRODUCT_IMAGE,
@@ -463,7 +494,7 @@ public class LoginController {
         String originalText = button.getText();
         button.setDisable(true);
         button.setText("Not supported");
-        
+
         new Thread(() -> {
             try { Thread.sleep(2000); } catch (InterruptedException e) {}
             Platform.runLater(() -> {
@@ -512,7 +543,7 @@ public class LoginController {
             } else {
                 showAlert(Alert.AlertType.INFORMATION, "Success", "Welcome back!");
             }
-            
+
         } catch (Exception e) {
             logger.error("Cannot connect to server: {}", e.getMessage(), e);
             showAlert(Alert.AlertType.ERROR, "Network Error", "Cannot connect to the server!");
@@ -563,6 +594,13 @@ public class LoginController {
         User.setSessionToken(data.optString("sessionToken", null));
         User.setSession(id, username, fullname, email, dob, placeOfBirth, role, avatarUrl);
         User.setPasswordSet(data.optBoolean("passwordSet", true));
+
+        try {
+            com.auction.client.service.NotificationSocketService.getInstance().start(id);
+        } catch (Exception e) {
+            logger.error("Failed to start global NotificationSocketService: {}", e.getMessage());
+        }
+
         return role;
     }
 
@@ -599,7 +637,7 @@ public class LoginController {
         AlertUtil.show(alertType, title, message);
     }
 
-    private record FeaturedProduct(String name, String type, String imageUrl, String priceText) {
+    private record FeaturedProduct(int id, JSONObject sessionObj, JSONObject itemObj, String name, String type, String imageUrl, String priceText) {
     }
 
     @FXML
