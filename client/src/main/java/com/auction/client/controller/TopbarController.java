@@ -63,7 +63,7 @@ public class TopbarController implements Initializable {
 
     public void highlightSettingsButton() {
         if (btnSettings != null) {
-            btnSettings.setStyle("-fx-background-color: rgba(224, 64, 160, 0.15); -fx-background-radius: 22px; -fx-cursor: hand;");
+            btnSettings.setStyle("-fx-background-color: -app-accent-opacity-16; -fx-background-radius: 22px; -fx-cursor: hand;");
             if (btnSettings.getGraphic() instanceof Label) {
                 ((Label) btnSettings.getGraphic()).setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: -fx-accent;");
             }
