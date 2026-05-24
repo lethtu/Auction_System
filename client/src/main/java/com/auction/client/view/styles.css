@@ -1,4 +1,4 @@
-﻿﻿@font-face {
+@font-face {
 
     font-family: 'DM Sans';
 
@@ -5319,3 +5319,214 @@
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.18), 14, 0.18, 0, 4);
 }
 /* === END PHASE G3 ADMIN REFRESH BUTTON CLEAN === */
+/* === Phase R: My Account safe polish START === */
+/* Safe polish only: no frozenBalance/currentMoney/pendingMoney logic. */
+.account-page-wrapper {
+    -fx-padding: 34px 28px 38px 28px;
+    -fx-background-color: transparent;
+}
+
+.account-page-title {
+    -fx-text-fill: -fx-accent;
+    -fx-fill: -fx-accent;
+    -fx-font-size: 34px;
+    -fx-font-weight: 900;
+}
+
+.account-page-subtitle {
+    -fx-text-fill: -app-text-muted;
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+}
+
+.profile-summary-card,
+.account-stat-card,
+.account-form-card {
+    -fx-background-color: -app-card;
+    -fx-border-color: -app-border;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 24, 0.14, 0, 8);
+}
+
+.profile-summary-card {
+    -fx-padding: 32px;
+    -fx-background-radius: 28px;
+    -fx-border-radius: 28px;
+    -fx-border-width: 1.6px;
+}
+
+.profile-summary-card:hover,
+.account-form-card:hover {
+    -fx-border-color: -fx-accent;
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-16, 30, 0.18, 0, 8);
+}
+
+.profile-name,
+.account-form-title,
+.account-stat-value {
+    -fx-text-fill: -app-text;
+    -fx-fill: -app-text;
+}
+
+.profile-email,
+.account-form-label,
+.account-stat-label {
+    -fx-text-fill: -app-text-muted;
+    -fx-fill: -app-text-muted;
+}
+
+.profile-role-badge {
+    -fx-background-color: -app-accent-opacity-16;
+    -fx-text-fill: -fx-accent;
+    -fx-border-color: -fx-accent;
+    -fx-border-radius: 999px;
+    -fx-background-radius: 999px;
+    -fx-border-width: 1.2px;
+}
+
+.account-stat-card {
+    -fx-background-radius: 22px;
+    -fx-border-radius: 22px;
+    -fx-border-width: 1.4px;
+    -fx-padding: 20px 24px;
+}
+
+.account-stat-card:hover {
+    -fx-border-color: -fx-accent;
+    -fx-background-color: derive(-app-card, 4%);
+    -fx-translate-y: -2px;
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-16, 26, 0.18, 0, 8);
+}
+
+.account-stat-icon {
+    -fx-text-fill: -fx-accent;
+    -fx-fill: -fx-accent;
+}
+
+.account-form-card {
+    -fx-background-radius: 28px;
+    -fx-border-radius: 28px;
+    -fx-border-width: 1.6px;
+    -fx-padding: 30px;
+}
+
+.account-input,
+.account-input-readonly {
+    -fx-background-color: -app-input-bg;
+    -fx-text-fill: -app-input-text;
+    -fx-prompt-text-fill: -app-placeholder;
+    -fx-border-color: -app-border;
+    -fx-border-radius: 16px;
+    -fx-background-radius: 16px;
+    -fx-padding: 11px 16px;
+}
+
+.account-input:hover {
+    -fx-border-color: derive(-fx-accent, 25%);
+}
+
+.account-input:focused {
+    -fx-border-color: -fx-accent;
+    -fx-border-width: 2px;
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-16, 14, 0.18, 0, 3);
+}
+
+.btn-account-primary {
+    -fx-background-color: -fx-accent;
+    -fx-text-fill: white;
+    -fx-background-radius: 16px;
+    -fx-padding: 11px 30px;
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-20, 16, 0.18, 0, 5);
+}
+
+.btn-account-primary:hover {
+    -fx-background-color: derive(-fx-accent, -8%);
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-24, 20, 0.22, 0, 7);
+}
+
+.btn-account-secondary,
+.btn-avatar-change,
+.account-back-btn {
+    -fx-background-color: -app-accent-opacity-08;
+    -fx-text-fill: -fx-accent;
+    -fx-border-color: -fx-accent;
+    -fx-border-radius: 16px;
+    -fx-background-radius: 16px;
+    -fx-border-width: 1.4px;
+}
+
+.btn-account-secondary:hover,
+.btn-avatar-change:hover,
+.account-back-btn:hover {
+    -fx-background-color: -app-accent-opacity-16;
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-16, 14, 0.16, 0, 4);
+}
+
+.profile-avatar-overlay {
+    -fx-background-color: rgba(0, 0, 0, 0.45);
+    -fx-background-radius: 999px;
+}
+
+.profile-avatar-overlay:hover {
+    -fx-opacity: 1;
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-24, 16, 0.18, 0, 4);
+}
+
+.theme-light .profile-summary-card,
+.theme-light .account-stat-card,
+.theme-light .account-form-card {
+    -fx-effect: dropshadow(gaussian, rgba(124, 82, 170, 0.10), 22, 0.12, 0, 6);
+}
+
+.theme-dark .profile-summary-card,
+.theme-dark .account-stat-card,
+.theme-dark .account-form-card {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.32), 24, 0.16, 0, 8);
+}
+/* === Phase R: My Account safe polish END === */
+/* === Phase R2: My Account save button clean START === */
+/* Clean JavaFX default button layers/focus box on My Account primary action. */
+.btn-account-primary {
+    -fx-background-color: -fx-accent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 999px;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-radius: 999px;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-text-fill: white;
+    -fx-font-size: 15px;
+    -fx-font-weight: 900;
+    -fx-padding: 12px 34px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-20, 18, 0.20, 0, 6);
+}
+
+.btn-account-primary .text {
+    -fx-fill: white;
+}
+
+.btn-account-primary:hover {
+    -fx-background-color: derive(-fx-accent, -7%);
+    -fx-background-insets: 0;
+    -fx-background-radius: 999px;
+    -fx-border-color: transparent;
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-24, 22, 0.24, 0, 8);
+}
+
+.btn-account-primary:focused,
+.btn-account-primary:armed,
+.btn-account-primary:pressed {
+    -fx-background-insets: 0;
+    -fx-background-radius: 999px;
+    -fx-border-color: transparent;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.btn-account-primary:pressed {
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-16, 12, 0.16, 0, 4);
+}
+/* === Phase R2: My Account save button clean END === */
