@@ -66,6 +66,10 @@ public class User {
         if (username != null) {
             watchlistIds.addAll(com.auction.client.service.ClientLogger.loadUserFavorites(username));
         }
+        try {
+            com.auction.client.service.NotificationCenterService.getInstance().switchUser(Id);
+        } catch (Exception ignored) {
+        }
     }
 
     public static void updateProfile(String Username, String Fullname, String Email, String Dob, String Place_of_birth){
@@ -95,6 +99,10 @@ public class User {
     }
 
     public static void clearSession(){
+        try {
+            com.auction.client.service.NotificationCenterService.getInstance().switchUser(null);
+        } catch (Exception ignored) {
+        }
         id = null;
         username = null;
         fullname = null;
@@ -111,10 +119,6 @@ public class User {
         cachedAvatarUrl = null;
         try {
             com.auction.client.service.NotificationSocketService.getInstance().stop();
-        } catch (Exception ignored) {
-        }
-        try {
-            com.auction.client.service.NotificationCenterService.getInstance().clearAll();
         } catch (Exception ignored) {
         }
     }
