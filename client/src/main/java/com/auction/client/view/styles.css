@@ -5933,3 +5933,257 @@
     -fx-opacity: 1;
 }
 /* === PHASE X5: settings save button id override END === */
+/* === FIX Z1/Z2: model cache + accent sidebar/combo hover === */
+.app-sidebar-scroll,
+.app-sidebar-scroll-collapsed {
+    -fx-border-color: -fx-accent;
+    -fx-border-width: 2px;
+    -fx-effect: dropshadow(gaussian, -fx-accent, 14, 0.08, 0, 3);
+}
+
+.app-content-panel,
+.app-content-scroll {
+    -fx-border-color: -fx-accent;
+}
+
+.combo-box-popup .list-view .list-cell:filled:hover,
+.combo-box-popup .list-view .list-cell:filled:focused,
+.combo-box-popup > .list-view .list-cell:filled:hover,
+.combo-box-popup > .list-view .list-cell:filled:focused,
+.combo-box-popup .list-cell:filled:hover,
+.combo-box-popup .list-cell:filled:focused {
+    -fx-background-color: -fx-accent;
+    -fx-background: -fx-accent;
+    -fx-text-fill: white;
+    -fx-font-weight: 900;
+    -fx-cursor: hand;
+}
+
+.theme-light .combo-box-popup .list-cell:filled:hover,
+.theme-light .combo-box-popup .list-cell:filled:focused,
+.theme-dark .combo-box-popup .list-cell:filled:hover,
+.theme-dark .combo-box-popup .list-cell:filled:focused {
+    -fx-background-color: -fx-accent;
+    -fx-text-fill: white;
+}
+/* === END FIX Z1/Z2 === */
+
+/* === FIX Z3: sidebar transparent + seller surface + combo hover START === */
+/* 1) Remove the square white rectangle inside the left menu while keeping accent border. */
+.app-sidebar-scroll,
+.app-sidebar-scroll-collapsed {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-background-radius: 28;
+    -fx-background-insets: 0;
+    -fx-border-color: -fx-accent;
+    -fx-border-radius: 28;
+    -fx-border-width: 2px;
+    -fx-border-insets: 0;
+    -fx-padding: 24 8 24 8;
+    -fx-effect: dropshadow(gaussian, -fx-accent, 14, 0.08, 0, 3);
+}
+
+.app-sidebar-scroll > .viewport,
+.app-sidebar-scroll > .corner,
+.app-sidebar-scroll-collapsed > .viewport,
+.app-sidebar-scroll-collapsed > .corner {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.app-sidebar-content,
+.app-sidebar-content-collapsed {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-effect: null;
+}
+
+/* 2) Seller dashboard: remove the rough rectangular surface behind the rounded page. */
+.rounded-window-root .rounded-window-content .seller-dashboard-surface {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-background-radius: 30px;
+    -fx-border-color: -fx-accent;
+    -fx-border-width: 2px;
+    -fx-border-radius: 30px;
+    -fx-padding: 24px;
+    -fx-effect: none;
+}
+
+.rounded-window-root .rounded-window-content .seller-dashboard-scroll,
+.rounded-window-root .rounded-window-content .seller-dashboard-scroll > .viewport {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.rounded-window-root .rounded-window-content .seller-dashboard-body {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-padding: 0;
+}
+
+/* 3) Strong combo popup hover/focus/armed states for Category/Filter items. */
+.combo-box-popup .list-view {
+    -fx-background-color: -app-surface;
+    -fx-border-color: -fx-accent;
+    -fx-border-width: 1.5px;
+    -fx-background-radius: 14px;
+    -fx-border-radius: 14px;
+}
+
+.combo-box-popup .list-view .list-cell,
+.combo-box-popup .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -app-input-text;
+    -fx-background-radius: 10px;
+    -fx-cursor: hand;
+}
+
+.combo-box-popup .list-view .list-cell:filled:hover,
+.combo-box-popup .list-view .list-cell:filled:focused,
+.combo-box-popup .list-view .list-cell:filled:armed,
+.combo-box-popup .list-view .list-cell:filled:selected,
+.combo-box-popup .list-view .list-cell:filled:selected:hover,
+.combo-box-popup .list-cell:filled:hover,
+.combo-box-popup .list-cell:filled:focused,
+.combo-box-popup .list-cell:filled:armed,
+.combo-box-popup .list-cell:filled:selected,
+.combo-box-popup .list-cell:filled:selected:hover,
+.combo-box-popup .seller-category-combo-popup-cell:filled:hover,
+.combo-box-popup .seller-category-combo-popup-cell:filled:focused,
+.combo-box-popup .seller-category-combo-popup-cell:filled:armed,
+.combo-box-popup .seller-category-combo-popup-cell:filled:selected {
+    -fx-background-color: -fx-accent;
+    -fx-background: -fx-accent;
+    -fx-text-fill: white;
+    -fx-font-weight: 900;
+}
+/* === FIX Z3: sidebar transparent + seller surface + combo hover END === */
+/* === FIX Z4: sidebar inner background + combo hover remaining START === */
+/* Light theme had a more specific .theme-light .app-sidebar-content background rule,
+   so the inner VBox still appeared as a square pale rectangle. Override with the same specificity. */
+.theme-light .app-sidebar-content,
+.theme-light .app-sidebar-content-collapsed,
+.theme-dark .app-sidebar-content,
+.theme-dark .app-sidebar-content-collapsed {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-effect: null;
+}
+
+.theme-light .app-sidebar-scroll > .viewport,
+.theme-light .app-sidebar-scroll > .corner,
+.theme-light .app-sidebar-scroll-collapsed > .viewport,
+.theme-light .app-sidebar-scroll-collapsed > .corner,
+.theme-dark .app-sidebar-scroll > .viewport,
+.theme-dark .app-sidebar-scroll > .corner,
+.theme-dark .app-sidebar-scroll-collapsed > .viewport,
+.theme-dark .app-sidebar-scroll-collapsed > .corner {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+/* Stronger combo popup hover. Covers Dashboard filter and Seller category dropdown. */
+.combo-box-popup .list-view .list-cell:filled:hover,
+.combo-box-popup .list-view .list-cell:filled:focused,
+.combo-box-popup .list-view .list-cell:filled:armed,
+.combo-box-popup .list-view .list-cell:filled:selected,
+.combo-box-popup .list-view .list-cell:filled:selected:hover,
+.theme-light .combo-box-popup .list-view .list-cell:filled:hover,
+.theme-light .combo-box-popup .list-view .list-cell:filled:focused,
+.theme-light .combo-box-popup .list-view .list-cell:filled:armed,
+.theme-light .combo-box-popup .list-view .list-cell:filled:selected,
+.theme-dark .combo-box-popup .list-view .list-cell:filled:hover,
+.theme-dark .combo-box-popup .list-view .list-cell:filled:focused,
+.theme-dark .combo-box-popup .list-view .list-cell:filled:armed,
+.theme-dark .combo-box-popup .list-view .list-cell:filled:selected,
+.list-view .list-cell:filled:hover,
+.list-view .list-cell:filled:focused {
+    -fx-background-color: -fx-accent;
+    -fx-background: -fx-accent;
+    -fx-text-fill: white;
+    -fx-font-weight: 900;
+    -fx-background-radius: 10px;
+    -fx-cursor: hand;
+}
+
+.combo-box-popup .list-view .list-cell:filled:hover .text,
+.combo-box-popup .list-view .list-cell:filled:focused .text,
+.combo-box-popup .list-view .list-cell:filled:selected .text,
+.list-view .list-cell:filled:hover .text,
+.list-view .list-cell:filled:focused .text {
+    -fx-fill: white;
+}
+/* === FIX Z4: sidebar inner background + combo hover remaining END === */
+/* === FIX Z5: final combo popup hover START === */
+/* JavaFX ComboBox popup can ignore normal background rules for hover.
+   Override both the ListView lookup colors and every ListCell hover state. */
+.custom-combo-box,
+.filter-combo,
+.combo-box.filter-combo,
+.combo-box-base {
+    -fx-cell-hover-color: -fx-accent;
+    -fx-selection-bar: -fx-accent;
+    -fx-selection-bar-non-focused: -fx-accent;
+    -fx-selection-bar-text: white;
+}
+
+.combo-box-popup .list-view,
+.combo-box-popup > .list-view,
+.combo-box-popup .virtual-flow,
+.combo-box-popup .virtual-flow .clipped-container,
+.combo-box-popup .virtual-flow .sheet {
+    -fx-cell-hover-color: -fx-accent;
+    -fx-selection-bar: -fx-accent;
+    -fx-selection-bar-non-focused: -fx-accent;
+    -fx-selection-bar-text: white;
+}
+
+.combo-box-popup .list-view .list-cell:hover,
+.combo-box-popup .list-view .list-cell:focused,
+.combo-box-popup .list-view .list-cell:armed,
+.combo-box-popup .list-view .list-cell:selected,
+.combo-box-popup > .list-view .list-cell:hover,
+.combo-box-popup > .list-view .list-cell:focused,
+.combo-box-popup > .list-view .list-cell:armed,
+.combo-box-popup > .list-view .list-cell:selected,
+.combo-box-popup .virtual-flow .sheet .list-cell:hover,
+.combo-box-popup .virtual-flow .sheet .list-cell:focused,
+.combo-box-popup .virtual-flow .sheet .list-cell:armed,
+.combo-box-popup .virtual-flow .sheet .list-cell:selected,
+.list-view .list-cell:filled:hover,
+.list-view .list-cell:filled:focused,
+.list-view .list-cell:filled:armed,
+.list-view .list-cell:filled:selected {
+    -fx-background-color: -fx-accent;
+    -fx-background: -fx-accent;
+    -fx-text-fill: white;
+    -fx-font-weight: 900;
+    -fx-background-radius: 10px;
+    -fx-cursor: hand;
+}
+
+.combo-box-popup .list-view .list-cell:hover .text,
+.combo-box-popup .list-view .list-cell:focused .text,
+.combo-box-popup .list-view .list-cell:armed .text,
+.combo-box-popup .list-view .list-cell:selected .text,
+.combo-box-popup .virtual-flow .sheet .list-cell:hover .text,
+.combo-box-popup .virtual-flow .sheet .list-cell:focused .text,
+.combo-box-popup .virtual-flow .sheet .list-cell:armed .text,
+.combo-box-popup .virtual-flow .sheet .list-cell:selected .text,
+.list-view .list-cell:filled:hover .text,
+.list-view .list-cell:filled:focused .text,
+.list-view .list-cell:filled:armed .text,
+.list-view .list-cell:filled:selected .text {
+    -fx-fill: white;
+}
+/* === FIX Z5: final combo popup hover END === */

@@ -122,6 +122,30 @@ public final class CacheManager {
         return hasLocal ? cachedFile : null;
     }
 
+    public static void invalidateModel(String itemUuid) {
+        if (itemUuid == null || itemUuid.isBlank()) {
+            return;
+        }
+
+        ensureCacheDirectories();
+
+        String safeUuid = itemUuid.replaceAll("[^0-9a-fA-F-]", "");
+        if (safeUuid.isBlank()) {
+            return;
+        }
+
+        Path cachedFile = Paths.get(Config.CACHE_3D_DIR, safeUuid + ".glb");
+        Path metaFile = Paths.get(Config.CACHE_3D_DIR, safeUuid + ".meta");
+
+        try {
+            Files.deleteIfExists(cachedFile);
+            Files.deleteIfExists(metaFile);
+            IN_FLIGHT.removeIf(key -> key.contains(safeUuid));
+            logger.info("Invalidated cached 3D model for item uuid {}", safeUuid);
+        } catch (IOException e) {
+            logger.warn("Failed to invalidate cached 3D model for item uuid {}", safeUuid, e);
+        }
+    }
     private static void validateAndDownloadAsync(String url, Path cachedFile, Path metaFile, Consumer<Boolean> onComplete) {
         String inFlightKey = url + " -> " + cachedFile.toAbsolutePath();
         if (!IN_FLIGHT.add(inFlightKey)) {

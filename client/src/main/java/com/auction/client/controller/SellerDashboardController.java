@@ -9,6 +9,7 @@ import com.auction.client.HttpClientSingleton;
 import com.auction.client.model.User;
 import com.auction.client.service.SettingsService;
 import com.auction.client.util.HttpRequestUtil;
+import com.auction.client.util.CacheManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -183,6 +184,11 @@ public class SellerDashboardController implements SceneLifecycle {
 
     private ListCell<String> createProductTypeComboCell(boolean popupCell) {
         return new ListCell<>() {
+            {
+                hoverProperty().addListener((obs, oldValue, newValue) -> updateProductTypeCellVisual(popupCell));
+                selectedProperty().addListener((obs, oldValue, newValue) -> updateProductTypeCellVisual(popupCell));
+            }
+
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
@@ -199,6 +205,19 @@ public class SellerDashboardController implements SceneLifecycle {
                 } else {
                     setText(item);
                 }
+
+                updateProductTypeCellVisual(popupCell);
+            }
+
+            private void updateProductTypeCellVisual(boolean popupCell) {
+                if (!popupCell) {
+                    setStyle("");
+                    return;
+                }
+                boolean active = !isEmpty() && getItem() != null && (isSelected() || isHover());
+                setStyle(active
+                        ? "-fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-weight: 900; -fx-background-radius: 14; -fx-cursor: hand;"
+                        : "-fx-background-color: transparent; -fx-text-fill: -fx-accent; -fx-font-weight: 800; -fx-background-radius: 14; -fx-cursor: hand;");
             }
         };
     }
@@ -2636,6 +2655,7 @@ public class SellerDashboardController implements SceneLifecycle {
         }
 
         Config.triggerImageCacheBuster();
+        CacheManager.invalidateModel(model3dPath);
         return model3dPath;
     }
 

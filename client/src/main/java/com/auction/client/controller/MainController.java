@@ -542,11 +542,21 @@ public class MainController implements Initializable, SceneLifecycle {
             }
         });
         combo.setCellFactory(listView -> new ListCell<>() {
+            {
+                hoverProperty().addListener((obs, oldValue, newValue) -> updateFilterCellVisual());
+                selectedProperty().addListener((obs, oldValue, newValue) -> updateFilterCellVisual());
+            }
+
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
                 setText(empty || item == null ? null : item);
-                setStyle(filterComboCellStyle(isSelected() || isHover()));
+                updateFilterCellVisual();
+            }
+
+            private void updateFilterCellVisual() {
+                boolean active = !isEmpty() && getItem() != null && (isSelected() || isHover());
+                setStyle(filterComboCellStyle(active));
             }
         });
     }
