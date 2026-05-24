@@ -1,4 +1,4 @@
-﻿@font-face {
+@font-face {
 
     font-family: 'DM Sans';
 
@@ -5644,3 +5644,78 @@
     -fx-font-family: 'DM Sans';
 }
 /* === THEME POPUP FONT FIX V1 END === */
+/* === THEME CATEGORY COMBO READABILITY FIX V2 START === */
+/* Fix clipped/faint selected text in Seller Add New Listing category ComboBox. */
+.seller-category-combo,
+.custom-combo-box.seller-category-combo,
+.theme-dark .seller-category-combo,
+.theme-light .seller-category-combo {
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+    -fx-text-fill: -app-input-text;
+    -fx-prompt-text-fill: -app-text-muted;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 4px 12px;
+    -fx-background-color: -app-input-bg;
+    -fx-background-radius: 18px;
+    -fx-border-color: -fx-accent;
+    -fx-border-width: 2px;
+    -fx-border-radius: 18px;
+}
+
+.seller-category-combo > .list-cell,
+.custom-combo-box.seller-category-combo > .list-cell,
+.theme-dark .seller-category-combo > .list-cell,
+.theme-light .seller-category-combo > .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -app-input-text;
+    -fx-opacity: 1;
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 14px;
+    -fx-font-weight: 900;
+    -fx-padding: 0 8px 0 12px;
+    -fx-alignment: CENTER_LEFT;
+    -fx-content-display: text-only;
+    -fx-min-height: 34px;
+    -fx-pref-height: 34px;
+    -fx-cell-size: 34px;
+}
+
+.seller-category-combo > .list-cell .text,
+.custom-combo-box.seller-category-combo > .list-cell .text,
+.seller-category-combo .text {
+    -fx-fill: -app-input-text;
+    -fx-opacity: 1;
+}
+
+.seller-category-combo .arrow-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0 8px 0 6px;
+}
+
+.seller-category-combo .arrow {
+    -fx-background-color: -app-input-text;
+    -fx-opacity: 0.82;
+}
+
+.seller-category-combo-popup-cell,
+.combo-box-popup .seller-category-combo-popup-cell,
+.combo-box-popup .list-view .seller-category-combo-popup-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -app-input-text;
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+    -fx-padding: 10px 14px;
+    -fx-background-radius: 10px;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.combo-box-popup .seller-category-combo-popup-cell:filled:hover,
+.combo-box-popup .seller-category-combo-popup-cell:filled:focused,
+.combo-box-popup .seller-category-combo-popup-cell:filled:selected {
+    -fx-background-color: -fx-accent;
+    -fx-text-fill: white;
+}
+/* === THEME CATEGORY COMBO READABILITY FIX V2 END === */

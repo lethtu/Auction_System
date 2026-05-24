@@ -165,12 +165,47 @@ public class SellerDashboardController {
     public void setHttpClient(HttpClient client) {
         this.httpClient = client;
     }
+    private void setupProductTypeComboDisplay() {
+        if (productTypeCombo == null) {
+            return;
+        }
+
+        if (!productTypeCombo.getStyleClass().contains("seller-category-combo")) {
+            productTypeCombo.getStyleClass().add("seller-category-combo");
+        }
+
+        productTypeCombo.setButtonCell(createProductTypeComboCell(false));
+        productTypeCombo.setCellFactory(listView -> createProductTypeComboCell(true));
+    }
+
+    private ListCell<String> createProductTypeComboCell(boolean popupCell) {
+        return new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+
+                setGraphic(null);
+                setContentDisplay(ContentDisplay.TEXT_ONLY);
+
+                if (popupCell && !getStyleClass().contains("seller-category-combo-popup-cell")) {
+                    getStyleClass().add("seller-category-combo-popup-cell");
+                }
+
+                if (empty || item == null || item.isBlank()) {
+                    setText(null);
+                } else {
+                    setText(item);
+                }
+            }
+        };
+    }
 
     @FXML
     public void initialize() {
         productTypeCombo.setItems(FXCollections.observableArrayList(
                 "Electronics", "Art", "Vehicle"));
         productTypeCombo.setValue("Electronics");
+        setupProductTypeComboDisplay();
 
         setupTable();
         setupImageUpload();
