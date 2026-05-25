@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
+import com.auction.client.HttpClientSingleton;
 import javafx.application.Platform;
 import javafx.animation.PauseTransition;
 import javafx.event.ActionEvent;
@@ -47,7 +48,7 @@ import java.util.concurrent.TimeUnit;
 public class MyBidsController implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(MyBidsController.class);
 
-    private HttpClient client = HttpClient.newHttpClient();
+    private HttpClient client = HttpClientSingleton.getInstance().getHttpClient();
 
     @FXML
     private ScrollPane scrollPane;
@@ -178,7 +179,7 @@ public class MyBidsController implements Initializable {
             t.setDaemon(true);
             return t;
         });
-        pollingScheduler.scheduleAtFixedRate(this::fetchProductsData, 0, 5, TimeUnit.SECONDS);
+        pollingScheduler.scheduleWithFixedDelay(this::fetchProductsData, 0, 5, TimeUnit.SECONDS);
     }
 
     private void fetchProductsData() {
@@ -188,7 +189,6 @@ public class MyBidsController implements Initializable {
                 logger.warn("[MyBids-DEBUG] userId is NULL, skipping fetch");
                 return;
             }
-            logger.info("[MyBids-DEBUG] Fetching my-bids for userId={}", userId);
             HttpRequest.Builder builder = HttpRequest.newBuilder()
                     .uri(URI.create(Config.API_URL + "/api/bidder/my-bids?bidderId=" + userId))
                     .GET();
@@ -198,31 +198,18 @@ public class MyBidsController implements Initializable {
             HttpRequest request = builder.build();
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            logger.info("[MyBids-DEBUG] HTTP status={}, body length={}", response.statusCode(),
-                    response.body().length());
-            logger.info("[MyBids-DEBUG] Response body (first 500 chars): {}",
-                    response.body().substring(0, Math.min(500, response.body().length())));
-
             if (response.statusCode() == 200) {
                 JSONObject responseJson = new JSONObject(response.body());
                 int apiStatus = responseJson.getInt("status");
-                logger.info("[MyBids-DEBUG] API status={}", apiStatus);
 
                 if (apiStatus == 200) {
                     Object dataObj = responseJson.get("data");
-                    logger.info("[MyBids-DEBUG] data type={}", dataObj.getClass().getSimpleName());
                     JSONArray jsonArray = new JSONArray();
 
                     if (dataObj instanceof JSONObject) {
                         jsonArray = ((JSONObject) dataObj).getJSONArray("content");
                     } else if (dataObj instanceof JSONArray) {
                         jsonArray = (JSONArray) dataObj;
-                    }
-
-                    logger.info("[MyBids-DEBUG] jsonArray length={}", jsonArray.length());
-                    if (jsonArray.length() > 0) {
-                        logger.info("[MyBids-DEBUG] First item: {}", jsonArray.getJSONObject(0).toString().substring(0,
-                                Math.min(300, jsonArray.getJSONObject(0).toString().length())));
                     }
 
                     List<JSONObject> newProducts = new ArrayList<>();
@@ -232,14 +219,12 @@ public class MyBidsController implements Initializable {
 
                     allProducts.clear();
                     allProducts.addAll(newProducts);
-                    logger.info("[MyBids-DEBUG] allProducts size={}, currentTab={}", allProducts.size(), currentTab);
-
                     Platform.runLater(this::filterAndRenderProducts);
                 } else {
-                    logger.warn("[MyBids-DEBUG] API returned non-200 status: {}", apiStatus);
+                    logger.warn("My Bids API returned status {}", apiStatus);
                 }
             } else {
-                logger.warn("[MyBids-DEBUG] HTTP returned non-200 status: {}", response.statusCode());
+                logger.warn("My Bids request returned HTTP status {}", response.statusCode());
             }
         } catch (Exception e) {
             logger.error("Error loading products: {}", e.getMessage(), e);

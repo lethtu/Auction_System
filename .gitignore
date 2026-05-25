@@ -40,6 +40,7 @@ cmake-build-*/
 .idea/**/mongoSettings.xml
 
 # File-based project format
+*.iml
 *.iws
 
 # IntelliJ
@@ -149,3 +150,5 @@ buildNumber.properties
 server/upload/images/*
 !server/upload/images/.gitkeep
 upload/
+client/cache/
+client/client/cache/

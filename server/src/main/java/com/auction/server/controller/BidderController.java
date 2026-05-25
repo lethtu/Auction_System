@@ -18,6 +18,7 @@ import com.auction.server.service.BidderService;
 import com.auction.server.util.SessionManager;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -96,11 +97,19 @@ public class BidderController {
     public ApiResponse<java.util.List<com.auction.server.dto.SessionResponseDTO>> getMyBids(@RequestParam Integer bidderId) {
         logger.info("Fetching participated auction sessions for bidderId: {}", bidderId);
         java.util.List<AuctionSession> sessions = bidRepository.findSessionsByBidderId(bidderId);
+        Map<Integer, Object[]> statsBySessionId = new HashMap<>();
+        if (!sessions.isEmpty()) {
+            List<Integer> sessionIds = sessions.stream().map(AuctionSession::getId).toList();
+            for (Object[] row : bidRepository.findSessionStatsForBidder(sessionIds, bidderId)) {
+                statsBySessionId.put((Integer) row[0], row);
+            }
+        }
         java.util.List<com.auction.server.dto.SessionResponseDTO> dtos = sessions.stream()
                 .map(session -> {
-                    int bidCount = Math.toIntExact(bidRepository.countBySessionId(session.getId()));
+                    Object[] stats = statsBySessionId.get(session.getId());
+                    int bidCount = stats == null ? 0 : ((Number) stats[1]).intValue();
                     com.auction.server.dto.SessionResponseDTO dto = com.auction.server.mapper.SessionResponseMapper.toDTO(session, bidCount);
-                    java.math.BigDecimal maxBid = bidRepository.findMaxBidAmountBySessionIdAndBidderId(session.getId(), bidderId);
+                    java.math.BigDecimal maxBid = stats == null ? null : (java.math.BigDecimal) stats[2];
                     dto.setUserMaxBid(maxBid);
                     if (bidderId.equals(session.getHighestBidderId())) {
                         dto.setDeliveryRecipient(session.getDeliveryRecipient());

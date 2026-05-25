@@ -2314,6 +2314,12 @@ public class SellerDashboardController {
             return;
         }
 
+        Thread loadThread = new Thread(() -> loadMySessionsFromServer(sellerId), "seller-sessions-load");
+        loadThread.setDaemon(true);
+        loadThread.start();
+    }
+
+    private void loadMySessionsFromServer(Integer sellerId) {
         try {
             HttpRequest request = newRequestBuilder()
                     .uri(URI.create(Config.API_URL + "/api/seller/my-sessions/" + sellerId))
@@ -2328,13 +2334,17 @@ public class SellerDashboardController {
                 return;
             }
 
-            allSessions.clear();
+            List<SessionItem> loadedSessions = new ArrayList<>();
             for (int i = 0; i < api.data.length(); i++) {
-                allSessions.add(parseSession(api.data.getJSONObject(i)));
+                loadedSessions.add(parseSession(api.data.getJSONObject(i)));
             }
 
-            renderSessions(allSessions);
-            updateStats();
+            javafx.application.Platform.runLater(() -> {
+                allSessions.clear();
+                allSessions.addAll(loadedSessions);
+                renderSessions(allSessions);
+                updateStats();
+            });
 
         } catch (Exception e) {
             logger.error("Cannot connect to server: {}", e.getMessage(), e);

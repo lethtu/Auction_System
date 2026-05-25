@@ -196,6 +196,7 @@ public class AuctionPageController {
     private static final String DEFAULT_DESCRIPTION = "No product description available.";
     private static final String DEFAULT_HIGHEST_BIDDER = "No bidder yet";
     private static final String PROCESSING_MESSAGE = "Processing request...";
+    private static final String OWN_AUCTION_BID_MESSAGE = "You cannot bid on your own auction.";
 
     private static final int EXPANDED_SIDEBAR_WIDTH = 200;
     private static final int COLLAPSED_SIDEBAR_WIDTH = 70;
@@ -221,6 +222,8 @@ public class AuctionPageController {
     private BigDecimal startingPrice = BigDecimal.ZERO;
     private BigDecimal reservePrice = BigDecimal.ZERO;
     private Integer highestBidderId;
+    private Integer sellerId;
+    private boolean auctionOpenForBidding = true;
     private int bidCount;
     private int watchingCount;
     private BigDecimal myLastBidAmount = null;
@@ -417,6 +420,10 @@ public class AuctionPageController {
             showError("Please log in to bid!");
             return;
         }
+        if (isSellerOfCurrentAuction()) {
+            showError(OWN_AUCTION_BID_MESSAGE);
+            return;
+        }
 
         BigDecimal bidAmount = getValidBidAmount();
         if (bidAmount == null) {
@@ -514,6 +521,10 @@ public class AuctionPageController {
     public void handleAutoBidConfig(ActionEvent event) {
         if (!isUserLoggedIn()) {
             showError("Please log in to configure Auto-bid!");
+            return;
+        }
+        if (isSellerOfCurrentAuction()) {
+            showError(OWN_AUCTION_BID_MESSAGE);
             return;
         }
 
@@ -1569,10 +1580,13 @@ public class AuctionPageController {
     }
 
     private void applySessionData(JSONObject sessionObj, JSONObject itemObj) {
+        sellerId = getOptionalInt(sessionObj, "sellerId");
+        auctionOpenForBidding = "ACTIVE".equalsIgnoreCase(sessionObj.optString("status", "ACTIVE"));
         loadPriceData(sessionObj);
         loadProductData(sessionObj, itemObj);
         updatePriceLabels();
         updateBidInfoLabels();
+        updateBiddingAvailability();
 
         String endTime = sessionObj.optString("endTime", "");
         if (!endTime.isEmpty()) {
@@ -1972,6 +1986,34 @@ public class AuctionPageController {
         return User.getId() != null;
     }
 
+    private boolean isSellerOfCurrentAuction() {
+        return User.getId() != null && sellerId != null && sellerId.equals(User.getId());
+    }
+
+    private boolean isBiddingUnavailable() {
+        return !auctionOpenForBidding || isSellerOfCurrentAuction();
+    }
+
+    private void updateBiddingAvailability() {
+        boolean disabled = isBiddingUnavailable();
+        if (bidAmountField != null) {
+            bidAmountField.setDisable(disabled);
+        }
+        if (placeBidBtn != null) {
+            placeBidBtn.setDisable(disabled);
+        }
+        if (btnAutoBid != null) {
+            btnAutoBid.setDisable(disabled);
+        }
+
+        if (messageLabel != null && isSellerOfCurrentAuction()) {
+            messageLabel.setStyle(INFO_STYLE);
+            messageLabel.setText(OWN_AUCTION_BID_MESSAGE);
+        } else if (messageLabel != null && OWN_AUCTION_BID_MESSAGE.equals(messageLabel.getText())) {
+            messageLabel.setText("");
+        }
+    }
+
     private BigDecimal getValidBidAmount() {
         String input = bidAmountField.getText().trim();
 
@@ -2049,7 +2091,7 @@ public class AuctionPageController {
                 out == null || out.checkError());
 
         bidTimeout = new Timeline(new KeyFrame(javafx.util.Duration.seconds(BID_TIMEOUT_SECONDS), event -> {
-            placeBidBtn.setDisable(false);
+            placeBidBtn.setDisable(isBiddingUnavailable());
 
             if (PROCESSING_MESSAGE.equals(messageLabel.getText())) {
                 messageLabel.setStyle(WARNING_STYLE);
@@ -2070,7 +2112,7 @@ public class AuctionPageController {
         stopBidTimeout();
 
         if (placeBidBtn != null) {
-            placeBidBtn.setDisable(false);
+            placeBidBtn.setDisable(isBiddingUnavailable());
         }
     }
 
@@ -2135,8 +2177,8 @@ public class AuctionPageController {
     }
 
     private void handleAuctionEnd() {
-        placeBidBtn.setDisable(true);
-        bidAmountField.setDisable(true);
+        auctionOpenForBidding = false;
+        updateBiddingAvailability();
         disconnectSocket();
     }
 

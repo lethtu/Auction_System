@@ -10,7 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "auction_sessions")
+@Table(name = "auction_sessions", indexes = {
+        @Index(name = "idx_session_status_start", columnList = "status, start_time"),
+        @Index(name = "idx_session_status_end", columnList = "status, end_time"),
+        @Index(name = "idx_session_seller_status", columnList = "seller_id, status")
+})
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class AuctionSession implements Serializable{
     @Id
