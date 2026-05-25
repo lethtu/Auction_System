@@ -64,11 +64,28 @@ public final class CacheManager {
 
     private static void ensureCacheDirectories() {
         try {
-            Files.createDirectories(Paths.get(Config.CACHE_3D_DIR));
-            Files.createDirectories(Paths.get(Config.CACHE_IMAGES_DIR));
+            Files.createDirectories(resolveCachePath(Config.CACHE_3D_DIR));
+            Files.createDirectories(resolveCachePath(Config.CACHE_IMAGES_DIR));
         } catch (IOException e) {
             logger.warn("Failed to create cache directories", e);
         }
+    }
+
+    private static Path resolveCachePath(String configuredPath) {
+        Path path = Paths.get(configuredPath);
+        if (path.isAbsolute()) {
+            return path;
+        }
+
+        Path cwd = Paths.get("").toAbsolutePath().normalize();
+        String currentFolder = cwd.getFileName() == null ? "" : cwd.getFileName().toString();
+        String normalizedConfiguredPath = configuredPath.replace('\\', '/');
+
+        if ("client".equals(currentFolder) && normalizedConfiguredPath.startsWith("client/")) {
+            return cwd.getParent().resolve(configuredPath).normalize();
+        }
+
+        return cwd.resolve(configuredPath).normalize();
     }
 
     public static Image getCachedImage(String imageUrl, Consumer<Image> onImageLoaded) {
@@ -80,8 +97,8 @@ public final class CacheManager {
 
         String key = md5(imageUrl);
         String ext = resolveExtension(imageUrl, "png");
-        Path cachedFile = Paths.get(Config.CACHE_IMAGES_DIR, key + "." + ext);
-        Path metaFile = Paths.get(Config.CACHE_IMAGES_DIR, key + ".meta");
+        Path cachedFile = resolveCachePath(Config.CACHE_IMAGES_DIR).resolve(key + "." + ext);
+        Path metaFile = resolveCachePath(Config.CACHE_IMAGES_DIR).resolve(key + ".meta");
 
         Image memoryImage = MEMORY_IMAGE_CACHE.get(imageUrl);
         if (memoryImage != null) {
@@ -154,8 +171,8 @@ public final class CacheManager {
             return null;
         }
 
-        Path cachedFile = Paths.get(Config.CACHE_3D_DIR, safeUuid + ".glb");
-        Path metaFile = Paths.get(Config.CACHE_3D_DIR, safeUuid + ".meta");
+        Path cachedFile = resolveCachePath(Config.CACHE_3D_DIR).resolve(safeUuid + ".glb");
+        Path metaFile = resolveCachePath(Config.CACHE_3D_DIR).resolve(safeUuid + ".meta");
         boolean hasLocal = Files.exists(cachedFile) && Files.exists(metaFile);
 
         validateAndDownloadAsync(modelUrl, cachedFile, metaFile, updated -> {
@@ -179,8 +196,8 @@ public final class CacheManager {
             return;
         }
 
-        Path cachedFile = Paths.get(Config.CACHE_3D_DIR, safeUuid + ".glb");
-        Path metaFile = Paths.get(Config.CACHE_3D_DIR, safeUuid + ".meta");
+        Path cachedFile = resolveCachePath(Config.CACHE_3D_DIR).resolve(safeUuid + ".glb");
+        Path metaFile = resolveCachePath(Config.CACHE_3D_DIR).resolve(safeUuid + ".meta");
 
         try {
             Files.deleteIfExists(cachedFile);

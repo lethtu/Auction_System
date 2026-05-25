@@ -846,8 +846,8 @@ public class MyBidsController implements Initializable, SceneLifecycle {
                     + "-fx-background-radius: 20px; -fx-padding: 14px; -fx-background-color: #241a2f; "
                     + "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.30), 14, 0, 0, 4);" + scale;
         }
-        return "-fx-border-color: " + (hover ? "-app-surface-2" : "-app-border") + "; -fx-border-width: 2px; -fx-border-radius: 20px; "
-                + "-fx-background-radius: 20px; -fx-padding: 14px; -fx-background-color: white; "
+        return "-fx-border-color: " + (hover ? accentHex() : "-app-border") + "; -fx-border-width: 2px; -fx-border-radius: 20px; "
+                + "-fx-background-radius: 20px; -fx-padding: 14px; -fx-background-color: -app-card; "
                 + "-fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, " + (hover ? "0.15" : "0.05") + "), 15, 0, 0, 4);" + scale;
     }
 
@@ -856,7 +856,7 @@ public class MyBidsController implements Initializable, SceneLifecycle {
             return "-fx-background-radius: 14px; -fx-border-radius: 14px; -fx-background-color: #1a1223; "
                     + "-fx-border-color: rgba(255,255,255,0.12); -fx-border-width: 1px;";
         }
-        return "-fx-background-radius: 14px; -fx-border-radius: 14px; -fx-background-color: #fcf6fc;";
+        return "-fx-background-radius: 14px; -fx-border-radius: 14px; -fx-background-color: -app-surface-2;";
     }
 
     private String myBidDetailsStyle() {
