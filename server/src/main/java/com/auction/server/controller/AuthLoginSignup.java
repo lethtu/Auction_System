@@ -2,6 +2,7 @@ package com.auction.server.controller;
 
 import com.auction.server.model.User;
 import com.auction.server.dto.ApiResponse;
+import com.auction.server.dto.UserResponseDTO;
 import com.auction.server.view.EmailServer;
 import com.auction.server.view.RqLoginSignup;
 import com.auction.server.util.EmailTemplateBuilder;
@@ -50,18 +51,23 @@ public class AuthLoginSignup {
 
     @PostMapping("/signup")
     public ApiResponse<?> Signup(@RequestBody User newUser) {
-        logger.info("New user registration info: {}", newUser);
-        logger.info("Email: {}, Fullname: {}, Password: {}", newUser.getEmail(), newUser.getFullname(), newUser.getPassword());
-        boolean check = rq.signup(newUser);
-        if (!check) {
-            String body = EmailTemplateBuilder.buildWelcomeEmail(newUser.getFullname(), newUser.getUsername());
-            emailServer.SendEmail(newUser.getEmail(), "Account Registration Successful", body);
-            logger.info("User {} registered successfully", newUser.getUsername());
-            return new ApiResponse<User>(200, "Registration successful", newUser);
+        logger.info("Signup request received for username={}, email={}",
+                newUser.getUsername(), newUser.getEmail());
+        Optional<User> signupResult = rq.signup(newUser);
+        if (signupResult.isPresent()) {
+            User savedUser = signupResult.get();
+            String body = EmailTemplateBuilder.buildWelcomeEmail(savedUser.getFullname(), savedUser.getUsername());
+            emailServer.SendEmail(savedUser.getEmail(), "Account Registration Successful", body);
+            logger.info("User {} registered successfully", savedUser.getUsername());
+            return ApiResponse.success("Registration successful",
+                new UserResponseDTO(savedUser.getId(), savedUser.getUsername(),
+                    savedUser.getFullname(), savedUser.getEmail(),
+                    savedUser.getAccountType(), savedUser.getBalance(),
+                    savedUser.isBanned()));
         }
         else {
             logger.error("Registration error, username: {} or email: {} already exists", newUser.getUsername(), newUser.getEmail());
-            return new ApiResponse<User>(400, "Email or Username already exists", newUser);
+            return ApiResponse.error(400, "Email or Username already exists");
         }
     }
 }

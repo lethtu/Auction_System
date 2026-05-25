@@ -36,7 +36,7 @@ public class RqLoginSignup {
         return Optional.empty();
     }
 
-    public boolean signup(User newUser) {
+    public Optional<User> signup(User newUser) {
         if (!loginSignup.existsByUsernameOrEmail(newUser.getUsername(), newUser.getEmail())) {
             logger.info("Adding user: {}", newUser.getUsername());
             if (newUser.getPassword() == null) {
@@ -55,12 +55,12 @@ public class RqLoginSignup {
             bidder.setPlace_of_birth(newUser.getPlace_of_birth());
             bidder.setBalance(newUser.getBalance() != null ? newUser.getBalance() : java.math.BigDecimal.ZERO);
 
-            loginSignup.save(bidder);
+            User savedUser = loginSignup.save(bidder);
             logger.info("Successfully added user: {} to DB with role BIDDER", newUser.getUsername());
-            return false;
+            return Optional.of(savedUser);
         }
         logger.info("Username: {} or Email: {} already exists in DB", newUser.getUsername(), newUser.getEmail());
-        return true;
+        return Optional.empty();
     }
 }
 

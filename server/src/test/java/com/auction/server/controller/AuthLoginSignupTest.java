@@ -46,7 +46,7 @@ public class AuthLoginSignupTest {
     public void setup() {
         // Chuẩn bị sẵn một User chuẩn bị cho các bài test
         mockUser = new User();
-        // Bạn có thể cần gọi mockUser.setId(1) tùy thuộc vào model User của bạn
+        mockUser.setId(1);
         mockUser.setUsername("testuser");
         mockUser.setPassword("matkhau123");
         mockUser.setFullname("Người Dùng Thử Nghiệm");
@@ -107,8 +107,14 @@ public class AuthLoginSignupTest {
     @Test
     @DisplayName("API Signup: Thông tin hợp lệ -> Đăng ký và Gửi Email")
     public void testSignup_Success() throws Exception {
-        // THEO LOGIC CỦA BẠN: rq.signup() trả về FALSE là đăng ký thành công!
-        Mockito.when(rq.signup(any(User.class))).thenReturn(false);
+        User successfulSavedUser = new User();
+        successfulSavedUser.setId(1);
+        successfulSavedUser.setUsername("newuser");
+        successfulSavedUser.setPassword("newpassword123");
+        successfulSavedUser.setFullname("Tân Binh");
+        successfulSavedUser.setEmail("newuser@gmail.com");
+
+        Mockito.when(rq.signup(any(User.class))).thenReturn(Optional.of(successfulSavedUser));
 
         String requestJson = """
             {
@@ -137,8 +143,8 @@ public class AuthLoginSignupTest {
     @Test
     @DisplayName("API Signup: Bị trùng Username/Email -> Trả về 400, KHÔNG gửi Email")
     public void testSignup_Fail_Duplicate() throws Exception {
-        // THEO LOGIC CỦA BẠN: rq.signup() trả về TRUE là bị trùng lặp/lỗi!
-        Mockito.when(rq.signup(any(User.class))).thenReturn(true);
+        // THEO LOGIC MỚI: rq.signup() trả về Optional.empty() là bị trùng lặp/lỗi!
+        Mockito.when(rq.signup(any(User.class))).thenReturn(Optional.empty());
 
         String requestJson = """
             {
