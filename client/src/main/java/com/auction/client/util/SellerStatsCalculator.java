@@ -5,7 +5,9 @@ import com.auction.client.model.SessionItem;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.List;
+import java.util.Locale;
 
 public final class SellerStatsCalculator {
     private static final String TOTAL_SESSIONS_LABEL = "Total sessions: ";
@@ -68,7 +70,7 @@ public final class SellerStatsCalculator {
     }
 
     private static DecimalFormat moneyFormatter() {
-        return new DecimalFormat(MONEY_PATTERN);
+        return new DecimalFormat(MONEY_PATTERN, DecimalFormatSymbols.getInstance(Locale.US));
     }
 
     private static String normalizeStatus(String status) {
