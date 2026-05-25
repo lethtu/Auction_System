@@ -31,6 +31,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.kordamp.ikonli.javafx.FontIcon;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.animation.PauseTransition;
 
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
@@ -143,6 +144,14 @@ public class SellerDashboardController implements SceneLifecycle {
     private Label lblActiveAuctions;
     @FXML
     private Label lblTotalBids;
+    @FXML
+    private Label lblRevenueCaption;
+    @FXML
+    private Label lblActiveCaption;
+    @FXML
+    private Label lblBidsCaption;
+    @FXML
+    private ProgressBar progressActiveAuctions;
 
     @FXML
     private TableView<SessionItem> sessionsTable;
@@ -161,10 +170,19 @@ public class SellerDashboardController implements SceneLifecycle {
     private SidebarController sidebarController;
     @FXML
     private TopbarController topbarController;
+    @FXML
+    private TextField txtSearch;
+    @FXML
+    private ComboBox<String> statusFilterCombo;
+    @FXML
+    private Label lblSellerListingCount;
+
+    private static final javafx.util.Duration SELLER_SEARCH_DEBOUNCE_DELAY = javafx.util.Duration.millis(180);
 
     private HttpClient httpClient = HttpClientSingleton.getInstance().getHttpClient();
     final List<SessionItem> allSessions = new ArrayList<>();
     final ObservableList<SessionItem> displayedSessions = FXCollections.observableArrayList();
+    private final PauseTransition sellerSearchDebounce = new PauseTransition(SELLER_SEARCH_DEBOUNCE_DELAY);
 
     public void setHttpClient(HttpClient client) {
         this.httpClient = client;
@@ -231,6 +249,7 @@ public class SellerDashboardController implements SceneLifecycle {
         setupProductTypeComboDisplay();
 
         setupTable();
+        setupSellerFilters();
         setupImageUpload();
         setupModelUpload();
         setupSplitDatetimePickers();
@@ -286,6 +305,26 @@ public class SellerDashboardController implements SceneLifecycle {
         }
 
         loadMySessions();
+    }
+
+    private void setupSellerFilters() {
+        if (statusFilterCombo != null) {
+            statusFilterCombo.setItems(FXCollections.observableArrayList(
+                    "All", "Active", "Coming", "Draft", "Completed", "Cancelled"));
+            statusFilterCombo.setValue("All");
+            if (!statusFilterCombo.getStyleClass().contains("seller-status-filter-combo")) {
+                statusFilterCombo.getStyleClass().add("seller-status-filter-combo");
+            }
+            statusFilterCombo.valueProperty().addListener((obs, oldValue, newValue) -> applySellerFilters());
+        }
+
+        if (txtSearch != null) {
+            sellerSearchDebounce.setOnFinished(event -> applySellerFilters());
+            txtSearch.textProperty().addListener((obs, oldValue, newValue) -> {
+                sellerSearchDebounce.stop();
+                sellerSearchDebounce.playFromStart();
+            });
+        }
     }
 
     private void setupSplitDatetimePickers() {
@@ -2216,7 +2255,7 @@ public class SellerDashboardController implements SceneLifecycle {
                     }
                     allSessions.clear();
                     allSessions.addAll(result.sessions);
-                    renderSessions(allSessions);
+                    applySellerFilters();
                     updateStats();
                 }))
                 .exceptionally(ex -> {
@@ -2362,35 +2401,134 @@ public class SellerDashboardController implements SceneLifecycle {
     private void renderSessions(List<SessionItem> sessions) {
         displayedSessions.clear();
         displayedSessions.addAll(sessions);
+        updateSellerListingCount(sessions.size(), allSessions.size());
+    }
+
+    private void applySellerFilters() {
+        String query = txtSearch == null || txtSearch.getText() == null ? "" : txtSearch.getText().trim().toLowerCase();
+        String selectedStatus = statusFilterCombo == null || statusFilterCombo.getValue() == null
+                ? "All"
+                : statusFilterCombo.getValue().trim();
+
+        List<SessionItem> filtered = new ArrayList<>();
+        for (SessionItem session : allSessions) {
+            if (!matchesSellerStatusFilter(session, selectedStatus)) {
+                continue;
+            }
+            if (!matchesSellerSearch(session, query)) {
+                continue;
+            }
+            filtered.add(session);
+        }
+        renderSessions(filtered);
+    }
+
+    private boolean matchesSellerStatusFilter(SessionItem session, String selectedStatus) {
+        if (selectedStatus == null || selectedStatus.isBlank() || "All".equalsIgnoreCase(selectedStatus)) {
+            return true;
+        }
+        String status = session == null || session.status == null ? "" : session.status.trim();
+        if ("Active".equalsIgnoreCase(selectedStatus)) {
+            return "ACTIVE".equalsIgnoreCase(status) || "LIVE".equalsIgnoreCase(status);
+        }
+        return selectedStatus.equalsIgnoreCase(status);
+    }
+
+    private boolean matchesSellerSearch(SessionItem session, String query) {
+        if (query == null || query.isBlank()) {
+            return true;
+        }
+        if (session == null) {
+            return false;
+        }
+        String haystack = (safeString(session.productName) + " "
+                + safeString(session.productType) + " "
+                + safeString(session.status) + " #" + session.id).toLowerCase();
+        return haystack.contains(query);
+    }
+
+    private void updateSellerListingCount(int shown, int total) {
+        if (lblSellerListingCount == null) {
+            return;
+        }
+        if (total <= 0) {
+            lblSellerListingCount.setText("No listings yet");
+        } else if (shown == total) {
+            lblSellerListingCount.setText("Showing " + total + " listing" + (total == 1 ? "" : "s"));
+        } else {
+            lblSellerListingCount.setText("Showing " + shown + " of " + total + " listings");
+        }
+    }
+
+    @FXML
+    private void handleResetSellerFilters() {
+        if (txtSearch != null) {
+            txtSearch.clear();
+        }
+        if (statusFilterCombo != null) {
+            statusFilterCombo.setValue("All");
+        }
+        applySellerFilters();
+    }
+
+    @FXML
+    private void handleRefreshSellerSessions() {
+        loadMySessions();
     }
 
     private void updateStats() {
+        int total = allSessions.size();
         int active = 0;
-        int totalBidsEstimate = 0; // Since we don't have exact bid counts from session api directly, we might mock
-                                   // this or use size
+        int upcoming = 0;
+        int completed = 0;
+        int drafts = 0;
+        int cancelled = 0;
         BigDecimal revenue = BigDecimal.ZERO;
 
         for (SessionItem s : allSessions) {
-            if (s.status == null)
-                continue;
-            switch (s.status.toUpperCase()) {
+            String status = s.status == null ? "" : s.status.trim().toUpperCase();
+            switch (status) {
                 case "ACTIVE", "LIVE" -> active++;
-                case "COMPLETED" -> {
-                    if (s.currentPrice != null) {
+                case "SCHEDULED", "UPCOMING", "COMING", "PENDING" -> upcoming++;
+                case "COMPLETED", "ENDED", "FINISHED" -> {
+                    completed++;
+                    if (s.currentPrice != null && s.currentPrice.compareTo(BigDecimal.ZERO) > 0) {
                         revenue = revenue.add(s.currentPrice);
                     }
                 }
-            }
-            // Mock total bids based on status as we don't have the API data for it
-            if ("ACTIVE".equalsIgnoreCase(s.status) || "COMPLETED".equalsIgnoreCase(s.status)) {
-                totalBidsEstimate += 3;
+                case "DRAFT" -> drafts++;
+                case "CANCELLED", "CANCELED" -> cancelled++;
+                default -> {
+                    if (status.contains("ACTIVE") || status.contains("LIVE")) {
+                        active++;
+                    }
+                }
             }
         }
 
         DecimalFormat df = new DecimalFormat("#,##0.##");
-        lblTotalRevenue.setText("$" + df.format(revenue));
-        lblActiveAuctions.setText(String.valueOf(active));
-        lblTotalBids.setText(String.valueOf(totalBidsEstimate)); // Mock logic
+        if (lblTotalRevenue != null) {
+            lblTotalRevenue.setText("VND " + df.format(revenue));
+        }
+        if (lblActiveAuctions != null) {
+            lblActiveAuctions.setText(String.valueOf(active));
+        }
+        if (lblTotalBids != null) {
+            lblTotalBids.setText(String.valueOf(total));
+        }
+        if (lblRevenueCaption != null) {
+            lblRevenueCaption.setText(completed == 0 ? "No completed sales yet" : completed + " completed sale" + (completed == 1 ? "" : "s"));
+        }
+        if (lblActiveCaption != null) {
+            lblActiveCaption.setText(upcoming == 0 ? active + " live" : active + " live / " + upcoming + " upcoming");
+        }
+        if (lblBidsCaption != null) {
+            lblBidsCaption.setText(drafts + " draft" + (drafts == 1 ? "" : "s")
+                    + " / " + completed + " sold / " + cancelled + " cancelled");
+        }
+        if (progressActiveAuctions != null) {
+            progressActiveAuctions.setProgress(total <= 0 ? 0 : Math.min(1.0, (double) active / total));
+        }
     }
 
     private void clearForm() {

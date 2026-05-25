@@ -40,18 +40,19 @@
                     <VBox spacing="24.0" styleClass="seller-dashboard-body">
                     
                     <!-- Header Area -->
-                    <HBox alignment="CENTER_LEFT" spacing="20.0">
-                        <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                    <HBox alignment="CENTER_LEFT" spacing="18.0">
+                        <VBox spacing="4.0" HBox.hgrow="ALWAYS" minWidth="360.0">
                             <Label text="Seller Dashboard" style="-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: -fx-accent;"/>
-                            <Label text="Manage your inventory and monitor active auctions." style="-fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
+                            <Label text="Manage your inventory and monitor active auctions." wrapText="true" maxWidth="520.0" style="-fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
                         </VBox>
                         
-                        <HBox alignment="CENTER" spacing="12.0">
+                        <HBox alignment="CENTER" spacing="12.0" minWidth="640.0">
                             <HBox styleClass="search-box" alignment="CENTER_LEFT">
                                 <FontIcon iconLiteral="mdi2m-magnify" iconSize="20" iconColor="#907898"/>
-                                <TextField fx:id="txtSearch" promptText="Search auctions..." style="-fx-background-color: transparent; -fx-control-inner-background: transparent; -fx-background-insets: 0; -fx-background-radius: 0; -fx-border-color: transparent; -fx-border-width: 0; -fx-border-insets: 0; -fx-padding: 12px 0; -fx-pref-width: 200px;" />
+                                <TextField fx:id="txtSearch" promptText="Search listings..." style="-fx-background-color: transparent; -fx-control-inner-background: transparent; -fx-background-insets: 0; -fx-background-radius: 0; -fx-border-color: transparent; -fx-border-width: 0; -fx-border-insets: 0; -fx-padding: 12px 0; -fx-pref-width: 240px;" />
                             </HBox>
-                            <Button text="Add New Item" onAction="#handleShowAddModal" styleClass="action-btn-primary">
+                            <ComboBox fx:id="statusFilterCombo" prefWidth="150.0" styleClass="custom-combo-box"/>
+                            <Button text="Add New Item" onAction="#handleShowAddModal" minWidth="190.0" prefWidth="190.0" styleClass="action-btn-primary">
                                 <graphic>
                                     <FontIcon iconLiteral="mdi2p-plus" iconSize="20" styleClass="add-item-plus-icon"/>
                                 </graphic>
@@ -83,7 +84,7 @@
                             </HBox>
                             <HBox alignment="CENTER_LEFT" spacing="8.0" style="-fx-background-color: #d1fae5; -fx-background-radius: 999px; -fx-padding: 4px 12px; -fx-max-width: max-content;">
                                 <FontIcon iconLiteral="mdi2t-trending-up" iconSize="16" iconColor="#10b981"/>
-                                <Label text="+12% from last month" style="-fx-text-fill: #10b981; -fx-font-weight: bold; -fx-font-size: 12px;"/>
+                                <Label fx:id="lblRevenueCaption" text="Completed sales only" style="-fx-text-fill: #10b981; -fx-font-weight: bold; -fx-font-size: 12px;"/>
                             </HBox>
                         </VBox>
 
@@ -91,13 +92,13 @@
                         <VBox styleClass="bento-card" GridPane.columnIndex="1" spacing="8.0">
                             <Label text="Active Auctions" style="-fx-text-fill: -app-text-muted; -fx-font-weight: bold; -fx-font-size: 14px;"/>
                             <Label fx:id="lblActiveAuctions" text="0" style="-fx-text-fill: #7c52aa; -fx-font-size: 28px; -fx-font-weight: 900;"/>
-                            <ProgressBar progress="0.66" prefWidth="200.0" style="-fx-accent: #7c52aa; -fx-control-inner-background: #eedcff;"/>
-                            <Label text="6 ending today" style="-fx-text-fill: #4a3068; -fx-font-size: 12px;"/>
+                            <ProgressBar fx:id="progressActiveAuctions" progress="0.0" prefWidth="200.0" styleClass="seller-stat-progress"/>
+                            <Label fx:id="lblActiveCaption" text="0 live" wrapText="true" maxWidth="200.0" style="-fx-text-fill: -app-text-muted; -fx-font-size: 12px;"/>
                         </VBox>
 
                         <!-- Total Bids Card -->
                         <VBox styleClass="bento-card" GridPane.columnIndex="2" spacing="8.0">
-                            <Label text="Total Bids" style="-fx-text-fill: -app-text-muted; -fx-font-weight: bold; -fx-font-size: 14px;"/>
+                            <Label text="Total Listings" style="-fx-text-fill: -app-text-muted; -fx-font-weight: bold; -fx-font-size: 14px;"/>
                             <Label fx:id="lblTotalBids" text="0" style="-fx-text-fill: -fx-accent; -fx-font-size: 28px; -fx-font-weight: 900;"/>
                             <HBox spacing="-8.0">
                                 <Circle radius="16" fill="#cccccc" stroke="white" strokeWidth="2"/>
@@ -108,7 +109,7 @@
                                     <Label text="+9" style="-fx-text-fill: #00334d; -fx-font-weight: bold; -fx-font-size: 10px;"/>
                                 </StackPane>
                             </HBox>
-                            <Label text="New bids this week" style="-fx-text-fill: #005580; -fx-font-size: 12px;"/>
+                            <Label fx:id="lblBidsCaption" text="Listing activity" wrapText="true" maxWidth="220.0" style="-fx-text-fill: -app-text-muted; -fx-font-size: 12px;"/>
                         </VBox>
                     </GridPane>
 
@@ -119,11 +120,13 @@
                             <Label text="Manage Listings" style="-fx-font-size: 20px; -fx-font-weight: 900; -fx-text-fill: -fx-accent;"/>
                             <Region HBox.hgrow="ALWAYS" />
                             <HBox spacing="8.0">
-                                <Button styleClass="action-btn">
-                                    <graphic><FontIcon iconLiteral="mdi2f-filter-variant" iconSize="20" iconColor="#604868"/></graphic>
+                                <Button onAction="#handleResetSellerFilters" styleClass="action-btn">
+                                    <tooltip><Tooltip text="Reset search and filter"/></tooltip>
+                                    <graphic><FontIcon iconLiteral="mdi2f-filter-remove-outline" iconSize="20" iconColor="#604868"/></graphic>
                                 </Button>
-                                <Button styleClass="action-btn">
-                                    <graphic><FontIcon iconLiteral="mdi2d-download" iconSize="20" iconColor="#604868"/></graphic>
+                                <Button onAction="#handleRefreshSellerSessions" styleClass="action-btn">
+                                    <tooltip><Tooltip text="Refresh listings"/></tooltip>
+                                    <graphic><FontIcon iconLiteral="mdi2r-refresh" iconSize="20" iconColor="#604868"/></graphic>
                                 </Button>
                             </HBox>
                         </HBox>
@@ -143,7 +146,7 @@
 
                         <!-- Pagination Footer -->
                         <HBox alignment="CENTER_LEFT" styleClass="seller-listings-footer">
-                            <Label text="Showing 1-10 of many items" style="-fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
+                            <Label fx:id="lblSellerListingCount" text="Showing 0 listings" style="-fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
                             <Region HBox.hgrow="ALWAYS" />
                             </HBox>
 

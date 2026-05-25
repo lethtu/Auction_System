@@ -6756,3 +6756,33 @@
     -fx-border-color: -fx-accent;
     -fx-effect: dropshadow(gaussian, -app-accent-opacity-20, 10, 0.18, 0, 3);
 }
+
+/* === Z22D Seller Dashboard polish: readable header, native-free progress START === */
+.seller-stat-progress {
+    -fx-pref-height: 14px;
+    -fx-min-height: 14px;
+    -fx-max-height: 14px;
+}
+
+.seller-stat-progress > .track {
+    -fx-background-color: rgba(255,255,255,0.10);
+    -fx-background-insets: 0;
+    -fx-background-radius: 999px;
+    -fx-border-color: rgba(255,255,255,0.16);
+    -fx-border-radius: 999px;
+    -fx-border-width: 1px;
+}
+
+.seller-stat-progress > .bar {
+    -fx-background-color: -fx-accent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 999px;
+    -fx-padding: 0.42em;
+}
+
+.action-btn-primary {
+    -fx-alignment: center;
+    -fx-content-display: left;
+    -fx-graphic-text-gap: 10px;
+}
+/* === Z22D Seller Dashboard polish: readable header, native-free progress END === */

@@ -276,8 +276,11 @@ public class MyBidsController implements Initializable, SceneLifecycle {
         if (currentUserId == null) {
             productContainer.getChildren().clear();
             currentRenderedStates.clear();
+            updateTabLabels();
             return;
         }
+
+        updateTabLabels();
 
         List<String> newStatesToRender = new ArrayList<>();
         List<JSONObject> displayProducts = currentTab == Tab.ENDED
@@ -879,7 +882,42 @@ public class MyBidsController implements Initializable, SceneLifecycle {
                 + "-fx-background-radius: 20px; -fx-padding: 10px 20px; -fx-cursor: hand; -fx-font-size: 14px;";
     }
 
+    private void updateTabLabels() {
+        if (btnTabActive == null || btnTabWinning == null || btnTabOutbid == null || btnTabEnded == null) {
+            return;
+        }
+
+        Integer currentUserId = User.getId();
+        int activeCount = 0;
+        int winningCount = 0;
+        int outbidCount = 0;
+        int endedCount = 0;
+
+        if (currentUserId != null) {
+            for (JSONObject sessionObj : allProducts) {
+                if (isActiveSession(sessionObj)) {
+                    activeCount++;
+                }
+                if (isWinningSession(sessionObj, currentUserId)) {
+                    winningCount++;
+                }
+                if (isOutbidSession(sessionObj, currentUserId)) {
+                    outbidCount++;
+                }
+                if (isEndedSession(sessionObj)) {
+                    endedCount++;
+                }
+            }
+        }
+
+        btnTabActive.setText("Active Bids (" + activeCount + ")");
+        btnTabWinning.setText("Winning (" + winningCount + ")");
+        btnTabOutbid.setText("Outbid (" + outbidCount + ")");
+        btnTabEnded.setText("Ended (" + endedCount + ")");
+    }
+
     private void updateTabStyles() {
+        updateTabLabels();
         // Active
         if (btnTabActive != null) {
             if (currentTab == Tab.ACTIVE) {
