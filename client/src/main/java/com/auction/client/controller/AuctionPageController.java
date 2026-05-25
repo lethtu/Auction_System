@@ -48,6 +48,9 @@ import java.time.LocalDateTime;
 
 public class AuctionPageController implements SceneLifecycle {
     private static final Logger logger = LoggerFactory.getLogger(AuctionPageController.class);
+    private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(5))
+            .build();
 
     @FXML private MenuButton userMenuButton;
     @FXML private StackPane topBarAvatarPane;
@@ -89,6 +92,7 @@ public class AuctionPageController implements SceneLifecycle {
     private boolean is3DMode = false;
     private String currentModelUrl;
     private String currentModelUuid;
+    private String loadedMediaImagePath;
     @FXML private SidebarController sidebarController;
     @FXML private VBox sideBar;
 
@@ -674,7 +678,7 @@ public class AuctionPageController implements SceneLifecycle {
     private void loadBidHistoryFromServer() {
         Thread t = new Thread(() -> { try {
             HttpRequest req = HttpRequest.newBuilder().uri(URI.create(Config.API_URL + "/api/auctions/" + currentSessionId + "/bid-history")).GET().build();
-            HttpResponse<String> res = HttpClient.newHttpClient().send(req, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> res = HTTP_CLIENT.send(req, HttpResponse.BodyHandlers.ofString());
             if (isSuccessfulResponse(res)) {
                 org.json.JSONArray arr = new org.json.JSONArray(res.body());
                 Platform.runLater(() -> {
@@ -1146,7 +1150,7 @@ public class AuctionPageController implements SceneLifecycle {
                         .GET()
                         .build();
 
-                HttpResponse<String> response = HttpClient.newHttpClient().send(
+                HttpResponse<String> response = HTTP_CLIENT.send(
                         request,
                         HttpResponse.BodyHandlers.ofString()
                 );
@@ -1230,10 +1234,17 @@ public class AuctionPageController implements SceneLifecycle {
     }
 
     private void loadProductImage(String imagePath) {
-        reset3DMode();
-        check3DModelExists(buildModelUrlFromImagePath(imagePath));
+        String normalizedImagePath = imagePath == null ? "" : imagePath.trim();
 
-        String imageUrl = buildImageUrl(imagePath);
+        if (normalizedImagePath.equals(loadedMediaImagePath)) {
+            return;
+        }
+        loadedMediaImagePath = normalizedImagePath;
+
+        reset3DMode();
+        check3DModelExists(buildModelUrlFromImagePath(normalizedImagePath));
+
+        String imageUrl = buildImageUrl(normalizedImagePath);
 
         if (imageUrl.isBlank()) {
             productImageView.setImage(null);
@@ -1242,7 +1253,7 @@ public class AuctionPageController implements SceneLifecycle {
 
         try {
             Image image = CacheManager.getCachedImage(imageUrl, updatedImage -> {
-                if (updatedImage != null && productImageView != null && imageUrl.equals(buildImageUrl(imagePath))) {
+                if (updatedImage != null && productImageView != null && imageUrl.equals(buildImageUrl(normalizedImagePath))) {
                     productImageView.setImage(updatedImage);
                 }
             });
@@ -1319,7 +1330,7 @@ public class AuctionPageController implements SceneLifecycle {
                         .method("HEAD", HttpRequest.BodyPublishers.noBody())
                         .timeout(Duration.ofSeconds(3))
                         .build();
-                HttpResponse<Void> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.discarding());
+                HttpResponse<Void> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.discarding());
                 boolean exists = response.statusCode() >= 200 && response.statusCode() < 300;
                 Platform.runLater(() -> {
                     if (exists && modelUrl.equals(currentModelUrl) && btnToggle3D != null) {
@@ -1990,7 +2001,7 @@ public class AuctionPageController implements SceneLifecycle {
                     builder.header("X-Auth-Token", User.getSessionToken());
                 }
 
-                HttpResponse<String> response = HttpClient.newHttpClient()
+                HttpResponse<String> response = HTTP_CLIENT
                         .send(builder.build(), HttpResponse.BodyHandlers.ofString());
 
                 if (response.statusCode() != 200) {

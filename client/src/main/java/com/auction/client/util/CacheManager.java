@@ -19,7 +19,10 @@ import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.FileTime;
 import java.security.MessageDigest;
 import java.time.Duration;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -42,6 +45,15 @@ public final class CacheManager {
 
     private static final Duration REMOTE_RECHECK_INTERVAL = Duration.ofMinutes(10);
     private static final Set<String> IN_FLIGHT = ConcurrentHashMap.newKeySet();
+    private static final int MAX_MEMORY_IMAGES = 120;
+    private static final Map<String, Image> MEMORY_IMAGE_CACHE = Collections.synchronizedMap(
+            new LinkedHashMap<>(MAX_MEMORY_IMAGES, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<String, Image> eldest) {
+                    return size() > MAX_MEMORY_IMAGES;
+                }
+            }
+    );
 
     private CacheManager() {
     }
@@ -71,12 +83,31 @@ public final class CacheManager {
         Path cachedFile = Paths.get(Config.CACHE_IMAGES_DIR, key + "." + ext);
         Path metaFile = Paths.get(Config.CACHE_IMAGES_DIR, key + ".meta");
 
+        Image memoryImage = MEMORY_IMAGE_CACHE.get(imageUrl);
+        if (memoryImage != null) {
+            if (!Files.exists(metaFile) || !isRecentlyChecked(metaFile)) {
+                validateAndDownloadAsync(imageUrl, cachedFile, metaFile, updated -> {
+                    if (updated && onImageLoaded != null) {
+                        try {
+                            Image updatedImage = new Image(cachedFile.toUri().toString(), true);
+                            putMemoryImage(imageUrl, updatedImage);
+                            Platform.runLater(() -> onImageLoaded.accept(updatedImage));
+                        } catch (Exception e) {
+                            logger.warn("Failed to load updated cached image {}", cachedFile, e);
+                        }
+                    }
+                });
+            }
+            return memoryImage;
+        }
+
         Image cachedImage = null;
         boolean hasLocal = Files.exists(cachedFile) && Files.exists(metaFile);
 
         if (hasLocal) {
             try {
                 cachedImage = new Image(cachedFile.toUri().toString(), true);
+                putMemoryImage(imageUrl, cachedImage);
             } catch (Exception e) {
                 logger.warn("Failed to load cached image {}", cachedFile, e);
                 hasLocal = false;
@@ -87,6 +118,7 @@ public final class CacheManager {
             if (updated && onImageLoaded != null) {
                 try {
                     Image updatedImage = new Image(cachedFile.toUri().toString(), true);
+                    putMemoryImage(imageUrl, updatedImage);
                     Platform.runLater(() -> onImageLoaded.accept(updatedImage));
                 } catch (Exception e) {
                     logger.warn("Failed to load updated cached image {}", cachedFile, e);
@@ -94,7 +126,20 @@ public final class CacheManager {
             }
         });
 
-        return hasLocal ? cachedImage : new Image(imageUrl, true);
+        if (hasLocal) {
+            return cachedImage;
+        }
+
+        Image remoteImage = new Image(imageUrl, true);
+        putMemoryImage(imageUrl, remoteImage);
+        return remoteImage;
+    }
+
+    private static void putMemoryImage(String imageUrl, Image image) {
+        if (imageUrl == null || imageUrl.isBlank() || image == null) {
+            return;
+        }
+        MEMORY_IMAGE_CACHE.put(imageUrl, image);
     }
 
     public static Path getCachedModel(String modelUrl, String itemUuid, Runnable onUpdated) {

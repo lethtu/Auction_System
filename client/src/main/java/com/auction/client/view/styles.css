@@ -6683,3 +6683,54 @@
     -fx-background-color: -app-accent-opacity-16;
 }
 /* === Z17 Account/Profile batch polish END === */
+
+
+/* === Z20 DASHBOARD VISUAL POLISH START ===
+   Root cause fixed:
+   1) Older view-toggle CSS blocks hard-coded white backgrounds.
+   2) Product FlowPane width was shrunk to gridWidth, so sparse filters looked left-heavy.
+   3) Empty image placeholders were too flat in dark theme.
+*/
+.view-toggle-button,
+.theme-dark .view-toggle-button,
+.theme-light .view-toggle-button {
+    -fx-background-color: -app-card;
+    -fx-background-radius: 999;
+    -fx-border-color: -fx-accent;
+    -fx-border-radius: 999;
+    -fx-border-width: 2;
+    -fx-min-width: 58px;
+    -fx-pref-width: 58px;
+    -fx-max-width: 58px;
+    -fx-min-height: 58px;
+    -fx-pref-height: 58px;
+    -fx-max-height: 58px;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-12, 18, 0.16, 0, 5);
+}
+
+.view-toggle-button:hover,
+.theme-dark .view-toggle-button:hover,
+.theme-light .view-toggle-button:hover {
+    -fx-background-color: -app-input-bg;
+    -fx-border-color: -fx-accent;
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-22, 22, 0.18, 0, 6);
+}
+
+.view-toggle-button-active,
+.theme-dark .view-toggle-button-active,
+.theme-light .view-toggle-button-active {
+    -fx-background-color: -fx-accent;
+    -fx-border-color: -fx-accent;
+}
+
+.view-toggle-tile {
+    -fx-background-color: -fx-accent;
+    -fx-background-radius: 2.2;
+}
+
+.view-toggle-button-active .view-toggle-tile {
+    -fx-background-color: white;
+}
+/* === Z20 DASHBOARD VISUAL POLISH END === */

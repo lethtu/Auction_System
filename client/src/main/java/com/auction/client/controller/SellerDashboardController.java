@@ -463,6 +463,13 @@ public class SellerDashboardController implements SceneLifecycle {
         return "-fx-background-color: #f2e8f2; -fx-background-radius: 24px;";
     }
 
+    private FontIcon createSellerImagePlaceholderIcon() {
+        FontIcon icon = new FontIcon("mdi2i-image-outline");
+        icon.setIconSize(24);
+        icon.setIconColor(Color.valueOf(sellerMutedTextHex()));
+        return icon;
+    }
+
     private void setupTable() {
         sessionsTable.setItems(displayedSessions);
 
@@ -488,21 +495,33 @@ public class SellerDashboardController implements SceneLifecycle {
                     if (item.imageUrl != null && !item.imageUrl.isEmpty()) {
                         try {
                             String tableImageUrl = buildSellerImageUrl(item.imageUrl);
-                            ImageView iv = new ImageView(new Image(tableImageUrl, 48, 48, true, true));
+                            FontIcon placeholderIcon = createSellerImagePlaceholderIcon();
+                            imgContainer.getChildren().add(placeholderIcon);
+
+                            ImageView iv = new ImageView();
+                            iv.setFitWidth(48);
+                            iv.setFitHeight(48);
+                            iv.setPreserveRatio(true);
+                            iv.setSmooth(true);
                             Circle clip = new Circle(24, 24, 24);
                             iv.setClip(clip);
-                            imgContainer.getChildren().add(iv);
+
+                            Image cachedImage = CacheManager.getCachedImage(tableImageUrl, loadedImage -> {
+                                if (getItem() == item && !isEmpty() && loadedImage != null && !loadedImage.isError()) {
+                                    iv.setImage(loadedImage);
+                                    imgContainer.getChildren().setAll(iv);
+                                }
+                            });
+
+                            if (cachedImage != null && !cachedImage.isError()) {
+                                iv.setImage(cachedImage);
+                                imgContainer.getChildren().setAll(iv);
+                            }
                         } catch (Exception e) {
-                            FontIcon icon = new FontIcon("mdi2i-image-outline");
-                            icon.setIconSize(24);
-                            icon.setIconColor(Color.valueOf(sellerMutedTextHex()));
-                            imgContainer.getChildren().add(icon);
+                            imgContainer.getChildren().setAll(createSellerImagePlaceholderIcon());
                         }
                     } else {
-                        FontIcon icon = new FontIcon("mdi2i-image-outline");
-                        icon.setIconSize(24);
-                        icon.setIconColor(Color.valueOf(sellerMutedTextHex()));
-                        imgContainer.getChildren().add(icon);
+                        imgContainer.getChildren().setAll(createSellerImagePlaceholderIcon());
                     }
 
                     VBox vbox = new VBox(2);

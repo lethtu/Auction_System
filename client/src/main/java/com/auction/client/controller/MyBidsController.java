@@ -52,8 +52,7 @@ public class MyBidsController implements Initializable, SceneLifecycle {
     private static final int POLLING_INTERVAL_SECONDS = 8;
     private static final Duration SEARCH_DEBOUNCE_DELAY = Duration.millis(180);
 
-    private HttpClient client = HttpClient.newHttpClient();
-
+    private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
     @FXML
     private ScrollPane scrollPane;
@@ -213,7 +212,7 @@ public class MyBidsController implements Initializable, SceneLifecycle {
                 builder.header("X-Auth-Token", User.getSessionToken());
             }
 
-            HttpResponse<String> response = client.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = HTTP_CLIENT.send(builder.build(), HttpResponse.BodyHandlers.ofString());
             String body = response.body() == null ? "" : response.body();
 
             if (response.statusCode() != 200) {
@@ -250,9 +249,11 @@ public class MyBidsController implements Initializable, SceneLifecycle {
                 newProducts.add(jsonArray.getJSONObject(i));
             }
 
-            allProducts.clear();
-            allProducts.addAll(newProducts);
-            Platform.runLater(this::filterAndRenderProducts);
+            Platform.runLater(() -> {
+                allProducts.clear();
+                allProducts.addAll(newProducts);
+                filterAndRenderProductsNow();
+            });
         } catch (Exception e) {
             logger.warn("Error loading products: {}", e.getMessage());
         } finally {
@@ -261,6 +262,14 @@ public class MyBidsController implements Initializable, SceneLifecycle {
     }
 
     private void filterAndRenderProducts() {
+        if (Platform.isFxApplicationThread()) {
+            filterAndRenderProductsNow();
+        } else {
+            Platform.runLater(this::filterAndRenderProductsNow);
+        }
+    }
+
+    private void filterAndRenderProductsNow() {
         String keyword = txtSearch.getText() != null ? txtSearch.getText().toLowerCase().trim() : "";
         Integer currentUserId = User.getId();
 
@@ -270,11 +279,54 @@ public class MyBidsController implements Initializable, SceneLifecycle {
             return;
         }
 
-        Platform.runLater(() -> {
-            List<String> newStatesToRender = new ArrayList<>();
-            List<JSONObject> displayProducts = currentTab == Tab.ENDED
-                    ? prioritizeWonProducts(allProducts, currentUserId)
-                    : new ArrayList<>(allProducts);
+        List<String> newStatesToRender = new ArrayList<>();
+        List<JSONObject> displayProducts = currentTab == Tab.ENDED
+                ? prioritizeWonProducts(allProducts, currentUserId)
+                : new ArrayList<>(allProducts);
+
+        for (JSONObject sessionObj : displayProducts) {
+            JSONObject itemObj = getItemObject(sessionObj);
+            String name = itemObj.optString("name", "");
+            String status = normalizeSessionStatus(sessionObj);
+            int highestBidderId = sessionObj.optInt("highestBidderId", -1);
+            BigDecimal currentPrice = getMoney(sessionObj, "currentPrice",
+                    getMoney(sessionObj, "startingPrice", BigDecimal.ZERO));
+
+            boolean matchKeyword = keyword.isEmpty() || name.toLowerCase().contains(keyword);
+            boolean matchTab = false;
+            switch (currentTab) {
+                case ACTIVE:
+                    matchTab = isActiveSession(sessionObj);
+                    break;
+                case WINNING:
+                    matchTab = isWinningSession(sessionObj, currentUserId);
+                    break;
+                case OUTBID:
+                    matchTab = isOutbidSession(sessionObj, currentUserId);
+                    break;
+                case ENDED:
+                    matchTab = isEndedSession(sessionObj);
+                    break;
+            }
+            if (matchKeyword && matchTab) {
+                newStatesToRender.add(getRenderedStateKey(sessionObj, currentPrice, highestBidderId));
+            }
+        }
+
+        if (newStatesToRender.isEmpty()) {
+            newStatesToRender.add("EMPTY_" + currentTab + "_" + keyword);
+        }
+
+        if (!currentRenderedStates.equals(newStatesToRender)) {
+            productContainer.getChildren().clear();
+            currentRenderedStates.clear();
+
+            if (newStatesToRender.size() == 1 && newStatesToRender.get(0).startsWith("EMPTY_")) {
+                productContainer.getChildren().add(createEmptyStateCard(keyword));
+                currentRenderedStates.add(newStatesToRender.get(0));
+                updateGridLayout();
+                return;
+            }
 
             for (JSONObject sessionObj : displayProducts) {
                 JSONObject itemObj = getItemObject(sessionObj);
@@ -301,58 +353,13 @@ public class MyBidsController implements Initializable, SceneLifecycle {
                         break;
                 }
                 if (matchKeyword && matchTab) {
-                    newStatesToRender.add(getRenderedStateKey(sessionObj, currentPrice, highestBidderId));
+                    VBox card = createProductCard(sessionObj, itemObj);
+                    productContainer.getChildren().add(card);
+                    currentRenderedStates.add(getRenderedStateKey(sessionObj, currentPrice, highestBidderId));
                 }
             }
-
-            if (newStatesToRender.isEmpty()) {
-                newStatesToRender.add("EMPTY_" + currentTab + "_" + keyword);
-            }
-
-            if (!currentRenderedStates.equals(newStatesToRender)) {
-                productContainer.getChildren().clear();
-                currentRenderedStates.clear();
-
-                if (newStatesToRender.size() == 1 && newStatesToRender.get(0).startsWith("EMPTY_")) {
-                    productContainer.getChildren().add(createEmptyStateCard(keyword));
-                    currentRenderedStates.add(newStatesToRender.get(0));
-                    updateGridLayout();
-                    return;
-                }
-
-                for (JSONObject sessionObj : displayProducts) {
-                    JSONObject itemObj = getItemObject(sessionObj);
-                    String name = itemObj.optString("name", "");
-                    String status = normalizeSessionStatus(sessionObj);
-                    int highestBidderId = sessionObj.optInt("highestBidderId", -1);
-                    BigDecimal currentPrice = getMoney(sessionObj, "currentPrice",
-                            getMoney(sessionObj, "startingPrice", BigDecimal.ZERO));
-
-                    boolean matchKeyword = keyword.isEmpty() || name.toLowerCase().contains(keyword);
-                    boolean matchTab = false;
-                    switch (currentTab) {
-                        case ACTIVE:
-                            matchTab = isActiveSession(sessionObj);
-                            break;
-                        case WINNING:
-                            matchTab = isWinningSession(sessionObj, currentUserId);
-                            break;
-                        case OUTBID:
-                            matchTab = isOutbidSession(sessionObj, currentUserId);
-                            break;
-                        case ENDED:
-                            matchTab = isEndedSession(sessionObj);
-                            break;
-                    }
-                    if (matchKeyword && matchTab) {
-                        VBox card = createProductCard(sessionObj, itemObj);
-                        productContainer.getChildren().add(card);
-                        currentRenderedStates.add(getRenderedStateKey(sessionObj, currentPrice, highestBidderId));
-                    }
-                }
-                updateGridLayout();
-            }
-        });
+            updateGridLayout();
+        }
     }
 
     private VBox createEmptyStateCard(String keyword) {

@@ -57,6 +57,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.ResourceBundle;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -131,7 +133,7 @@ public class MainController implements Initializable, SceneLifecycle {
     private boolean showingWatchlistOnly = false;
     private boolean showingMyBidsOnly = false;
     private boolean showingMySessionsOnly = false;
-    private boolean forceRenderProducts = true;
+    private volatile boolean forceRenderProducts = true;
 
     private Timeline countdownTimeline;
     private boolean showingAccountScreen = false;
@@ -148,12 +150,13 @@ public class MainController implements Initializable, SceneLifecycle {
 
     // Map storing Card references by sessionId - O(1) lookup for real-time update
     private final Map<Integer, VBox> sessionCardMap = new HashMap<>();
+    private final Map<Integer, Label> timerLabelMap = new HashMap<>();
     // Image cache to avoid reloading on each render
     private final Map<String, Image> imageCache = new ConcurrentHashMap<>();
 
     // Executor cho Polling
     private ScheduledExecutorService pollingScheduler;
-    private final List<Integer> currentRenderedIds = new ArrayList<>();
+    private final Set<Integer> currentRenderedIds = new LinkedHashSet<>();
     private final Map<Integer, JSONObject> lastSnapshot = new ConcurrentHashMap<>();
     private volatile String lastProductsSignature = "";
     private PauseTransition filterDebounce;
@@ -198,8 +201,7 @@ public class MainController implements Initializable, SceneLifecycle {
         connectHomeSocket();
         // Dynamic Space-Evenly algorithm for product list
         scrollPane.viewportBoundsProperty().addListener((obs, oldBounds, newBounds) -> scheduleGridLayoutUpdate());
-        updateGridLayout();
-        Platform.runLater(this::updateGridLayout);
+        scheduleGridLayoutUpdate();
 
         if (sidebarController != null) {
             sidebarController.setSidebarListener(new SidebarController.SidebarListener() {
@@ -296,6 +298,7 @@ public class MainController implements Initializable, SceneLifecycle {
         }
         resetHiddenActionButtons();
         currentRenderedIds.clear();
+        timerLabelMap.clear();
     }
 
     private void updateGridLayout() {
@@ -330,14 +333,15 @@ public class MainController implements Initializable, SceneLifecycle {
         boolean emptyState = productContainer.getChildren().stream()
                 .anyMatch(node -> node.getStyleClass().contains("empty-state-card"));
 
-        productContainer.setAlignment(emptyState ? Pos.CENTER : Pos.TOP_LEFT);
+        double paneWidth = Math.max(gridWidth, viewportWidth);
+        productContainer.setAlignment(emptyState ? Pos.CENTER : Pos.TOP_CENTER);
         productContainer.setPrefWrapLength(gridWidth);
-        productContainer.setMinWidth(gridWidth);
-        productContainer.setPrefWidth(gridWidth);
-        productContainer.setMaxWidth(gridWidth);
+        productContainer.setMinWidth(paneWidth);
+        productContainer.setPrefWidth(paneWidth);
+        productContainer.setMaxWidth(Double.MAX_VALUE);
         productContainer.setHgap(hgap);
         productContainer.setVgap(28.0);
-        productContainer.setPadding(new Insets(10.0, 0.0, 24.0, 0.0));
+        productContainer.setPadding(new Insets(10.0, 14.0, 24.0, 14.0));
     }
 
     private void startPolling() {
@@ -432,10 +436,9 @@ public class MainController implements Initializable, SceneLifecycle {
                         }
                     }
 
-                    allProducts.clear();
-                    allProducts.addAll(newProducts);
-
                     Platform.runLater(() -> {
+                        allProducts.clear();
+                        allProducts.addAll(newProducts);
                         if (!showingAccountScreen && !showingCompactListScreen) {
                             filterAndRenderProducts();
                         }
@@ -706,8 +709,7 @@ public class MainController implements Initializable, SceneLifecycle {
             startCountdownTimeline();
         }
 
-        updateGridLayout();
-        Platform.runLater(this::updateGridLayout);
+        scheduleGridLayoutUpdate();
     }
 
     private void showWatchlistSessions() {
@@ -993,9 +995,11 @@ public class MainController implements Initializable, SceneLifecycle {
         imageView.setPreserveRatio(true);
         imageView.setSmooth(true);
 
-        Label imageStatusLabel = new Label("No Image");
+        Label imageStatusLabel = new Label("No image");
         imageStatusLabel.setAlignment(Pos.CENTER);
-        imageStatusLabel.setStyle("-fx-text-fill: #adb5bd;");
+        imageStatusLabel.setMaxWidth(Double.MAX_VALUE);
+        imageStatusLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: 800; "
+                + "-fx-text-fill: " + mutedTextHex() + "; -fx-opacity: 0.82;");
 
         String imageUrl = buildImageUrl(imagePath);
         if (!imageUrl.isBlank()) {
@@ -1026,6 +1030,7 @@ public class MainController implements Initializable, SceneLifecycle {
 
         Label timerText = new Label("");
         timerText.setId("timerLabel_" + id);
+        timerLabelMap.put(id, timerText);
         timerText.setStyle("-fx-font-weight: 900; -fx-font-size: 11px;");
 
         HBox timerBadge = new HBox(4.0);
@@ -2622,8 +2627,8 @@ public class MainController implements Initializable, SceneLifecycle {
                             needRender = true;
                         } else {
                             // Update label
-                            javafx.scene.Node node = productContainer.lookup("#timerLabel_" + id);
-                            if (node instanceof Label) {
+                            Label timerNode = timerLabelMap.get(id);
+                            if (timerNode != null) {
                                 java.time.Duration dur = java.time.Duration.between(now, endDT);
                                 long days = dur.toDays();
                                 long hours = dur.toHoursPart();
@@ -2638,7 +2643,7 @@ public class MainController implements Initializable, SceneLifecycle {
                                 } else {
                                     text = "Ends in " + minutes + "m " + seconds + "s";
                                 }
-                                ((Label) node).setText(text);
+                                timerNode.setText(text);
                             }
                         }
                     }
