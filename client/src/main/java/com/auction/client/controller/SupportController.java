@@ -99,14 +99,11 @@ public class SupportController implements Initializable {
                     txtAreaMessage.clear();
                     showStatus("Request sent successfully! We will respond as soon as possible.", false);
 
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Send Success");
-                    alert.setHeaderText("Thank you for contacting us!");
-                    alert.setContentText("Your support request has been received. We will respond soon via email: " + email);
-
-                    DialogPane dialogPane = alert.getDialogPane();
-                    dialogPane.setStyle("-fx-font-family: 'DM Sans'; -fx-background-color: #fcf8ff; -fx-border-color: -fx-accent; -fx-border-width: 2px; -fx-border-radius: 12px; -fx-background-radius: 12px;");
-                    AlertUtil.styleAndShow(alert);
+                    AlertUtil.show(
+                            Alert.AlertType.INFORMATION,
+                            "Send Success",
+                            "Thank you for contacting us!\nYour support request has been received. We will respond soon via email: " + email
+                    );
                 });
             } catch (InterruptedException e) {
                 logger.error("Error sending support request:", e);
@@ -120,12 +117,7 @@ public class SupportController implements Initializable {
 
     private void showStatus(String text, boolean isError) {
         lblMessageStatus.setText(text);
-            applySupportStatusStyle(lblMessageStatus.getText());
-        if (isError) {
-            applySupportStatusStyle(lblMessageStatus.getText());
-        } else {
-            applySupportStatusStyle(lblMessageStatus.getText());
-        }
+        applySupportStatusStyle(lblMessageStatus.getText());
         lblMessageStatus.setVisible(true);
         lblMessageStatus.setManaged(true);
     }
