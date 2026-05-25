@@ -251,3 +251,14 @@
     -fx-fill: #ffffff !important;
 }
 /* === AUTH WHITE FOREGROUND FIX END === */
+
+/* Keep accent action content readable after the global light-theme button rules. */
+.theme-light .button.password-security-primary-btn,
+.theme-light .button.action-btn-primary {
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-light .button.password-security-primary-btn .text,
+.theme-light .button.action-btn-primary .text {
+    -fx-fill: #ffffff !important;
+}

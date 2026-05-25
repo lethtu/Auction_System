@@ -110,6 +110,64 @@
     -fx-background-color: -app-surface-2;
 }
 
+/* ====== DATE PICKER POPUP ====== */
+.date-picker-popup {
+    -fx-background-color: -app-card;
+    -fx-border-color: -app-border;
+}
+
+.date-picker-popup > .month-year-pane {
+    -fx-background-color: -app-surface-2;
+}
+
+.date-picker-popup > .month-year-pane .label,
+.date-picker-popup > .month-year-pane .spinner .label {
+    -fx-text-fill: -app-text;
+}
+
+.date-picker-popup > .month-year-pane .spinner .button .left-arrow,
+.date-picker-popup > .month-year-pane .spinner .button .right-arrow {
+    -fx-background-color: -app-text;
+}
+
+.date-picker-popup > .month-year-pane .spinner .button {
+    -fx-background-color: transparent;
+}
+
+.date-picker-popup > .month-year-pane .spinner .button:hover {
+    -fx-background-color: -app-accent-opacity-16;
+}
+
+.date-picker-popup > * > .day-name-cell,
+.date-picker-popup > * > .week-number-cell {
+    -fx-background-color: -app-card;
+    -fx-text-fill: -app-text-muted;
+}
+
+.date-picker-popup > * > .day-cell {
+    -fx-background-color: -app-card;
+    -fx-border-color: -app-surface-2;
+    -fx-text-fill: -app-text;
+}
+
+.date-picker-popup > * > .previous-month,
+.date-picker-popup > * > .next-month {
+    -fx-text-fill: -app-placeholder;
+}
+
+.date-picker-popup > * > .day-cell:hover {
+    -fx-background-color: -app-surface-2;
+}
+
+.date-picker-popup > * > .today {
+    -fx-border-color: -fx-accent;
+}
+
+.date-picker-popup > * > .selected {
+    -fx-background-color: -fx-accent;
+    -fx-text-fill: #ffffff;
+}
+
 /* ====== SCROLL PANES ====== */
 .scroll-pane,
 .scroll-pane > .viewport {
@@ -310,3 +368,14 @@
     -fx-fill: #ffffff !important;
 }
 /* === AUTH WHITE FOREGROUND FIX END === */
+
+/* Keep accent action content readable after the global dark-theme button rules. */
+.theme-dark .button.password-security-primary-btn,
+.theme-dark .button.action-btn-primary {
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark .button.password-security-primary-btn .text,
+.theme-dark .button.action-btn-primary .text {
+    -fx-fill: #ffffff !important;
+}

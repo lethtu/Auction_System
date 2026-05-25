@@ -417,6 +417,45 @@
     -fx-text-fill: -app-text-muted;
 }
 
+/* macOS-style controls on the standalone authentication windows. */
+.mac-window-controls-auth {
+    -fx-padding: 20 25 0 0;
+}
+
+.mac-window-control-auth {
+    -fx-min-width: 13px;
+    -fx-pref-width: 13px;
+    -fx-max-width: 13px;
+    -fx-min-height: 13px;
+    -fx-pref-height: 13px;
+    -fx-max-height: 13px;
+    -fx-padding: 0;
+    -fx-background-insets: 0;
+    -fx-background-radius: 999px;
+    -fx-border-radius: 999px;
+    -fx-border-width: 1px;
+    -fx-cursor: hand;
+}
+
+.mac-close-auth {
+    -fx-background-color: #ff5f57;
+    -fx-border-color: #e0443e;
+}
+
+.mac-minimize-auth {
+    -fx-background-color: #febc2e;
+    -fx-border-color: #d89c19;
+}
+
+.mac-maximize-auth {
+    -fx-background-color: #28c840;
+    -fx-border-color: #19a62f;
+}
+
+.mac-window-control-auth:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.23), 5, 0, 0, 1);
+}
+
 
 /* === REMEMBER ME PILL FIX 20260522 START === */
 #rememberMeCheckBox,

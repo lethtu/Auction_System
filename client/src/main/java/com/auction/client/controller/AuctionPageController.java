@@ -1605,11 +1605,9 @@ public class AuctionPageController {
     }
 
     private BigDecimal getEffectiveStepPrice() {
-        if (stepPrice != null && stepPrice.compareTo(BigDecimal.ZERO) > 0) {
-            return stepPrice;
-        }
         if (currentPrice == null)
             return new BigDecimal("10000");
+            
         if (currentPrice.compareTo(new BigDecimal("100000")) < 0) {
             return new BigDecimal("10000");
         } else if (currentPrice.compareTo(new BigDecimal("500000")) < 0) {
@@ -1618,8 +1616,12 @@ public class AuctionPageController {
             return new BigDecimal("50000");
         } else if (currentPrice.compareTo(new BigDecimal("5000000")) < 0) {
             return new BigDecimal("100000");
-        } else {
+        } else if (currentPrice.compareTo(new BigDecimal("10000000")) < 0) {
             return new BigDecimal("200000");
+        } else if (currentPrice.compareTo(new BigDecimal("50000000")) < 0) {
+            return new BigDecimal("500000");
+        } else {
+            return new BigDecimal("1000000");
         }
     }
 

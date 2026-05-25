@@ -42,6 +42,11 @@ public final class ShippingInfoDialog {
     }
 
     public static void show(Integer auctionId, String itemName) {
+        show(auctionId, itemName, null, null);
+    }
+
+    public static void show(Integer auctionId, String itemName, JSONObject deliveryData, Runnable afterSave) {
+        boolean editing = hasDeliveryInfo(auctionId, deliveryData);
         Stage dialog = createStage();
         VBox card = new VBox(18);
         card.setAlignment(Pos.TOP_CENTER);
@@ -63,7 +68,7 @@ public final class ShippingInfoDialog {
         icon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 29px; -fx-text-fill: -fx-accent;");
         iconCircle.getChildren().add(icon);
 
-        Label title = new Label("Delivery details");
+        Label title = new Label(editing ? "Edit delivery details" : "Delivery details");
         title.setStyle("-fx-font-size: 23px; -fx-font-weight: 900; -fx-text-fill: -app-text;");
 
         Label subtitle = new Label("Your winning item: " + safeItemName(itemName) + "  |  Auction #" + safeAuctionId(auctionId));
@@ -80,20 +85,24 @@ public final class ShippingInfoDialog {
 
         HBox contactRow = new HBox(12);
         TextField fullName = createField("Full name");
-        fullName.setText(safe(User.getFullname()));
+        fullName.setText(getDeliveryValue(auctionId, deliveryData, "deliveryRecipient", "_name",
+                safe(User.getFullname())));
         TextField phone = createField("Phone number");
+        phone.setText(getDeliveryValue(auctionId, deliveryData, "deliveryPhone", "_phone", ""));
         VBox.setVgrow(fullName, Priority.NEVER);
         HBox.setHgrow(fullName, Priority.ALWAYS);
         HBox.setHgrow(phone, Priority.ALWAYS);
         contactRow.getChildren().addAll(fieldGroup("Recipient", fullName), fieldGroup("Phone number", phone));
 
         TextField address = createField("Street address, ward, district, city");
+        address.setText(getDeliveryValue(auctionId, deliveryData, "deliveryAddress", "_address", ""));
         TextArea note = new TextArea();
         note.setPromptText("Notes for delivery (optional)");
         note.setWrapText(true);
         note.setPrefRowCount(2);
         note.setMaxHeight(72);
         note.setStyle(fieldStyle("16px"));
+        note.setText(getDeliveryValue(auctionId, deliveryData, "deliveryNote", "_note", ""));
 
         VBox form = new VBox(13,
                 contactRow,
@@ -111,7 +120,7 @@ public final class ShippingInfoDialog {
                 + " -fx-padding: 9px 12px;");
 
         Button later = secondaryButton("Later");
-        Button submit = primaryButton("Submit delivery info");
+        Button submit = primaryButton(editing ? "Save changes" : "Submit delivery info");
         HBox buttons = new HBox(12, later, submit);
         buttons.setAlignment(Pos.CENTER);
         buttons.setPadding(new Insets(3, 0, 0, 0));
@@ -127,6 +136,9 @@ public final class ShippingInfoDialog {
             }
             saveDeliveryInfo(auctionId, fullName.getText(), phone.getText(), address.getText(), note.getText());
             dialog.close();
+            if (afterSave != null) {
+                afterSave.run();
+            }
             submitDeliveryInfo(auctionId, itemName, fullName.getText(), phone.getText(), address.getText(),
                     note.getText());
         });
@@ -223,6 +235,25 @@ public final class ShippingInfoDialog {
         prefs.put(key + "_address", safe(address).trim());
         prefs.put(key + "_note", safe(note).trim());
         prefs.putLong(key + "_savedAt", System.currentTimeMillis());
+    }
+
+    public static boolean hasDeliveryInfo(Integer auctionId, JSONObject deliveryData) {
+        if (deliveryData != null && !deliveryData.optString("deliverySubmittedAt", "").isBlank()) {
+            return true;
+        }
+        String key = "auction_" + safeAuctionId(auctionId);
+        return Preferences.userNodeForPackage(ShippingInfoDialog.class).node("delivery")
+                .getLong(key + "_savedAt", 0L) > 0L;
+    }
+
+    private static String getDeliveryValue(Integer auctionId, JSONObject deliveryData, String dataKey,
+            String preferenceSuffix, String fallback) {
+        if (deliveryData != null && !deliveryData.optString(dataKey, "").isBlank()) {
+            return deliveryData.optString(dataKey, "");
+        }
+        String key = "auction_" + safeAuctionId(auctionId);
+        return Preferences.userNodeForPackage(ShippingInfoDialog.class).node("delivery")
+                .get(key + preferenceSuffix, fallback);
     }
 
     private static void submitDeliveryInfo(Integer auctionId, String itemName, String fullName,

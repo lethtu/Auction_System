@@ -43,6 +43,11 @@ public class SessionResponseDTO {
     private BigDecimal minRate;
     private java.util.List<com.auction.server.model.Bid> bids;
     private BigDecimal userMaxBid;
+    private String deliveryRecipient;
+    private String deliveryPhone;
+    private String deliveryAddress;
+    private String deliveryNote;
+    private LocalDateTime deliverySubmittedAt;
 
     public SessionResponseDTO() {
     }
@@ -277,5 +282,45 @@ public class SessionResponseDTO {
 
     public void setUserMaxBid(BigDecimal userMaxBid) {
         this.userMaxBid = userMaxBid;
+    }
+
+    public String getDeliveryRecipient() {
+        return deliveryRecipient;
+    }
+
+    public void setDeliveryRecipient(String deliveryRecipient) {
+        this.deliveryRecipient = deliveryRecipient;
+    }
+
+    public String getDeliveryPhone() {
+        return deliveryPhone;
+    }
+
+    public void setDeliveryPhone(String deliveryPhone) {
+        this.deliveryPhone = deliveryPhone;
+    }
+
+    public String getDeliveryAddress() {
+        return deliveryAddress;
+    }
+
+    public void setDeliveryAddress(String deliveryAddress) {
+        this.deliveryAddress = deliveryAddress;
+    }
+
+    public String getDeliveryNote() {
+        return deliveryNote;
+    }
+
+    public void setDeliveryNote(String deliveryNote) {
+        this.deliveryNote = deliveryNote;
+    }
+
+    public LocalDateTime getDeliverySubmittedAt() {
+        return deliverySubmittedAt;
+    }
+
+    public void setDeliverySubmittedAt(LocalDateTime deliverySubmittedAt) {
+        this.deliverySubmittedAt = deliverySubmittedAt;
     }
 }

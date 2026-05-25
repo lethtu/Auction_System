@@ -35,6 +35,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -257,8 +258,11 @@ public class MyBidsController implements Initializable {
 
         Platform.runLater(() -> {
             List<String> newStatesToRender = new ArrayList<>();
+            List<JSONObject> displayProducts = currentTab == Tab.ENDED
+                    ? prioritizeWonProducts(allProducts, currentUserId)
+                    : new ArrayList<>(allProducts);
 
-            for (JSONObject sessionObj : allProducts) {
+            for (JSONObject sessionObj : displayProducts) {
                 JSONObject itemObj = getItemObject(sessionObj);
                 String name = itemObj.optString("name", "");
                 String status = normalizeSessionStatus(sessionObj);
@@ -291,7 +295,7 @@ public class MyBidsController implements Initializable {
                 productContainer.getChildren().clear();
                 currentRenderedStates.clear();
 
-                for (JSONObject sessionObj : allProducts) {
+                for (JSONObject sessionObj : displayProducts) {
                     JSONObject itemObj = getItemObject(sessionObj);
                     String name = itemObj.optString("name", "");
                     String status = normalizeSessionStatus(sessionObj);
@@ -378,9 +382,16 @@ public class MyBidsController implements Initializable {
         return completed && sessionObj.optInt("highestBidderId", -1) == currentUserId;
     }
 
+    List<JSONObject> prioritizeWonProducts(List<JSONObject> products, int currentUserId) {
+        List<JSONObject> orderedProducts = new ArrayList<>(products);
+        orderedProducts.sort(Comparator.comparing(sessionObj -> !isWonSession(sessionObj, currentUserId)));
+        return orderedProducts;
+    }
+
     private String getRenderedStateKey(JSONObject sessionObj, BigDecimal currentPrice, int highestBidderId) {
         return sessionObj.optInt("id") + "_" + currentPrice + "_" + highestBidderId + "_"
-                + normalizeSessionStatus(sessionObj);
+                + normalizeSessionStatus(sessionObj) + "_"
+                + ShippingInfoDialog.hasDeliveryInfo(sessionObj.optInt("id"), sessionObj);
     }
 
     private boolean isActiveStatus(String status) {
@@ -627,14 +638,15 @@ public class MyBidsController implements Initializable {
         btnAction.setPrefHeight(36.0);
 
         if (wonSession) {
-            btnAction.setText("Delivery details");
+            boolean hasDeliveryInfo = ShippingInfoDialog.hasDeliveryInfo(id, sessionObj);
+            btnAction.setText(hasDeliveryInfo ? "Edit" : "Delivery details");
             btnAction.setStyle(
                     "-fx-background-color: -fx-accent; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-25, 6, 0, 0, 1);");
-            Label shippingIcon = new Label("\ue558");
+            Label shippingIcon = new Label(hasDeliveryInfo ? "\ue3c9" : "\ue558");
             shippingIcon.setStyle(
                     "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 16px; -fx-text-fill: white; -fx-padding: 0 4px 0 0;");
             btnAction.setGraphic(shippingIcon);
-            btnAction.setOnAction(event -> ShippingInfoDialog.show(id, name));
+            btnAction.setOnAction(event -> ShippingInfoDialog.show(id, name, sessionObj, this::filterAndRenderProducts));
         } else if (outbidSession) {
             btnAction.setText("Increase Bid");
             btnAction.setStyle(

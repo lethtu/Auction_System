@@ -44,22 +44,10 @@
                 </StackPane>
             </graphic>
         </MenuButton>
-        <HBox alignment="CENTER" spacing="6" style="-fx-padding: 0 0 0 10;">
-            <Button onAction="#handleMinimize" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 4;">
-                <graphic>
-                    <Label text="−" style="-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: #907898;" />
-                </graphic>
-            </Button>
-            <Button onAction="#handleMaximize" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 4;">
-                <graphic>
-                    <Label text="□" style="-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: #907898;" />
-                </graphic>
-            </Button>
-            <Button onAction="#handleClose" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 4;">
-                <graphic>
-                    <Label text="×" style="-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: #907898;" />
-                </graphic>
-            </Button>
+        <HBox alignment="CENTER" spacing="8" styleClass="mac-window-controls">
+            <Button accessibleText="Minimize" onAction="#handleMinimize" styleClass="mac-window-control,mac-minimize" />
+            <Button accessibleText="Maximize" onAction="#handleMaximize" styleClass="mac-window-control,mac-maximize" />
+            <Button accessibleText="Close" onAction="#handleClose" styleClass="mac-window-control,mac-close" />
         </HBox>
     </HBox>
 </HBox>

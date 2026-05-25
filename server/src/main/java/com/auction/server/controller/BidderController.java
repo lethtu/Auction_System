@@ -102,6 +102,13 @@ public class BidderController {
                     com.auction.server.dto.SessionResponseDTO dto = com.auction.server.mapper.SessionResponseMapper.toDTO(session, bidCount);
                     java.math.BigDecimal maxBid = bidRepository.findMaxBidAmountBySessionIdAndBidderId(session.getId(), bidderId);
                     dto.setUserMaxBid(maxBid);
+                    if (bidderId.equals(session.getHighestBidderId())) {
+                        dto.setDeliveryRecipient(session.getDeliveryRecipient());
+                        dto.setDeliveryPhone(session.getDeliveryPhone());
+                        dto.setDeliveryAddress(session.getDeliveryAddress());
+                        dto.setDeliveryNote(session.getDeliveryNote());
+                        dto.setDeliverySubmittedAt(session.getDeliverySubmittedAt());
+                    }
                     return dto;
                 })
                 .toList();

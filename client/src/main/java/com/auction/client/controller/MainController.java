@@ -1121,7 +1121,7 @@ public class MainController implements Initializable {
         Button mainBtn = new Button();
         Label mainPlusIcon = new Label("+");
         mainPlusIcon.setFont(Font.font("System", FontWeight.BOLD, 28));
-        mainPlusIcon.setTextFill(Color.web("#ffffff"));
+        mainPlusIcon.setStyle("-fx-text-fill: #ffffff;");
         mainPlusIcon.setAlignment(Pos.CENTER);
         mainPlusIcon.setMinSize(44.0, 44.0);
         mainPlusIcon.setPrefSize(44.0, 44.0);
@@ -1156,7 +1156,7 @@ public class MainController implements Initializable {
         btnWatch.setPadding(Insets.EMPTY);
         btnWatch.setAlignment(Pos.CENTER);
         btnWatch.setStyle(
-                "-fx-background-color: -app-surface-2; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
+                "-fx-background-color: -app-surface-2; -fx-background-radius: 22px; -fx-border-color: -fx-accent; -fx-border-width: 1.5px; -fx-border-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
         Tooltip.install(btnWatch, new Tooltip(User.watchlistIds.contains(id) ? "Favorited" : "Add to favorites"));
 
         Button btnBid = new Button();
@@ -1263,7 +1263,7 @@ public class MainController implements Initializable {
             mainPlusIcon.setTranslateX(0.0);
 
             if ("UPCOMING".equals(normalizedStatus)) {
-                mainPlusIcon.setTextFill(Color.web("#ffffff"));
+                mainPlusIcon.setStyle("-fx-text-fill: #ffffff;");
                 mainBtn.setStyle(
                         "-fx-background-color: -fx-accent; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
                 Tooltip.install(mainBtn, new Tooltip("View details"));
@@ -1273,7 +1273,7 @@ public class MainController implements Initializable {
                     openAuctionPage(e, sessionObj, itemObj, name, id, currentPrice);
                 });
             } else if ("ENDED".equals(normalizedStatus)) {
-                mainPlusIcon.setTextFill(Color.web("#ffffff"));
+                mainPlusIcon.setStyle("-fx-text-fill: #ffffff;");
                 mainBtn.setStyle(
                         "-fx-background-color: -fx-accent; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: hand;");
                 Tooltip.install(mainBtn, new Tooltip("View results"));
@@ -1284,7 +1284,7 @@ public class MainController implements Initializable {
                 });
             } else {
                 // UNKNOWN_TIME
-                mainPlusIcon.setTextFill(Color.web("#888888"));
+                mainPlusIcon.setStyle("-fx-text-fill: #888888;");
                 mainBtn.setStyle(
                         "-fx-background-color: #cccccc; -fx-background-radius: 22px; -fx-padding: 0; -fx-alignment: center; -fx-cursor: default;");
                 Tooltip.install(mainBtn, new Tooltip("Auction time unknown"));
