@@ -3,30 +3,30 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.NotificationCenterController" style="-fx-background-color: #fef7ff;" prefWidth="600.0" prefHeight="800.0">
+<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.NotificationCenterController" stylesheets="@styles.css" styleClass="notification-center-root" prefWidth="600.0" prefHeight="800.0">
     <padding>
         <Insets top="20" right="20" bottom="20" left="20"/>
     </padding>
 
     <!-- Header -->
-    <HBox alignment="CENTER_LEFT" spacing="15.0" style="-fx-padding: 0 0 20 0;">
-        <Label text="Notifications" style="-fx-font-family: 'DM Sans'; -fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: -app-text;" />
-        <Label fx:id="lblUnreadCount" text="0 unread" style="-fx-background-color: #ffd6ee; -fx-text-fill: #a02070; -fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-padding: 4 10; -fx-background-radius: 12;" />
+    <HBox alignment="CENTER_LEFT" spacing="15.0" styleClass="notification-header">
+        <Label text="Notifications" styleClass="notification-title" />
+        <Label fx:id="lblUnreadCount" text="0 unread" styleClass="notification-unread-pill" />
         <Region HBox.hgrow="ALWAYS" />
-        <Button text="Mark all as read" onAction="#handleMarkAllRead" style="-fx-background-color: transparent; -fx-text-fill: -fx-accent; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;" />
+        <Button text="Mark all as read" onAction="#handleMarkAllRead" styleClass="notification-link-button" />
     </HBox>
 
     <!-- Tabs/Filters -->
-    <HBox spacing="10.0" style="-fx-padding: 0 0 15 0;">
-        <Button fx:id="tabAll" text="All" onAction="#filterAll" style="-fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;" />
-        <Button fx:id="tabUnread" text="Unread" onAction="#filterUnread" style="-fx-background-color: #f2e8f2; -fx-text-fill: -app-text-muted; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;" />
-        <Button fx:id="tabAuction" text="Auction" onAction="#filterAuction" style="-fx-background-color: #f2e8f2; -fx-text-fill: -app-text-muted; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;" />
-        <Button fx:id="tabSystem" text="System" onAction="#filterSystem" style="-fx-background-color: #f2e8f2; -fx-text-fill: -app-text-muted; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;" />
+    <HBox spacing="10.0" styleClass="notification-filter-bar">
+        <Button fx:id="tabAll" text="All" onAction="#filterAll" styleClass="notification-filter-tab" />
+        <Button fx:id="tabUnread" text="Unread" onAction="#filterUnread" styleClass="notification-filter-tab" />
+        <Button fx:id="tabAuction" text="Auction" onAction="#filterAuction" styleClass="notification-filter-tab" />
+        <Button fx:id="tabSystem" text="System" onAction="#filterSystem" styleClass="notification-filter-tab" />
     </HBox>
 
     <!-- List -->
-    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" VBox.vgrow="ALWAYS" hbarPolicy="NEVER">
-        <VBox fx:id="listContainer" spacing="10.0" style="-fx-padding: 10;">
+    <ScrollPane fitToWidth="true" styleClass="notification-scroll" VBox.vgrow="ALWAYS" hbarPolicy="NEVER">
+        <VBox fx:id="listContainer" spacing="10.0" styleClass="notification-list">
             <!-- Notifications will be injected here -->
         </VBox>
     </ScrollPane>

@@ -76,7 +76,7 @@
                               alignment="TOP_LEFT"
                               hgap="25.0"
                               vgap="25.0"
-                              style="-fx-padding: 10px 0 18px 0;">
+                              style="-fx-padding: 10px 14px 18px 14px;">
                     </FlowPane>
                 </StackPane>
             </ScrollPane>

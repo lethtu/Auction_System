@@ -77,7 +77,7 @@ public class SupportController implements Initializable {
         String message = txtAreaMessage.getText().trim();
 
         if (email.isEmpty() || subject.isEmpty() || message.isEmpty()) {
-            showStatus("Please fill in all required fields marked with *!", true);
+            showStatus("Please fill in all required fields marked with *.", true);
             return;
         }
 
@@ -120,12 +120,38 @@ public class SupportController implements Initializable {
 
     private void showStatus(String text, boolean isError) {
         lblMessageStatus.setText(text);
+            applySupportStatusStyle(lblMessageStatus.getText());
         if (isError) {
-            lblMessageStatus.setStyle("-fx-text-fill: #ef4444; -fx-font-weight: bold;");
+            applySupportStatusStyle(lblMessageStatus.getText());
         } else {
-            lblMessageStatus.setStyle("-fx-text-fill: #10b981; -fx-font-weight: bold;");
+            applySupportStatusStyle(lblMessageStatus.getText());
         }
         lblMessageStatus.setVisible(true);
         lblMessageStatus.setManaged(true);
+    }
+
+    private void applySupportStatusStyle(String message) {
+        String lower = message == null ? "" : message.toLowerCase();
+        boolean success = lower.contains("success")
+                || lower.contains("sent")
+                || lower.contains("submitted")
+                || lower.contains("thank")
+                || lower.contains("received");
+
+        String background = success ? "rgba(0, 200, 130, 0.11)" : "rgba(255, 82, 82, 0.11)";
+        String border = success ? "rgba(0, 200, 130, 0.55)" : "rgba(255, 82, 82, 0.60)";
+        String color = success ? "#00c882" : "#ff6b6b";
+
+        lblMessageStatus.setStyle(
+                "-fx-background-color: " + background + ";"
+                        + " -fx-border-color: " + border + ";"
+                        + " -fx-border-width: 1.2px;"
+                        + " -fx-border-radius: 14px;"
+                        + " -fx-background-radius: 14px;"
+                        + " -fx-padding: 10px 14px;"
+                        + " -fx-text-fill: " + color + ";"
+                        + " -fx-font-size: 13.5px;"
+                        + " -fx-font-weight: 900;"
+        );
     }
 }

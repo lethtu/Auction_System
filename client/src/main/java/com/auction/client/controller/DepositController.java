@@ -147,7 +147,7 @@ public class DepositController implements Initializable {
     }
 
     private void resetQuickAmountButtonsStyle() {
-        String defaultStyle = "-fx-background-color: #f8eef8; -fx-text-fill: -app-text; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 12px; -fx-cursor: hand; -fx-border-color: transparent; -fx-border-width: 2px; -fx-border-radius: 12px;";
+        String defaultStyle = "-fx-background-color: -app-input-bg; -fx-text-fill: -app-text; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 12px; -fx-cursor: hand; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 12px;";
         btnAmount50.setStyle(defaultStyle);
         btnAmount100.setStyle(defaultStyle);
         btnAmount500.setStyle(defaultStyle);
@@ -155,7 +155,7 @@ public class DepositController implements Initializable {
     }
 
     private void setActiveButtonStyle(Button button) {
-        button.setStyle("-fx-background-color: #fef7ff; -fx-text-fill: -fx-accent; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 12px; -fx-cursor: hand; -fx-border-color: -fx-accent; -fx-border-width: 2px; -fx-border-radius: 12px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.2), 10, 0, 0, 2);");
+        button.setStyle("-fx-background-color: -app-accent-opacity-16; -fx-text-fill: -fx-accent; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 12px; -fx-cursor: hand; -fx-border-color: -fx-accent; -fx-border-width: 2px; -fx-border-radius: 12px; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-24, 10, 0, 0, 2);");
     }
 
     private void updateSummary(BigDecimal amount) {
@@ -237,7 +237,7 @@ public class DepositController implements Initializable {
                 
                 Platform.runLater(() -> {
                     btnConfirmDeposit.setDisable(false);
-                    btnConfirmDeposit.setText("Confirm Deposit");
+                    btnConfirmDeposit.setText("\u2192 Confirm Deposit");
                     
                     if (response.statusCode() == 200) {
                         showInfo("Deposit Successful", "You have successfully deposited " + formatPrice(currentDepositAmount) + " ₫ to your wallet.");
@@ -256,7 +256,7 @@ public class DepositController implements Initializable {
                 logger.error("Error during deposit: {}", e.getMessage(), e);
                 Platform.runLater(() -> {
                     btnConfirmDeposit.setDisable(false);
-                    btnConfirmDeposit.setText("Confirm Deposit");
+                    btnConfirmDeposit.setText("\u2192 Confirm Deposit");
                     showError("Cannot connect to the server.");
                 });
             }

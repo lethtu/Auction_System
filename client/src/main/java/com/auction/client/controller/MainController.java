@@ -2510,11 +2510,11 @@ public class MainController implements Initializable, SceneLifecycle {
     private String productCardHoverStyle() {
         String accent = accentHex();
         if (isDarkThemeActive()) {
-            return "-fx-border-color: " + accent + "; -fx-border-width: 1.5px; -fx-border-radius: 20px; "
+            return "-fx-border-color: " + accent + "; -fx-border-width: 2px; -fx-border-radius: 20px; "
                     + "-fx-background-radius: 20px; -fx-padding: 16px; -fx-background-color: #241a2f; "
                     + "-fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.32), 12, 0, 0, 3);";
         }
-        return "-fx-border-color: " + accent + "; -fx-border-width: 1.5px; -fx-border-radius: 20px; "
+        return "-fx-border-color: " + accent + "; -fx-border-width: 2px; -fx-border-radius: 20px; "
                 + "-fx-background-radius: 20px; -fx-padding: 16px; -fx-background-color: #ffffff; "
                 + "-fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.10), 10, 0, 0, 2);";
     }

@@ -1,4 +1,4 @@
-﻿@font-face {
+@font-face {
 
     font-family: 'DM Sans';
 
@@ -6224,3 +6224,330 @@
 }
 /* === Z11 SIDEBAR REMOVE TEXT GLOW END === */
 
+
+
+/* === Z16 NOTIFICATION CENTER THEME POLISH START === */
+.notification-center-root {
+    -fx-background-color: -app-bg;
+    -fx-font-family: 'DM Sans';
+}
+
+.notification-header {
+    -fx-padding: 0 0 18 0;
+}
+
+.notification-title {
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 28px;
+    -fx-font-weight: 900;
+    -fx-text-fill: -app-text;
+}
+
+.notification-unread-pill {
+    -fx-background-color: derive(-fx-accent, 82%);
+    -fx-text-fill: -fx-accent;
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 13px;
+    -fx-font-weight: 900;
+    -fx-padding: 5 11;
+    -fx-background-radius: 999;
+    -fx-border-color: derive(-fx-accent, 45%);
+    -fx-border-width: 1;
+    -fx-border-radius: 999;
+}
+
+.notification-link-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: -fx-accent;
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 14px;
+    -fx-font-weight: 900;
+    -fx-cursor: hand;
+    -fx-padding: 7 12;
+    -fx-background-radius: 999;
+}
+
+.notification-link-button:hover {
+    -fx-background-color: derive(-fx-accent, 88%);
+}
+
+.notification-filter-bar {
+    -fx-padding: 0 0 15 0;
+}
+
+.notification-filter-tab {
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+}
+
+.notification-scroll,
+.notification-scroll > .viewport,
+.notification-list {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-color: transparent;
+}
+
+.notification-list {
+    -fx-padding: 10;
+}
+
+.theme-dark .notification-center-root {
+    -fx-background-color: -app-bg;
+}
+
+.theme-dark .notification-link-button:hover {
+    -fx-background-color: derive(-fx-accent, -45%);
+}
+/* === Z16 NOTIFICATION CENTER THEME POLISH END === */
+/* === FIX Z16B: dashboard product grid left edge padding START === */
+/* Give the first product card breathing room so its left border/shadow is not clipped near the sidebar. */
+.products-scroll {
+    -fx-padding: 0 0 0 10px;
+}
+
+.products-flow {
+    -fx-padding: 12px 14px 24px 14px;
+}
+/* === FIX Z16B: dashboard product grid left edge padding END === */
+
+/* === Z16E SUPPORT CENTER POLISH START === */
+.support-scroll-pane,
+.support-scroll-pane > .viewport {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-color: transparent;
+}
+
+.support-status-pill {
+    -fx-background-color: -app-input-bg;
+    -fx-border-color: -app-border;
+    -fx-border-width: 1.3px;
+    -fx-border-radius: 999px;
+    -fx-background-radius: 999px;
+    -fx-padding: 9px 16px;
+}
+
+.support-pill-icon,
+.support-card-icon,
+.support-mini-icon,
+.support-contact-icon,
+.support-primary-btn-icon {
+    -fx-font-family: 'Material Symbols Outlined';
+    -fx-text-fill: -fx-accent;
+}
+
+.support-pill-icon { -fx-font-size: 18px; }
+.support-pill-text {
+    -fx-font-size: 13px;
+    -fx-font-weight: 900;
+    -fx-text-fill: -app-text;
+}
+
+.support-card,
+.support-mini-card {
+    -fx-background-color: -app-card;
+    -fx-background-radius: 24px;
+    -fx-border-color: -app-border;
+    -fx-border-width: 1.4px;
+    -fx-border-radius: 24px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.10), 22, 0.12, 0, 7);
+}
+
+.support-card {
+    -fx-padding: 24px;
+}
+
+.support-form-card {
+    -fx-padding: 26px;
+}
+
+.support-mini-card {
+    -fx-padding: 18px;
+    -fx-min-height: 132px;
+}
+
+.support-card:hover,
+.support-mini-card:hover {
+    -fx-border-color: -fx-accent;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 26, 0.15, 0, 9);
+}
+
+.support-card-icon-box {
+    -fx-background-color: -app-input-bg;
+    -fx-background-radius: 14px;
+    -fx-border-color: -app-border;
+    -fx-border-radius: 14px;
+    -fx-border-width: 1.2px;
+    -fx-min-width: 42px;
+    -fx-min-height: 42px;
+    -fx-pref-width: 42px;
+    -fx-pref-height: 42px;
+}
+
+.support-card-icon { -fx-font-size: 23px; }
+.support-mini-icon { -fx-font-size: 25px; }
+
+.support-card-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: 900;
+    -fx-text-fill: -fx-accent;
+}
+
+.support-card-subtitle,
+.support-mini-desc,
+.support-faq-answer {
+    -fx-font-size: 13.5px;
+    -fx-font-weight: 650;
+    -fx-text-fill: -app-text-muted;
+}
+
+.support-mini-title,
+.support-faq-question,
+.support-contact-text,
+.support-field-label {
+    -fx-text-fill: -app-text;
+    -fx-font-weight: 900;
+}
+
+.support-mini-title { -fx-font-size: 14px; }
+.support-faq-question { -fx-font-size: 14.5px; }
+.support-contact-text { -fx-font-size: 14px; }
+.support-field-label { -fx-font-size: 13px; }
+
+.support-input {
+    -fx-background-color: -app-input-bg;
+    -fx-background-radius: 13px;
+    -fx-border-color: -app-border;
+    -fx-border-width: 1.5px;
+    -fx-border-radius: 13px;
+    -fx-text-fill: -app-input-text;
+    -fx-prompt-text-fill: -app-text-muted;
+    -fx-font-size: 14px;
+    -fx-font-weight: 650;
+    -fx-padding: 11px 14px;
+}
+
+.support-input:focused {
+    -fx-border-color: -fx-accent;
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-16, 12, 0.08, 0, 3);
+}
+
+.support-message-area,
+.support-message-area .content {
+    -fx-background-color: -app-input-bg;
+    -fx-background-radius: 13px;
+}
+
+.support-primary-btn {
+    -fx-background-color: -fx-accent;
+    -fx-background-radius: 999px;
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-font-weight: 900;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-30, 16, 0.12, 0, 6);
+}
+
+.support-primary-btn:hover {
+    -fx-opacity: 0.94;
+    -fx-translate-y: -1px;
+}
+
+.support-primary-btn:pressed {
+    -fx-scale-x: 0.985;
+    -fx-scale-y: 0.985;
+    -fx-translate-y: 0px;
+}
+
+.support-primary-btn,
+.support-primary-btn .text,
+.support-primary-btn-icon {
+    -fx-fill: white;
+    -fx-text-fill: white;
+}
+
+.support-faq-item {
+    -fx-border-color: transparent transparent -app-border transparent;
+    -fx-border-width: 0 0 1px 0;
+    -fx-padding: 0 0 12px 0;
+}
+
+.support-faq-item-last {
+    -fx-border-color: transparent;
+    -fx-padding: 0 0 2px 0;
+}
+
+.support-contact-row {
+    -fx-background-color: -app-input-bg;
+    -fx-background-radius: 16px;
+    -fx-border-color: -app-border;
+    -fx-border-radius: 16px;
+    -fx-border-width: 1.1px;
+    -fx-padding: 12px 14px;
+}
+
+.support-contact-icon {
+    -fx-font-size: 21px;
+}
+
+.support-message-status {
+    -fx-font-size: 14px;
+    -fx-font-weight: 900;
+}
+/* === Z16E SUPPORT CENTER POLISH END === */
+/* === Z16E2 SUPPORT STATUS PILL START === */
+.support-message-status {
+    -fx-background-radius: 14px;
+    -fx-border-radius: 14px;
+    -fx-padding: 10px 14px;
+    -fx-font-size: 13.5px;
+    -fx-font-weight: 900;
+}
+/* === Z16E2 SUPPORT STATUS PILL END === */
+/* === Z16F: settings theme polish START === */
+.settings-password-warning-card {
+    -fx-background-color: linear-gradient(to bottom right, derive(-app-card, 5%), -app-card);
+    -fx-border-color: derive(-fx-accent, 12%);
+    -fx-border-width: 1.6px;
+    -fx-effect: dropshadow(gaussian, rgba(139, 92, 246, 0.18), 22, 0.14, 0, 7);
+}
+
+.settings-card .text-field,
+.settings-card .password-field,
+.settings-card .combo-box,
+.settings-card .slider .track {
+    -fx-background-color: -app-input-bg;
+    -fx-border-color: -app-border;
+}
+
+.settings-card .text-field:focused,
+.settings-card .password-field:focused,
+.settings-card .combo-box:focused {
+    -fx-border-color: -fx-accent;
+    -fx-effect: dropshadow(gaussian, rgba(139, 92, 246, 0.18), 12, 0.12, 0, 3);
+}
+
+.settings-card .combo-box .list-cell,
+.settings-card .combo-box .text,
+.settings-card .combo-box .label {
+    -fx-text-fill: -app-text;
+    -fx-fill: -app-text;
+}
+
+.settings-card .slider .thumb {
+    -fx-background-color: -fx-accent;
+    -fx-background-radius: 999px;
+}
+
+.settings-card .slider .track {
+    -fx-background-radius: 999px;
+    -fx-border-radius: 999px;
+    -fx-border-width: 1px;
+}
+
+.settings-card .separator .line {
+    -fx-border-color: -app-border;
+    -fx-opacity: 0.75;
+}
+/* === Z16F: settings theme polish END === */

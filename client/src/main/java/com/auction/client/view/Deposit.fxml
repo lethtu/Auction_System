@@ -92,7 +92,7 @@
 
                     <!-- Right Column: Summary Sticky -->
                     <VBox spacing="20.0" prefWidth="450.0" style="-fx-background-color: -app-card; -fx-background-radius: 20px; -fx-border-color: -app-border; -fx-border-width: 1.5px; -fx-border-radius: 20px; -fx-padding: 30px; -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.18), 40, 0, 0, 10);">
-                        <HBox alignment="CENTER_LEFT" spacing="8.0" style="-fx-padding: 0 0 15px 0; -fx-border-color: #f8eef8; -fx-border-width: 0 0 1px 0;">
+                        <HBox alignment="CENTER_LEFT" spacing="8.0" style="-fx-padding: 0 0 15px 0; -fx-border-color: -app-border; -fx-border-width: 0 0 1px 0;">
                             <Label text="&#xe8b0;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px; -fx-text-fill: -app-text;" />
                             <Label text="Transaction Details" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: -app-text;" />
                         </HBox>
@@ -107,7 +107,7 @@
                                 <Label text="Free (₫ 0)" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: -fx-accent;" />
                             </HBox>
                             
-                            <HBox alignment="CENTER_LEFT" style="-fx-padding: 15px 0 0 0; -fx-border-color: #f8eef8; -fx-border-width: 1px 0 0 0;">
+                            <HBox alignment="CENTER_LEFT" style="-fx-padding: 15px 0 0 0; -fx-border-color: -app-border; -fx-border-width: 1px 0 0 0;">
                                 <Label text="Total" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: -app-text;" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
                                 <Label fx:id="lblSummaryTotal" text="₫ 0" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: -fx-accent;" />
                             </HBox>

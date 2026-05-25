@@ -176,7 +176,7 @@ public class MyBidsController implements Initializable, SceneLifecycle {
         productContainer.setMaxWidth(gridWidth);
         productContainer.setHgap(hgap);
         productContainer.setVgap(28.0);
-        productContainer.setPadding(new Insets(10.0, 0.0, 18.0, 0.0));
+        productContainer.setPadding(new Insets(10.0, 14.0, 18.0, 14.0));
     }
 
     private void startPolling() {
@@ -300,9 +300,20 @@ public class MyBidsController implements Initializable, SceneLifecycle {
                 }
             }
 
+            if (newStatesToRender.isEmpty()) {
+                newStatesToRender.add("EMPTY_" + currentTab + "_" + keyword);
+            }
+
             if (!currentRenderedStates.equals(newStatesToRender)) {
                 productContainer.getChildren().clear();
                 currentRenderedStates.clear();
+
+                if (newStatesToRender.size() == 1 && newStatesToRender.get(0).startsWith("EMPTY_")) {
+                    productContainer.getChildren().add(createEmptyStateCard(keyword));
+                    currentRenderedStates.add(newStatesToRender.get(0));
+                    updateGridLayout();
+                    return;
+                }
 
                 for (JSONObject sessionObj : allProducts) {
                     JSONObject itemObj = getItemObject(sessionObj);
@@ -337,6 +348,68 @@ public class MyBidsController implements Initializable, SceneLifecycle {
                 updateGridLayout();
             }
         });
+    }
+
+    private VBox createEmptyStateCard(String keyword) {
+        VBox card = new VBox(12.0);
+        card.setAlignment(Pos.CENTER);
+        card.setMinHeight(260.0);
+        card.setPrefHeight(260.0);
+        double width = productContainer != null && productContainer.getPrefWidth() > 320.0
+                ? productContainer.getPrefWidth()
+                : 780.0;
+        card.setPrefWidth(width);
+        card.setMaxWidth(width);
+
+        boolean hasKeyword = keyword != null && !keyword.isBlank();
+        String title;
+        String subtitle;
+        switch (currentTab) {
+            case WINNING:
+                title = hasKeyword ? "No winning bids found" : "You are not winning any auction yet";
+                subtitle = hasKeyword ? "Try another keyword or switch to Active Bids." : "Place a stronger bid to see winning auctions here.";
+                break;
+            case OUTBID:
+                title = hasKeyword ? "No outbid auctions found" : "No outbid alerts right now";
+                subtitle = hasKeyword ? "Try another keyword or check Active Bids." : "Nice. You have not been outbid on matching active auctions.";
+                break;
+            case ENDED:
+                title = hasKeyword ? "No ended bids found" : "No ended auctions yet";
+                subtitle = hasKeyword ? "Try clearing search or switch tabs." : "Completed auction history will appear here.";
+                break;
+            case ACTIVE:
+            default:
+                title = hasKeyword ? "No active bids found" : "You have not joined any active auction yet";
+                subtitle = hasKeyword ? "Try another keyword or clear the search box." : "Join a live auction and your bidding cards will appear here.";
+                break;
+        }
+
+        Label icon = new Label("\uE8B6");
+        icon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 42px; -fx-text-fill: -fx-accent;");
+
+        Label titleLabel = new Label(title);
+        titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: 900; -fx-text-fill: " + primaryTextHex() + ";");
+        titleLabel.setWrapText(true);
+        titleLabel.setAlignment(Pos.CENTER);
+
+        Label subtitleLabel = new Label(subtitle);
+        subtitleLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: 700; -fx-text-fill: " + mutedTextHex() + ";");
+        subtitleLabel.setWrapText(true);
+        subtitleLabel.setAlignment(Pos.CENTER);
+        subtitleLabel.setMaxWidth(520.0);
+
+        if (isDarkThemeActive()) {
+            card.setStyle("-fx-background-color: #241a2f; -fx-background-radius: 24px; "
+                    + "-fx-border-color: rgba(255,255,255,0.14); -fx-border-width: 1.5px; -fx-border-radius: 24px; "
+                    + "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.28), 16, 0, 0, 5); -fx-padding: 28px;");
+        } else {
+            card.setStyle("-fx-background-color: -app-card; -fx-background-radius: 24px; "
+                    + "-fx-border-color: -app-border; -fx-border-width: 1.5px; -fx-border-radius: 24px; "
+                    + "-fx-effect: dropshadow(three-pass-box, rgba(224,64,160,0.10), 16, 0, 0, 5); -fx-padding: 28px;");
+        }
+
+        card.getChildren().addAll(icon, titleLabel, subtitleLabel);
+        return card;
     }
 
     private String normalizeSessionStatus(JSONObject sessionObj) {

@@ -32,16 +32,16 @@
             <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS" id="settingsScrollPane" styleClass="settings-scroll-pane">
                 <VBox spacing="35.0" style="-fx-padding: 10px 0px;">
 
-                    <VBox fx:id="passwordSetBox" spacing="16.0" style="-fx-background-color: #fff9e6; -fx-padding: 24px 30px; -fx-background-radius: 20px; -fx-border-color: #ffe0b2; -fx-border-width: 2px; -fx-border-radius: 20px; -fx-effect: dropshadow(three-pass-box, rgba(255, 152, 0, 0.05), 15, 0, 0, 4);">
+                    <VBox fx:id="passwordSetBox" spacing="16.0" styleClass="settings-card settings-password-warning-card" style="-fx-padding: 24px 30px;">
                         <HBox spacing="10.0" alignment="CENTER_LEFT">
-                            <Label text="&#xe8a6;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px; -fx-text-fill: #e65100;" />
-                            <Label text="SET ACCOUNT PASSWORD" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #e65100;" />
+                            <Label text="&#xe8a6;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px; -fx-text-fill: -fx-accent;" />
+                            <Label text="Set Account Password" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: -fx-accent;" />
                         </HBox>
-                        <Label text="This Google account does not have a local password yet. Set one below if you want to sign in later with your email or username." wrapText="true" style="-fx-font-size: 14px; -fx-text-fill: #5d4037; -fx-line-spacing: 4px;" />
+                        <Label text="This Google account does not have a local password yet. Set one below if you want to sign in later with your email or username." wrapText="true" style="-fx-font-size: 14px; -fx-text-fill: -app-text-muted; -fx-line-spacing: 4px;" />
                         <HBox spacing="20.0" alignment="CENTER_LEFT">
-                            <PasswordField fx:id="txtNewPassword" promptText="New password (min 6 characters)" prefWidth="250.0" style="-fx-background-color: -app-card; -fx-border-color: #ffe0b2; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 10px; -fx-font-size: 14px;" />
-                            <PasswordField fx:id="txtConfirmPassword" promptText="Confirm new password" prefWidth="250.0" style="-fx-background-color: -app-card; -fx-border-color: #ffe0b2; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 10px; -fx-font-size: 14px;" />
-                            <Button fx:id="btnSetPassword" onAction="#handleSetPassword" text="Set Password" prefHeight="40.0" style="-fx-background-color: #e65100; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-cursor: hand; -fx-padding: 8px 24px;" />
+                            <PasswordField fx:id="txtNewPassword" promptText="New password (min 6 characters)" prefWidth="250.0" style="-fx-background-color: -app-input-bg; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 10px; -fx-font-size: 14px;" />
+                            <PasswordField fx:id="txtConfirmPassword" promptText="Confirm new password" prefWidth="250.0" style="-fx-background-color: -app-input-bg; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 10px; -fx-font-size: 14px;" />
+                            <Button fx:id="btnSetPassword" onAction="#handleSetPassword" text="Set Password" prefHeight="40.0" style="-fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-cursor: hand; -fx-padding: 8px 24px;" />
                         </HBox>
                     </VBox>
 
@@ -52,9 +52,9 @@
                         </HBox>
                         <Label text="Update your account password to keep your account secure. Enter your current password before saving the new one." wrapText="true" style="-fx-font-size: 14px; -fx-text-fill: -app-text-muted; -fx-line-spacing: 4px;" />
                         <HBox spacing="20.0" alignment="CENTER_LEFT">
-                            <PasswordField fx:id="txtOldPassword" promptText="Current password" prefWidth="220.0" style="-fx-background-color: -app-card; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 10px; -fx-font-size: 14px;" />
-                            <PasswordField fx:id="txtChangeNewPassword" promptText="New password (min 6 chars)" prefWidth="220.0" style="-fx-background-color: -app-card; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 10px; -fx-font-size: 14px;" />
-                            <PasswordField fx:id="txtChangeConfirmPassword" promptText="Confirm new password" prefWidth="220.0" style="-fx-background-color: -app-card; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 10px; -fx-font-size: 14px;" />
+                            <PasswordField fx:id="txtOldPassword" promptText="Current password" prefWidth="220.0" style="-fx-background-color: -app-input-bg; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 10px; -fx-font-size: 14px;" />
+                            <PasswordField fx:id="txtChangeNewPassword" promptText="New password (min 6 chars)" prefWidth="220.0" style="-fx-background-color: -app-input-bg; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 10px; -fx-font-size: 14px;" />
+                            <PasswordField fx:id="txtChangeConfirmPassword" promptText="Confirm new password" prefWidth="220.0" style="-fx-background-color: -app-input-bg; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 10px; -fx-font-size: 14px;" />
                             <Button fx:id="btnChangePassword" onAction="#handleChangePassword" text="Change Password" prefHeight="40.0" minWidth="150.0" style="-fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-cursor: hand; -fx-padding: 8px 24px;" />
                         </HBox>
                     </VBox>
@@ -94,7 +94,7 @@
                                 <HBox spacing="10.0" alignment="CENTER_LEFT">
                                     <Label text="App language:" styleClass="setting-label" />
                                     <Region HBox.hgrow="ALWAYS" />
-                                    <ComboBox fx:id="cbLang" prefWidth="180.0" style="-fx-background-color: -app-card; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-cursor: hand;" />
+                                    <ComboBox fx:id="cbLang" prefWidth="180.0" style="-fx-background-color: -app-input-bg; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-cursor: hand;" />
                                 </HBox>
                                 <HBox spacing="10.0" alignment="CENTER_LEFT">
                                     <Label text="Theme:" styleClass="setting-label" />
@@ -125,12 +125,12 @@
                                 <HBox spacing="10.0" alignment="CENTER_LEFT">
                                     <Label text="High-bid warning at:" styleClass="setting-label" />
                                     <Region HBox.hgrow="ALWAYS" />
-                                    <TextField fx:id="txtHighBidWarning" prefWidth="160.0" promptText="1000000" style="-fx-background-color: -app-card; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 8px;" />
+                                    <TextField fx:id="txtHighBidWarning" prefWidth="160.0" promptText="1000000" style="-fx-background-color: -app-input-bg; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 8px;" />
                                 </HBox>
                                 <HBox spacing="10.0" alignment="CENTER_LEFT">
                                     <Label text="Default bid increment:" styleClass="setting-label" />
                                     <Region HBox.hgrow="ALWAYS" />
-                                    <TextField fx:id="txtDefaultIncrement" prefWidth="160.0" promptText="10000" style="-fx-background-color: -app-card; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 8px;" />
+                                    <TextField fx:id="txtDefaultIncrement" prefWidth="160.0" promptText="10000" style="-fx-background-color: -app-input-bg; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 8px;" />
                                 </HBox>
                             </VBox>
 

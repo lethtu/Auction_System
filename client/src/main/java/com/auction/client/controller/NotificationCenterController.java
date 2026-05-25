@@ -37,6 +37,7 @@ public class NotificationCenterController implements SceneLifecycle {
         active = true;
         lblUnreadCount.textProperty().bind(service.unreadCountProperty().asString().concat(" unread"));
         service.getNotifications().addListener(notificationListener);
+        updateTabStyles();
         renderList();
     }
 
@@ -75,22 +76,39 @@ public class NotificationCenterController implements SceneLifecycle {
     private void setFilter(String filter, Button activeTab) {
         this.currentFilter = filter;
         
-        tabAll.setStyle(getInactiveTabStyle());
-        tabUnread.setStyle(getInactiveTabStyle());
-        tabAuction.setStyle(getInactiveTabStyle());
-        tabSystem.setStyle(getInactiveTabStyle());
-        
-        activeTab.setStyle(getActiveTabStyle());
-        
+        updateTabStyles();
         requestRender();
     }
 
     private String getActiveTabStyle() {
-        return "-fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;";
+        return "-fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-family: 'DM Sans'; "
+                + "-fx-font-weight: 900; -fx-background-radius: 999; -fx-padding: 7 18; -fx-cursor: hand; "
+                + "-fx-border-color: -fx-accent; -fx-border-width: 1.2; -fx-border-radius: 999; "
+                + "-fx-effect: dropshadow(gaussian, rgba(224,64,160,0.16), 10, 0.12, 0, 2);";
     }
     
     private String getInactiveTabStyle() {
-        return "-fx-background-color: #f2e8f2; -fx-text-fill: -app-text-muted; -fx-font-family: 'DM Sans'; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 6 16; -fx-cursor: hand;";
+        return "-fx-background-color: -app-surface-2; -fx-text-fill: -app-text-muted; -fx-font-family: 'DM Sans'; "
+                + "-fx-font-weight: 800; -fx-background-radius: 999; -fx-padding: 7 18; -fx-cursor: hand; "
+                + "-fx-border-color: -app-border; -fx-border-width: 1.2; -fx-border-radius: 999;";
+    }
+
+    private void updateTabStyles() {
+        tabAll.setStyle("ALL".equals(currentFilter) ? getActiveTabStyle() : getInactiveTabStyle());
+        tabUnread.setStyle("UNREAD".equals(currentFilter) ? getActiveTabStyle() : getInactiveTabStyle());
+        tabAuction.setStyle("AUCTION".equals(currentFilter) ? getActiveTabStyle() : getInactiveTabStyle());
+        tabSystem.setStyle("SYSTEM".equals(currentFilter) ? getActiveTabStyle() : getInactiveTabStyle());
+    }
+
+    private String getNotificationCardStyle(AppNotification notification, boolean hover) {
+        String bg = notification.isRead() ? "-app-card" : "derive(-fx-accent, 92%)";
+        if (hover) {
+            bg = notification.isRead() ? "-app-surface-2" : "derive(-fx-accent, 88%)";
+        }
+        String border = notification.isRead() ? "-app-border" : "derive(-fx-accent, 45%)";
+        return "-fx-background-color: " + bg + "; -fx-background-radius: 16; "
+                + "-fx-border-color: " + border + "; -fx-border-width: 1.2; -fx-border-radius: 16; "
+                + "-fx-padding: 15; -fx-cursor: hand;";
     }
 
     private void renderList() {
@@ -111,7 +129,7 @@ public class NotificationCenterController implements SceneLifecycle {
             emptyState.setAlignment(Pos.CENTER);
             emptyState.setPadding(new Insets(50, 0, 0, 0));
             Label icon = new Label("notifications_off");
-            icon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 48px; -fx-text-fill: #dcc8e0;");
+            icon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 48px; -fx-text-fill: -app-text-muted; -fx-opacity: 0.65;");
             Label msg = new Label("No notifications here");
             msg.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: -app-text-muted;");
             emptyState.getChildren().addAll(icon, msg);
@@ -127,17 +145,16 @@ public class NotificationCenterController implements SceneLifecycle {
     private HBox createNotificationCard(AppNotification n) {
         HBox card = new HBox(15);
         card.setAlignment(Pos.CENTER_LEFT);
-        String bgColor = n.isRead() ? "#ffffff" : "#fff0f8";
-        card.setStyle("-fx-background-color: " + bgColor + "; -fx-background-radius: 12; -fx-border-color: #f2e8f2; -fx-border-radius: 12; -fx-padding: 15;");
+        card.setStyle(getNotificationCardStyle(n, false));
         
-        card.setOnMouseEntered(e -> card.setStyle("-fx-background-color: #fbf2fb; -fx-background-radius: 12; -fx-border-color: #f2e8f2; -fx-border-radius: 12; -fx-padding: 15; -fx-cursor: hand;"));
-        card.setOnMouseExited(e -> card.setStyle("-fx-background-color: " + (n.isRead() ? "#ffffff" : "#fff0f8") + "; -fx-background-radius: 12; -fx-border-color: #f2e8f2; -fx-border-radius: 12; -fx-padding: 15;"));
+        card.setOnMouseEntered(e -> card.setStyle(getNotificationCardStyle(n, true)));
+        card.setOnMouseExited(e -> card.setStyle(getNotificationCardStyle(n, false)));
         card.setOnMouseClicked(e -> {
             service.markAsRead(n.getId());
         });
 
         Label icon = new Label(getIconForType(n.getType()));
-        icon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px; -fx-text-fill: " + getColorForSeverity(n.getSeverity()) + "; -fx-background-color: #fef7ff; -fx-background-radius: 50%; -fx-padding: 10;");
+        icon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px; -fx-text-fill: " + getColorForSeverity(n.getSeverity()) + "; -fx-background-color: -app-surface-2; -fx-background-radius: 999; -fx-padding: 10;");
 
         VBox textCol = new VBox(5);
         HBox.setHgrow(textCol, Priority.ALWAYS);
@@ -150,7 +167,8 @@ public class NotificationCenterController implements SceneLifecycle {
         time.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-text-fill: -app-text-muted;");
         textCol.getChildren().addAll(title, message, time);
 
-        Circle unreadDot = new Circle(4, Color.web("#e040a0"));
+        Circle unreadDot = new Circle(4);
+        unreadDot.setStyle("-fx-fill: -fx-accent;");
         unreadDot.setVisible(!n.isRead());
 
         card.getChildren().addAll(icon, textCol, unreadDot);
@@ -178,7 +196,7 @@ public class NotificationCenterController implements SceneLifecycle {
             case WARNING: return "#eab308";
             case DANGER: return "#e53e3e";
             case INFO:
-            default: return "#e040a0";
+            default: return "-fx-accent";
         }
     }
 
