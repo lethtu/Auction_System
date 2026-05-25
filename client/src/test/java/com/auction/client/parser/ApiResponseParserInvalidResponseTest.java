@@ -19,7 +19,7 @@ class ApiResponseParserInvalidResponseTest {
 
         assertFalse(result.success);
         assertEquals(200, result.status);
-        assertEquals("Phản hồi từ server không hợp lệ.", result.message);
+        assertEquals("Invalid response from server.", result.message);
         assertNull(result.data);
     }
 
@@ -29,7 +29,7 @@ class ApiResponseParserInvalidResponseTest {
 
         assertFalse(result.success);
         assertEquals(200, result.status);
-        assertEquals("Phản hồi từ server không hợp lệ.", result.message);
+        assertEquals("Invalid response from server.", result.message);
         assertNotNull(result.data);
         assertEquals(0, result.data.length());
     }

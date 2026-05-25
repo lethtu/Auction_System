@@ -160,7 +160,7 @@ class AdminDashboardServiceTest {
 
         assertTrue(result.success);
         assertEquals(200, result.status);
-        assertEquals("Đã khóa tài khoản user.", result.message);
+        assertEquals("User account banned.", result.message);
         assertEquals(5, adminApiClient.lastUserId);
         assertEquals(1, adminApiClient.lastAdminId);
     }

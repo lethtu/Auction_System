@@ -73,7 +73,7 @@ class SellerResponseParserTest {
 
         SessionItem item = result.get(0);
         assertEquals(5, item.id);
-        assertEquals("Không rõ", item.productName);
+        assertEquals("Unknown", item.productName);
         assertEquals("", item.productType);
         assertEquals("", item.description);
         assertEquals(BigDecimal.ZERO, item.startingPrice);

@@ -13,12 +13,12 @@ class SellerStatsCalculatorTest {
 
     @Test
     void buildStatsText_nullSessions_returnsZeroTotal() {
-        assertEquals("Tổng số phiên: 0", SellerStatsCalculator.buildStatsText(null));
+        assertEquals("Total sessions: 0", SellerStatsCalculator.buildStatsText(null));
     }
 
     @Test
     void buildStatsText_emptySessions_returnsZeroTotal() {
-        assertEquals("Tổng số phiên: 0", SellerStatsCalculator.buildStatsText(List.of()));
+        assertEquals("Total sessions: 0", SellerStatsCalculator.buildStatsText(List.of()));
     }
 
     @Test
@@ -33,13 +33,13 @@ class SellerStatsCalculatorTest {
                 session("UNKNOWN", new BigDecimal("6000"))
         ));
 
-        assertTrue(result.contains("Tổng số phiên: 7"));
-        assertTrue(result.contains("Số phiên chờ duyệt: 1"));
-        assertTrue(result.contains("Số phiên đang hoạt động: 1"));
-        assertTrue(result.contains("Số phiên bị từ chối: 1"));
-        assertTrue(result.contains("Số phiên đã kết thúc: 2"));
-        assertTrue(result.contains("Số phiên đã hủy: 1"));
-        assertTrue(result.contains("Tổng doanh thu phiên đã kết thúc: 4,000"));
+        assertTrue(result.contains("Total sessions: 7"));
+        assertTrue(result.contains("Pending sessions: 1"));
+        assertTrue(result.contains("Active sessions: 1"));
+        assertTrue(result.contains("Rejected sessions: 1"));
+        assertTrue(result.contains("Ended sessions: 2"));
+        assertTrue(result.contains("Canceled sessions: 1"));
+        assertTrue(result.contains("Total revenue from ended sessions: 4,000"));
     }
 
     private SessionItem session(String status, BigDecimal currentPrice) {

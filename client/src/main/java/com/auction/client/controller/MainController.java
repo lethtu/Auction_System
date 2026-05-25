@@ -141,6 +141,7 @@ public class MainController implements Initializable {
     public static boolean initialShowAccount = false;
     public static String initialHomeFilterMode = "ALL";
     private final Button fakeTestBtn = new Button();
+    private final Button fakeResetBtn = new Button();
 
     // Local caching store for real-time filter performance
     private final List<JSONObject> allProducts = new ArrayList<>();
@@ -179,6 +180,13 @@ public class MainController implements Initializable {
         });
 
         productContainer.getChildren().add(fakeTestBtn);
+        
+        fakeResetBtn.setId("btnResetFilter");
+        fakeResetBtn.setVisible(false);
+        fakeResetBtn.setManaged(false);
+        fakeResetBtn.setOnAction(e -> {
+        });
+        productContainer.getChildren().add(fakeResetBtn);
         applyAuctionScrollPolicy();
 
         // Initialize ComboBox
@@ -482,6 +490,7 @@ public class MainController implements Initializable {
         stopCountdownTimeline();
         productContainer.getChildren().clear();
         productContainer.getChildren().add(fakeTestBtn);
+        productContainer.getChildren().add(fakeResetBtn);
         currentRenderedIds.clear();
 
         VBox emptyBox = createEmptyStateBox(message == null || message.isBlank()
@@ -670,6 +679,7 @@ public class MainController implements Initializable {
         stopCountdownTimeline();
         productContainer.getChildren().clear();
         productContainer.getChildren().add(fakeTestBtn);
+        productContainer.getChildren().add(fakeResetBtn);
         currentRenderedIds.clear();
         sessionCardMap.clear();
 

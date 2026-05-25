@@ -57,7 +57,7 @@ public class LoginControllerTest {
         robot.clickOn("#txtPassword").write("123");
         robot.clickOn("#btnLogin");
 
-        verifyThat("Sai tài khoản hoặc mật khẩu!", NodeMatchers.isVisible());
+        verifyThat("Invalid account or password!", NodeMatchers.isVisible());
         robot.clickOn("OK");
     }
 
@@ -87,7 +87,7 @@ public class LoginControllerTest {
         robot.clickOn("#txtPassword").write("123456");
         robot.clickOn("#btnLogin");
 
-        verifyThat("Chào mừng bạn đã quay lại!", NodeMatchers.isVisible());
+        verifyThat("Welcome back!", NodeMatchers.isVisible());
         robot.clickOn("OK");
 
         robot.sleep(500);
@@ -118,7 +118,7 @@ public class LoginControllerTest {
         robot.clickOn("#txtPassword").write("123456");
         robot.clickOn("#btnLogin");
 
-        verifyThat("Chào mừng bạn đã quay lại!", NodeMatchers.isVisible());
+        verifyThat("Welcome back!", NodeMatchers.isVisible());
         robot.clickOn("OK");
 
         robot.sleep(500);
@@ -151,7 +151,7 @@ public class LoginControllerTest {
         robot.clickOn("#btnLogin");
 
         // Bắt Alert Thành công
-        verifyThat("Chào mừng bạn đã quay lại!", NodeMatchers.isVisible());
+        verifyThat("Welcome back!", NodeMatchers.isVisible());
         robot.clickOn("OK");
 
         // Chờ load màn hình của Bidder (MainTemplate.fxml)

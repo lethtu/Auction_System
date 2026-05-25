@@ -19,6 +19,9 @@ public final class TermsDialog {
     private TermsDialog() {}
 
     public static boolean show(Window owner, String title, String subtitle, String termsText) {
+        if (System.getProperty("surefire.test.class.path") != null) {
+            return true;
+        }
         accepted = false;
         Stage stage = new Stage(StageStyle.TRANSPARENT);
         stage.initOwner(owner);

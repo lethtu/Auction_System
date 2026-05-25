@@ -84,7 +84,7 @@ public class AuctionLifecycleTest {
         when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
         when(userRepository.findById(99)).thenReturn(Optional.of(mockUser));
 
-        BidResponse response = auctionService.updateBid(1, 99, new BigDecimal("1500.00"));
+        BidResponse response = auctionService.updateBid(1, 99, new BigDecimal("15000.00"));
 
         assertTrue(response.isSuccess(), "Đặt giá phải thành công");
         assertNotNull(response.getNewEndTime(), "newEndTime phải có giá trị vì đã gia hạn");
@@ -143,7 +143,7 @@ public class AuctionLifecycleTest {
         when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
         when(userRepository.findById(99)).thenReturn(Optional.of(mockUser));
 
-        BidResponse response = auctionService.updateBid(1, 99, new BigDecimal("1500.00"));
+        BidResponse response = auctionService.updateBid(1, 99, new BigDecimal("15000.00"));
 
         assertTrue(response.isSuccess(), "Đặt giá phải thành công");
         assertNull(response.getNewEndTime(), "newEndTime phải null vì không gia hạn");
@@ -160,7 +160,7 @@ public class AuctionLifecycleTest {
         when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
         when(userRepository.findById(99)).thenReturn(Optional.of(mockUser));
 
-        BidResponse response = auctionService.updateBid(1, 99, new BigDecimal("1500.00"));
+        BidResponse response = auctionService.updateBid(1, 99, new BigDecimal("15000.00"));
 
         assertTrue(response.isSuccess(), "Đặt giá phải thành công");
         assertNotNull(response.getNewEndTime(), "newEndTime phải có giá trị vì đã gia hạn");
@@ -197,7 +197,7 @@ public class AuctionLifecycleTest {
         when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
         when(userRepository.findById(999)).thenReturn(Optional.empty());
 
-        BidResponse response = auctionService.updateBid(1, 999, new BigDecimal("1500.00"));
+        BidResponse response = auctionService.updateBid(1, 999, new BigDecimal("15000.00"));
 
         assertFalse(response.isSuccess(), "Bid với user không tồn tại phải thất bại");
         assertNotNull(response.getMessage(), "Phải trả về thông báo lỗi");
