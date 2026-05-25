@@ -11,6 +11,7 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
@@ -41,6 +42,8 @@ public class AdminDashboardController {
     private static final String PRODUCT_VISIBLE_TEXT = "Visible";
     private static final String PRODUCT_HIDDEN_TEXT = "Hidden";
     private static final String ACTIVE_NAV_CLASS = "active-admin-nav";
+    private static final boolean APPROVAL_WORKFLOW_ENABLED = false;
+    private static final String APPROVAL_DISABLED_MESSAGE = "Approval workflow is disabled. Seller sessions are published directly; use Manage Sessions to cancel or hide violations.";
 
     private static final String NO_SESSION_SELECTED_TITLE = "No session selected";
     private static final String NO_USER_SELECTED_TITLE = "No user selected";
@@ -97,8 +100,37 @@ public class AdminDashboardController {
         setupUserColumns();
         setupSessionColumns();
         setupAdminTablePolish();
+        configureApprovalWorkflowVisibility();
         setupAdminNavigationState();
         loadAllData();
+    }
+
+    private void configureApprovalWorkflowVisibility() {
+        if (APPROVAL_WORKFLOW_ENABLED) {
+            return;
+        }
+
+        hideNode(btnPendingTab);
+        resetPendingReviewState();
+
+        if (adminTabPane != null && tabPending != null) {
+            adminTabPane.getTabs().remove(tabPending);
+            selectTab(tabSessions);
+        }
+    }
+
+    private void hideNode(Node node) {
+        if (node == null) {
+            return;
+        }
+        node.setVisible(false);
+        node.setManaged(false);
+        node.setDisable(true);
+    }
+
+    private void showApprovalDisabledMessage() {
+        AlertUtil.showInfo(APPROVAL_DISABLED_MESSAGE);
+        selectTab(tabSessions);
     }
 
 
@@ -131,7 +163,7 @@ public class AdminDashboardController {
     }
 
     private void updateAdminNavigationState(Tab selectedTab) {
-        setNavButtonActive(btnPendingTab, selectedTab == tabPending);
+        setNavButtonActive(btnPendingTab, APPROVAL_WORKFLOW_ENABLED && selectedTab == tabPending);
         setNavButtonActive(btnUsersTab, selectedTab == tabUsers);
         setNavButtonActive(btnSessionsTab, selectedTab == tabSessions);
     }
@@ -225,6 +257,11 @@ public class AdminDashboardController {
 
     @FXML
     public void handleApprove() {
+        if (!APPROVAL_WORKFLOW_ENABLED) {
+            showApprovalDisabledMessage();
+            return;
+        }
+
         runSelectedAdminAction(
                 tablePending,
                 NO_SESSION_SELECTED_TITLE,
@@ -235,6 +272,11 @@ public class AdminDashboardController {
 
     @FXML
     public void handleReject() {
+        if (!APPROVAL_WORKFLOW_ENABLED) {
+            showApprovalDisabledMessage();
+            return;
+        }
+
         PendingSessionRow selected = getSelectedItem(
                 tablePending,
                 NO_SESSION_SELECTED_TITLE,
@@ -329,6 +371,10 @@ public class AdminDashboardController {
 
     @FXML
     public void showPendingTab() {
+        if (!APPROVAL_WORKFLOW_ENABLED) {
+            showApprovalDisabledMessage();
+            return;
+        }
         selectTab(tabPending);
     }
 
@@ -445,13 +491,17 @@ public class AdminDashboardController {
     }
 
     private void loadAllData() {
-        loadPendingSessions();
+        if (APPROVAL_WORKFLOW_ENABLED) {
+            loadPendingSessions();
+        } else {
+            resetPendingReviewState();
+        }
         loadUsers();
         loadSessions();
     }
 
     private void updateDashboardMetrics() {
-        setMetricText(lblPendingCount, String.valueOf(itemCount(tablePending)));
+        setMetricText(lblPendingCount, APPROVAL_WORKFLOW_ENABLED ? String.valueOf(itemCount(tablePending)) : "0");
         setMetricText(lblUserCount, String.valueOf(itemCount(tableUsers)));
         setMetricText(lblSessionCount, String.valueOf(itemCount(tableSessions)));
         setMetricText(lblTotalStartingPrice, formatMetricCurrency(calculateTotalPlatformFee()));
@@ -522,6 +572,13 @@ public class AdminDashboardController {
     private String compactMoney(BigDecimal price, BigDecimal unit, String suffix) {
         BigDecimal compact = price.divide(unit, 1, RoundingMode.HALF_UP).stripTrailingZeros();
         return compact.toPlainString().replace('.', ',') + suffix;
+    }
+
+    private void resetPendingReviewState() {
+        if (tablePending != null) {
+            tablePending.setItems(FXCollections.observableArrayList());
+        }
+        setMetricText(lblPendingCount, "0");
     }
 
     private void loadPendingSessions() {
