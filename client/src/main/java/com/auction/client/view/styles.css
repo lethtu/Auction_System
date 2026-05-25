@@ -6734,3 +6734,25 @@
     -fx-background-color: white;
 }
 /* === Z20 DASHBOARD VISUAL POLISH END === */
+
+/* === Z21A AuctionPage quick bid chips === */
+.bid-quick-chip {
+    -fx-background-color: -app-surface-2;
+    -fx-text-fill: -app-text-muted;
+    -fx-border-color: -app-border;
+    -fx-border-width: 1px;
+    -fx-border-radius: 999px;
+    -fx-background-radius: 999px;
+    -fx-padding: 8px 12px;
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 12px;
+    -fx-font-weight: 900;
+    -fx-cursor: hand;
+}
+
+.bid-quick-chip:hover {
+    -fx-background-color: -app-input-bg;
+    -fx-text-fill: -fx-accent;
+    -fx-border-color: -fx-accent;
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-20, 10, 0.18, 0, 3);
+}
