@@ -7,6 +7,7 @@ import com.auction.server.model.*;
 import com.auction.server.repository.AuctionSessionRepository;
 import com.auction.server.repository.ItemRepository;
 import com.auction.server.util.SellerSessionGuard;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -277,5 +278,75 @@ public class SellerServiceTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals("ACTIVE", result.get(0).getStatus());
+    }
+
+    @Test
+    @DisplayName("Xóa sản phẩm thành công (soft delete)")
+    public void testSoftDeleteItem_Success() {
+        Item item = new Electronics();
+        item.setId(50);
+        item.setName("Laptop Core i9");
+        item.setHidden(false);
+
+        AuctionSession session = new AuctionSession();
+        session.setId(5);
+        session.setSeller(mockSeller);
+        session.setItem(item);
+        session.setStatus(AuctionStatus.COMING);
+
+        when(itemRepository.findById(50)).thenReturn(Optional.of(item));
+        when(auctionSessionRepository.findByItem_Id(50)).thenReturn(List.of(session));
+
+        sellerService.softDeleteItem(50, 2);
+
+        assertTrue(item.isHidden(), "Item hidden field should be set to true");
+        verify(itemRepository, times(1)).save(item);
+    }
+
+    @Test
+    @DisplayName("Xóa sản phẩm thất bại do không phải owner")
+    public void testSoftDeleteItem_NotOwner() {
+        Item item = new Electronics();
+        item.setId(50);
+
+        Seller otherSeller = new Seller();
+        otherSeller.setId(9);
+
+        AuctionSession session = new AuctionSession();
+        session.setId(5);
+        session.setSeller(otherSeller);
+        session.setItem(item);
+        session.setStatus(AuctionStatus.COMING);
+
+        when(itemRepository.findById(50)).thenReturn(Optional.of(item));
+        when(auctionSessionRepository.findByItem_Id(50)).thenReturn(List.of(session));
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            sellerService.softDeleteItem(50, 2);
+        });
+
+        verify(itemRepository, never()).save(any(Item.class));
+    }
+
+    @Test
+    @DisplayName("Xóa sản phẩm thất bại do có phiên đấu giá đã kết thúc hoặc đang chạy")
+    public void testSoftDeleteItem_ActiveOrEnded() {
+        Item item = new Electronics();
+        item.setId(50);
+
+        AuctionSession session = new AuctionSession();
+        session.setId(5);
+        session.setSeller(mockSeller);
+        session.setItem(item);
+        session.setStatus(AuctionStatus.ENDED);
+
+        when(itemRepository.findById(50)).thenReturn(Optional.of(item));
+        when(auctionSessionRepository.findByItem_Id(50)).thenReturn(List.of(session));
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            sellerService.softDeleteItem(50, 2);
+        });
+
+        verify(itemRepository, never()).save(any(Item.class));
     }
 }

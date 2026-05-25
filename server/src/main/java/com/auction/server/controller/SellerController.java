@@ -148,6 +148,22 @@ public class SellerController {
         );
     }
 
+    @DeleteMapping("/items/{itemId}")
+    public ApiResponse<Void> deleteItem(
+            HttpServletRequest request,
+            @PathVariable Integer itemId
+    ) {
+        return handleCommand(
+                "Deleting product",
+                "Product removed",
+                () -> {
+                    SessionManager.SessionUser actor = (SessionManager.SessionUser) request.getAttribute("sessionUser");
+                    Integer secureSellerId = actor.getUserId();
+                    sellerService.softDeleteItem(itemId, secureSellerId);
+                }
+        );
+    }
+
     private ApiResponse<Void> handleCommand(
             String logMessage,
             String successMessage,

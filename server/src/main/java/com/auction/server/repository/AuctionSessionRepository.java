@@ -63,4 +63,6 @@ public interface AuctionSessionRepository extends JpaRepository<AuctionSession, 
             @Param("newStatus") AuctionStatus newStatus,
             @Param("now") LocalDateTime now
     );
+
+    List<AuctionSession> findByItem_Id(Integer itemId);
 }

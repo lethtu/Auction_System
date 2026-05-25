@@ -183,4 +183,24 @@ public class SellerService {
             return List.of();
         }
     }
+
+    @Transactional
+    public void softDeleteItem(Integer itemId, Integer sellerId) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found."));
+
+        List<AuctionSession> sessions = auctionSessionRepository.findByItem_Id(itemId);
+
+        for (AuctionSession session : sessions) {
+            if (session.getSeller() == null || !session.getSeller().getId().equals(sellerId)) {
+                throw new IllegalArgumentException("You do not have permission to delete this product.");
+            }
+            if (session.getStatus() == AuctionStatus.ACTIVE || session.getStatus() == AuctionStatus.ENDED || session.getStatus() == AuctionStatus.PAID) {
+                throw new IllegalArgumentException("Cannot delete product with active, ended, or paid auction sessions.");
+            }
+        }
+
+        item.setHidden(true);
+        itemRepository.save(item);
+    }
 }

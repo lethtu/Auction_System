@@ -140,6 +140,21 @@ class SellerControllerTest {
         assertEquals(10, service.lastSellerId);
     }
 
+    @Test
+    void deleteItem_success_returnsSuccessResponse() {
+        FakeSellerService service = new FakeSellerService();
+        SellerController controller = new SellerController(service);
+
+        ApiResponse<Void> response = controller.deleteItem(mockReq, 50);
+
+        assertEquals(200, response.getStatus());
+        assertEquals("Product removed", response.getMessage());
+        assertNull(response.getData());
+        assertEquals(50, service.lastDeletedItemId);
+        assertEquals(10, service.deleteSellerId);
+        assertTrue(service.deleteCalled);
+    }
+
     private static class FakeSellerService extends SellerService {
         private SessionResponseDTO createResult;
         private SessionResponseDTO detailResult;
@@ -157,6 +172,10 @@ class SellerControllerTest {
 
         private RuntimeException createException;
         private RuntimeException cancelException;
+
+        private Integer lastDeletedItemId;
+        private Integer deleteSellerId;
+        private boolean deleteCalled;
 
         FakeSellerService() {
             super(null, null, null);
@@ -201,6 +220,13 @@ class SellerControllerTest {
         public SellerStatsDTO getSellerStats(Integer sellerId) {
             this.lastSellerId = sellerId;
             return null;
+        }
+
+        @Override
+        public void softDeleteItem(Integer itemId, Integer sellerId) {
+            this.lastDeletedItemId = itemId;
+            this.deleteSellerId = sellerId;
+            this.deleteCalled = true;
         }
     }
 }
