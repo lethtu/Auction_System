@@ -338,4 +338,35 @@ public class CacheManager {
             onComplete.accept(false);
         }
     }
+
+    /**
+     * Invalidates (deletes) the local cache files for a given item UUID and its image URL.
+     */
+    public static void invalidateCache(String itemUuid, String imageUrl) {
+        if (itemUuid != null && !itemUuid.isBlank()) {
+            try {
+                Path modelFile = Paths.get(Config.CACHE_3D_DIR, itemUuid + ".glb");
+                Path modelMetaFile = Paths.get(Config.CACHE_3D_DIR, itemUuid + ".meta");
+                Files.deleteIfExists(modelFile);
+                Files.deleteIfExists(modelMetaFile);
+                logger.info("Invalidated local 3D model cache for item: {}", itemUuid);
+            } catch (Exception e) {
+                logger.warn("Failed to delete 3D model cache", e);
+            }
+        }
+
+        if (imageUrl != null && !imageUrl.isBlank()) {
+            try {
+                String stableUrl = stableCacheKeyUrl(imageUrl);
+                String key = getMd5(stableUrl);
+                Path cachedFile = Paths.get(Config.CACHE_IMAGES_DIR, key + "." + getExtension(stableUrl, "png"));
+                Path metaFile = Paths.get(Config.CACHE_IMAGES_DIR, key + ".meta");
+                Files.deleteIfExists(cachedFile);
+                Files.deleteIfExists(metaFile);
+                logger.info("Invalidated local image cache for URL: {}", imageUrl);
+            } catch (Exception e) {
+                logger.warn("Failed to delete image cache for {}", imageUrl, e);
+            }
+        }
+    }
 }
