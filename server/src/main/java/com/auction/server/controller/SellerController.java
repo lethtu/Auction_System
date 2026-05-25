@@ -5,6 +5,8 @@ import com.auction.server.dto.CreateAuctionRequest;
 import com.auction.server.dto.SellerStatsDTO;
 import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.service.SellerService;
+import com.auction.server.util.SessionManager;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
@@ -41,35 +43,53 @@ public class SellerController {
     }
 
     @PostMapping("/create-auction")
-    public ApiResponse<SessionResponseDTO> createAuction(@RequestBody CreateAuctionRequest request) {
+    public ApiResponse<SessionResponseDTO> createAuction(
+            HttpServletRequest request,
+            @RequestBody CreateAuctionRequest createRequest
+    ) {
         return handleRequest(
                 LOG_CREATE_AUCTION,
                 SUCCESS_CREATE_AUCTION,
-                () -> sellerService.createAuctionSession(request)
+                () -> {
+                    SessionManager.SessionUser actor = (SessionManager.SessionUser) request.getAttribute("sessionUser");
+                    Integer secureSellerId = actor.getUserId();
+                    createRequest.setSellerId(secureSellerId);
+                    return sellerService.createAuctionSession(createRequest);
+                }
         );
     }
 
     @GetMapping("/my-sessions/{sellerId}")
     public ApiResponse<List<SessionResponseDTO>> viewMySessions(
+            HttpServletRequest request,
             @PathVariable Integer sellerId,
             @RequestParam(required = false) String status
     ) {
         return handleRequest(
                 LOG_VIEW_MY_SESSIONS,
                 SUCCESS_VIEW_MY_SESSIONS,
-                () -> sellerService.getMySessions(sellerId, status)
+                () -> {
+                    SessionManager.SessionUser actor = (SessionManager.SessionUser) request.getAttribute("sessionUser");
+                    Integer secureSellerId = actor.getUserId();
+                    return sellerService.getMySessions(secureSellerId, status);
+                }
         );
     }
 
     @GetMapping("/session-detail/{sessionId}")
     public ApiResponse<SessionResponseDTO> getSessionDetail(
+            HttpServletRequest request,
             @PathVariable Integer sessionId,
             @RequestParam Integer sellerId
     ) {
         return handleRequest(
                 LOG_GET_SESSION_DETAIL,
                 SUCCESS_GET_SESSION_DETAIL,
-                () -> sellerService.getSessionDetail(sessionId, sellerId)
+                () -> {
+                    SessionManager.SessionUser actor = (SessionManager.SessionUser) request.getAttribute("sessionUser");
+                    Integer secureSellerId = actor.getUserId();
+                    return sellerService.getSessionDetail(sessionId, secureSellerId);
+                }
         );
     }
 
@@ -78,38 +98,53 @@ public class SellerController {
      */
     @PutMapping("/update-session/{sessionId}")
     public ApiResponse<SessionResponseDTO> updateSession(
+            HttpServletRequest request,
             @PathVariable Integer sessionId,
             @RequestParam Integer sellerId,
-            @RequestBody CreateAuctionRequest request
+            @RequestBody CreateAuctionRequest updateRequest
     ) {
         return handleRequest(
                 LOG_UPDATE_PENDING_SESSION,
                 SUCCESS_UPDATE_PENDING_SESSION,
                 () -> {
-                    request.setSellerId(sellerId);
-                    return sellerService.updateSession(sessionId, sellerId, request);
+                    SessionManager.SessionUser actor = (SessionManager.SessionUser) request.getAttribute("sessionUser");
+                    Integer secureSellerId = actor.getUserId();
+                    updateRequest.setSellerId(secureSellerId);
+                    return sellerService.updateSession(sessionId, secureSellerId, updateRequest);
                 }
         );
     }
 
     @DeleteMapping("/cancel-session/{sessionId}")
     public ApiResponse<Void> cancelAuction(
+            HttpServletRequest request,
             @PathVariable Integer sessionId,
             @RequestParam Integer sellerId
     ) {
         return handleCommand(
                 LOG_CANCEL_AUCTION,
                 SUCCESS_CANCEL_AUCTION,
-                () -> sellerService.cancelSession(sessionId, sellerId)
+                () -> {
+                    SessionManager.SessionUser actor = (SessionManager.SessionUser) request.getAttribute("sessionUser");
+                    Integer secureSellerId = actor.getUserId();
+                    sellerService.cancelSession(sessionId, secureSellerId);
+                }
         );
     }
 
     @GetMapping("/stats/{sellerId}")
-    public ApiResponse<SellerStatsDTO> getStats(@PathVariable Integer sellerId) {
+    public ApiResponse<SellerStatsDTO> getStats(
+            HttpServletRequest request,
+            @PathVariable Integer sellerId
+    ) {
         return handleRequest(
                 LOG_GET_STATS,
                 SUCCESS_GET_STATS,
-                () -> sellerService.getSellerStats(sellerId)
+                () -> {
+                    SessionManager.SessionUser actor = (SessionManager.SessionUser) request.getAttribute("sessionUser");
+                    Integer secureSellerId = actor.getUserId();
+                    return sellerService.getSellerStats(secureSellerId);
+                }
         );
     }
 

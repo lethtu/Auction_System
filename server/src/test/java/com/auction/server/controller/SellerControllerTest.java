@@ -5,13 +5,25 @@ import com.auction.server.dto.CreateAuctionRequest;
 import com.auction.server.dto.SellerStatsDTO;
 import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.service.SellerService;
+import com.auction.server.util.SessionManager;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockHttpServletRequest;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class SellerControllerTest {
+
+    private MockHttpServletRequest mockReq;
+
+    @BeforeEach
+    void setUp() {
+        mockReq = new MockHttpServletRequest();
+        SessionManager.SessionUser sessionUser = new SessionManager.SessionUser(10, "seller_user", "seller");
+        mockReq.setAttribute("sessionUser", sessionUser);
+    }
 
     @Test
     void createAuction_success_returnsApiResponseSuccess() {
@@ -25,12 +37,13 @@ class SellerControllerTest {
         dto.setProductName("Laptop");
         service.createResult = dto;
 
-        ApiResponse<SessionResponseDTO> response = controller.createAuction(request);
+        ApiResponse<SessionResponseDTO> response = controller.createAuction(mockReq, request);
 
         assertEquals(200, response.getStatus());
         assertEquals("Auction session created successfully.", response.getMessage());
         assertSame(dto, response.getData());
         assertSame(request, service.createdRequest);
+        assertEquals(10, request.getSellerId()); // secure seller ID is overridden
     }
 
     @Test
@@ -40,7 +53,7 @@ class SellerControllerTest {
 
         service.createException = new IllegalArgumentException("Giá khởi điểm không hợp lệ");
 
-        ApiResponse<SessionResponseDTO> response = controller.createAuction(new CreateAuctionRequest());
+        ApiResponse<SessionResponseDTO> response = controller.createAuction(mockReq, new CreateAuctionRequest());
 
         assertEquals(400, response.getStatus());
         assertEquals("Giá khởi điểm không hợp lệ", response.getMessage());
@@ -57,7 +70,7 @@ class SellerControllerTest {
         dto.setProductName("Phone");
         service.mySessionsResult = List.of(dto);
 
-        ApiResponse<List<SessionResponseDTO>> response = controller.viewMySessions(10, "PENDING");
+        ApiResponse<List<SessionResponseDTO>> response = controller.viewMySessions(mockReq, 10, "PENDING");
 
         assertEquals(200, response.getStatus());
         assertEquals("Session list retrieved successfully", response.getMessage());
@@ -76,7 +89,7 @@ class SellerControllerTest {
         dto.setId(5);
         service.detailResult = dto;
 
-        ApiResponse<SessionResponseDTO> response = controller.getSessionDetail(5, 10);
+        ApiResponse<SessionResponseDTO> response = controller.getSessionDetail(mockReq, 5, 10);
 
         assertEquals(200, response.getStatus());
         assertEquals("Session details retrieved successfully", response.getMessage());
@@ -90,7 +103,7 @@ class SellerControllerTest {
         FakeSellerService service = new FakeSellerService();
         SellerController controller = new SellerController(service);
 
-        ApiResponse<Void> response = controller.cancelAuction(8, 10);
+        ApiResponse<Void> response = controller.cancelAuction(mockReq, 8, 10);
 
         assertEquals(200, response.getStatus());
         assertEquals("Session canceled successfully", response.getMessage());
@@ -107,7 +120,7 @@ class SellerControllerTest {
 
         service.cancelException = new RuntimeException("Không thể hủy phiên này");
 
-        ApiResponse<Void> response = controller.cancelAuction(8, 10);
+        ApiResponse<Void> response = controller.cancelAuction(mockReq, 8, 10);
 
         assertEquals(500, response.getStatus());
         assertEquals("Không thể hủy phiên này", response.getMessage());
@@ -119,7 +132,7 @@ class SellerControllerTest {
         FakeSellerService service = new FakeSellerService();
         SellerController controller = new SellerController(service);
 
-        ApiResponse<SellerStatsDTO> response = controller.getStats(10);
+        ApiResponse<SellerStatsDTO> response = controller.getStats(mockReq, 10);
 
         assertEquals(200, response.getStatus());
         assertEquals("Statistics retrieved successfully", response.getMessage());
