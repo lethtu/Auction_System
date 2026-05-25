@@ -6,13 +6,13 @@
 
 <HBox fx:id="topbar" alignment="CENTER_LEFT" spacing="0.0" styleClass="app-topbar" stylesheets="@styles.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.TopbarController">
     <StackPane prefWidth="70.0" minWidth="70.0" maxWidth="70.0">
-        <Button fx:id="btnHamburger" onAction="#handleToggleSidebar" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0;">
+        <Button fx:id="btnHamburger" id="btnHamburger" onAction="#handleToggleSidebar" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0;">
             <graphic>
                 <Label text="&#xe5d2;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: -app-text-muted;" />
             </graphic>
         </Button>
     </StackPane>
-    <Label text="BidPop" onMouseClicked="#handleGoToDashboard" style="-fx-cursor: hand; -fx-text-fill: -fx-accent; -fx-font-weight: 900; -fx-font-size: 28px; -fx-font-family: 'DM Sans';" />
+    <Label fx:id="logoBrand" id="logoBrand" text="BidPop" onMouseClicked="#handleGoToDashboard" style="-fx-cursor: hand; -fx-text-fill: -fx-accent; -fx-font-weight: 900; -fx-font-size: 28px; -fx-font-family: 'DM Sans';" />
 
     <Region HBox.hgrow="ALWAYS" />
 

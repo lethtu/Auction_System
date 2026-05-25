@@ -38,6 +38,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import com.auction.client.model.User;
 import com.auction.client.service.NotificationSocketService;
+import com.auction.client.service.SettingsService;
 
 import com.auction.client.service.ClientLogger;
 import java.text.DecimalFormat;
@@ -554,6 +555,7 @@ public class MainController implements Initializable {
         String selectedStatus = cbStatus == null || cbStatus.getValue() == null
                 ? "All"
                 : cbStatus.getValue();
+        SettingsService settings = SettingsService.getInstance();
 
         List<JSONObject> filtered = new ArrayList<>();
 
@@ -582,6 +584,7 @@ public class MainController implements Initializable {
             LocalDateTime startDT = parseDateTime(startTimeRaw, sessionId, itemName, rawStatus, "startTime");
             LocalDateTime endDT = parseDateTime(endTimeRaw, sessionId, itemName, rawStatus, "endTime");
             String normalizedStatus = normalizeStatus(rawStatus, startDT, endDT);
+            boolean isEnded = "ENDED".equals(normalizedStatus) || "CLOSED".equals(normalizedStatus);
 
             boolean matchesKeyword = keyword.isBlank()
                     || itemName.toLowerCase().contains(keyword)
@@ -595,9 +598,13 @@ public class MainController implements Initializable {
                     || ("Ongoing".equalsIgnoreCase(selectedStatus) && "RUNNING".equals(normalizedStatus))
                     || ("Starting Soon".equalsIgnoreCase(selectedStatus) && "UPCOMING".equals(normalizedStatus))
                     || ("Ended".equalsIgnoreCase(selectedStatus)
-                            && ("ENDED".equals(normalizedStatus) || "CLOSED".equals(normalizedStatus)));
+                            && isEnded);
 
-            if (matchesKeyword && matchesCategory && matchesStatus) {
+            boolean hiddenEndedByPreference = "All".equalsIgnoreCase(selectedStatus)
+                    && isEnded
+                    && !settings.isShowEndedAuctions();
+
+            if (matchesKeyword && matchesCategory && matchesStatus && !hiddenEndedByPreference) {
                 filtered.add(sessionObj);
             }
         }
@@ -627,7 +634,7 @@ public class MainController implements Initializable {
             boolean isEndedA = isEndedMap.getOrDefault(a, false);
             boolean isEndedB = isEndedMap.getOrDefault(b, false);
 
-            if (isEndedA != isEndedB) {
+            if (settings.isSortActiveFirst() && isEndedA != isEndedB) {
                 return isEndedA ? 1 : -1;
             }
 
@@ -662,7 +669,9 @@ public class MainController implements Initializable {
                 }
                 productContainer.getChildren().add(card);
             }
-            startCountdownTimeline();
+            if (settings.isShowCountdownTimer()) {
+                startCountdownTimeline();
+            }
         }
 
         updateGridLayout();
@@ -1000,8 +1009,9 @@ public class MainController implements Initializable {
         timerBadge.setId("timerBadge_" + id);
         timerBadge.setAlignment(Pos.CENTER);
         timerBadge.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+        boolean showCountdown = SettingsService.getInstance().isShowCountdownTimer();
 
-        if ("UPCOMING".equals(normalizedStatus)) {
+        if (showCountdown && "UPCOMING".equals(normalizedStatus)) {
             timerBadge.setStyle(
                     "-fx-background-color: rgba(96, 72, 104, 0.9); -fx-background-radius: 15px; -fx-padding: 4px 8px;");
             timerIcon.setStyle("-fx-text-fill: #ffffff; -fx-font-size: 14px;");
@@ -1025,7 +1035,7 @@ public class MainController implements Initializable {
             StackPane.setAlignment(timerBadge, Pos.TOP_RIGHT);
             StackPane.setMargin(timerBadge, new Insets(8, 8, 0, 0));
             imageWrapper.getChildren().add(timerBadge);
-        } else if ("RUNNING".equals(normalizedStatus)) {
+        } else if (showCountdown && "RUNNING".equals(normalizedStatus)) {
             timerBadge.setStyle(
                     "-fx-background-color: rgba(255, 255, 255, 0.9); -fx-background-radius: 15px; -fx-padding: 4px 8px;");
             timerIcon.setStyle("-fx-text-fill: -fx-accent; -fx-font-size: 14px;");
@@ -1056,7 +1066,7 @@ public class MainController implements Initializable {
             StackPane.setAlignment(timerBadge, Pos.TOP_RIGHT);
             StackPane.setMargin(timerBadge, new Insets(8, 8, 0, 0));
             imageWrapper.getChildren().add(timerBadge);
-        } else if ("ENDED".equals(normalizedStatus)) {
+        } else if (showCountdown && "ENDED".equals(normalizedStatus)) {
             timerBadge.setStyle(
                     "-fx-background-color: rgba(100, 100, 100, 0.8); -fx-background-radius: 15px; -fx-padding: 4px 8px;");
             timerIcon.setStyle("-fx-text-fill: #ffffff; -fx-font-size: 14px;");
@@ -1074,7 +1084,7 @@ public class MainController implements Initializable {
             StackPane.setAlignment(timerBadge, Pos.TOP_RIGHT);
             StackPane.setMargin(timerBadge, new Insets(8, 8, 0, 0));
             imageWrapper.getChildren().add(timerBadge);
-        } else {
+        } else if (showCountdown) {
             // UNKNOWN_TIME
             timerBadge.setStyle(
                     "-fx-background-color: rgba(220, 53, 69, 0.9); -fx-background-radius: 15px; -fx-padding: 4px 8px;");

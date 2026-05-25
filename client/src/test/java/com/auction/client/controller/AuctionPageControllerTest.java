@@ -93,30 +93,26 @@ public class AuctionPageControllerTest {
 
     @Test
     public void testNavigationButtons() {
-        Button logoBtn = (Button) scene.lookup("#logoBtn");
+        Label logoBrand = (Label) scene.lookup("#logoBrand");
         Button dashboardBtn = (Button) scene.lookup("#btnSidebarDashboard");
 
-        assertNotNull(logoBtn, "Logo button (BidPop) should exist");
+        assertNotNull(logoBrand, "Clickable BidPop brand label should exist");
         assertNotNull(dashboardBtn, "Dashboard sidebar button should exist");
 
-        assertEquals("BidPop", logoBtn.getText());
+        assertEquals("BidPop", logoBrand.getText());
+        assertNotNull(logoBrand.getOnMouseClicked(), "BidPop brand should navigate to the dashboard");
         assertNotNull(dashboardBtn.getOnAction(), "Dashboard button should have an onAction handler");
     }
 
     @Test
     public void testSidebarToggle() throws Exception {
         javafx.scene.control.ScrollPane sideBar = (javafx.scene.control.ScrollPane) scene.lookup("#sidebarContainer");
-        Button hamburgerBtn = (Button) scene.lookup("#hamburgerBtn");
+        Button hamburgerBtn = (Button) scene.lookup("#btnHamburger");
         Button dashboardBtn = (Button) scene.lookup("#btnSidebarDashboard");
 
         assertNotNull(sideBar);
         assertNotNull(hamburgerBtn);
         assertNotNull(dashboardBtn);
-
-        assertEquals(70.0, sideBar.getPrefWidth(), 0.1);
-        assertEquals("", dashboardBtn.getText());
-
-        runOnFxThread(hamburgerBtn::fire);
 
         assertEquals(200.0, sideBar.getPrefWidth(), 0.1);
         assertEquals("Dashboard", dashboardBtn.getText());
@@ -125,6 +121,11 @@ public class AuctionPageControllerTest {
 
         assertEquals(70.0, sideBar.getPrefWidth(), 0.1);
         assertEquals("", dashboardBtn.getText());
+
+        runOnFxThread(hamburgerBtn::fire);
+
+        assertEquals(200.0, sideBar.getPrefWidth(), 0.1);
+        assertEquals("Dashboard", dashboardBtn.getText());
     }
 
     private void invokeUpdateResponsiveFonts(double width) {

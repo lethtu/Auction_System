@@ -561,7 +561,12 @@ public class AdminDashboardController {
             }
         }, dataExecutor).whenComplete((rows, error) -> Platform.runLater(() -> {
             if (error != null) {
-                AlertUtil.showError(error.getCause() == null ? error : error.getCause(), errorMessage);
+                Throwable cause = error.getCause() == null ? error : error.getCause();
+                if (cause instanceof Exception exception) {
+                    AlertUtil.showError(exception, errorMessage);
+                } else {
+                    AlertUtil.showError(errorMessage, cause.getMessage() == null ? errorMessage : cause.getMessage());
+                }
                 return;
             }
             table.setItems(FXCollections.observableArrayList(rows));

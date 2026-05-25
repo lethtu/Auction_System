@@ -118,13 +118,27 @@ public final class AlertUtil {
     }
 
     public static boolean showConfirmation(String title, String message) {
-        Stage dialog = createBaseStage(title);
-        VBox card = baseCard(Alert.AlertType.WARNING, title, message);
+        return showDecision(title, message, Alert.AlertType.WARNING, "OK", "Cancel");
+    }
 
+    public static boolean showBidConfirmation(String title, String message, boolean highBidWarning) {
+        return showDecision(
+                title,
+                message,
+                highBidWarning ? Alert.AlertType.WARNING : Alert.AlertType.CONFIRMATION,
+                "Confirm",
+                "Cancel");
+    }
+
+    private static boolean showDecision(String title, String message, Alert.AlertType type, String confirmText, String cancelText) {
+        Stage dialog = createBaseStage(title);
+        VBox card = baseCard(type, title, message);
         final boolean[] result = {false};
 
-        Button cancelButton = secondaryButton("Cancel");
-        Button okButton = primaryButton("OK");
+        Button cancelButton = secondaryButton(cancelText == null || cancelText.isBlank() ? "Cancel" : cancelText);
+        Button okButton = primaryButton(confirmText == null || confirmText.isBlank() ? "OK" : confirmText);
+        cancelButton.setCancelButton(true);
+        okButton.setDefaultButton(true);
         cancelButton.setOnAction(event -> dialog.close());
         okButton.setOnAction(event -> {
             result[0] = true;
@@ -146,7 +160,6 @@ public final class AlertUtil {
 
         return result[0];
     }
-
 
     public static void styleDialog(Dialog<?> dialog) {
         if (dialog == null || dialog.getDialogPane() == null) {

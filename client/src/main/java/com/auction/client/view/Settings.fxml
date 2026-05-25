@@ -102,9 +102,6 @@
                                     <Region HBox.hgrow="ALWAYS" />
                                     <ComboBox fx:id="cbColor" prefWidth="180" />
                                 </HBox>
-                                <Separator />
-                                <CheckBox fx:id="chkCollapse" text="Auto-collapse sidebar" styleClass="setting-switch" />
-                                <CheckBox fx:id="chkRememberPage" text="Remember last page on startup" styleClass="setting-switch" />
                             </VBox>
 
                             <VBox spacing="20.0" prefWidth="480.0" styleClass="settings-card" style="-fx-padding: 24px; -fx-background-radius: 16px; -fx-border-radius: 16px; -fx-border-width: 1px;">
@@ -114,16 +111,10 @@
                                 </HBox>
                                 <Separator />
                                 <CheckBox fx:id="chkConfirmBid" text="Confirm before placing bid" styleClass="setting-switch" />
-                                <CheckBox fx:id="chkQuickBid" text="Enable Quick Bid buttons" styleClass="setting-switch" />
                                 <HBox spacing="10" alignment="CENTER_LEFT">
                                     <Label text="High bid warning (VND):" styleClass="setting-label" />
                                     <Region HBox.hgrow="ALWAYS" />
                                     <TextField fx:id="txtHighBidWarning" prefWidth="140" />
-                                </HBox>
-                                <HBox spacing="10" alignment="CENTER_LEFT">
-                                    <Label text="Default bid increment (VND):" styleClass="setting-label" />
-                                    <Region HBox.hgrow="ALWAYS" />
-                                    <TextField fx:id="txtDefaultIncrement" prefWidth="140" />
                                 </HBox>
                             </VBox>
 
@@ -136,7 +127,6 @@
                                 <CheckBox fx:id="chkShowEnded" text="Show ended auctions by default" styleClass="setting-switch" />
                                 <CheckBox fx:id="chkSortActive" text="Sort active auctions first" styleClass="setting-switch" />
                                 <CheckBox fx:id="chkShowCountdown" text="Show countdown timers" styleClass="setting-switch" />
-                                <CheckBox fx:id="chkCompactCards" text="Use compact product cards" styleClass="setting-switch" />
                             </VBox>
 
                             <VBox spacing="20.0" prefWidth="480.0" styleClass="settings-card" style="-fx-padding: 24px; -fx-background-radius: 16px; -fx-border-radius: 16px; -fx-border-width: 1px;">
