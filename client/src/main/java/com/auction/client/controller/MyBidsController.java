@@ -657,7 +657,7 @@ public class MyBidsController implements Initializable, SceneLifecycle {
             StackPane.setAlignment(timeBadge, Pos.TOP_RIGHT);
             StackPane.setMargin(timeBadge, new Insets(10, 10, 0, 0));
             timeBadge.setStyle(
-                    "-fx-background-color: rgba(255, 255, 255, 0.9); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: -app-border; -fx-border-radius: 12px;");
+                    "-fx-background-color: -app-card; -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: -app-border; -fx-border-radius: 12px;");
 
             Label timerIcon = new Label("\uE425");
             timerIcon.setStyle(

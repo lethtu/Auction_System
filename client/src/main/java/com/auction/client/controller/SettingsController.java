@@ -470,7 +470,7 @@ public class SettingsController implements Initializable {
             return;
         }
         lblStatus.setText(message);
-        lblStatus.setStyle("-fx-text-fill: " + (isError ? "#b00020" : "#137333") + "; -fx-font-weight: bold;");
+        lblStatus.setStyle("-fx-text-fill: " + (isError ? "#ff6b6b" : "-fx-accent") + "; -fx-font-weight: bold;");
         lblStatus.setVisible(true);
         lblStatus.setManaged(true);
     }
@@ -481,15 +481,19 @@ public class SettingsController implements Initializable {
             return;
         }
 
+        String toneColor = isError ? "#ff6b6b" : "-fx-accent";
         Label toast = new Label(message);
         toast.setStyle(
-                "-fx-background-color: " + (isError ? "#fee2e2" : "#dcfce7") + "; " +
-                "-fx-text-fill: " + (isError ? "#991b1b" : "#166534") + "; " +
+                "-fx-background-color: -app-card; " +
+                "-fx-border-color: " + toneColor + "; " +
+                "-fx-border-width: 1.4px; " +
+                "-fx-border-radius: 12px; " +
+                "-fx-text-fill: -app-text; " +
                 "-fx-padding: 12px 24px; " +
-                "-fx-background-radius: 10px; " +
+                "-fx-background-radius: 12px; " +
                 "-fx-font-weight: bold; " +
                 "-fx-font-size: 14px; " +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.12), 10, 0, 0, 4);"
+                "-fx-effect: dropshadow(three-pass-box, -app-accent-opacity-16, 10, 0, 0, 4);"
         );
 
         toastContainer.getChildren().add(toast);
