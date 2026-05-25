@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.auction.server.dto.BidHistoryDTO;
 import com.auction.server.dto.BidResponse;
+import com.auction.server.dto.DeliveryInfoRequest;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.model.Bid;
@@ -58,6 +59,42 @@ public class AuctionService {
 
     public List<AuctionSession> getSessionsBySeller(Integer sellerId) {
         return auctionSessionRepository.findBySeller_Id(sellerId);
+    }
+
+    @Transactional
+    public void saveDeliveryInfo(Integer sessionId, Integer winnerId, DeliveryInfoRequest request) {
+        if (request == null || isBlank(request.getRecipientName()) || isBlank(request.getPhoneNumber())
+                || isBlank(request.getAddress())) {
+            throw new IllegalArgumentException("Recipient, phone number and address are required.");
+        }
+
+        AuctionSession session = auctionSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new IllegalArgumentException("Auction session not found."));
+        if (session.getStatus() != AuctionStatus.ENDED) {
+            throw new IllegalStateException("Delivery details can be submitted only after the auction has ended.");
+        }
+        if (winnerId == null || !winnerId.equals(session.getHighestBidderId())) {
+            throw new SecurityException("Only the auction winner can submit delivery information.");
+        }
+
+        session.setDeliveryRecipient(trimToLength(request.getRecipientName(), 150));
+        session.setDeliveryPhone(trimToLength(request.getPhoneNumber(), 30));
+        session.setDeliveryAddress(trimToLength(request.getAddress(), 500));
+        session.setDeliveryNote(trimToLength(request.getNote(), 500));
+        session.setDeliverySubmittedAt(LocalDateTime.now());
+        auctionSessionRepository.save(session);
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
+    }
+
+    private String trimToLength(String value, int maxLength) {
+        if (value == null) {
+            return "";
+        }
+        String trimmed = value.trim();
+        return trimmed.length() <= maxLength ? trimmed : trimmed.substring(0, maxLength);
     }
 
     @Transactional

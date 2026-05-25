@@ -130,7 +130,7 @@ public class AuctionPageController implements SceneLifecycle {
     private static final String RESPONSE_PREFIX = "RESPONSE:";
     private static final String ROOM_COUNT_PREFIX = "ROOM_COUNT:";
 
-    private static final String MONEY_PREFIX = "₫ ";
+    private static final String MONEY_PREFIX = "\u20AB ";
     private static final String DEFAULT_PRODUCT_NAME = "Unknown Product";
     private static final String DEFAULT_DESCRIPTION = "No product description available.";
     private static final String DEFAULT_HIGHEST_BIDDER = "No bidder yet";
@@ -263,9 +263,20 @@ public class AuctionPageController implements SceneLifecycle {
     }
 
     private void createUserOption(String text) {
-        MenuItem accountItem = new MenuItem("My Account");
-        MenuItem depositMoney = new MenuItem("Deposit");
-        MenuItem logoutItem = new MenuItem("Logout");
+        if (userMenuButton == null) {
+            return;
+        }
+
+        userMenuButton.getItems().clear();
+        userMenuButton.getStyleClass().add("profile-menu-button");
+
+        javafx.scene.control.CustomMenuItem profileHeader = createAuctionProfileHeaderItem();
+        MenuItem walletItem = createAuctionDisabledMenuItem("Wallet: " + formatAuctionMenuMoney(User.getCurrentMoney()), "account-menu-wallet");
+        MenuItem accountItem = createAuctionActionMenuItem("My Account");
+        MenuItem depositMoney = createAuctionActionMenuItem("Deposit Funds");
+        MenuItem settingsItem = createAuctionActionMenuItem("Settings");
+        MenuItem logoutItem = createAuctionActionMenuItem("Logout");
+        logoutItem.getStyleClass().add("account-menu-danger");
 
         accountItem.setOnAction(event -> {
             try {
@@ -277,26 +288,84 @@ public class AuctionPageController implements SceneLifecycle {
             }
         });
 
-        depositMoney.setOnAction(event -> {
-            try {
-                disconnectSocket();
-                SceneSwitcher.switchScene(event, "Deposit.fxml", 1280, 800);
-            } catch (IOException e) {
-                logger.error("Error switching to deposit page: ", e);
-            }
-        });
+        depositMoney.setOnAction(event -> switchAuctionScene(event, "Deposit.fxml", "deposit page"));
+        settingsItem.setOnAction(event -> switchAuctionScene(event, "Settings.fxml", "settings page"));
+        logoutItem.setOnAction(this::confirmAuctionLogout);
 
-        logoutItem.setOnAction(event -> {
+        userMenuButton.getItems().addAll(
+                profileHeader,
+                walletItem,
+                new SeparatorMenuItem(),
+                accountItem,
+                depositMoney,
+                settingsItem,
+                new SeparatorMenuItem(),
+                logoutItem);
+    }
+
+    private javafx.scene.control.CustomMenuItem createAuctionProfileHeaderItem() {
+        VBox box = new VBox(3);
+        box.getStyleClass().add("account-menu-header");
+
+        Label name = new Label(safeAuctionMenuText(User.getFullname(), safeAuctionMenuText(User.getUsername(), "BidPop user")));
+        name.getStyleClass().add("account-menu-name");
+
+        Label email = new Label(safeAuctionMenuText(User.getEmail(), "No email"));
+        email.getStyleClass().add("account-menu-email");
+
+        Label role = new Label(safeAuctionMenuText(User.getRole(), "user").toUpperCase());
+        role.getStyleClass().add("account-menu-role");
+
+        box.getChildren().addAll(name, email, role);
+        return new javafx.scene.control.CustomMenuItem(box, false);
+    }
+
+    private MenuItem createAuctionActionMenuItem(String text) {
+        MenuItem item = new MenuItem(text);
+        item.getStyleClass().add("account-menu-action");
+        return item;
+    }
+
+    private MenuItem createAuctionDisabledMenuItem(String text, String styleClass) {
+        MenuItem item = new MenuItem(text);
+        item.setDisable(true);
+        item.getStyleClass().add(styleClass);
+        return item;
+    }
+
+    private String safeAuctionMenuText(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value;
+    }
+
+    private String formatAuctionMenuMoney(BigDecimal value) {
+        try {
+            DecimalFormatSymbols symbols = DecimalFormatSymbols.getInstance(new java.util.Locale("vi", "VN"));
+            DecimalFormat formatter = new DecimalFormat("#,##0", symbols);
+            return "\u20AB " + formatter.format(value == null ? BigDecimal.ZERO : value);
+        } catch (Exception e) {
+            return "\u20AB 0";
+        }
+    }
+
+    private void switchAuctionScene(ActionEvent event, String fxml, String targetName) {
+        try {
+            disconnectSocket();
+            SceneSwitcher.switchScene(event, fxml, 1280, 800);
+        } catch (IOException e) {
+            logger.error("Error switching to {}: ", targetName, e);
+        }
+    }
+
+    private void confirmAuctionLogout(ActionEvent event) {
+        boolean confirmed = com.auction.client.util.AlertUtil.confirm(
+                "Sign out of BidPop?",
+                "You can sign in again anytime.");
+        if (confirmed) {
             try {
                 handleLogout(event);
             } catch (IOException e) {
-                e.printStackTrace();
                 logger.error("Error switching to Login screen!", e);
             }
-        });
-
-        if (userMenuButton != null) {
-            userMenuButton.getItems().addAll(accountItem, depositMoney, new SeparatorMenuItem(), logoutItem);
         }
     }
 
@@ -735,7 +804,7 @@ public class AuctionPageController implements SceneLifecycle {
             String dn = pt.isMine() ? pt.getMaskedBidderCode()+" (You)" : pt.getDisplayName();
             Label nl = new Label(dn); nl.setStyle("-fx-font-family:'DM Sans';-fx-font-size:12px;-fx-font-weight:bold;-fx-text-fill: -fx-accent;");
             javafx.scene.layout.Region sp = new javafx.scene.layout.Region(); javafx.scene.layout.HBox.setHgrow(sp, javafx.scene.layout.Priority.ALWAYS);
-            Label al = new Label("₫ "+formatPrice(pt.getAmount())); al.setStyle("-fx-font-family:'DM Sans';-fx-font-size:13px;-fx-font-weight:900;-fx-text-fill: -fx-accent;");
+            Label al = new Label("\u20AB "+formatPrice(pt.getAmount())); al.setStyle("-fx-font-family:'DM Sans';-fx-font-size:13px;-fx-font-weight:900;-fx-text-fill: -fx-accent;");
             Label tl = new Label(pt.getRelativeTime()); tl.setStyle("-fx-font-family:'DM Sans';-fx-font-size:10px;-fx-text-fill:-app-text-muted;"); tl.setPrefWidth(60); tl.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
             row.getChildren().addAll(nl, sp, al, tl); bidHistoryContainer.getChildren().add(row);
         }
@@ -874,7 +943,7 @@ public class AuctionPageController implements SceneLifecycle {
         c2.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getDisplayName()));
         c2.setStyle("-fx-font-weight: 900; -fx-text-fill: -fx-accent;");
         javafx.scene.control.TableColumn<com.auction.client.model.BidChartPoint,String> c3 = new javafx.scene.control.TableColumn<>("Amount");
-        c3.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty("₫ "+formatPrice(cd.getValue().getAmount())));
+        c3.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty("\u20AB "+formatPrice(cd.getValue().getAmount())));
         c3.setStyle("-fx-alignment: CENTER-RIGHT; -fx-font-weight: 900; -fx-text-fill: -fx-accent; -fx-font-size: 14px;");
         javafx.scene.control.TableColumn<com.auction.client.model.BidChartPoint,String> c4 = new javafx.scene.control.TableColumn<>("Increment");
         c4.setCellValueFactory(cd -> { int idx = allBidPoints.indexOf(cd.getValue()); if (idx<=0) return new javafx.beans.property.SimpleStringProperty("-");
@@ -921,7 +990,7 @@ public class AuctionPageController implements SceneLifecycle {
             BigDecimal lo = allBidPoints.isEmpty()?BigDecimal.ZERO:allBidPoints.get(0).getAmount();
             BigDecimal mxi = BigDecimal.ZERO; for (int i=1;i<allBidPoints.size();i++){BigDecimal d=allBidPoints.get(i).getAmount().subtract(allBidPoints.get(i-1).getAmount());if(d.compareTo(mxi)>0)mxi=d;}
             String lt = allBidPoints.isEmpty()?"-":formatRelativeTime(allBidPoints.get(allBidPoints.size()-1).getBidTime());
-            String[][] sts={{"Total Bids",""+allBidPoints.size()},{"Highest","₫ "+formatPrice(hi)},{"Start","₫ "+formatPrice(lo)},{"Max Δ","+₫ "+formatPrice(mxi)},{"Last Bid",lt}};
+            String[][] sts={{"Total Bids",""+allBidPoints.size()},{"Highest","\u20AB "+formatPrice(hi)},{"Start","\u20AB "+formatPrice(lo)},{"Max Δ","+₫ "+formatPrice(mxi)},{"Last Bid",lt}};
             for (String[] st : sts) { VBox sv = new VBox(4); sv.setAlignment(javafx.geometry.Pos.CENTER);
                 Label k = new Label(st[0]); k.setStyle("-fx-font-family:'DM Sans';-fx-font-size:11px;-fx-font-weight:700;-fx-text-fill:-app-text-muted;");
                 Label v = new Label(st[1]); v.setStyle("-fx-font-family:'DM Sans';-fx-font-size:16px;-fx-font-weight:900;-fx-text-fill: -fx-accent;");
@@ -1954,23 +2023,45 @@ public class AuctionPageController implements SceneLifecycle {
         }).start();
     }
 
+    private String getAvatarInitial() {
+        String name = User.getFullname();
+        if (name == null || name.isBlank()) {
+            name = User.getUsername();
+        }
+        if (name == null || name.isBlank()) {
+            return "U";
+        }
+        return name.trim().substring(0, 1).toUpperCase();
+    }
     private void updateTopBarAvatar(String avatarUrl) {
         if (topBarAvatarPane == null) return;
         try {
-            topBarAvatarPane.getChildren().clear();
-            if (avatarUrl != null && !avatarUrl.isBlank()) {
-                String fullUrl = avatarUrl.startsWith("http") ? avatarUrl : Config.API_URL + avatarUrl;
-                ImageView imgView = new ImageView(new Image(fullUrl, 36, 36, false, true, true));
-                imgView.setFitWidth(36);
-                imgView.setFitHeight(36);
-                imgView.setSmooth(true);
-                javafx.scene.shape.Circle clip = new javafx.scene.shape.Circle(18, 18, 18);
-                imgView.setClip(clip);
-                topBarAvatarPane.getChildren().add(imgView);
-            } else {
-                Label icon = new Label("\uE7FD");
-                icon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: white;");
-                topBarAvatarPane.getChildren().add(icon);
+            Label fallbackIcon = new Label("\uE7FD");
+            fallbackIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: white;");
+            topBarAvatarPane.getChildren().setAll(fallbackIcon);
+
+            if (avatarUrl == null || avatarUrl.isBlank()) {
+                return;
+            }
+
+            String fullUrl = avatarUrl.startsWith("http") ? avatarUrl : Config.API_URL + avatarUrl;
+            fullUrl = Config.applyCacheBuster(fullUrl);
+            Image img = new Image(fullUrl, 36, 36, false, true, true);
+            ImageView imgView = new ImageView(img);
+            imgView.setFitWidth(36);
+            imgView.setFitHeight(36);
+            imgView.setSmooth(true);
+            javafx.scene.shape.Circle clip = new javafx.scene.shape.Circle(18, 18, 18);
+            imgView.setClip(clip);
+
+            img.progressProperty().addListener((obs, oldProgress, newProgress) -> {
+                if (newProgress.doubleValue() >= 1.0 && !img.isError()) {
+                    topBarAvatarPane.getChildren().setAll(imgView);
+                }
+            });
+
+            if (img.getProgress() >= 1.0 && !img.isError()) {
+                topBarAvatarPane.getChildren().setAll(imgView);
             }
         } catch (Exception e) {
             logger.warn("Cannot update avatar on top bar: {}", e.getMessage());

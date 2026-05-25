@@ -6551,3 +6551,135 @@
     -fx-opacity: 0.75;
 }
 /* === Z16F: settings theme polish END === */
+
+/* === Z17 Account/Profile batch polish START === */
+#profile-menu,
+.profile-menu-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 999px;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+
+#profile-menu:hover,
+.profile-menu-button:hover {
+    -fx-background-color: -app-accent-opacity-08;
+}
+
+.context-menu {
+    -fx-background-color: -app-card;
+    -fx-background-radius: 20px;
+    -fx-border-radius: 20px;
+    -fx-border-color: -app-border;
+    -fx-border-width: 1.4px;
+    -fx-padding: 10px 8px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.28), 24, 0.18, 0, 8);
+}
+
+.menu-item {
+    -fx-background-color: transparent;
+    -fx-padding: 9px 18px;
+    -fx-background-radius: 14px;
+    -fx-border-radius: 14px;
+    -fx-cursor: hand;
+}
+
+.menu-item .label {
+    -fx-font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    -fx-font-size: 13.5px;
+    -fx-font-weight: 800;
+    -fx-text-fill: -app-text;
+}
+
+.menu-item:focused,
+.menu-item:hover {
+    -fx-background-color: -app-accent-opacity-12;
+}
+
+.menu-item:focused .label,
+.menu-item:hover .label {
+    -fx-text-fill: -fx-accent;
+}
+
+.account-menu-header {
+    -fx-padding: 12px 18px 10px 18px;
+    -fx-background-color: -app-accent-opacity-08;
+    -fx-background-radius: 16px;
+    -fx-border-color: -app-border;
+    -fx-border-radius: 16px;
+    -fx-border-width: 1px;
+    -fx-min-width: 230px;
+}
+
+.account-menu-name {
+    -fx-text-fill: -app-text;
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 14px;
+    -fx-font-weight: 900;
+}
+
+.account-menu-email {
+    -fx-text-fill: -app-text-muted;
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.account-menu-role {
+    -fx-text-fill: -fx-accent;
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 11px;
+    -fx-font-weight: 900;
+}
+
+.account-menu-wallet .label {
+    -fx-text-fill: -fx-accent;
+    -fx-font-weight: 900;
+}
+
+.account-menu-danger .label {
+    -fx-text-fill: #ff6b6b;
+}
+
+.account-menu-danger:hover,
+.account-menu-danger:focused {
+    -fx-background-color: rgba(255, 80, 80, 0.12);
+}
+
+.account-profile-actions {
+    -fx-padding: 4px 0 0 0;
+}
+
+.btn-account-mini-primary,
+.btn-account-mini-secondary {
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 13px;
+    -fx-font-weight: 900;
+    -fx-background-radius: 999px;
+    -fx-border-radius: 999px;
+    -fx-padding: 9px 18px;
+    -fx-cursor: hand;
+}
+
+.btn-account-mini-primary {
+    -fx-background-color: -fx-accent;
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-20, 14, 0.16, 0, 4);
+}
+
+.btn-account-mini-primary:hover {
+    -fx-background-color: derive(-fx-accent, -8%);
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-24, 18, 0.20, 0, 6);
+}
+
+.btn-account-mini-secondary {
+    -fx-background-color: -app-accent-opacity-08;
+    -fx-text-fill: -fx-accent;
+    -fx-border-color: -fx-accent;
+    -fx-border-width: 1.2px;
+}
+
+.btn-account-mini-secondary:hover {
+    -fx-background-color: -app-accent-opacity-16;
+}
+/* === Z17 Account/Profile batch polish END === */

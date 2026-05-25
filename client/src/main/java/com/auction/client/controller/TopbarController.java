@@ -11,6 +11,7 @@ import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import com.auction.client.Config;
@@ -82,9 +83,20 @@ public class TopbarController implements Initializable {
     }
 
     private void createUserOption(String text) {
-        MenuItem accountItem = new MenuItem("My Account");
-        MenuItem depositMoney = new MenuItem("Deposit");
-        MenuItem logoutItem = new MenuItem("Logout");
+        if (userMenuButton == null) {
+            return;
+        }
+
+        userMenuButton.getItems().clear();
+        userMenuButton.getStyleClass().add("profile-menu-button");
+
+        CustomMenuItem profileHeader = createProfileHeaderItem();
+        MenuItem walletItem = createDisabledMenuItem("Wallet: " + formatMenuMoney(User.getCurrentMoney()), "account-menu-wallet");
+        MenuItem accountItem = createActionMenuItem("My Account");
+        MenuItem depositMoney = createActionMenuItem("Deposit Funds");
+        MenuItem settingsItem = createActionMenuItem("Settings");
+        MenuItem logoutItem = createActionMenuItem("Logout");
+        logoutItem.getStyleClass().add("account-menu-danger");
 
         accountItem.setOnAction(event -> {
             try {
@@ -95,23 +107,84 @@ public class TopbarController implements Initializable {
             }
         });
 
-        depositMoney.setOnAction(event -> {
-            try {
-                SceneSwitcher.switchScene(event, "Deposit.fxml", 1280, 800);
-            } catch (IOException e) {
-                logger.error("Error switching to deposit page: ", e);
-            }
-        });
+        depositMoney.setOnAction(event -> switchTo(event, "Deposit.fxml", "deposit page"));
+        settingsItem.setOnAction(event -> switchTo(event, "Settings.fxml", "settings page"));
+        logoutItem.setOnAction(this::confirmAndLogout);
 
-        logoutItem.setOnAction(event -> {
+        userMenuButton.getItems().addAll(
+                profileHeader,
+                walletItem,
+                new SeparatorMenuItem(),
+                accountItem,
+                depositMoney,
+                settingsItem,
+                new SeparatorMenuItem(),
+                logoutItem);
+    }
+
+    private CustomMenuItem createProfileHeaderItem() {
+        VBox box = new VBox(3);
+        box.getStyleClass().add("account-menu-header");
+
+        Label name = new Label(safeMenuText(User.getFullname(), safeMenuText(User.getUsername(), "BidPop user")));
+        name.getStyleClass().add("account-menu-name");
+
+        Label email = new Label(safeMenuText(User.getEmail(), "No email"));
+        email.getStyleClass().add("account-menu-email");
+
+        Label role = new Label(safeMenuText(User.getRole(), "user").toUpperCase());
+        role.getStyleClass().add("account-menu-role");
+
+        box.getChildren().addAll(name, email, role);
+        return new CustomMenuItem(box, false);
+    }
+
+    private MenuItem createActionMenuItem(String text) {
+        MenuItem item = new MenuItem(text);
+        item.getStyleClass().add("account-menu-action");
+        return item;
+    }
+
+    private MenuItem createDisabledMenuItem(String text, String styleClass) {
+        MenuItem item = new MenuItem(text);
+        item.setDisable(true);
+        item.getStyleClass().add(styleClass);
+        return item;
+    }
+
+    private String safeMenuText(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value;
+    }
+
+    private String formatMenuMoney(java.math.BigDecimal value) {
+        try {
+            java.text.DecimalFormatSymbols symbols = java.text.DecimalFormatSymbols.getInstance(new java.util.Locale("vi", "VN"));
+            java.text.DecimalFormat formatter = new java.text.DecimalFormat("#,##0", symbols);
+            return "\u20AB " + formatter.format(value == null ? java.math.BigDecimal.ZERO : value);
+        } catch (Exception e) {
+            return "\u20AB 0";
+        }
+    }
+
+    private void switchTo(ActionEvent event, String fxml, String targetName) {
+        try {
+            SceneSwitcher.switchScene(event, fxml, 1280, 800);
+        } catch (IOException e) {
+            logger.error("Error switching to {}: ", targetName, e);
+        }
+    }
+
+    private void confirmAndLogout(ActionEvent event) {
+        boolean confirmed = com.auction.client.util.AlertUtil.confirm(
+                "Sign out of BidPop?",
+                "You can sign in again anytime.");
+        if (confirmed) {
             try {
                 handleLogout(event);
             } catch (IOException e) {
                 logger.error("Error switching to Login screen!", e);
             }
-        });
-
-        userMenuButton.getItems().addAll(accountItem, depositMoney, new SeparatorMenuItem(), logoutItem);
+        }
     }
 
     public void handleLogout(ActionEvent event) throws IOException {
@@ -136,6 +209,16 @@ public class TopbarController implements Initializable {
         }
     }
 
+    private String getAvatarInitial() {
+        String name = User.getFullname();
+        if (name == null || name.isBlank()) {
+            name = User.getUsername();
+        }
+        if (name == null || name.isBlank()) {
+            return "U";
+        }
+        return name.trim().substring(0, 1).toUpperCase();
+    }
     public void updateTopBarAvatar(String avatarUrl) {
         if (topBarAvatarPane == null) return;
         try {

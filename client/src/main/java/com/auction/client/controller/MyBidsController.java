@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
 import com.auction.client.util.CacheManager;
+import com.auction.client.util.ShippingInfoDialog;
 import javafx.application.Platform;
 import javafx.animation.PauseTransition;
 import javafx.event.ActionEvent;
@@ -36,6 +37,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -270,8 +272,11 @@ public class MyBidsController implements Initializable, SceneLifecycle {
 
         Platform.runLater(() -> {
             List<String> newStatesToRender = new ArrayList<>();
+            List<JSONObject> displayProducts = currentTab == Tab.ENDED
+                    ? prioritizeWonProducts(allProducts, currentUserId)
+                    : new ArrayList<>(allProducts);
 
-            for (JSONObject sessionObj : allProducts) {
+            for (JSONObject sessionObj : displayProducts) {
                 JSONObject itemObj = getItemObject(sessionObj);
                 String name = itemObj.optString("name", "");
                 String status = normalizeSessionStatus(sessionObj);
@@ -315,7 +320,7 @@ public class MyBidsController implements Initializable, SceneLifecycle {
                     return;
                 }
 
-                for (JSONObject sessionObj : allProducts) {
+                for (JSONObject sessionObj : displayProducts) {
                     JSONObject itemObj = getItemObject(sessionObj);
                     String name = itemObj.optString("name", "");
                     String status = normalizeSessionStatus(sessionObj);
@@ -456,9 +461,25 @@ public class MyBidsController implements Initializable, SceneLifecycle {
         return isActiveSession(sessionObj) && sessionObj.optInt("highestBidderId", -1) != currentUserId;
     }
 
+    private boolean isWonSession(JSONObject sessionObj, int currentUserId) {
+        String status = normalizeSessionStatus(sessionObj);
+        boolean completed = "ENDED".equals(status)
+                || "CLOSED".equals(status)
+                || "COMPLETED".equals(status)
+                || "FINISHED".equals(status);
+        return completed && sessionObj.optInt("highestBidderId", -1) == currentUserId;
+    }
+
+    private List<JSONObject> prioritizeWonProducts(List<JSONObject> products, int currentUserId) {
+        List<JSONObject> orderedProducts = new ArrayList<>(products);
+        orderedProducts.sort(Comparator.comparing(sessionObj -> !isWonSession(sessionObj, currentUserId)));
+        return orderedProducts;
+    }
+
     private String getRenderedStateKey(JSONObject sessionObj, BigDecimal currentPrice, int highestBidderId) {
         return sessionObj.optInt("id") + "_" + currentPrice + "_" + highestBidderId + "_"
-                + normalizeSessionStatus(sessionObj);
+                + normalizeSessionStatus(sessionObj) + "_delivery_"
+                + ShippingInfoDialog.hasDeliveryInfo(sessionObj.optInt("id"), sessionObj);
     }
 
     private boolean isActiveStatus(String status) {
@@ -493,11 +514,12 @@ public class MyBidsController implements Initializable, SceneLifecycle {
         BigDecimal currentPrice = getMoney(sessionObj, "currentPrice",
                 getMoney(sessionObj, "startingPrice", BigDecimal.ZERO));
         String status = normalizeSessionStatus(sessionObj);
-        String imagePath = itemObj.optString("imagePath", "default.png");
+        String imagePath = itemObj.optString("imagePath", itemObj.optString("imageUrl", ""));
         int highestBidderId = sessionObj.optInt("highestBidderId", -1);
         int currentUserId = User.getId() != null ? User.getId() : -1;
         boolean activeSession = isActiveSession(sessionObj);
         boolean endedSession = isEndedSession(sessionObj);
+        boolean wonSession = isWonSession(sessionObj, currentUserId);
         boolean winningSession = isWinningSession(sessionObj, currentUserId);
         boolean outbidSession = isOutbidSession(sessionObj, currentUserId);
 
@@ -674,7 +696,7 @@ public class MyBidsController implements Initializable, SceneLifecycle {
 
         BigDecimal userMaxBid = getMoney(sessionObj, "userMaxBid", BigDecimal.ZERO);
         Label userPriceLabel = new Label();
-        if (winningSession || (endedSession && highestBidderId == currentUserId)) {
+        if (winningSession || wonSession) {
             userPriceLabel.setText("₫ " + formatPrice(currentPrice));
             userPriceLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #10b981;");
         } else if (outbidSession) {
@@ -691,7 +713,19 @@ public class MyBidsController implements Initializable, SceneLifecycle {
         btnAction.setMaxWidth(Double.MAX_VALUE);
         btnAction.setPrefHeight(36.0);
 
-        if (outbidSession) {
+        if (wonSession) {
+            boolean hasDeliveryInfo = ShippingInfoDialog.hasDeliveryInfo(id, sessionObj);
+            btnAction.setText(hasDeliveryInfo ? "Edit delivery" : "Delivery details");
+            btnAction.setStyle(
+                    "-fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-weight: bold; "
+                            + "-fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px; "
+                            + "-fx-effect: dropshadow(three-pass-box, -app-accent-opacity-25, 6, 0, 0, 1);");
+            Label shippingIcon = new Label(hasDeliveryInfo ? "\uE3C9" : "\uE558");
+            shippingIcon.setStyle(
+                    "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 15px; -fx-text-fill: white; -fx-padding: 0 4px 0 0;");
+            btnAction.setGraphic(shippingIcon);
+            btnAction.setOnAction(event -> ShippingInfoDialog.show(id, name, sessionObj, this::filterAndRenderProducts));
+        } else if (outbidSession) {
             btnAction.setText("Increase Bid");
             btnAction.setStyle(
                     "-fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.25), 6, 0, 0, 1);");
@@ -727,15 +761,17 @@ public class MyBidsController implements Initializable, SceneLifecycle {
             });
         }
 
-        btnAction.setOnAction(event -> {
-            try {
-                FXMLLoader loader = SceneSwitcher.switchScene(event, "AuctionPage.fxml", 1280, 800);
-                AuctionPageController controller = loader.getController();
-                controller.setItem(sessionObj, itemObj);
-            } catch (IOException e) {
-                logger.error("Error switching to auction room", e);
-            }
-        });
+        if (!wonSession) {
+            btnAction.setOnAction(event -> {
+                try {
+                    FXMLLoader loader = SceneSwitcher.switchScene(event, "AuctionPage.fxml", 1280, 800);
+                    AuctionPageController controller = loader.getController();
+                    controller.setItem(sessionObj, itemObj);
+                } catch (IOException e) {
+                    logger.error("Error switching to auction room", e);
+                }
+            });
+        }
 
         vbox.getChildren().addAll(imageWrapper, nameLabel, categoryLabel, bidDetailsBox, btnAction);
 

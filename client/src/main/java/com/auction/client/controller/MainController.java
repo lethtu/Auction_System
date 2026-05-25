@@ -1506,8 +1506,36 @@ public class MainController implements Initializable, SceneLifecycle {
         btnChangeAvatar.getStyleClass().add("btn-avatar-change");
         btnChangeAvatar.setOnAction(e -> handleAvatarUpload(btnChangeAvatar));
 
-        card.getChildren().addAll(avatarPane, nameLabel, emailLabel, roleBadge, btnChangeAvatar);
+        HBox quickActions = new HBox(10);
+        quickActions.getStyleClass().add("account-profile-actions");
+        quickActions.setAlignment(Pos.CENTER);
+
+        Button depositButton = new Button("Deposit");
+        depositButton.getStyleClass().add("btn-account-mini-primary");
+        depositButton.setOnAction(this::handleDepositMoney);
+
+        Button sellerButton = new Button(isSellerRole() ? "Selling Hub" : "Start Selling");
+        sellerButton.getStyleClass().add("btn-account-mini-secondary");
+        sellerButton.setOnAction(this::openSellerAreaFromAccount);
+
+        quickActions.getChildren().addAll(depositButton, sellerButton);
+
+        card.getChildren().addAll(avatarPane, nameLabel, emailLabel, roleBadge, btnChangeAvatar, quickActions);
         return card;
+    }
+
+    private boolean isSellerRole() {
+        String role = safeText(User.getRole(), "").toLowerCase();
+        return role.contains("seller") || role.contains("admin");
+    }
+
+    private void openSellerAreaFromAccount(ActionEvent event) {
+        try {
+            SceneSwitcher.switchScene(event, isSellerRole() ? "SellerDashboard.fxml" : "UpToSeller.fxml", 1280, 800);
+        } catch (IOException e) {
+            logger.error("Error switching from account quick action: ", e);
+            showError("Navigation Error", "Cannot open seller area right now.");
+        }
     }
 
     private StackPane createAvatarView() {
@@ -2498,7 +2526,7 @@ public class MainController implements Initializable, SceneLifecycle {
 
     private String productCardStyle() {
         if (isDarkThemeActive()) {
-            return "-fx-border-color: rgba(255,255,255,0.12); -fx-border-width: 1px; -fx-border-radius: 20px; "
+            return "-fx-border-color: " + accentHex() + "; -fx-border-width: 2px; -fx-border-radius: 20px; "
                     + "-fx-background-radius: 20px; -fx-padding: 16px; -fx-background-color: #241a2f; "
                     + "-fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.28), 14, 0, 0, 4);";
         }

@@ -174,6 +174,43 @@ public final class AlertUtil {
         show(alert.getAlertType(), alert.getTitle(), alert.getContentText());
     }
 
+    public static boolean confirm(String title, String message) {
+        String safeTitle = normalizeTitle(title, Alert.AlertType.CONFIRMATION);
+        String safeMessage = normalizeMessage(message);
+
+        if (isRunningUnderTestHarness()) {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle(safeTitle);
+            alert.setHeaderText(null);
+            alert.setContentText(safeMessage);
+            styleDialog(alert);
+            Optional<ButtonType> result = alert.showAndWait();
+            return result.isPresent() && result.get() == ButtonType.OK;
+        }
+
+        Stage dialog = createBaseStage(safeTitle);
+        VBox card = baseCard(Alert.AlertType.CONFIRMATION, safeTitle, safeMessage);
+        final boolean[] accepted = {false};
+
+        Button cancelButton = secondaryButton("Cancel");
+        Button confirmButton = primaryButton("Sign Out");
+        confirmButton.setDefaultButton(true);
+
+        cancelButton.setOnAction(event -> dialog.close());
+        confirmButton.setOnAction(event -> {
+            accepted[0] = true;
+            dialog.close();
+        });
+
+        HBox actions = new HBox(12, cancelButton, confirmButton);
+        actions.setAlignment(Pos.CENTER);
+        card.getChildren().add(actions);
+
+        dialog.setScene(createTransparentScene(wrap(card)));
+        dialog.showAndWait();
+        return accepted[0];
+    }
+
     public static boolean isRunningUnderTestHarness() {
         String surefire = System.getProperty("surefire.test.class.path");
         String command = System.getProperty("sun.java.command", "");
@@ -400,6 +437,9 @@ public final class AlertUtil {
         if (type == Alert.AlertType.WARNING) {
             return "!";
         }
+        if (type == Alert.AlertType.CONFIRMATION) {
+            return "?";
+        }
         return "✓";
     }
 
@@ -410,6 +450,9 @@ public final class AlertUtil {
         if (type == Alert.AlertType.WARNING) {
             return "#f59e0b";
         }
+        if (type == Alert.AlertType.CONFIRMATION) {
+            return "#8b5cf6";
+        }
         return "#10b981";
     }
 
@@ -419,6 +462,9 @@ public final class AlertUtil {
         }
         if (type == Alert.AlertType.WARNING) {
             return "#fff7ed";
+        }
+        if (type == Alert.AlertType.CONFIRMATION) {
+            return "#ede9fe";
         }
         return "#dcfce7";
     }
