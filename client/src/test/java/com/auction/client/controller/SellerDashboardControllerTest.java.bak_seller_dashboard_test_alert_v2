@@ -6,7 +6,6 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
-import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -65,13 +64,6 @@ public class SellerDashboardControllerTest {
         stage.setScene(new Scene(root, 1280, 720));
         stage.show();
         stage.toFront();
-    }
-
-    private void closeSuccessAlert(FxRobot robot) {
-        robot.sleep(300);
-        robot.press(KeyCode.ENTER).release(KeyCode.ENTER);
-        robot.sleep(300);
-        WaitForAsyncUtils.waitForFxEvents();
     }
 
     @Test
@@ -177,7 +169,8 @@ public class SellerDashboardControllerTest {
         WaitForAsyncUtils.waitForFxEvents();
 
         // 5. Xác minh thông báo Alert thành công xuất hiện và xác nhận
-        closeSuccessAlert(robot);
+        verifyThat("Tạo phiên đấu giá thành công.", NodeMatchers.isVisible());
+        robot.clickOn("OK");
     }
 
     @Test
@@ -246,7 +239,8 @@ public class SellerDashboardControllerTest {
         WaitForAsyncUtils.waitForFxEvents();
 
         // 6. Xác minh thông báo Alert thành công xuất hiện và xác nhận
-        closeSuccessAlert(robot);
+        verifyThat("Tạo phiên đấu giá thành công.", NodeMatchers.isVisible());
+        robot.clickOn("OK");
     }
 
     @Test
@@ -434,7 +428,8 @@ public class SellerDashboardControllerTest {
         WaitForAsyncUtils.waitForFxEvents();
 
         // 5. Xác minh thông báo Alert thành công xuất hiện và xác nhận
-        closeSuccessAlert(robot);
+        verifyThat("Lưu bản nháp thành công.", NodeMatchers.isVisible());
+        robot.clickOn("OK");
     }
 
     @Test
@@ -734,7 +729,8 @@ public class SellerDashboardControllerTest {
         WaitForAsyncUtils.waitForFxEvents();
 
         // 6. Xác minh hộp thoại thành công hiển thị và click xác nhận
-        closeSuccessAlert(robot);
+        verifyThat("Cập nhật phiên đấu giá thành công.", NodeMatchers.isVisible());
+        robot.clickOn("OK");
     }
 
     @Test
@@ -777,7 +773,8 @@ public class SellerDashboardControllerTest {
         WaitForAsyncUtils.waitForFxEvents();
 
         // 6. Xác minh hộp thoại thành công hiển thị và click xác nhận
-        closeSuccessAlert(robot);
+        verifyThat("Cập nhật bản nháp thành công.", NodeMatchers.isVisible());
+        robot.clickOn("OK");
     }
 
     @Test
@@ -827,7 +824,8 @@ public class SellerDashboardControllerTest {
         WaitForAsyncUtils.waitForFxEvents();
 
         // 6. Xác minh hộp thoại thành công hiển thị và click xác nhận
-        closeSuccessAlert(robot);
+        verifyThat("Cập nhật phiên đấu giá thành công.", NodeMatchers.isVisible());
+        robot.clickOn("OK");
     }
 
     @Test
@@ -889,7 +887,8 @@ public class SellerDashboardControllerTest {
         WaitForAsyncUtils.waitForFxEvents();
 
         // 6. Xác minh hộp thoại thành công hiển thị và click xác nhận
-        closeSuccessAlert(robot);
+        verifyThat("Cập nhật phiên đấu giá thành công.", NodeMatchers.isVisible());
+        robot.clickOn("OK");
     }
 
     @Test
@@ -980,7 +979,8 @@ public class SellerDashboardControllerTest {
         WaitForAsyncUtils.waitForFxEvents();
 
         // 5. Xác minh hộp thoại thành công hiển thị và click xác nhận
-        closeSuccessAlert(robot);
+        verifyThat("Đăng bán phiên đấu giá thành công.", NodeMatchers.isVisible());
+        robot.clickOn("OK");
         WaitForAsyncUtils.waitForFxEvents();
     }
 
@@ -1030,7 +1030,8 @@ public class SellerDashboardControllerTest {
         WaitForAsyncUtils.waitForFxEvents();
 
         // 6. Xác minh hộp thoại thành công hiển thị và click xác nhận
-        closeSuccessAlert(robot);
+        verifyThat("Đăng bán phiên đấu giá thành công.", NodeMatchers.isVisible());
+        robot.clickOn("OK");
         WaitForAsyncUtils.waitForFxEvents();
     }
 
