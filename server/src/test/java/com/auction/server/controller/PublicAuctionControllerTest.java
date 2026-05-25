@@ -46,7 +46,8 @@ class PublicAuctionControllerTest {
         item.setImagePath("laptop.png");
         session.setItem(item);
 
-        when(auctionSessionRepository.findAll()).thenReturn(List.of(session));
+        when(auctionSessionRepository.findVisiblePublicSessionsExcludingStatuses(
+                List.of(AuctionStatus.DRAFT, AuctionStatus.CANCELED))).thenReturn(List.of(session));
 
         PublicAuctionController controller =
                 new PublicAuctionController(auctionSessionRepository, userRepository);

@@ -203,6 +203,10 @@ public class AuctionService {
         if (session.getStatus() != AuctionStatus.ACTIVE) {
             return BidResponse.failure("Auction is not open for bidding.", currentPrice);
         }
+        if (isSessionSeller(session, bidderId)) {
+            logger.warn("Bid blocked: Seller {} attempted to bid on their own session {}.", bidderId, sessionId);
+            return BidResponse.failure("Sellers cannot bid on their own auction.", currentPrice);
+        }
         if (bidAmount == null || bidAmount.compareTo(minimumBid) < 0) {
             logger.error("Bid failed from UserId: {} with price: {} but system requires minimum: {}",
                     bidderId, bidAmount, minimumBid);
@@ -263,6 +267,9 @@ public class AuctionService {
         if (session.getStatus() != AuctionStatus.ACTIVE) {
             throw new IllegalStateException("Auto-bid is available only for active auctions.");
         }
+        if (isSessionSeller(session, bidderId)) {
+            throw new IllegalArgumentException("Sellers cannot enable auto-bid on their own auction.");
+        }
         BigDecimal currentPrice = session.getCurrentPrice() == null ? BigDecimal.ZERO : session.getCurrentPrice();
         if (maxBid.compareTo(currentPrice) <= 0) {
             throw new IllegalArgumentException("Maximum bid must be higher than the current price.");
@@ -292,7 +299,21 @@ public class AuctionService {
             return null;
         }
 
-        AutoBidConfig winner = configs.get(0);
+        AutoBidConfig winner = null;
+        for (AutoBidConfig config : configs) {
+            if (isSessionSeller(session, config.getBidderId())) {
+                config.setActive(false);
+                autoBidConfigRepository.save(config);
+                logger.warn("AUTO-BID blocked: seller {} had an active config on session {}.",
+                        config.getBidderId(), sessionId);
+                continue;
+            }
+            winner = config;
+            break;
+        }
+        if (winner == null) {
+            return null;
+        }
         if (winner.getBidderId().equals(session.getHighestBidderId())) {
             return null;
         }
@@ -325,6 +346,13 @@ public class AuctionService {
         return null;
     }
 
+    private boolean isSessionSeller(AuctionSession session, Integer bidderId) {
+        return session != null
+                && session.getSeller() != null
+                && bidderId != null
+                && bidderId.equals(session.getSeller().getId());
+    }
+
     /**
      * Execute auto-bid: update session, save bid to DB, deactivate expired configs.
      */
@@ -335,6 +363,14 @@ public class AuctionService {
             BigDecimal newPrice,
             BigDecimal previousPrice
     ) {
+        if (isSessionSeller(session, winner.getBidderId())) {
+            winner.setActive(false);
+            autoBidConfigRepository.save(winner);
+            logger.warn("AUTO-BID blocked: seller {} attempted to bid on their own session {}.",
+                    winner.getBidderId(), session.getId());
+            return null;
+        }
+
         // Check user exists
         User bidder = userRepository.findById(winner.getBidderId()).orElse(null);
         if (bidder == null) {

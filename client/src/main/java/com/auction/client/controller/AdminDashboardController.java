@@ -7,6 +7,7 @@ import com.auction.client.model.PendingSessionRow;
 import com.auction.client.model.User;
 import com.auction.client.service.AdminDashboardService;
 import com.auction.client.util.AlertUtil;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -23,6 +24,10 @@ import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class AdminDashboardController {
     private static final String LOGIN_FXML = "Login.fxml";
@@ -45,6 +50,11 @@ public class AdminDashboardController {
 
     private final AdminDashboardService adminDashboardService = new AdminDashboardService();
     private final NumberFormat currencyFormat = NumberFormat.getNumberInstance(Locale.forLanguageTag("vi-VN"));
+    private final ExecutorService dataExecutor = Executors.newFixedThreadPool(3, runnable -> {
+        Thread thread = new Thread(runnable, "admin-dashboard-load");
+        thread.setDaemon(true);
+        return thread;
+    });
 
     @FXML private TabPane adminTabPane;
     @FXML private Tab tabPending;
@@ -438,7 +448,6 @@ public class AdminDashboardController {
         loadPendingSessions();
         loadUsers();
         loadSessions();
-        updateDashboardMetrics();
     }
 
     private void updateDashboardMetrics() {
@@ -544,12 +553,20 @@ public class AdminDashboardController {
             TableDataLoader<T> dataLoader,
             String errorMessage
     ) {
-        try {
-            List<T> rows = dataLoader.load();
+        CompletableFuture.supplyAsync(() -> {
+            try {
+                return dataLoader.load();
+            } catch (Exception e) {
+                throw new CompletionException(e);
+            }
+        }, dataExecutor).whenComplete((rows, error) -> Platform.runLater(() -> {
+            if (error != null) {
+                AlertUtil.showError(error.getCause() == null ? error : error.getCause(), errorMessage);
+                return;
+            }
             table.setItems(FXCollections.observableArrayList(rows));
-        } catch (Exception e) {
-            AlertUtil.showError(e, errorMessage);
-        }
+            updateDashboardMetrics();
+        }));
     }
 
     @FunctionalInterface

@@ -7,7 +7,10 @@ import java.time.LocalDateTime;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "bids")
+@Table(name = "bids", indexes = {
+        @Index(name = "idx_bid_bidder_session", columnList = "bidder_id, session_id"),
+        @Index(name = "idx_bid_session_time", columnList = "session_id, time")
+})
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Bid {
 

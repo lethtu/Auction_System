@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
+import com.auction.client.HttpClientSingleton;
 import javafx.application.Platform;
 import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
@@ -90,7 +91,7 @@ public class MainController implements Initializable {
         }
     }
 
-    private HttpClient client = HttpClient.newHttpClient();
+    private HttpClient client = HttpClientSingleton.getInstance().getHttpClient();
 
     @FXML
     private TopbarController topbarController;
@@ -313,14 +314,15 @@ public class MainController implements Initializable {
     }
 
     private void startPolling() {
-        pollingScheduler = Executors.newScheduledThreadPool(2, r -> {
+        pollingScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "main-controller-poll");
             t.setDaemon(true); // Ensure thread stops when app closes
             return t;
         });
 
-        // Call API every 5 seconds
-        pollingScheduler.scheduleAtFixedRate(this::fetchProductsData, 0, 5, TimeUnit.SECONDS);
+        // The initial load is already queued during initialization. Wait between polls so
+        // remote database latency never piles up concurrent refresh requests.
+        pollingScheduler.scheduleWithFixedDelay(this::fetchProductsData, 5, 5, TimeUnit.SECONDS);
     }
 
     private void fetchProductsData() {

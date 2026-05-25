@@ -28,7 +28,7 @@ public class AuctionSchedulerService {
     }
 
     @Transactional
-    @Scheduled(fixedRate = 5000)
+    @Scheduled(fixedDelay = 5000)
     public void scanAndUpdateAuctionStatus() {
         LocalDateTime now = LocalDateTime.now();
 

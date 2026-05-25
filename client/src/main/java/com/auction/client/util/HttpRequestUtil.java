@@ -1,5 +1,6 @@
 package com.auction.client.util;
 
+import com.auction.client.HttpClientSingleton;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
@@ -16,7 +17,7 @@ import java.util.UUID;
 
 public final class HttpRequestUtil {
 
-    private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
+    private static final HttpClient HTTP_CLIENT = HttpClientSingleton.getInstance().getHttpClient();
 
     private static final String HEADER_CONTENT_TYPE = "Content-Type";
 

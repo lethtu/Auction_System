@@ -4258,7 +4258,10 @@
 
 .password-security-card-warning {
     -fx-background-color: -app-accent-chip-bg;
-    -fx-border-color: -app-accent-chip-border;
+    -fx-border-color: -fx-accent;
+    -fx-border-width: 2.5px;
+    -fx-border-insets: 0;
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-38, 20, 0.16, 0, 4);
 }
 
 .password-security-icon {

@@ -151,7 +151,7 @@
                         <Label text="Item Title" style="-fx-font-weight: bold; -fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
                         <TextField fx:id="productNameField" promptText="Enter product title" styleClass="custom-text-input"/>
                         <HBox fx:id="errorTitle" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
-                            <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" style="-fx-icon-color: -fx-accent;"/>
+                            <Label text="&#xe002;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 14px; -fx-text-fill: -fx-accent;"/>
                             <Label text="Product name cannot be empty" style="-fx-text-fill: -fx-accent; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                         </HBox>
                     </VBox>
@@ -161,7 +161,7 @@
                             <Label text="Category" style="-fx-font-weight: bold; -fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
                             <ComboBox fx:id="productTypeCombo" maxWidth="Infinity" styleClass="custom-combo-box" style="-fx-padding: 8px 16px;"/>
                             <HBox fx:id="errorCategory" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
-                                <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" style="-fx-icon-color: -fx-accent;"/>
+                                <Label text="&#xe002;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 14px; -fx-text-fill: -fx-accent;"/>
                                 <Label text="Please select a product type" style="-fx-text-fill: -fx-accent; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                             </HBox>
                         </VBox>
@@ -169,7 +169,7 @@
                             <Label text="Starting Price (VND)" style="-fx-font-weight: bold; -fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
                             <TextField fx:id="startingPriceField" promptText="0" styleClass="custom-text-input" maxWidth="Infinity"/>
                             <HBox fx:id="errorPrice" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
-                                <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" style="-fx-icon-color: -fx-accent;"/>
+                                <Label text="&#xe002;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 14px; -fx-text-fill: -fx-accent;"/>
                                 <Label fx:id="lblErrorPrice" text="Invalid starting price" style="-fx-text-fill: -fx-accent; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                             </HBox>
                         </VBox>
@@ -177,7 +177,7 @@
                             <Label text="Reserve Price (VND)" style="-fx-font-weight: bold; -fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
                             <TextField fx:id="reservePriceField" promptText="Any" styleClass="custom-text-input" maxWidth="Infinity"/>
                             <HBox fx:id="errorReservePrice" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
-                                <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" style="-fx-icon-color: -fx-accent;"/>
+                                <Label text="&#xe002;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 14px; -fx-text-fill: -fx-accent;"/>
                                 <Label fx:id="lblErrorReservePrice" text="Invalid reserve price" style="-fx-text-fill: -fx-accent; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                             </HBox>
                         </VBox>
@@ -204,7 +204,7 @@
                                 <DatePicker fx:id="datePickerStart" visible="false" managed="false"/>
                             </HBox>
                             <HBox fx:id="errorStartDT" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
-                                <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" style="-fx-icon-color: -fx-accent;"/>
+                                <Label text="&#xe002;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 14px; -fx-text-fill: -fx-accent;"/>
                                 <Label fx:id="lblErrorStartDT" text="Please enter a valid start date and time!" style="-fx-text-fill: -fx-accent; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                             </HBox>
                         </VBox>
@@ -227,7 +227,7 @@
                                 <DatePicker fx:id="datePickerEnd" visible="false" managed="false"/>
                             </HBox>
                             <HBox fx:id="errorEndDT" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
-                                <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" style="-fx-icon-color: -fx-accent;"/>
+                                <Label text="&#xe002;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 14px; -fx-text-fill: -fx-accent;"/>
                                 <Label fx:id="lblErrorEndDT" text="End time must be after start time" style="-fx-text-fill: -fx-accent; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                             </HBox>
                         </VBox>

@@ -4,8 +4,10 @@ import com.auction.server.dto.BidResponse;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.model.Bid;
+import com.auction.server.model.Seller;
 import com.auction.server.model.User;
 import com.auction.server.repository.AuctionSessionRepository;
+import com.auction.server.repository.AutoBidConfigRepository;
 import com.auction.server.repository.BidRepository;
 import com.auction.server.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +36,9 @@ public class AuctionServiceTest {
 
     @Mock
     private BidRepository bidRepository;
+
+    @Mock
+    private AutoBidConfigRepository autoBidConfigRepository;
 
     @InjectMocks
     private AuctionService auctionService;
@@ -95,6 +100,37 @@ public class AuctionServiceTest {
         // 4. Đảm bảo Database KHÔNG BỊ GHI rác
         verify(bidRepository, never()).save(any(Bid.class));
         verify(auctionSessionRepository, never()).save(any(AuctionSession.class));
+    }
+
+    @Test
+    @DisplayName("Seller cannot bid on an auction they created")
+    public void sellerCannotBidOnOwnAuction() {
+        Seller seller = new Seller();
+        seller.setId(99);
+        mockSession.setSeller(seller);
+        when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
+
+        BidResponse response = auctionService.updateBid(1, 99, new BigDecimal("15000.00"));
+
+        assertFalse(response.isSuccess());
+        assertEquals("Sellers cannot bid on their own auction.", response.getMessage());
+        verify(userRepository, never()).findById(anyInt());
+        verify(bidRepository, never()).save(any(Bid.class));
+    }
+
+    @Test
+    @DisplayName("Seller cannot configure auto-bid on an auction they created")
+    public void sellerCannotConfigureAutoBidOnOwnAuction() {
+        Seller seller = new Seller();
+        seller.setId(99);
+        mockSession.setSeller(seller);
+        when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
+
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+                () -> auctionService.registerAutoBid(1, 99, new BigDecimal("15000.00"), new BigDecimal("1000.00")));
+
+        assertEquals("Sellers cannot enable auto-bid on their own auction.", error.getMessage());
+        verify(autoBidConfigRepository, never()).save(any());
     }
 
     // Test 3: KẾT THÚC PHIÊN ĐẤU GIÁ
