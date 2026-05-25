@@ -469,7 +469,7 @@ public class AuctionPageController implements SceneLifecycle {
         root.setPrefWidth(460);
 
         VBox mainCard = new VBox(15);
-        mainCard.setStyle("-fx-padding: 24; -fx-background-color: #211529; -fx-background-radius: 28; -fx-border-color: #16c78a; -fx-border-radius: 28; -fx-border-width: 1.6;");
+        mainCard.setStyle("-fx-padding: 24; -fx-background-color: #211529; -fx-background-radius: 28; -fx-border-color: -fx-accent; -fx-border-radius: 28; -fx-border-width: 1.6;");
         javafx.scene.effect.DropShadow shadow = new javafx.scene.effect.DropShadow();
         shadow.setColor(javafx.scene.paint.Color.rgb(0, 0, 0, 0.35));
         shadow.setRadius(20);
@@ -481,7 +481,7 @@ public class AuctionPageController implements SceneLifecycle {
         titleBar.setStyle("-fx-padding: 0 0 10 0; -fx-cursor: move;");
         
         Label titleLbl = new Label("⚡ Auto-bidding Configuration");
-        titleLbl.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: #16c78a;");
+        titleLbl.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: -fx-accent;");
         
         javafx.scene.layout.Region titleSpacer = new javafx.scene.layout.Region();
         javafx.scene.layout.HBox.setHgrow(titleSpacer, javafx.scene.layout.Priority.ALWAYS);
@@ -489,7 +489,7 @@ public class AuctionPageController implements SceneLifecycle {
         Button minBtn = new Button("−");
         minBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold; -fx-text-fill: #cdb8da; -fx-cursor: hand; -fx-font-size: 16px;");
         minBtn.setOnAction(ev -> dialog.setIconified(true));
-        minBtn.setOnMouseEntered(ev -> minBtn.setStyle("-fx-background-color: #2c1d36; -fx-font-weight: bold; -fx-text-fill: #16c78a; -fx-cursor: hand; -fx-font-size: 16px; -fx-background-radius: 8;"));
+        minBtn.setOnMouseEntered(ev -> minBtn.setStyle("-fx-background-color: #2c1d36; -fx-font-weight: bold; -fx-text-fill: -fx-accent; -fx-cursor: hand; -fx-font-size: 16px; -fx-background-radius: 8;"));
         minBtn.setOnMouseExited(ev -> minBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold; -fx-text-fill: #cdb8da; -fx-cursor: hand; -fx-font-size: 16px;"));
 
         Button maxBtn = new Button("◻");
@@ -499,7 +499,7 @@ public class AuctionPageController implements SceneLifecycle {
             dialog.setMaximized(!isMax);
             maxBtn.setText(isMax ? "◻" : "❐");
         });
-        maxBtn.setOnMouseEntered(ev -> maxBtn.setStyle("-fx-background-color: #2c1d36; -fx-font-weight: bold; -fx-text-fill: #16c78a; -fx-cursor: hand; -fx-font-size: 16px; -fx-background-radius: 8;"));
+        maxBtn.setOnMouseEntered(ev -> maxBtn.setStyle("-fx-background-color: #2c1d36; -fx-font-weight: bold; -fx-text-fill: -fx-accent; -fx-cursor: hand; -fx-font-size: 16px; -fx-background-radius: 8;"));
         maxBtn.setOnMouseExited(ev -> maxBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold; -fx-text-fill: #cdb8da; -fx-cursor: hand; -fx-font-size: 16px;"));
 
         Button closeBtn = new Button("✕");
@@ -527,7 +527,7 @@ public class AuctionPageController implements SceneLifecycle {
                 "-fx-font-family: 'DM Sans';" +
                 "-fx-font-size: 14px;" +
                 "-fx-font-weight: bold;" +
-                "-fx-text-fill: #16c78a;" +
+                "-fx-text-fill: -fx-accent;" +
                 "-fx-border-color: #5b4766;" +
                 "-fx-border-radius: 8px;" +
                 "-fx-border-width: 1px;"
@@ -535,7 +535,7 @@ public class AuctionPageController implements SceneLifecycle {
         priceBadge.setMaxWidth(Double.MAX_VALUE);
 
         Label maxBidLabel = new Label("Max Bid");
-        maxBidLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #16c78a;");
+        maxBidLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: -fx-accent;");
         Label maxBidHint = new Label("Maximum price you are willing to pay");
         maxBidHint.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-text-fill: #cdb8da;");
 
@@ -555,14 +555,14 @@ public class AuctionPageController implements SceneLifecycle {
         );
         maxBidField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
             if (isFocused) {
-                maxBidField.setStyle(maxBidField.getStyle() + "-fx-border-color: #16c78a;");
+                maxBidField.setStyle(maxBidField.getStyle() + "-fx-border-color: -fx-accent;");
             } else {
-                maxBidField.setStyle(maxBidField.getStyle().replace("-fx-border-color: #16c78a;", "-fx-border-color: #5b4766;"));
+                maxBidField.setStyle(maxBidField.getStyle().replace("-fx-border-color: -fx-accent;", "-fx-border-color: #5b4766;"));
             }
         });
 
         Label incLabel = new Label("Auto Increment");
-        incLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #16c78a;");
+        incLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: -fx-accent;");
         Label incHint = new Label("The system will add this increment each time");
         incHint.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-text-fill: #cdb8da;");
 
@@ -582,9 +582,9 @@ public class AuctionPageController implements SceneLifecycle {
         );
         incrementField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
             if (isFocused) {
-                incrementField.setStyle(incrementField.getStyle() + "-fx-border-color: #16c78a;");
+                incrementField.setStyle(incrementField.getStyle() + "-fx-border-color: -fx-accent;");
             } else {
-                incrementField.setStyle(incrementField.getStyle().replace("-fx-border-color: #16c78a;", "-fx-border-color: #5b4766;"));
+                incrementField.setStyle(incrementField.getStyle().replace("-fx-border-color: -fx-accent;", "-fx-border-color: #5b4766;"));
             }
         });
 
@@ -610,7 +610,7 @@ public class AuctionPageController implements SceneLifecycle {
 
         Button activateBtn = new Button("Activate");
         activateBtn.setStyle(
-                "-fx-background-color: linear-gradient(to right, #16c78a, derive(#16c78a, 20%));" +
+                "-fx-background-color: linear-gradient(to right, -fx-accent, derive(-fx-accent, 20%));" +
                 "-fx-text-fill: white;" +
                 "-fx-font-family: 'DM Sans';" +
                 "-fx-font-weight: bold;" +
@@ -871,7 +871,7 @@ public class AuctionPageController implements SceneLifecycle {
         root.setPrefSize(780, 740);
 
         VBox mainCard = new VBox(15);
-        mainCard.setStyle("-fx-padding: 24; -fx-background-color: #211529; -fx-background-radius: 28; -fx-border-color: #16c78a; -fx-border-radius: 28; -fx-border-width: 1.6;");
+        mainCard.setStyle("-fx-padding: 24; -fx-background-color: #211529; -fx-background-radius: 28; -fx-border-color: -fx-accent; -fx-border-radius: 28; -fx-border-width: 1.6;");
         javafx.scene.effect.DropShadow shadow = new javafx.scene.effect.DropShadow();
         shadow.setColor(javafx.scene.paint.Color.rgb(0, 0, 0, 0.35));
         shadow.setRadius(20);
@@ -891,8 +891,8 @@ public class AuctionPageController implements SceneLifecycle {
                      ".table-view .table-cell { -fx-font-size: 13px; -fx-font-family: 'DM Sans'; } " +
                      ".table-view .scroll-bar:vertical, .table-view .scroll-bar:horizontal { -fx-background-color: transparent; } " +
                      ".table-view .scroll-bar:vertical .track, .table-view .scroll-bar:horizontal .track { -fx-background-color: transparent; -fx-border-color: transparent; -fx-background-radius: 0; } " +
-                     ".table-view .scroll-bar:vertical .thumb, .table-view .scroll-bar:horizontal .thumb { -fx-background-color: #16c78a; -fx-background-radius: 8px; } " +
-                     ".table-view .scroll-bar:vertical .thumb:hover, .table-view .scroll-bar:horizontal .thumb:hover { -fx-background-color: #2bdc9a; } " +
+                     ".table-view .scroll-bar:vertical .thumb, .table-view .scroll-bar:horizontal .thumb { -fx-background-color: -fx-accent; -fx-background-radius: 8px; } " +
+                     ".table-view .scroll-bar:vertical .thumb:hover, .table-view .scroll-bar:horizontal .thumb:hover { -fx-background-color: derive(-fx-accent, 15%); } " +
                      ".table-view .scroll-bar .increment-button, .table-view .scroll-bar .decrement-button { -fx-background-color: transparent; -fx-padding: 0; } " +
                      ".table-view .scroll-bar .increment-arrow, .table-view .scroll-bar .decrement-arrow { -fx-shape: \" \"; -fx-padding: 0; } " +
                      ".table-view .corner { -fx-background-color: transparent; } " +
@@ -912,7 +912,7 @@ public class AuctionPageController implements SceneLifecycle {
         titleBar.setStyle("-fx-padding: 0 0 10 0; -fx-cursor: move;");
         
         Label titleLbl = new Label("📊 Bid Trajectory & Full History");
-        titleLbl.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: #16c78a;");
+        titleLbl.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; -fx-text-fill: -fx-accent;");
         
         javafx.scene.layout.Region titleSpacer = new javafx.scene.layout.Region();
         javafx.scene.layout.HBox.setHgrow(titleSpacer, javafx.scene.layout.Priority.ALWAYS);
@@ -920,7 +920,7 @@ public class AuctionPageController implements SceneLifecycle {
         Button minBtn = new Button("−");
         minBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold; -fx-text-fill: #cdb8da; -fx-cursor: hand; -fx-font-size: 16px;");
         minBtn.setOnAction(ev -> popup.setIconified(true));
-        minBtn.setOnMouseEntered(ev -> minBtn.setStyle("-fx-background-color: #2c1d36; -fx-font-weight: bold; -fx-text-fill: #16c78a; -fx-cursor: hand; -fx-font-size: 16px; -fx-background-radius: 8;"));
+        minBtn.setOnMouseEntered(ev -> minBtn.setStyle("-fx-background-color: #2c1d36; -fx-font-weight: bold; -fx-text-fill: -fx-accent; -fx-cursor: hand; -fx-font-size: 16px; -fx-background-radius: 8;"));
         minBtn.setOnMouseExited(ev -> minBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold; -fx-text-fill: #cdb8da; -fx-cursor: hand; -fx-font-size: 16px;"));
 
         Button maxBtn = new Button("◻");
@@ -930,7 +930,7 @@ public class AuctionPageController implements SceneLifecycle {
             popup.setMaximized(!isMax);
             maxBtn.setText(isMax ? "◻" : "❐");
         });
-        maxBtn.setOnMouseEntered(ev -> maxBtn.setStyle("-fx-background-color: #2c1d36; -fx-font-weight: bold; -fx-text-fill: #16c78a; -fx-cursor: hand; -fx-font-size: 16px; -fx-background-radius: 8;"));
+        maxBtn.setOnMouseEntered(ev -> maxBtn.setStyle("-fx-background-color: #2c1d36; -fx-font-weight: bold; -fx-text-fill: -fx-accent; -fx-cursor: hand; -fx-font-size: 16px; -fx-background-radius: 8;"));
         maxBtn.setOnMouseExited(ev -> maxBtn.setStyle("-fx-background-color: transparent; -fx-font-weight: bold; -fx-text-fill: #cdb8da; -fx-cursor: hand; -fx-font-size: 16px;"));
 
         Button closeBtn = new Button("✕");
@@ -948,7 +948,7 @@ public class AuctionPageController implements SceneLifecycle {
 
         javafx.scene.layout.HBox hdr = new javafx.scene.layout.HBox(12); hdr.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
         javafx.scene.control.ComboBox<String> flt = new javafx.scene.control.ComboBox<>(); flt.getItems().addAll("Last 10","Last 50","Full History"); 
-        flt.setStyle("-fx-background-color: #2c2038; -fx-border-color: #5b4766; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 4 8; -fx-font-family:'DM Sans'; -fx-font-weight: bold; -fx-text-fill: #16c78a; -fx-cursor: hand;");
+        flt.setStyle("-fx-background-color: #2c2038; -fx-border-color: #5b4766; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 4 8; -fx-font-family:'DM Sans'; -fx-font-weight: bold; -fx-text-fill: -fx-accent; -fx-cursor: hand;");
         hdr.getChildren().addAll(flt);
         javafx.scene.chart.NumberAxis fxa = new javafx.scene.chart.NumberAxis(); fxa.setLabel("Time"); fxa.setAutoRanging(true); fxa.setForceZeroInRange(false); fxa.setTickMarkVisible(false); fxa.setMinorTickVisible(false);
         fxa.setTickLabelFormatter(new javafx.util.StringConverter<Number>() {
@@ -984,14 +984,14 @@ public class AuctionPageController implements SceneLifecycle {
         c1.setStyle("-fx-font-weight: bold; -fx-text-fill: #cdb8da;");
         javafx.scene.control.TableColumn<com.auction.client.model.BidChartPoint,String> c2 = new javafx.scene.control.TableColumn<>("Bidder");
         c2.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty(cd.getValue().getDisplayName()));
-        c2.setStyle("-fx-font-weight: 900; -fx-text-fill: #16c78a;");
+        c2.setStyle("-fx-font-weight: 900; -fx-text-fill: -fx-accent;");
         javafx.scene.control.TableColumn<com.auction.client.model.BidChartPoint,String> c3 = new javafx.scene.control.TableColumn<>("Amount");
         c3.setCellValueFactory(cd -> new javafx.beans.property.SimpleStringProperty("\u20AB "+formatPrice(cd.getValue().getAmount())));
-        c3.setStyle("-fx-alignment: CENTER-RIGHT; -fx-font-weight: 900; -fx-text-fill: #16c78a; -fx-font-size: 14px;");
+        c3.setStyle("-fx-alignment: CENTER-RIGHT; -fx-font-weight: 900; -fx-text-fill: -fx-accent; -fx-font-size: 14px;");
         javafx.scene.control.TableColumn<com.auction.client.model.BidChartPoint,String> c4 = new javafx.scene.control.TableColumn<>("Increment");
         c4.setCellValueFactory(cd -> { int idx = allBidPoints.indexOf(cd.getValue()); if (idx<=0) return new javafx.beans.property.SimpleStringProperty("-");
             return new javafx.beans.property.SimpleStringProperty("+₫ "+formatPrice(cd.getValue().getAmount().subtract(allBidPoints.get(idx-1).getAmount()))); });
-        c4.setStyle("-fx-alignment: CENTER-RIGHT; -fx-text-fill: #16c78a; -fx-font-weight: 900; -fx-font-size: 14px;");
+        c4.setStyle("-fx-alignment: CENTER-RIGHT; -fx-text-fill: -fx-accent; -fx-font-weight: 900; -fx-font-size: 14px;");
         
         tbl.getColumns().addAll(java.util.List.of(c1,c2,c3,c4)); tbl.setColumnResizePolicy(javafx.scene.control.TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS); VBox.setVgrow(tbl, javafx.scene.layout.Priority.ALWAYS);
         
@@ -1009,12 +1009,12 @@ public class AuctionPageController implements SceneLifecycle {
             fc.getData().clear(); javafx.scene.chart.XYChart.Series<Number,Number> fs = new javafx.scene.chart.XYChart.Series<>();
             for (com.auction.client.model.BidChartPoint p : sub) fs.getData().add(new javafx.scene.chart.XYChart.Data<>(p.getEpochMillis(), p.getAmount().doubleValue()));
             fc.getData().add(fs); Platform.runLater(() -> { 
-                javafx.scene.Node l = fc.lookup(".default-color0.chart-series-line"); if (l!=null) l.setStyle("-fx-stroke:#16c78a;-fx-stroke-width:2.5px;"); 
+                javafx.scene.Node l = fc.lookup(".default-color0.chart-series-line"); if (l!=null) l.setStyle("-fx-stroke:-fx-accent;-fx-stroke-width:2.5px;"); 
                 javafx.scene.Node bg = fc.lookup(".chart-plot-background"); if (bg != null) bg.setStyle("-fx-background-color:transparent; -fx-border-color: transparent transparent #5b4766 #5b4766; -fx-border-width: 0 0 1 1;");
                 for (int i = 0; i < fs.getData().size(); i++) {
                     javafx.scene.Node sym = fs.getData().get(i).getNode();
                     if (sym != null) {
-                        sym.setStyle("-fx-background-color: #16c78a, #120a1a; -fx-background-insets: 0, 2; -fx-background-radius: 6px; -fx-padding: 4px;");
+                        sym.setStyle("-fx-background-color: -fx-accent, #120a1a; -fx-background-insets: 0, 2; -fx-background-radius: 6px; -fx-padding: 4px;");
                         sym.setCursor(javafx.scene.Cursor.HAND);
                         com.auction.client.model.BidChartPoint p = sub.get(i);
                         String timeStr = p.getBidTime() != null ? p.getBidTime().replace("T", " ") : "";
@@ -1036,7 +1036,7 @@ public class AuctionPageController implements SceneLifecycle {
             String[][] sts={{"Total Bids",""+allBidPoints.size()},{"Highest","\u20AB "+formatPrice(hi)},{"Start","\u20AB "+formatPrice(lo)},{"Max Δ","+₫ "+formatPrice(mxi)},{"Last Bid",lt}};
             for (String[] st : sts) { VBox sv = new VBox(4); sv.setAlignment(javafx.geometry.Pos.CENTER);
                 Label k = new Label(st[0]); k.setStyle("-fx-font-family:'DM Sans';-fx-font-size:11px;-fx-font-weight:700;-fx-text-fill:#cdb8da;");
-                Label v = new Label(st[1]); v.setStyle("-fx-font-family:'DM Sans';-fx-font-size:16px;-fx-font-weight:900;-fx-text-fill: #16c78a;");
+                Label v = new Label(st[1]); v.setStyle("-fx-font-family:'DM Sans';-fx-font-size:16px;-fx-font-weight:900;-fx-text-fill: -fx-accent;");
                 sv.getChildren().addAll(k,v); javafx.scene.layout.HBox.setHgrow(sv, javafx.scene.layout.Priority.ALWAYS); sb.getChildren().add(sv); }
             javafx.collections.ObservableList<com.auction.client.model.BidChartPoint> items = javafx.collections.FXCollections.observableArrayList();
             for (int i=sub.size()-1;i>=0;i--) items.add(sub.get(i)); tbl.setItems(items); 
