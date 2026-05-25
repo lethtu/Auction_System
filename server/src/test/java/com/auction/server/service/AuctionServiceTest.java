@@ -194,4 +194,41 @@ public class AuctionServiceTest {
         // 4. Đảm bảo đã lưu xuống DB
         verify(auctionSessionRepository, times(1)).save(mockSession);
     }
+
+    @Test
+    @DisplayName("Kết thúc phiên: Cập nhật trạng thái thành ENDED và lưu winner chính thức")
+    public void testKetThucPhien_SetsWinnerAndPersists() {
+        // 1. Giả lập Database
+        mockSession.setStatus(AuctionStatus.ACTIVE);
+        mockSession.setHighestBidderId(null);
+        mockSession.setWinner(null);
+
+        User winningBidder = new User();
+        winningBidder.setId(99);
+        winningBidder.setBalance(new BigDecimal("1000000.00"));
+        winningBidder.setFrozenBalance(new BigDecimal("50000.00"));
+
+        Bid winningBid = new Bid(mockSession, winningBidder, new BigDecimal("50000.00"), LocalDateTime.now());
+
+        when(auctionSessionRepository.findById(1)).thenReturn(Optional.of(mockSession));
+        when(bidRepository.findWinningBidsForSessions(List.of(1))).thenReturn(List.of(winningBid));
+        when(userRepository.findById(99)).thenReturn(Optional.of(winningBidder));
+
+        // 2. Chạy hành động
+        boolean isSuccess = auctionService.endSession(1);
+
+        // 3. Kiểm chứng
+        assertTrue(isSuccess);
+        assertEquals(AuctionStatus.ENDED, mockSession.getStatus(), "Trạng thái phải chuyển thành ENDED");
+        assertEquals(new BigDecimal("50000.00"), mockSession.getCurrentPrice(), "Giá phiên phải là giá bid thắng");
+        assertEquals(99, mockSession.getHighestBidderId(), "ID bidder cao nhất phải là 99");
+        assertSame(winningBidder, mockSession.getWinner(), "Winner của session phải được set là winningBidder");
+
+        // 4. Kiểm tra balances
+        assertEquals(0, new BigDecimal("950000.00").compareTo(winningBidder.getBalance()), "Winner balance phải trừ 50000");
+        assertEquals(0, BigDecimal.ZERO.compareTo(winningBidder.getFrozenBalance()), "Winner frozenBalance phải giải tỏa 50000");
+
+        // 5. Đảm bảo đã lưu xuống DB
+        verify(auctionSessionRepository, times(1)).save(mockSession);
+    }
 }

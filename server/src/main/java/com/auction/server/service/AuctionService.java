@@ -395,11 +395,13 @@ public class AuctionService {
 
     private void reconcileSessionResultFromBids(AuctionSession session) {
         getWinningBid(session.getId()).ifPresent(winningBid -> {
-            if (winningBid.getBidder() == null) {
+            User winner = winningBid.getBidder();
+            if (winner == null) {
                 return;
             }
             session.setCurrentPrice(winningBid.getAmount());
-            session.setHighestBidderId(winningBid.getBidder().getId());
+            session.setHighestBidderId(winner.getId());
+            session.setWinner(winner);
         });
     }
 
