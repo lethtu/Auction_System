@@ -81,35 +81,39 @@ public class ForgotPasswordControllerTest {
     }
 
     @Test
-    @DisplayName("Test Toàn Tập: Lấy OTP -> Sai Pass -> Đúng Pass -> Thành công")
+    @DisplayName("Test Full Flow: Get OTP -> Password mismatch -> Correct password -> Success")
     public void testFullFlow_SuccessToMismatchToSuccess(FxRobot robot) throws Exception {
-        String jsonSendOtpSuccess = "{\"status\": 200, \"message\": \"Đã gửi mã xác nhận\"}";
+        String jsonSendOtpSuccess = "{\"status\": 200, \"message\": \"\u0110\u00e3 g\u1eedi m\u00e3 x\u00e1c nh\u1eadn\"}";
 
         mockSendResponse(200, jsonSendOtpSuccess);
 
         robot.clickOn("#txtEmail").write("real_email@gmail.com");
         robot.clickOn("#btnGetOTP");
 
-        assertAlertAndClose(robot, "Đã gửi mã xác nhận");
+        assertAlertAndClose(robot, "\u0110\u00e3 g\u1eedi m\u00e3 x\u00e1c nh\u1eadn");
         verifyThat("#txtOTP", NodeMatchers.isVisible());
 
         robot.clickOn("#txtOTP").write("123456");
         robot.clickOn("#txtNewPassword").write("Tungpro@123");
         robot.clickOn("#txtConfirmNewPassword").write("Tungpro@456");
 
-        robot.clickOn("#btnResetPassword");
+        javafx.scene.control.Button resetButton =
+                robot.lookup("#btnResetPassword").queryAs(javafx.scene.control.Button.class);
+        javafx.scene.control.TextInputControl confirmPasswordField =
+                robot.lookup("#txtConfirmNewPassword").queryAs(javafx.scene.control.TextInputControl.class);
+
+        robot.clickOn(resetButton);
         robot.sleep(500);
         assertAlertAndClose(robot, "Invalid information or passwords do not match!");
 
-        String jsonResetSuccess = "{\"status\": 200, \"message\": \"Đổi mật khẩu thành công!\"}";
+        String jsonResetSuccess = "{\"status\": 200, \"message\": \"\u0110\u1ed5i m\u1eadt kh\u1ea9u th\u00e0nh c\u00f4ng!\"}";
         when(mockHttpResponse.body()).thenReturn(jsonResetSuccess);
 
-        robot.clickOn("#txtConfirmNewPassword").eraseText(11).write("Tungpro@123");
-        robot.clickOn("#btnResetPassword");
+        robot.interact(() -> confirmPasswordField.setText("Tungpro@123"));
+        robot.clickOn(resetButton);
         robot.sleep(500);
-        assertAlertAndClose(robot, "Đổi mật khẩu thành công!");
+        assertAlertAndClose(robot, "\u0110\u1ed5i m\u1eadt kh\u1ea9u th\u00e0nh c\u00f4ng!");
     }
-
     private void waitUntilButtonReset(Button button) {
         long deadline = System.currentTimeMillis() + 12000;
 

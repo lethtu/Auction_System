@@ -832,10 +832,10 @@ public class SellerDashboardController {
         clearForm();
         currentItemUuid = java.util.UUID.randomUUID().toString();
         if (modalTitle != null) {
-            modalTitle.setText("Add New Listing");
+            modalTitle.setText("Create Auction");
         }
         if (btnSubmit != null) {
-            btnSubmit.setText("Launch Auction");
+            btnSubmit.setText("Publish Auction");
         }
         if (btnDraftOrReset != null) {
             btnDraftOrReset.setText("Save as Draft");
@@ -1274,7 +1274,7 @@ public class SellerDashboardController {
                 clearForm();
                 handleCloseModal();
                 loadMySessions();
-                showAlert(Alert.AlertType.INFORMATION, "Success", api.message);
+                showAlert(Alert.AlertType.INFORMATION, "Success", normalizeSellerSuccessMessage(api.message));
             } else {
                 logger.error("Error api: {}", api.message);
                 showAlert(Alert.AlertType.ERROR, "Error", api.message);
@@ -1544,7 +1544,7 @@ public class SellerDashboardController {
                 clearForm();
                 handleCloseModal();
                 loadMySessions();
-                showAlert(Alert.AlertType.INFORMATION, "Success", api.message);
+                showAlert(Alert.AlertType.INFORMATION, "Success", normalizeSellerSuccessMessage(api.message));
             } else {
                 logger.error("Error api: {}", api.message);
                 showAlert(Alert.AlertType.ERROR, "Error", api.message);
@@ -1816,7 +1816,7 @@ public class SellerDashboardController {
                 clearForm();
                 handleCloseModal();
                 loadMySessions();
-                showAlert(Alert.AlertType.INFORMATION, "Success", api.message);
+                showAlert(Alert.AlertType.INFORMATION, "Success", normalizeSellerSuccessMessage(api.message));
             } else {
                 logger.error("Error api: {}", api.message);
                 showAlert(Alert.AlertType.ERROR, "Error", api.message);
@@ -2129,7 +2129,7 @@ public class SellerDashboardController {
                 clearForm();
                 handleCloseModal();
                 loadMySessions();
-                showAlert(Alert.AlertType.INFORMATION, "Success", api.message);
+                showAlert(Alert.AlertType.INFORMATION, "Success", normalizeSellerSuccessMessage(api.message));
             } else {
                 logger.error("Error api: {}", api.message);
                 showAlert(Alert.AlertType.ERROR, "Error", api.message);
@@ -2170,7 +2170,7 @@ public class SellerDashboardController {
 
             if (api.success) {
                 loadMySessions();
-                showAlert(Alert.AlertType.INFORMATION, "Success", api.message);
+                showAlert(Alert.AlertType.INFORMATION, "Success", normalizeSellerSuccessMessage(api.message));
             } else {
                 showAlert(Alert.AlertType.ERROR, "Error", api.message);
             }
@@ -2290,7 +2290,7 @@ public class SellerDashboardController {
 
             if (api.success) {
                 loadMySessions();
-                showAlert(Alert.AlertType.INFORMATION, "Success", api.message);
+                showAlert(Alert.AlertType.INFORMATION, "Success", normalizeSellerSuccessMessage(api.message));
             } else {
                 showAlert(Alert.AlertType.ERROR, "Error", api.message);
             }
@@ -3196,5 +3196,19 @@ public class SellerDashboardController {
             builder.header("X-Auth-Token", token);
         }
         return builder;
+    }
+
+    private String normalizeSellerSuccessMessage(String message) {
+        if (message == null || message.isBlank()) {
+            return "Auction published successfully. It will be visible according to its start time.";
+        }
+
+        String normalized = message.trim();
+        if (normalized.equals("Auction session created successfully.")
+                || normalized.equals("Tạo phiên đấu giá thành công.")) {
+            return "Auction published successfully. It will be visible according to its start time.";
+        }
+
+        return normalized;
     }
 }
