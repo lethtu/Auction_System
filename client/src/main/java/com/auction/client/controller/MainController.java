@@ -155,6 +155,7 @@ public class MainController implements Initializable, SceneLifecycle {
     private ScheduledExecutorService pollingScheduler;
     private final List<Integer> currentRenderedIds = new ArrayList<>();
     private final Map<Integer, JSONObject> lastSnapshot = new ConcurrentHashMap<>();
+    private volatile String lastProductsSignature = "";
     private PauseTransition filterDebounce;
     private PauseTransition gridLayoutDebounce;
 
@@ -346,8 +347,8 @@ public class MainController implements Initializable, SceneLifecycle {
             return t;
         });
 
-        // Call API every 5 seconds
-        pollingScheduler.scheduleAtFixedRate(this::fetchProductsData, 0, 5, TimeUnit.SECONDS);
+        // Initial data is fetched by loadProductsFromServer(). Poll later to avoid duplicate first render.
+        pollingScheduler.scheduleAtFixedRate(this::fetchProductsData, 10, 10, TimeUnit.SECONDS);
     }
 
     private void fetchProductsData() {
@@ -376,6 +377,14 @@ public class MainController implements Initializable, SceneLifecycle {
                     for (int i = 0; i < jsonArray.length(); i++) {
                         newProducts.add(jsonArray.getJSONObject(i));
                     }
+
+                    String newProductsSignature = buildProductsSignature(newProducts);
+                    boolean shouldRenderProducts = forceRenderProducts || !newProductsSignature.equals(lastProductsSignature);
+                    if (!shouldRenderProducts) {
+                        return;
+                    }
+                    lastProductsSignature = newProductsSignature;
+                    forceRenderProducts = false;
 
                     if (!lastSnapshot.isEmpty()) {
                         for (JSONObject newObj : newProducts) {
@@ -449,6 +458,23 @@ public class MainController implements Initializable, SceneLifecycle {
         } else {
             new Thread(this::fetchProductsData).start();
         }
+    }
+
+    private String buildProductsSignature(List<JSONObject> products) {
+        StringBuilder builder = new StringBuilder(products.size() * 96);
+        for (JSONObject sessionObj : products) {
+            int sessionId = sessionObj.optInt("id", -1);
+            JSONObject itemObj = getItemObject(sessionObj);
+            builder.append(sessionId).append('|')
+                    .append(sessionObj.optString("status", "")).append('|')
+                    .append(sessionObj.optString("currentPrice", "")).append('|')
+                    .append(sessionObj.optString("startingPrice", "")).append('|')
+                    .append(getRawTimeField(sessionObj, itemObj, "startTime", "start_time", "auctionStartTime")).append('|')
+                    .append(getRawTimeField(sessionObj, itemObj, "endTime", "end_time", "auctionEndTime", "endDate", "endDateTime")).append('|')
+                    .append(itemObj.optString("name", sessionObj.optString("productName", ""))).append('|')
+                    .append(itemObj.optString("imagePath", sessionObj.optString("imagePath", ""))).append(';');
+        }
+        return builder.toString();
     }
 
     private void showOfflineMode(String message) {
@@ -930,7 +956,7 @@ public class MainController implements Initializable, SceneLifecycle {
 
         boolean bidEnabled = "RUNNING".equals(normalizedStatus) && endDT != null;
 
-        logger.info(
+        logger.debug(
                 "ProductCard id={}, name={}, rawStatus={}, startTimeRaw={}, endTimeRaw={}, normalizedStatus={}, bidEnabled={}",
                 id, name, rawStatus, startTimeRaw, endTimeRaw, normalizedStatus, bidEnabled);
 
