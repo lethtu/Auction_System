@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
 import com.auction.client.HttpClientSingleton;
 import com.auction.client.model.User;
+import com.auction.client.util.CacheManager;
 import com.auction.client.util.HttpRequestUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -20,7 +21,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -44,6 +44,8 @@ import java.time.LocalDateTime;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SellerDashboardController {
     private static final Logger logger = LoggerFactory.getLogger(SellerDashboardController.class);
@@ -57,6 +59,9 @@ public class SellerDashboardController {
     @FXML
     private Button btnSubmit;
     private SessionItem editingSession = null;
+    private String currentItemUuid = null;
+    private boolean isImageUploading = false;
+    private boolean isModelUploading = false;
     @FXML
     private ComboBox<String> productTypeCombo;
     @FXML
@@ -78,11 +83,19 @@ public class SellerDashboardController {
     @FXML
     private Label lblImageFileName;
     @FXML
+    private ProgressBar imageUploadProgress;
+    @FXML
+    private Label lblImageUploadProgress;
+    @FXML
     private VBox modelUploadArea;
     @FXML
     private Label lblModelFileName;
     @FXML
     private TextField modelUrlField;
+    @FXML
+    private ProgressBar modelUploadProgress;
+    @FXML
+    private Label lblModelUploadProgress;
     @FXML
     private DatePicker datePickerStart;
     @FXML
@@ -159,6 +172,7 @@ public class SellerDashboardController {
     private HttpClient httpClient = HttpClientSingleton.getInstance().getHttpClient();
     final List<SessionItem> allSessions = new ArrayList<>();
     final ObservableList<SessionItem> displayedSessions = FXCollections.observableArrayList();
+    private final Map<String, Image> sellerImageCache = new ConcurrentHashMap<>();
 
     public void setHttpClient(HttpClient client) {
         this.httpClient = client;
@@ -276,14 +290,14 @@ public class SellerDashboardController {
             if (event.getGestureSource() != imageUploadArea && event.getDragboard().hasFiles()) {
                 event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
                 imageUploadArea.setStyle(
-                        "-fx-border-color: -fx-accent; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 32px; -fx-cursor: hand; -fx-background-color: -app-accent-opacity-16;");
+                        "-fx-border-color: -fx-accent; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 24px; -fx-cursor: hand; -fx-background-color: -app-accent-chip-bg; -fx-min-height: 120px;");
             }
             event.consume();
         });
 
         imageUploadArea.setOnDragExited(event -> {
             imageUploadArea.setStyle(
-                    "-fx-border-color: #dcc8e0; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 24px; -fx-cursor: hand; -fx-background-color: transparent;");
+                    "-fx-border-color: -app-border; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 24px; -fx-cursor: hand; -fx-background-color: transparent; -fx-min-height: 120px;");
             event.consume();
         });
 
@@ -292,8 +306,8 @@ public class SellerDashboardController {
             boolean success = false;
             if (db.hasFiles()) {
                 File file = db.getFiles().get(0);
-                imageUrlField.setText(file.getAbsolutePath());
                 lblImageFileName.setText(file.getName());
+                startImageUpload(file);
                 success = true;
             }
             event.setDropCompleted(success);
@@ -308,28 +322,29 @@ public class SellerDashboardController {
                             "*.bmp"));
             File selectedFile = fileChooser.showOpenDialog(imageUploadArea.getScene().getWindow());
             if (selectedFile != null) {
-                imageUrlField.setText(selectedFile.getAbsolutePath());
                 lblImageFileName.setText(selectedFile.getName());
+                startImageUpload(selectedFile);
             }
         });
     }
 
     private void setupModelUpload() {
-        if (modelUploadArea == null)
+        if (modelUploadArea == null) {
             return;
+        }
 
         modelUploadArea.setOnDragOver(event -> {
             if (event.getGestureSource() != modelUploadArea && event.getDragboard().hasFiles()) {
                 event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
                 modelUploadArea.setStyle(
-                        "-fx-border-color: #e040a0; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 24px; -fx-cursor: hand; -fx-background-color: #ffd6ee;");
+                        "-fx-border-color: -fx-accent; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 24px; -fx-cursor: hand; -fx-background-color: -app-accent-chip-bg;");
             }
             event.consume();
         });
 
         modelUploadArea.setOnDragExited(event -> {
             modelUploadArea.setStyle(
-                    "-fx-border-color: #dcc8e0; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 24px; -fx-cursor: hand; -fx-background-color: transparent;");
+                    "-fx-border-color: -app-border; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 24px; -fx-cursor: hand; -fx-background-color: transparent; -fx-min-height: 120px;");
             event.consume();
         });
 
@@ -338,13 +353,12 @@ public class SellerDashboardController {
             boolean success = false;
             if (db.hasFiles()) {
                 File file = db.getFiles().get(0);
-                String name = file.getName().toLowerCase();
-                if (name.endsWith(".glb") || name.endsWith(".gltf") || name.endsWith(".obj")) {
-                    modelUrlField.setText(file.getAbsolutePath());
+                if (isSupportedModelFile(file)) {
                     lblModelFileName.setText(file.getName());
+                    startModelUpload(file);
                     success = true;
                 } else {
-                    showAlert(Alert.AlertType.WARNING, "Invalid File Type", "Please upload a 3D file (.glb, .gltf, .obj).");
+                    showAlert(Alert.AlertType.WARNING, "Invalid File Type", "Please upload a GLB 3D file (.glb).");
                 }
             }
             event.setDropCompleted(success);
@@ -355,13 +369,183 @@ public class SellerDashboardController {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Select 3D Model File");
             fileChooser.getExtensionFilters().addAll(
-                    new FileChooser.ExtensionFilter("3D Files", "*.glb", "*.gltf", "*.obj"));
+                    new FileChooser.ExtensionFilter("GLB 3D Files", "*.glb"));
             File selectedFile = fileChooser.showOpenDialog(modelUploadArea.getScene().getWindow());
             if (selectedFile != null) {
-                modelUrlField.setText(selectedFile.getAbsolutePath());
                 lblModelFileName.setText(selectedFile.getName());
+                startModelUpload(selectedFile);
             }
         });
+    }
+
+    private void updateSubmitButtonsState() {
+        boolean disabling = isImageUploading || isModelUploading;
+        if (btnSubmit != null) {
+            btnSubmit.setDisable(disabling);
+        }
+        if (btnDraftOrReset != null) {
+            btnDraftOrReset.setDisable(disabling);
+        }
+    }
+
+    private void startImageUpload(File file) {
+        if (file == null)
+            return;
+        isImageUploading = true;
+        updateSubmitButtonsState();
+
+        if (imageUploadProgress != null) {
+            imageUploadProgress.setProgress(0);
+            imageUploadProgress.setVisible(true);
+            imageUploadProgress.setManaged(true);
+        }
+        if (lblImageUploadProgress != null) {
+            lblImageUploadProgress.setText("Uploading...");
+            lblImageUploadProgress.setVisible(true);
+            lblImageUploadProgress.setManaged(true);
+        }
+
+        new Thread(() -> {
+            try {
+                if (currentItemUuid == null) {
+                    currentItemUuid = java.util.UUID.randomUUID().toString();
+                }
+                String uploadPath = "/api/files/images?uuid=" + currentItemUuid;
+
+                HttpResponse<String> response = HttpRequestUtil.uploadImageWithProgress(
+                        Config.API_URL,
+                        uploadPath,
+                        file,
+                        pct -> javafx.application.Platform.runLater(() -> {
+                            if (imageUploadProgress != null) {
+                                imageUploadProgress.setProgress(pct);
+                            }
+                        }));
+
+                if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                    throw new IOException("Image upload failed with status " + response.statusCode());
+                }
+
+                JSONObject obj = new JSONObject(response.body());
+                JSONObject data = obj.optJSONObject("data");
+                String imagePath = data != null ? data.optString("imagePath", "") : obj.optString("imagePath", "");
+                if (imagePath.isBlank()) {
+                    throw new IOException("Image upload response did not contain imagePath.");
+                }
+
+                Config.triggerImageCacheBuster();
+                String finalPath = normalizeImagePathForStorage(imagePath);
+
+                javafx.application.Platform.runLater(() -> {
+                    imageUrlField.setText(finalPath);
+                    if (lblImageUploadProgress != null) {
+                        lblImageUploadProgress.setText("Upload complete!");
+                    }
+                    if (imageUploadProgress != null) {
+                        imageUploadProgress.setProgress(1.0);
+                    }
+                    isImageUploading = false;
+                    updateSubmitButtonsState();
+                });
+            } catch (Exception e) {
+                logger.error("Image upload failed", e);
+                javafx.application.Platform.runLater(() -> {
+                    if (lblImageUploadProgress != null) {
+                        lblImageUploadProgress.setText("Upload failed!");
+                    }
+                    isImageUploading = false;
+                    updateSubmitButtonsState();
+                    showAlert(Alert.AlertType.ERROR, "Image Upload Error", "Failed to upload image: " + e.getMessage());
+                });
+            }
+        }).start();
+    }
+
+    private void startModelUpload(File file) {
+        if (file == null)
+            return;
+        if (!isSupportedModelFile(file)) {
+            showAlert(Alert.AlertType.WARNING, "Invalid File Type", "Please upload a GLB 3D file (.glb).");
+            return;
+        }
+
+        isModelUploading = true;
+        updateSubmitButtonsState();
+
+        if (modelUploadProgress != null) {
+            modelUploadProgress.setProgress(0);
+            modelUploadProgress.setVisible(true);
+            modelUploadProgress.setManaged(true);
+        }
+        if (lblModelUploadProgress != null) {
+            lblModelUploadProgress.setText("Uploading...");
+            lblModelUploadProgress.setVisible(true);
+            lblModelUploadProgress.setManaged(true);
+        }
+
+        new Thread(() -> {
+            try {
+                if (currentItemUuid == null) {
+                    currentItemUuid = java.util.UUID.randomUUID().toString();
+                }
+                String uploadPath = "/api/files/models-3d?uuid=" + currentItemUuid;
+
+                HttpResponse<String> response = HttpRequestUtil.uploadImageWithProgress(
+                        Config.API_URL,
+                        uploadPath,
+                        file,
+                        pct -> javafx.application.Platform.runLater(() -> {
+                            if (modelUploadProgress != null) {
+                                modelUploadProgress.setProgress(pct);
+                            }
+                        }));
+
+                if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                    throw new IOException("3D model upload failed with status " + response.statusCode());
+                }
+
+                JSONObject obj = new JSONObject(response.body());
+                JSONObject data = obj.optJSONObject("data");
+                String model3dPath = data != null ? data.optString("model3dPath", "")
+                        : obj.optString("model3dPath", "");
+                if (model3dPath.isBlank()) {
+                    throw new IOException("3D model upload response did not contain model3dPath.");
+                }
+
+                Config.triggerImageCacheBuster();
+
+                javafx.application.Platform.runLater(() -> {
+                    modelUrlField.setText(model3dPath);
+                    if (lblModelUploadProgress != null) {
+                        lblModelUploadProgress.setText("Upload complete!");
+                    }
+                    if (modelUploadProgress != null) {
+                        modelUploadProgress.setProgress(1.0);
+                    }
+                    isModelUploading = false;
+                    updateSubmitButtonsState();
+                });
+            } catch (Exception e) {
+                logger.error("3D model upload failed", e);
+                javafx.application.Platform.runLater(() -> {
+                    if (lblModelUploadProgress != null) {
+                        lblModelUploadProgress.setText("Upload failed!");
+                    }
+                    isModelUploading = false;
+                    updateSubmitButtonsState();
+                    showAlert(Alert.AlertType.ERROR, "Model Upload Error",
+                            "Failed to upload 3D model: " + e.getMessage());
+                });
+            }
+        }).start();
+    }
+
+    private boolean isSupportedModelFile(File file) {
+        if (file == null || file.getName() == null) {
+            return false;
+        }
+        String name = file.getName().toLowerCase();
+        return name.endsWith(".glb");
     }
 
     private void setupTable() {
@@ -379,49 +563,55 @@ public class SellerDashboardController {
                     HBox hbox = new HBox(12);
                     hbox.setAlignment(Pos.CENTER_LEFT);
 
-                    // Image placeholder
                     StackPane imgContainer = new StackPane();
                     imgContainer.setPrefSize(48, 48);
                     imgContainer.setMinSize(48, 48);
                     imgContainer.setMaxSize(48, 48);
-                    imgContainer.setStyle("-fx-background-color: #f2e8f2; -fx-background-radius: 24px;");
+                    imgContainer.setStyle("-fx-background-color: #fff7fd; -fx-background-radius: 24px; "
+                            + "-fx-border-color: #ead3e7; -fx-border-width: 1.2px; -fx-border-radius: 24px;");
 
                     if (item.imageUrl != null && !item.imageUrl.isEmpty()) {
                         try {
                             String tableImageUrl = buildSellerImageUrl(item.imageUrl);
-                            FontIcon placeholder = new FontIcon("mdi2i-image-outline");
-                            placeholder.setIconSize(24);
-                            placeholder.setIconColor(Color.valueOf("#907898"));
-                            imgContainer.getChildren().add(placeholder);
+                            imgContainer.getChildren().setAll(createSellerImagePlaceholder());
 
-                            Image image = new Image(tableImageUrl, 48, 48, true, true, true);
-                            ImageView iv = new ImageView(image);
-                            Circle clip = new Circle(24, 24, 24);
-                            iv.setClip(clip);
-                            image.progressProperty().addListener((obs, oldProgress, newProgress) -> {
-                                if (newProgress.doubleValue() >= 1.0 && !image.isError()) {
-                                    imgContainer.getChildren().setAll(iv);
+                            Image cached = sellerImageCache.get(tableImageUrl);
+                            if (cached != null && !cached.isError()) {
+                                imgContainer.getChildren().setAll(createSellerTableImage(cached));
+                            } else {
+                                Image img = CacheManager.getCachedImage(tableImageUrl, loadedImage -> {
+                                    if (loadedImage != null && !loadedImage.isError()) {
+                                        sellerImageCache.put(tableImageUrl, loadedImage);
+                                        if (getItem() == item) {
+                                            imgContainer.getChildren().setAll(createSellerTableImage(loadedImage));
+                                        }
+                                    }
+                                });
+
+                                if (img != null && !img.isError() && img.getWidth() > 1) {
+                                    sellerImageCache.put(tableImageUrl, img);
+                                    imgContainer.getChildren().setAll(createSellerTableImage(img));
+                                } else if (img != null) {
+                                    img.errorProperty().addListener((obs, oldValue, hasError) -> {
+                                        if (hasError && getItem() == item) {
+                                            imgContainer.getChildren().setAll(createSellerImagePlaceholder());
+                                        }
+                                    });
                                 }
-                            });
+                            }
                         } catch (Exception e) {
-                            FontIcon icon = new FontIcon("mdi2i-image-outline");
-                            icon.setIconSize(24);
-                            icon.setIconColor(Color.valueOf("#907898"));
-                            imgContainer.getChildren().add(icon);
+                            imgContainer.getChildren().setAll(createSellerImagePlaceholder());
                         }
                     } else {
-                        FontIcon icon = new FontIcon("mdi2i-image-outline");
-                        icon.setIconSize(24);
-                        icon.setIconColor(Color.valueOf("#907898"));
-                        imgContainer.getChildren().add(icon);
+                        imgContainer.getChildren().setAll(createSellerImagePlaceholder());
                     }
 
                     VBox vbox = new VBox(2);
                     vbox.setAlignment(Pos.CENTER_LEFT);
                     Label lblName = new Label(item.productName);
-                    lblName.setStyle("-fx-font-weight: bold; -fx-text-fill: #2e1a28;");
+                    lblName.setStyle("-fx-font-weight: bold; -fx-text-fill: -app-text;");
                     Label lblId = new Label("ID: #AUC-" + item.id);
-                    lblId.setStyle("-fx-font-size: 11px; -fx-text-fill: #604868;");
+                    lblId.setStyle("-fx-font-size: 11px; -fx-text-fill: -app-text-muted;");
 
                     vbox.getChildren().addAll(lblName, lblId);
                     hbox.getChildren().addAll(imgContainer, vbox);
@@ -447,14 +637,9 @@ public class SellerDashboardController {
                         case "ACTIVE", "LIVE" -> lblStatus.getStyleClass().add("badge-live");
                         case "DRAFT" -> lblStatus.getStyleClass().add("badge-draft");
                         case "COMPLETED", "ENDED" -> lblStatus.getStyleClass().add("badge-ended");
-                        case "COMING" -> {
-                            lblStatus.setStyle(
-                                    "-fx-background-color: #f3e8ff; -fx-text-fill: #7c52aa; -fx-border-color: #dcc8e0; -fx-border-radius: 12px; -fx-background-radius: 12px;");
-                        }
-                        case "CANCELED" -> {
-                            lblStatus.setStyle("-fx-background-color: #ffe8e8; -fx-text-fill: #e53e3e;");
-                        }
-                        default -> lblStatus.setStyle("-fx-background-color: #f2e8f2; -fx-text-fill: #604868;");
+                        case "COMING" -> lblStatus.getStyleClass().add("badge-coming");
+                        case "CANCELED" -> lblStatus.getStyleClass().add("badge-canceled");
+                        default -> lblStatus.getStyleClass().add("badge-default");
                     }
 
                     StackPane wrapper = new StackPane(lblStatus);
@@ -473,7 +658,12 @@ public class SellerDashboardController {
 
         colBid.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().currentPrice));
         colBid.setCellFactory(col -> new TableCell<>() {
-            private final DecimalFormat df = new DecimalFormat("#,##0.##");
+            private final java.text.DecimalFormatSymbols symbols = new java.text.DecimalFormatSymbols() {
+                {
+                    setGroupingSeparator('.');
+                }
+            };
+            private final DecimalFormat df = new DecimalFormat("###,###", symbols);
 
             @Override
             protected void updateItem(BigDecimal price, boolean empty) {
@@ -488,7 +678,7 @@ public class SellerDashboardController {
                     return;
                 }
 
-                Label priceLabel = new Label(price.compareTo(BigDecimal.ZERO) == 0 ? "--" : "$" + df.format(price));
+                Label priceLabel = new Label(price.compareTo(BigDecimal.ZERO) == 0 ? "--" : "₫ " + df.format(price));
                 priceLabel.setStyle(price.compareTo(BigDecimal.ZERO) == 0
                         ? "-fx-text-fill: -app-text-muted; -fx-font-weight: bold;"
                         : "-fx-text-fill: -fx-accent; -fx-font-weight: 900;");
@@ -517,12 +707,12 @@ public class SellerDashboardController {
                 }
 
                 String displayText;
-                String textColor = "#604868";
+                String textColor = "-app-text-muted";
                 try {
                     LocalDateTime end = LocalDateTime.parse(endTime);
                     if (end.isBefore(LocalDateTime.now())) {
                         displayText = "Ended";
-                        textColor = "#e53e3e";
+                        textColor = "-app-delete-color";
                     } else {
                         Duration d = Duration.between(LocalDateTime.now(), end);
                         long hours = d.toHours();
@@ -559,16 +749,16 @@ public class SellerDashboardController {
 
                     Button btnView;
                     if ("DRAFT".equalsIgnoreCase(item.status)) {
-                        btnView = createIconButton("mdi2p-publish", "#0096cc");
+                        btnView = createIconButton("\uE255", "-fx-tertiary");
                         btnView.setTooltip(new javafx.scene.control.Tooltip("Quick Sale"));
                         btnView.setOnAction(e -> handleQuickPublish(item));
                     } else {
-                        btnView = createIconButton("mdi2e-eye", "#0096cc");
+                        btnView = createIconButton("\uE8F4", "-fx-tertiary");
                         btnView.setTooltip(new javafx.scene.control.Tooltip("View Details"));
                         btnView.setOnAction(e -> handleViewSession(item, e));
                     }
-                    Button btnEdit = createIconButton("mdi2p-pencil", "#7c52aa");
-                    Button btnDelete = createIconButton("mdi2d-delete", "#e53e3e");
+                    Button btnEdit = createIconButton("\uE3C9", "-fx-secondary");
+                    Button btnDelete = createIconButton("\uE872", "-app-delete-color");
 
                     btnView.setId("btnView_" + item.id);
                     btnEdit.setId("btnEdit_" + item.id);
@@ -609,12 +799,29 @@ public class SellerDashboardController {
         });
     }
 
-    private Button createIconButton(String iconLiteral, String color) {
+    private FontIcon createSellerImagePlaceholder() {
+        FontIcon icon = new FontIcon("mdi2i-image-outline");
+        icon.setIconSize(24);
+        icon.setIconColor(Color.valueOf("#907898"));
+        return icon;
+    }
+
+    private ImageView createSellerTableImage(Image image) {
+        ImageView imageView = new ImageView(image);
+        imageView.setFitWidth(48);
+        imageView.setFitHeight(48);
+        imageView.setPreserveRatio(false);
+        imageView.setSmooth(true);
+        imageView.setClip(new Circle(24, 24, 24));
+        return imageView;
+    }
+
+    private Button createIconButton(String iconUnicode, String cssColorVar) {
         Button btn = new Button();
         btn.getStyleClass().add("action-btn");
-        FontIcon icon = new FontIcon(iconLiteral);
-        icon.setIconSize(20);
-        icon.setIconColor(Color.valueOf(color));
+        Label icon = new Label(iconUnicode);
+        icon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: " + cssColorVar
+                + ";");
         btn.setGraphic(icon);
         return btn;
     }
@@ -622,6 +829,8 @@ public class SellerDashboardController {
     @FXML
     private void handleShowAddModal() {
         editingSession = null;
+        clearForm();
+        currentItemUuid = java.util.UUID.randomUUID().toString();
         if (modalTitle != null) {
             modalTitle.setText("Add New Listing");
         }
@@ -631,7 +840,6 @@ public class SellerDashboardController {
         if (btnDraftOrReset != null) {
             btnDraftOrReset.setText("Save as Draft");
         }
-        clearForm();
         modalOverlay.setVisible(true);
     }
 
@@ -643,7 +851,12 @@ public class SellerDashboardController {
     void handleShowEditModal(SessionItem item) {
         if (item == null)
             return;
+        clearForm();
         editingSession = item;
+        currentItemUuid = extractUuid(item.imageUrl);
+        if (currentItemUuid == null) {
+            currentItemUuid = java.util.UUID.randomUUID().toString();
+        }
 
         if (modalTitle != null) {
             modalTitle.setText("Edit Listing");
@@ -701,7 +914,7 @@ public class SellerDashboardController {
                 lblImageFileName.setText("");
             }
         }
-        if (lblModelFileName != null) {
+        if (lblModelFileName != null && modelUrlField != null) {
             String uuid = extractUuid(item.imageUrl);
             if (uuid != null && !uuid.isEmpty()) {
                 modelUrlField.setText("/api/files/models-3d/" + uuid + "/" + uuid + ".glb");
@@ -1089,7 +1302,8 @@ public class SellerDashboardController {
             return;
         }
         String uuid = extractUuid(imageUrl);
-        String modelUrl = prepareModelPathForSave(productNameOrEmpty(modelUrlField), uuid != null ? uuid : existingUuid);
+        String modelUrl = prepareModelPathForSave(productNameOrEmpty(modelUrlField),
+                uuid != null ? uuid : existingUuid);
         if (modelUrl == null) {
             return;
         }
@@ -1358,7 +1572,8 @@ public class SellerDashboardController {
             return;
         }
         String uuid = extractUuid(imageUrl);
-        String modelUrl = prepareModelPathForSave(productNameOrEmpty(modelUrlField), uuid != null ? uuid : existingUuid);
+        String modelUrl = prepareModelPathForSave(productNameOrEmpty(modelUrlField),
+                uuid != null ? uuid : existingUuid);
         if (modelUrl == null) {
             return;
         }
@@ -2099,6 +2314,12 @@ public class SellerDashboardController {
             return;
         }
 
+        Thread loadThread = new Thread(() -> loadMySessionsFromServer(sellerId), "seller-sessions-load");
+        loadThread.setDaemon(true);
+        loadThread.start();
+    }
+
+    private void loadMySessionsFromServer(Integer sellerId) {
         try {
             HttpRequest request = newRequestBuilder()
                     .uri(URI.create(Config.API_URL + "/api/seller/my-sessions/" + sellerId))
@@ -2113,13 +2334,17 @@ public class SellerDashboardController {
                 return;
             }
 
-            allSessions.clear();
+            List<SessionItem> loadedSessions = new ArrayList<>();
             for (int i = 0; i < api.data.length(); i++) {
-                allSessions.add(parseSession(api.data.getJSONObject(i)));
+                loadedSessions.add(parseSession(api.data.getJSONObject(i)));
             }
 
-            renderSessions(allSessions);
-            updateStats();
+            javafx.application.Platform.runLater(() -> {
+                allSessions.clear();
+                allSessions.addAll(loadedSessions);
+                renderSessions(allSessions);
+                updateStats();
+            });
 
         } catch (Exception e) {
             logger.error("Cannot connect to server: {}", e.getMessage(), e);
@@ -2204,9 +2429,66 @@ public class SellerDashboardController {
         }
     }
 
+    private int getStatusPriority(String status) {
+        if (status == null) {
+            return 3;
+        }
+        switch (status.toUpperCase()) {
+            case "ACTIVE":
+            case "LIVE":
+                return 0;
+            case "COMING":
+                return 1;
+            case "DRAFT":
+                return 2;
+            case "COMPLETED":
+            case "ENDED":
+            case "CANCELED":
+                return 3;
+            default:
+                return 3;
+        }
+    }
+
     private void renderSessions(List<SessionItem> sessions) {
+        List<SessionItem> sorted = new ArrayList<>(sessions);
+        sorted.sort(this::compareSessionsByStartTimeDesc);
         displayedSessions.clear();
-        displayedSessions.addAll(sessions);
+        displayedSessions.addAll(sorted);
+    }
+
+    private int compareSessionsByStartTimeDesc(SessionItem left, SessionItem right) {
+        int pLeft = getStatusPriority(left.status);
+        int pRight = getStatusPriority(right.status);
+        if (pLeft != pRight) {
+            return Integer.compare(pLeft, pRight);
+        }
+
+        LocalDateTime leftStart = parseSessionStart(left);
+        LocalDateTime rightStart = parseSessionStart(right);
+        if (leftStart != null && rightStart != null) {
+            int byStart = rightStart.compareTo(leftStart);
+            if (byStart != 0) {
+                return byStart;
+            }
+        } else if (leftStart != null) {
+            return -1;
+        } else if (rightStart != null) {
+            return 1;
+        }
+        return Integer.compare(right.id, left.id);
+    }
+
+    private LocalDateTime parseSessionStart(SessionItem item) {
+        if (item == null || item.startTime == null || item.startTime.isBlank()
+                || "null".equalsIgnoreCase(item.startTime)) {
+            return null;
+        }
+        try {
+            return LocalDateTime.parse(item.startTime);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private void updateStats() {
@@ -2233,23 +2515,56 @@ public class SellerDashboardController {
         }
 
         DecimalFormat df = new DecimalFormat("#,##0.##");
-        lblTotalRevenue.setText("$" + df.format(revenue));
-        lblActiveAuctions.setText(String.valueOf(active));
-        lblTotalBids.setText(String.valueOf(totalBidsEstimate)); // Mock logic
+        if (lblTotalRevenue != null) {
+            lblTotalRevenue.setText("$" + df.format(revenue));
+        }
+        if (lblActiveAuctions != null) {
+            lblActiveAuctions.setText(String.valueOf(active));
+        }
+        if (lblTotalBids != null) {
+            lblTotalBids.setText(String.valueOf(totalBidsEstimate)); // Mock logic
+        }
     }
 
     private void clearForm() {
+        currentItemUuid = null;
         productNameField.clear();
         imageUrlField.clear();
-        modelUrlField.clear();
         descriptionArea.clear();
         if (reservePriceField != null)
             reservePriceField.clear();
         startingPriceField.clear();
         if (lblImageFileName != null)
             lblImageFileName.setText("");
+        if (modelUrlField != null)
+            modelUrlField.clear();
         if (lblModelFileName != null)
             lblModelFileName.setText("");
+
+        isImageUploading = false;
+        isModelUploading = false;
+        updateSubmitButtonsState();
+
+        if (imageUploadProgress != null) {
+            imageUploadProgress.setProgress(0);
+            imageUploadProgress.setVisible(false);
+            imageUploadProgress.setManaged(false);
+        }
+        if (lblImageUploadProgress != null) {
+            lblImageUploadProgress.setText("");
+            lblImageUploadProgress.setVisible(false);
+            lblImageUploadProgress.setManaged(false);
+        }
+        if (modelUploadProgress != null) {
+            modelUploadProgress.setProgress(0);
+            modelUploadProgress.setVisible(false);
+            modelUploadProgress.setManaged(false);
+        }
+        if (lblModelUploadProgress != null) {
+            lblModelUploadProgress.setText("");
+            lblModelUploadProgress.setVisible(false);
+            lblModelUploadProgress.setManaged(false);
+        }
 
         if (startingPriceField != null)
             startingPriceField.setDisable(false);
@@ -2435,8 +2750,10 @@ public class SellerDashboardController {
     }
 
     private String extractUuid(String path) {
-        if (path == null || path.isBlank()) return null;
-        java.util.regex.Pattern uuidPattern = java.util.regex.Pattern.compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
+        if (path == null || path.isBlank())
+            return null;
+        java.util.regex.Pattern uuidPattern = java.util.regex.Pattern
+                .compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
         java.util.regex.Matcher matcher = uuidPattern.matcher(path);
         return matcher.find() ? matcher.group() : null;
     }
@@ -2486,6 +2803,10 @@ public class SellerDashboardController {
     }
 
     private String uploadProductModel3D(File modelFile, String existingUuid) throws Exception {
+        if (!isSupportedModelFile(modelFile)) {
+            throw new IOException("Unsupported 3D model file type.");
+        }
+
         String uploadPath = "/api/files/models-3d" + (existingUuid != null ? "?uuid=" + existingUuid : "");
         HttpResponse<String> response = HttpRequestUtil.uploadImage(Config.API_URL, uploadPath, modelFile);
         if (response.statusCode() < 200 || response.statusCode() >= 300) {
@@ -2685,7 +3006,7 @@ public class SellerDashboardController {
         StackPane iconCircle = new StackPane();
         iconCircle.setPrefSize(64, 64);
         iconCircle.setMaxSize(64, 64);
-        iconCircle.setStyle("-fx-background-color: -app-accent-opacity-10; -fx-background-radius: 32px;");
+        iconCircle.setStyle("-fx-background-color: -app-accent-opacity-12; -fx-background-radius: 32px;");
 
         FontIcon timerIcon = new FontIcon("mdi2t-timer-outline");
         timerIcon.setIconSize(36);
@@ -2716,7 +3037,7 @@ public class SellerDashboardController {
         btnEdit.setPrefHeight(44);
         btnEdit.setMaxWidth(Double.MAX_VALUE);
         btnEdit.setStyle(
-                "-fx-background-color: transparent; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 22px; -fx-background-radius: 22px; -fx-text-fill: -app-text-muted; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
+                "-fx-background-color: transparent; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 22px; -fx-background-radius: 22px; -fx-text-fill: -app-text; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
 
         btnBox.getChildren().addAll(btnStartNow, btnEdit);
         container.getChildren().addAll(iconCircle, titleLabel, descLabel, btnBox);
@@ -2735,13 +3056,7 @@ public class SellerDashboardController {
         javafx.stage.Stage stage = (javafx.stage.Stage) dialogPane.getScene().getWindow();
         stage.initStyle(javafx.stage.StageStyle.TRANSPARENT);
         dialogPane.getScene().setFill(Color.TRANSPARENT);
-        if (dialogPane.getScene() != null) {
-            Scene s = dialogPane.getScene();
-            if (SellerDashboardController.class.getResource("/com/auction/client/view/styles.css") != null) {
-                s.getStylesheets().add(SellerDashboardController.class.getResource("/com/auction/client/view/styles.css").toExternalForm());
-            }
-            com.auction.client.service.AppStyleManager.applyCurrentStyle(s);
-        }
+        com.auction.client.service.AppStyleManager.applyCurrentStyle(dialogPane.getScene());
 
         java.util.Optional<ButtonType> result = dialog.showAndWait();
         return result.isPresent() && result.get() == ButtonType.OK;
@@ -2763,7 +3078,7 @@ public class SellerDashboardController {
         StackPane iconCircle = new StackPane();
         iconCircle.setPrefSize(64, 64);
         iconCircle.setMaxSize(64, 64);
-        iconCircle.setStyle("-fx-background-color: -app-accent-opacity-10; -fx-background-radius: 32px;");
+        iconCircle.setStyle("-fx-background-color: -app-accent-opacity-12; -fx-background-radius: 32px;");
 
         FontIcon publishIcon = new FontIcon("mdi2p-publish");
         publishIcon.setIconSize(36);
@@ -2794,7 +3109,7 @@ public class SellerDashboardController {
         btnCancel.setPrefHeight(44);
         btnCancel.setMaxWidth(Double.MAX_VALUE);
         btnCancel.setStyle(
-                "-fx-background-color: transparent; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 22px; -fx-background-radius: 22px; -fx-text-fill: -app-text-muted; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
+                "-fx-background-color: transparent; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 22px; -fx-background-radius: 22px; -fx-text-fill: -app-text; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
 
         btnBox.getChildren().addAll(btnConfirm, btnCancel);
         container.getChildren().addAll(iconCircle, titleLabel, descLabel, btnBox);
@@ -2813,85 +3128,18 @@ public class SellerDashboardController {
         javafx.stage.Stage stage = (javafx.stage.Stage) dialogPane.getScene().getWindow();
         stage.initStyle(javafx.stage.StageStyle.TRANSPARENT);
         dialogPane.getScene().setFill(Color.TRANSPARENT);
-        if (dialogPane.getScene() != null) {
-            Scene s = dialogPane.getScene();
-            if (SellerDashboardController.class.getResource("/com/auction/client/view/styles.css") != null) {
-                s.getStylesheets().add(SellerDashboardController.class.getResource("/com/auction/client/view/styles.css").toExternalForm());
-            }
-            com.auction.client.service.AppStyleManager.applyCurrentStyle(s);
-        }
+        com.auction.client.service.AppStyleManager.applyCurrentStyle(dialogPane.getScene());
 
         java.util.Optional<ButtonType> result = dialog.showAndWait();
         return result.isPresent() && result.get() == ButtonType.OK;
     }
 
     private void showAlert(Alert.AlertType type, String title, String content) {
-        if (type == Alert.AlertType.INFORMATION) {
-            Dialog<ButtonType> dialog = new Dialog<>();
-            DialogPane dialogPane = dialog.getDialogPane();
-            dialogPane.getButtonTypes().clear();
-            dialogPane.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
-
-            VBox container = new VBox(20);
-            container.setAlignment(Pos.CENTER);
-            container.setPadding(new javafx.geometry.Insets(32));
-            container.setPrefWidth(360);
-            container.setStyle(
-                    "-fx-background-color: -app-card; -fx-background-radius: 16px; -fx-border-color: -app-border; -fx-border-width: 1px; -fx-border-radius: 16px; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-25, 30, 0, 0, 10);");
-
-            StackPane iconCircle = new StackPane();
-            iconCircle.setPrefSize(64, 64);
-            iconCircle.setMaxSize(64, 64);
-            iconCircle.setStyle("-fx-background-color: rgba(16, 185, 129, 0.1); -fx-background-radius: 32px;");
-
-            FontIcon checkIcon = new FontIcon("mdi2c-check-decagram");
-            checkIcon.setIconSize(36);
-            checkIcon.setIconColor(Color.valueOf("#10b981"));
-            iconCircle.getChildren().add(checkIcon);
-
-            Label titleLabel = new Label(title != null ? title : "Success");
-            titleLabel.setStyle(
-                    "-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: -app-text;");
-
-            Label descLabel = new Label(content);
-            descLabel.setStyle(
-                    "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-text-fill: -app-text-muted; -fx-text-alignment: center;");
-            descLabel.setWrapText(true);
-
-            Button btnOk = new Button("Agree");
-            btnOk.setPrefHeight(44);
-            btnOk.setMaxWidth(Double.MAX_VALUE);
-            btnOk.setStyle(
-                    "-fx-background-color: -fx-accent; -fx-background-radius: 22px; -fx-text-fill: white; -fx-font-family: 'DM Sans'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand;");
-
-            container.getChildren().addAll(iconCircle, titleLabel, descLabel, btnOk);
-            dialogPane.setContent(container);
-
-            btnOk.setOnAction(e -> {
-                dialog.setResult(ButtonType.OK);
-                dialog.close();
-            });
-
-            javafx.stage.Stage stage = (javafx.stage.Stage) dialogPane.getScene().getWindow();
-            stage.initStyle(javafx.stage.StageStyle.TRANSPARENT);
-            dialogPane.getScene().setFill(Color.TRANSPARENT);
-            if (dialogPane.getScene() != null) {
-                Scene s = dialogPane.getScene();
-                if (SellerDashboardController.class.getResource("/com/auction/client/view/styles.css") != null) {
-                    s.getStylesheets().add(SellerDashboardController.class.getResource("/com/auction/client/view/styles.css").toExternalForm());
-                }
-                com.auction.client.service.AppStyleManager.applyCurrentStyle(s);
-            }
-
-            dialog.showAndWait();
-            return;
+        if (javafx.application.Platform.isFxApplicationThread()) {
+            com.auction.client.util.AlertUtil.show(type, title, content);
+        } else {
+            javafx.application.Platform.runLater(() -> com.auction.client.util.AlertUtil.show(type, title, content));
         }
-
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
     }
 
     static class SessionItem {

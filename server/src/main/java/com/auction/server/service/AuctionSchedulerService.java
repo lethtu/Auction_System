@@ -19,13 +19,16 @@ public class AuctionSchedulerService {
     private static final Logger logger = LoggerFactory.getLogger(AuctionSchedulerService.class);
 
     private final AuctionSessionRepository auctionSessionRepository;
+    private final AuctionService auctionService;
 
-    public AuctionSchedulerService(AuctionSessionRepository auctionSessionRepository) {
+    public AuctionSchedulerService(AuctionSessionRepository auctionSessionRepository,
+                                   AuctionService auctionService) {
         this.auctionSessionRepository = auctionSessionRepository;
+        this.auctionService = auctionService;
     }
 
     @Transactional
-    @Scheduled(fixedRate = 5000)
+    @Scheduled(fixedDelay = 5000)
     public void scanAndUpdateAuctionStatus() {
         LocalDateTime now = LocalDateTime.now();
 
@@ -41,32 +44,42 @@ public class AuctionSchedulerService {
         }
 
         // Step 2: Close sessions (ACTIVE -> ENDED or CANCELED if min rate not met)
+        // Use AuctionService.endSession() to properly handle winner deduction + seller credit
         List<AuctionSession> activeSessions = auctionSessionRepository
                 .findByStatusAndEndTimeLessThanEqual(AuctionStatus.ACTIVE, now);
 
         if (!activeSessions.isEmpty()) {
             for (AuctionSession session : activeSessions) {
-                if (Boolean.TRUE.equals(session.getApplyMinRate()) && session.getMinRate() != null) {
-                    if (session.getCurrentPrice() != null && session.getCurrentPrice().compareTo(session.getMinRate()) >= 0) {
-                        session.setStatus(AuctionStatus.ENDED);
-                    } else {
-                        session.setStatus(AuctionStatus.CANCELED);
-                        logger.info("Session ID {} canceled because final price ({}) did not meet min rate ({})",
-                                session.getId(), session.getCurrentPrice(), session.getMinRate());
-                    }
-                } else {
-                    session.setStatus(AuctionStatus.ENDED);
+                try {
+                    auctionService.endSession(session.getId());
+                } catch (Exception e) {
+                    logger.error("[SCHEDULER] Error ending session {}: {}", session.getId(), e.getMessage(), e);
                 }
             }
-            auctionSessionRepository.saveAll(activeSessions);
 
             // Broadcast AUCTION_ENDED event for each newly closed session
             for (AuctionSession session : activeSessions) {
                 try {
-                    if (session != null && session.getId() != null) {
+                    // Re-fetch to get latest status
+                    AuctionSession updated = auctionSessionRepository.findById(session.getId()).orElse(null);
+                    if (updated != null && updated.getId() != null) {
                         JSONObject endEvent = new JSONObject();
                         endEvent.put("type", "AUCTION_ENDED");
-                        endEvent.put("sessionId", session.getId());
+                        endEvent.put("sessionId", updated.getId());
+                        endEvent.put("finalStatus", updated.getStatus().name());
+                        boolean hasWinner = updated.getStatus() == AuctionStatus.ENDED
+                                && updated.getHighestBidderId() != null;
+                        endEvent.put("hasWinner", hasWinner);
+                        if (hasWinner) {
+                            endEvent.put("winnerId", updated.getHighestBidderId());
+                            endEvent.put("highestBidderId", updated.getHighestBidderId());
+                        }
+                        if (updated.getCurrentPrice() != null) {
+                            endEvent.put("finalPrice", updated.getCurrentPrice());
+                        }
+                        if (updated.getItem() != null) {
+                            endEvent.put("itemName", updated.getItem().getName());
+                        }
                         SocketServer.broadcastToAll("EVENT:" + endEvent.toString());
                     }
                 } catch (Exception e) {

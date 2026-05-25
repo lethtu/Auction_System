@@ -9,7 +9,41 @@ import org.slf4j.LoggerFactory;
 import java.net.URL;
 
 public class AppStyleManager {
+
+
     private static final Logger logger = LoggerFactory.getLogger(AppStyleManager.class);
+
+    static {
+
+        loadGlobalFonts();
+    }
+
+    private static void loadGlobalFonts() {
+        try {
+            String[] fonts = {
+                "DMSans-Variable.ttf",
+                "MaterialIcons-Regular.ttf",
+                "MaterialSymbolsOutlined.ttf"
+            };
+            for (String fontName : fonts) {
+                try (java.io.InputStream is = AppStyleManager.class.getResourceAsStream("/com/auction/client/view/fonts/" + fontName)) {
+                    if (is != null) {
+                        javafx.scene.text.Font loadedFont = javafx.scene.text.Font.loadFont(is, 12);
+                        if (loadedFont != null) {
+                            logger.info("Loaded global font successfully: {} ({})", fontName, loadedFont.getName());
+                        } else {
+                            logger.warn("Failed to load font from stream: {}", fontName);
+                        }
+                    } else {
+                        logger.warn("Font resource not found: /com/auction/client/view/fonts/{}", fontName);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error loading global fonts: ", e);
+        }
+    }
+
     
     public static void applyCurrentStyle(Scene scene) {
         if (scene == null) return;
@@ -22,6 +56,7 @@ public class AppStyleManager {
 
     public static void applyCurrentStyle(Parent root) {
         if (root == null) return;
+        updateRootStyleClass(root);
         applyStylesToCollection(root.getStylesheets());
         Scene scene = root.getScene();
         if (scene == null) {

@@ -1,5 +1,6 @@
 /* Pink Accent overrides */
-.root {
+.root,
+.accent-pink {
     -fx-accent: #e040a0;
     -fx-focus-color: #e040a0;
     

@@ -42,14 +42,14 @@
                     <!-- Header Area -->
                     <HBox alignment="CENTER_LEFT" spacing="20.0">
                         <VBox spacing="4.0" HBox.hgrow="ALWAYS">
-                            <Label text="Seller Dashboard" style="-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: -app-text;"/>
+                            <Label text="Seller Dashboard" style="-fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: -fx-accent;"/>
                             <Label text="Manage your inventory and monitor active auctions." style="-fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
                         </VBox>
 
                         <HBox alignment="CENTER" spacing="12.0">
                             <HBox styleClass="search-box" alignment="CENTER_LEFT">
                                 <FontIcon iconLiteral="mdi2m-magnify" iconSize="20" iconColor="#907898"/>
-                                <TextField fx:id="txtSearch" promptText="Search auctions..." style="-fx-background-color: transparent; -fx-pref-width: 200px;" />
+                                <TextField fx:id="txtSearch" promptText="Search auctions..." style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-background-insets: 0; -fx-border-width: 0; -fx-pref-width: 200px;" />
                             </HBox>
                             <Button text="Add New Item" onAction="#handleShowAddModal" styleClass="action-btn-primary">
                                 <graphic>
@@ -78,12 +78,8 @@
                                     <Label fx:id="lblTotalRevenue" text="\$0.00" style="-fx-text-fill: -fx-accent; -fx-font-size: 36px; -fx-font-weight: 900;"/>
                                 </VBox>
                                 <StackPane style="-fx-background-color: -app-accent-opacity-16; -fx-background-radius: 999px; -fx-padding: 12px;">
-                                    <FontIcon iconLiteral="mdi2c-cash" iconSize="24" style="-fx-icon-color: -fx-accent;"/>
+                                    <Label text="&#xef63;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px; -fx-text-fill: -fx-accent;"/>
                                 </StackPane>
-                            </HBox>
-                            <HBox alignment="CENTER_LEFT" spacing="8.0" style="-fx-background-color: #d1fae5; -fx-background-radius: 999px; -fx-padding: 4px 12px; -fx-max-width: max-content;">
-                                <FontIcon iconLiteral="mdi2t-trending-up" iconSize="16" iconColor="#10b981"/>
-                                <Label text="+12% from last month" style="-fx-text-fill: #10b981; -fx-font-weight: bold; -fx-font-size: 12px;"/>
                             </HBox>
                         </VBox>
 
@@ -91,25 +87,14 @@
                         <VBox styleClass="bento-card" GridPane.columnIndex="1" spacing="8.0">
                             <Label text="Active Auctions" style="-fx-text-fill: -app-text-muted; -fx-font-weight: bold; -fx-font-size: 14px;"/>
                             <Label fx:id="lblActiveAuctions" text="0" style="-fx-text-fill: #7c52aa; -fx-font-size: 28px; -fx-font-weight: 900;"/>
-                            <ProgressBar progress="0.66" prefWidth="200.0" style="-fx-accent: #7c52aa; -fx-control-inner-background: #eedcff;"/>
-                            <Label text="6 ending today" style="-fx-text-fill: -app-text-muted; -fx-font-size: 12px;"/>
                         </VBox>
 
                         <!-- Total Bids Card -->
                         <VBox styleClass="bento-card" GridPane.columnIndex="2" spacing="8.0">
                             <Label text="Total Bids" style="-fx-text-fill: -app-text-muted; -fx-font-weight: bold; -fx-font-size: 14px;"/>
-                            <Label fx:id="lblTotalBids" text="0" style="-fx-text-fill: #0096cc; -fx-font-size: 28px; -fx-font-weight: 900;"/>
-                            <HBox spacing="-8.0">
-                                <Circle radius="16" fill="#cccccc" stroke="white" strokeWidth="2"/>
-                                <Circle radius="16" fill="#aaaaaa" stroke="white" strokeWidth="2"/>
-                                <Circle radius="16" fill="#888888" stroke="white" strokeWidth="2"/>
-                                <StackPane>
-                                    <Circle radius="16" fill="#40c0ee" stroke="white" strokeWidth="2"/>
-                                    <Label text="+9" style="-fx-text-fill: #00334d; -fx-font-weight: bold; -fx-font-size: 10px;"/>
-                                </StackPane>
-                            </HBox>
-                            <Label text="New bids this week" style="-fx-text-fill: -app-text-muted; -fx-font-size: 12px;"/>
+                            <Label fx:id="lblTotalBids" text="0" style="-fx-text-fill: #7c52aa; -fx-font-size: 28px; -fx-font-weight: 900;"/>
                         </VBox>
+
                     </GridPane>
 
                     <!-- Manage Listings Table -->
@@ -117,15 +102,6 @@
 
                         <HBox alignment="CENTER_LEFT" styleClass="seller-listings-header">
                             <Label text="Manage Listings" style="-fx-font-size: 20px; -fx-font-weight: 900; -fx-text-fill: -app-text;"/>
-                            <Region HBox.hgrow="ALWAYS" />
-                            <HBox spacing="8.0">
-                                <Button styleClass="action-btn">
-                                    <graphic><FontIcon iconLiteral="mdi2f-filter-variant" iconSize="20" iconColor="#604868"/></graphic>
-                                </Button>
-                                <Button styleClass="action-btn">
-                                    <graphic><FontIcon iconLiteral="mdi2d-download" iconSize="20" iconColor="#604868"/></graphic>
-                                </Button>
-                            </HBox>
                         </HBox>
 
                         <TableView fx:id="sessionsTable" styleClass="custom-table" VBox.vgrow="ALWAYS" prefHeight="400">
@@ -175,7 +151,7 @@
                         <Label text="Item Title" style="-fx-font-weight: bold; -fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
                         <TextField fx:id="productNameField" promptText="Enter product title" styleClass="custom-text-input"/>
                         <HBox fx:id="errorTitle" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
-                            <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" style="-fx-icon-color: -fx-accent;"/>
+                            <Label text="&#xe002;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 14px; -fx-text-fill: -fx-accent;"/>
                             <Label text="Product name cannot be empty" style="-fx-text-fill: -fx-accent; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                         </HBox>
                     </VBox>
@@ -185,7 +161,7 @@
                             <Label text="Category" style="-fx-font-weight: bold; -fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
                             <ComboBox fx:id="productTypeCombo" maxWidth="Infinity" styleClass="custom-combo-box" style="-fx-padding: 8px 16px;"/>
                             <HBox fx:id="errorCategory" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
-                                <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" style="-fx-icon-color: -fx-accent;"/>
+                                <Label text="&#xe002;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 14px; -fx-text-fill: -fx-accent;"/>
                                 <Label text="Please select a product type" style="-fx-text-fill: -fx-accent; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                             </HBox>
                         </VBox>
@@ -193,7 +169,7 @@
                             <Label text="Starting Price (VND)" style="-fx-font-weight: bold; -fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
                             <TextField fx:id="startingPriceField" promptText="0" styleClass="custom-text-input" maxWidth="Infinity"/>
                             <HBox fx:id="errorPrice" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
-                                <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" style="-fx-icon-color: -fx-accent;"/>
+                                <Label text="&#xe002;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 14px; -fx-text-fill: -fx-accent;"/>
                                 <Label fx:id="lblErrorPrice" text="Invalid starting price" style="-fx-text-fill: -fx-accent; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                             </HBox>
                         </VBox>
@@ -201,7 +177,7 @@
                             <Label text="Reserve Price (VND)" style="-fx-font-weight: bold; -fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
                             <TextField fx:id="reservePriceField" promptText="Any" styleClass="custom-text-input" maxWidth="Infinity"/>
                             <HBox fx:id="errorReservePrice" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
-                                <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" style="-fx-icon-color: -fx-accent;"/>
+                                <Label text="&#xe002;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 14px; -fx-text-fill: -fx-accent;"/>
                                 <Label fx:id="lblErrorReservePrice" text="Invalid reserve price" style="-fx-text-fill: -fx-accent; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                             </HBox>
                         </VBox>
@@ -228,7 +204,7 @@
                                 <DatePicker fx:id="datePickerStart" visible="false" managed="false"/>
                             </HBox>
                             <HBox fx:id="errorStartDT" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
-                                <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" style="-fx-icon-color: -fx-accent;"/>
+                                <Label text="&#xe002;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 14px; -fx-text-fill: -fx-accent;"/>
                                 <Label fx:id="lblErrorStartDT" text="Please enter a valid start date and time!" style="-fx-text-fill: -fx-accent; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                             </HBox>
                         </VBox>
@@ -251,35 +227,38 @@
                                 <DatePicker fx:id="datePickerEnd" visible="false" managed="false"/>
                             </HBox>
                             <HBox fx:id="errorEndDT" alignment="CENTER_LEFT" spacing="4" visible="false" managed="false" style="-fx-padding: 2px 0 0 4px;">
-                                <FontIcon iconLiteral="mdi2a-alert-circle-outline" iconSize="14" style="-fx-icon-color: -fx-accent;"/>
+                                <Label text="&#xe002;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 14px; -fx-text-fill: -fx-accent;"/>
                                 <Label fx:id="lblErrorEndDT" text="End time must be after start time" style="-fx-text-fill: -fx-accent; -fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                             </HBox>
                         </VBox>
                     </HBox>
 
                     <HBox spacing="16">
-                        <!-- Left half: Product Image -->
                         <VBox spacing="8" HBox.hgrow="ALWAYS" prefWidth="250">
-                            <Label text="Product Image" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
-                            <VBox fx:id="imageUploadArea" alignment="CENTER" spacing="8" style="-fx-border-color: #dcc8e0; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 24px; -fx-cursor: hand; -fx-background-color: transparent; -fx-min-height: 120px;">
+                            <Label text="Product Image" style="-fx-font-weight: bold; -fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
+                            <VBox fx:id="imageUploadArea" alignment="CENTER" spacing="8" style="-fx-border-color: -app-border; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 24px; -fx-cursor: hand; -fx-background-color: transparent; -fx-min-height: 120px;">
                                 <FontIcon iconLiteral="mdi2c-cloud-upload" iconSize="36" iconColor="#907898"/>
-                                <Label text="Click or drag image" style="-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #604868;"/>
-                                <Label fx:id="lblImageFileName" text="" style="-fx-font-size: 11px; -fx-text-fill: #a02070;"/>
+                                <Label text="Click or drag image" style="-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: -app-text-muted;"/>
+                                <Label fx:id="lblImageFileName" text="" style="-fx-font-size: 11px; -fx-text-fill: -fx-accent;"/>
+                                <ProgressBar fx:id="imageUploadProgress" progress="0" visible="false" managed="false" prefWidth="150" style="-fx-accent: -fx-accent;"/>
+                                <Label fx:id="lblImageUploadProgress" text="" visible="false" managed="false" style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -fx-accent;"/>
                             </VBox>
                             <TextField fx:id="imageUrlField" visible="false" managed="false" />
                         </VBox>
-                        <!-- Right half: 3D Model -->
+
                         <VBox spacing="8" HBox.hgrow="ALWAYS" prefWidth="250">
-                            <Label text="3D Model (Optional)" style="-fx-font-weight: bold; -fx-text-fill: #604868; -fx-font-size: 14px;"/>
-                            <VBox fx:id="modelUploadArea" alignment="CENTER" spacing="8" style="-fx-border-color: #dcc8e0; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 24px; -fx-cursor: hand; -fx-background-color: transparent; -fx-min-height: 120px;">
+                            <Label text="3D Model (Optional)" style="-fx-font-weight: bold; -fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
+                            <VBox fx:id="modelUploadArea" alignment="CENTER" spacing="8" style="-fx-border-color: -app-border; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 24px; -fx-cursor: hand; -fx-background-color: transparent; -fx-min-height: 120px;">
                                 <FontIcon iconLiteral="mdi2c-cube-outline" iconSize="36" iconColor="#907898"/>
-                                <Label text="Click or drag 3D file" style="-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #604868;"/>
-                                <Label fx:id="lblModelFileName" text="" style="-fx-font-size: 11px; -fx-text-fill: #a02070;"/>
+                                <Label text="Click or drag GLB file" style="-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: -app-text-muted;"/>
+                                <Label fx:id="lblModelFileName" text="" style="-fx-font-size: 11px; -fx-text-fill: -fx-accent;"/>
+                                <ProgressBar fx:id="modelUploadProgress" progress="0" visible="false" managed="false" prefWidth="150" style="-fx-accent: -fx-accent;"/>
+                                <Label fx:id="lblModelUploadProgress" text="" visible="false" managed="false" style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -fx-accent;"/>
                             </VBox>
                             <TextField fx:id="modelUrlField" visible="false" managed="false" />
                         </VBox>
                     </HBox>
-                    
+
                     <VBox spacing="8">
                         <Label text="Description" style="-fx-font-weight: bold; -fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
                         <TextArea fx:id="descriptionArea" prefRowCount="3" promptText="Describe the item..." styleClass="transparent-text-area" style="-fx-padding: 12px;"/>

@@ -1,5 +1,6 @@
 /* ====== DARK THEME: token definitions ====== */
-.root {
+.root,
+.theme-dark {
     -app-bg:          #120d18;
     -app-bg-gradient: linear-gradient(to bottom right, #120d18 0%, #17101e 52%, #1a1223 100%);
     -app-topbar-bg: rgba(26, 18, 35, 0.97);
@@ -26,8 +27,6 @@
 .content-area,
 .app-topbar,
 .app-topbar-even,
-.theme-dark .app-sidebar-content,
-.theme-dark .app-sidebar-content-collapsed,
 .admin-bidpop-topbar {
     -fx-background-color: -app-bg;
 }
@@ -39,10 +38,20 @@
     -fx-fill:      -app-text;
 }
 
+.label .text,
+.button .text,
+.toggle-button .text,
+.check-box .text,
+.radio-button .text,
+.hyperlink .text {
+    -fx-fill: -fx-text-fill !important;
+}
+
 /* ====== BUTTONS ====== */
 .button {
     -fx-text-fill: -app-text;
 }
+
 
 /* Transparent/ghost buttons (sidebar nav, topbar icons) */
 .button:hover {
@@ -99,6 +108,64 @@
 }
 .combo-box-popup .list-cell:hover {
     -fx-background-color: -app-surface-2;
+}
+
+/* ====== DATE PICKER POPUP ====== */
+.date-picker-popup {
+    -fx-background-color: -app-card;
+    -fx-border-color: -app-border;
+}
+
+.date-picker-popup > .month-year-pane {
+    -fx-background-color: -app-surface-2;
+}
+
+.date-picker-popup > .month-year-pane .label,
+.date-picker-popup > .month-year-pane .spinner .label {
+    -fx-text-fill: -app-text;
+}
+
+.date-picker-popup > .month-year-pane .spinner .button .left-arrow,
+.date-picker-popup > .month-year-pane .spinner .button .right-arrow {
+    -fx-background-color: -app-text;
+}
+
+.date-picker-popup > .month-year-pane .spinner .button {
+    -fx-background-color: transparent;
+}
+
+.date-picker-popup > .month-year-pane .spinner .button:hover {
+    -fx-background-color: -app-accent-opacity-16;
+}
+
+.date-picker-popup > * > .day-name-cell,
+.date-picker-popup > * > .week-number-cell {
+    -fx-background-color: -app-card;
+    -fx-text-fill: -app-text-muted;
+}
+
+.date-picker-popup > * > .day-cell {
+    -fx-background-color: -app-card;
+    -fx-border-color: -app-surface-2;
+    -fx-text-fill: -app-text;
+}
+
+.date-picker-popup > * > .previous-month,
+.date-picker-popup > * > .next-month {
+    -fx-text-fill: -app-placeholder;
+}
+
+.date-picker-popup > * > .day-cell:hover {
+    -fx-background-color: -app-surface-2;
+}
+
+.date-picker-popup > * > .today {
+    -fx-border-color: -fx-accent;
+}
+
+.date-picker-popup > * > .selected {
+    -fx-background-color: -fx-accent;
+    -fx-text-fill: #ffffff;
 }
 
 /* ====== SCROLL PANES ====== */
@@ -212,7 +279,6 @@
     -fx-border-color: -app-border;
 }
 
-/* ====== SELLER DASHBOARD THEMED OVERRIDES ====== */
 .theme-dark .seller-dashboard-surface {
     -fx-background-color: -app-bg;
     -fx-border-color: -app-accent-opacity-40;
@@ -235,14 +301,81 @@
     -fx-border-color: -app-border;
 }
 
-/* ====== APP CONTENT PANEL OVERRIDES ====== */
 .theme-dark .app-content-panel,
 .theme-dark .app-content-scroll {
     -fx-border-color: -app-accent-opacity-40;
 }
 
+.theme-dark .app-sidebar-scroll,
+.theme-dark .app-sidebar-scroll-collapsed {
+    -fx-border-color: -app-accent-opacity-40;
+}
+
 /* ====== DARK THEME CHIP OVERRIDES ====== */
+.root.theme-dark,
 .theme-dark {
     -app-accent-chip-bg: -app-accent-opacity-16;
     -app-accent-chip-border: -app-accent-opacity-38;
+}
+
+/* ====== SECONDARY BUTTON OVERRIDES ====== */
+.btn-account-secondary {
+    -fx-background-color: -app-input-bg;
+    -fx-text-fill: -fx-accent;
+    -fx-border-color: -app-accent-opacity-38;
+}
+
+.btn-account-secondary:hover {
+    -fx-background-color: -app-surface-2;
+    -fx-border-color: -fx-accent;
+}
+
+/* ====== AUTH SCREEN OVERRIDES ====== */
+.auth-brand-title,
+.auth-root .auth-brand-title,
+.auth-root .label.auth-brand-title {
+    -fx-text-fill: #ffffff !important;
+}
+
+.auth-brand-subtitle,
+.auth-root .auth-brand-subtitle,
+.auth-root .label.auth-brand-subtitle {
+    -fx-text-fill: #ffffff !important;
+}
+
+.auth-primary-button,
+.auth-root .button.auth-primary-button,
+.auth-root .auth-primary-button {
+    -fx-text-fill: #ffffff !important;
+}
+
+
+
+/* === AUTH WHITE FOREGROUND FIX START ===
+   The global theme styles the internal .text node directly.
+   Lock both the control foreground and rendered Text fill for light and dark modes. */
+.auth-root .auth-brand-title,
+.auth-root .auth-brand-subtitle,
+.auth-root .button.auth-primary-button {
+    -fx-text-fill: #ffffff;
+    -fx-text-fill: #ffffff !important;
+}
+
+.auth-root .auth-brand-title .text,
+.auth-root .auth-brand-subtitle .text,
+.auth-root .button.auth-primary-button .text {
+    -fx-fill: #ffffff;
+    -fx-fill: #ffffff !important;
+}
+/* === AUTH WHITE FOREGROUND FIX END === */
+
+/* Keep accent action content readable after the global dark-theme button rules. */
+.theme-dark .button.password-security-primary-btn,
+.theme-dark .button.action-btn-primary {
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-dark .button.password-security-primary-btn .text,
+.theme-dark .button.action-btn-primary .text {
+    -fx-fill: #ffffff !important;
 }

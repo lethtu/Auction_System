@@ -75,6 +75,21 @@ public class SessionManager {
     }
 
     /**
+     * Updates the role for all active sessions of a given user ID.
+     */
+    public void updateRoleByUserId(Integer userId, String newRole) {
+        if (userId == null || newRole == null) {
+            return;
+        }
+        for (Map.Entry<String, SessionUser> entry : activeSessions.entrySet()) {
+            SessionUser su = entry.getValue();
+            if (userId.equals(su.getUserId())) {
+                activeSessions.put(entry.getKey(), new SessionUser(su.getUserId(), su.getUsername(), newRole));
+            }
+        }
+    }
+
+    /**
      * Clears all sessions.
      */
     public void clearAll() {

@@ -1,5 +1,6 @@
 /* Blue Accent overrides */
-.root {
+.root,
+.accent-blue {
     -fx-accent: #3b82f6;
     -fx-focus-color: #3b82f6;
     

@@ -105,6 +105,7 @@ public class LoginController {
                 FeaturedProduct currentProd = featuredProducts.get(featuredProductIndex);
                 if (currentProd != null && currentProd.sessionObj() != null && currentProd.itemObj() != null) {
                     try {
+                        User.setSession(null, "guest", "Guest", "guest@bidpop.com", null, null, "guest", null);
                         FXMLLoader loader = SceneSwitcher.switchScene(event, "AuctionPage.fxml", 1280, 800);
                         AuctionPageController controller = loader.getController();
                         controller.setItem(currentProd.sessionObj(), currentProd.itemObj());

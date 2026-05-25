@@ -3,7 +3,6 @@ package com.auction.server.controller;
 import com.auction.server.dto.ApiResponse;
 import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.mapper.SessionResponseMapper;
-import com.auction.server.model.AuctionSession;
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.repository.AuctionSessionRepository;
 import com.auction.server.repository.UserRepository;
@@ -42,9 +41,9 @@ public class PublicAuctionController {
     // Returns DTO instead of entity to avoid JPA relationship serialization errors and for stable client reading.
     @GetMapping("/all")
     public ResponseEntity<ApiResponse<List<SessionResponseDTO>>> getAllSessions() {
-        List<SessionResponseDTO> sessions = auctionSessionRepository.findAll()
+        List<SessionResponseDTO> sessions = auctionSessionRepository
+                .findVisiblePublicSessionsExcludingStatuses(List.of(AuctionStatus.DRAFT, AuctionStatus.CANCELED))
                 .stream()
-                .filter(this::isProductVisible)
                 .map(SessionResponseMapper::toDTO)
                 .toList();
 
@@ -65,13 +64,5 @@ public class PublicAuctionController {
         response.put("data", data);
 
         return ResponseEntity.ok(response);
-    }
-
-    private boolean isProductVisible(AuctionSession session) {
-        return session != null
-                && session.getItem() != null
-                && !session.getItem().isHidden()
-                && session.getStatus() != AuctionStatus.DRAFT
-                && session.getStatus() != AuctionStatus.CANCELED;
     }
 }

@@ -89,6 +89,13 @@
     -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-08, 30, 0, 0, 8);
     -fx-padding: 24px;
 }
+.bento-card:hover {
+    -fx-border-color: -fx-primary;
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-15, 30, 0, 0, 10);
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+    -fx-cursor: hand;
+}
 
 /* Table Customization */
 .custom-table {
@@ -130,20 +137,40 @@
 .badge {
     -fx-padding: 4px 12px;
     -fx-background-radius: 999px;
+    -fx-border-radius: 999px;
+    -fx-border-width: 1px;
     -fx-font-weight: bold;
     -fx-font-size: 12px;
 }
 .badge-live {
-    -fx-background-color: -fx-success-bg;
-    -fx-text-fill: -fx-success;
+    -fx-background-color: rgba(46, 204, 113, 0.15);
+    -fx-text-fill: #2ecc71;
+    -fx-border-color: rgba(46, 204, 113, 0.3);
 }
 .badge-draft {
-    -fx-background-color: -app-accent-opacity-16; /* primary-fixed */
-    -fx-text-fill: -fx-accent; /* on-primary-fixed-variant */
+    -fx-background-color: -app-accent-opacity-16;
+    -fx-text-fill: -fx-accent;
+    -fx-border-color: -app-accent-opacity-38;
 }
 .badge-ended {
-    -fx-background-color: #c8eaff; /* tertiary-fixed */
-    -fx-text-fill: #005580; /* on-tertiary-fixed-variant */
+    -fx-background-color: rgba(231, 76, 60, 0.15);
+    -fx-text-fill: #e74c3c;
+    -fx-border-color: rgba(231, 76, 60, 0.3);
+}
+.badge-coming {
+    -fx-background-color: rgba(52, 152, 219, 0.15);
+    -fx-text-fill: #3498db;
+    -fx-border-color: rgba(52, 152, 219, 0.3);
+}
+.badge-canceled {
+    -fx-background-color: rgba(149, 165, 166, 0.15);
+    -fx-text-fill: #95a5a6;
+    -fx-border-color: rgba(149, 165, 166, 0.3);
+}
+.badge-default {
+    -fx-background-color: -app-surface-2;
+    -fx-text-fill: -app-text-muted;
+    -fx-border-color: -app-border;
 }
 
 /* Action Buttons */
@@ -158,12 +185,16 @@
 }
 .action-btn-primary {
     -fx-background-color: -fx-primary;
-    -fx-text-fill: -fx-on-primary;
+    -fx-text-fill: -fx-on-primary !important;
+    -fx-fill: #ffffff !important;
     -fx-background-radius: 999px;
     -fx-padding: 12px 24px;
     -fx-font-weight: bold;
     -fx-cursor: hand;
     -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-20, 16, 0, 0, 4);
+}
+.action-btn-primary .text {
+    -fx-fill: #ffffff !important;
 }
 .action-btn-primary:hover {
     -fx-scale-x: 1.03;

@@ -18,6 +18,7 @@ public class User {
     private static String role;
 
     private static BigDecimal balance = BigDecimal.ZERO;
+    private static BigDecimal frozenBalance = BigDecimal.ZERO;
 
     private static String avatarUrl;
 
@@ -35,6 +36,11 @@ public class User {
     public static void setCachedAvatarImage(javafx.scene.image.Image img, String url) {
         cachedAvatarImage = img;
         cachedAvatarUrl = url;
+    }
+
+    public static void clearCachedAvatarImage() {
+        cachedAvatarImage = null;
+        cachedAvatarUrl = null;
     }
 
     public static String getCachedAvatarUrl() {
@@ -61,6 +67,7 @@ public class User {
         role = Role;
         avatarUrl = AvatarUrl;
         balance = BigDecimal.ZERO;
+        frozenBalance = BigDecimal.ZERO;
         watchlistIds.clear();
         if (username != null) {
             watchlistIds.addAll(com.auction.client.service.ClientLogger.loadUserFavorites(username));
@@ -85,6 +92,12 @@ public class User {
         avatarUrl = AvatarUrl;
     }
 
+    public static void updateProfile(String Username, String Fullname, String Email, String Dob, String Place_of_birth, BigDecimal Balance, BigDecimal FrozenBalance, String AvatarUrl){
+        updateProfile(Username, Fullname, Email, Dob, Place_of_birth, Balance);
+        setFrozenBalance(FrozenBalance);
+        avatarUrl = AvatarUrl;
+    }
+
     public static void setBalance(BigDecimal Balance) {
         balance = Balance == null ? BigDecimal.ZERO : Balance;
     }
@@ -102,6 +115,7 @@ public class User {
         place_of_birth = null;
         role = null;
         balance = BigDecimal.ZERO;
+        frozenBalance = BigDecimal.ZERO;
         avatarUrl = null;
         sessionToken = null;
         watchlistIds.clear();
@@ -146,6 +160,18 @@ public class User {
 
     public static BigDecimal getBalance() {
         return balance == null ? BigDecimal.ZERO : balance;
+    }
+
+    public static BigDecimal getFrozenBalance() {
+        return frozenBalance == null ? BigDecimal.ZERO : frozenBalance;
+    }
+
+    public static void setFrozenBalance(BigDecimal fb) {
+        frozenBalance = fb == null ? BigDecimal.ZERO : fb;
+    }
+
+    public static BigDecimal getAvailableBalance() {
+        return getBalance().subtract(getFrozenBalance());
     }
 
     public static String getAvatarUrl() {

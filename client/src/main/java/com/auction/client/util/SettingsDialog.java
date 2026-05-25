@@ -102,10 +102,6 @@ public final class SettingsDialog {
         Label lblGrpUi = new Label("INTERFACE & EXPERIENCE");
         lblGrpUi.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -fx-accent; -fx-padding: 4 0 4 0;");
 
-        CheckBox chkCollapse = new CheckBox("Auto-collapse sidebar");
-        chkCollapse.setSelected(prefs.getBoolean(KEY_AUTO_COLLAPSE, false));
-        chkCollapse.setStyle("-fx-font-size: 14px; -fx-text-fill: -app-text; -fx-cursor: hand;");
-
         // Language Dropdown
         HBox rowLang = new HBox(10);
         rowLang.setAlignment(Pos.CENTER_LEFT);
@@ -136,7 +132,7 @@ public final class SettingsDialog {
 
         rowColor.getChildren().addAll(lblColor, spacerColor, cbColor);
 
-        grpUi.getChildren().addAll(lblGrpUi, chkCollapse, rowLang, rowColor);
+        grpUi.getChildren().addAll(lblGrpUi, rowLang, rowColor);
         content.getChildren().add(grpUi);
 
         // Group 3: Quick Actions (Optional)
@@ -205,17 +201,8 @@ public final class SettingsDialog {
                 prefs.putBoolean(KEY_OUTBID, chkOutbid.isSelected());
                 prefs.putBoolean(KEY_SOUND, chkSound.isSelected());
                 
-                boolean oldAutoCollapse = prefs.getBoolean(KEY_AUTO_COLLAPSE, false);
-                boolean newAutoCollapse = chkCollapse.isSelected();
-                prefs.putBoolean(KEY_AUTO_COLLAPSE, newAutoCollapse);
-                
                 prefs.put(KEY_LANGUAGE, cbLang.getValue());
                 prefs.put(KEY_ACCENT_COLOR, cbColor.getValue());
-
-                // Update sidebar collapse globally in memory if it changed
-                if (oldAutoCollapse != newAutoCollapse) {
-                    com.auction.client.controller.SidebarController.isSidebarCollapsed = newAutoCollapse;
-                }
             }
             return button;
         });
@@ -231,7 +218,4 @@ public final class SettingsDialog {
         return com.auction.client.service.SettingsService.getInstance().isOutbidNotificationEnabled();
     }
 
-    public static boolean isAutoCollapseSidebarEnabled() {
-        return com.auction.client.service.SettingsService.getInstance().isAutoCollapseSidebar();
-    }
 }

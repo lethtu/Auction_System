@@ -18,6 +18,7 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.Scanner;
 import com.auction.client.util.AlertUtil;
+import com.auction.client.util.TermsDialog;
 
 public class UpToSellerController implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(UpToSellerController.class);
@@ -36,6 +37,20 @@ public class UpToSellerController implements Initializable {
             if (sidebarController != null) {
                 topbarController.setSidebarController(sidebarController);
             }
+        }
+        if (chkAgree != null) {
+            chkAgree.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, event -> {
+                if (!chkAgree.isSelected()) {
+                    event.consume();
+                    showTermsAndCheck(chkAgree, false);
+                }
+            });
+            chkAgree.addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
+                if (event.getCode() == javafx.scene.input.KeyCode.SPACE && !chkAgree.isSelected()) {
+                    event.consume();
+                    showTermsAndCheck(chkAgree, false);
+                }
+            });
         }
     }
 
@@ -61,6 +76,9 @@ public class UpToSellerController implements Initializable {
                 HttpURLConnection conn = (HttpURLConnection) java.net.URI.create(apiUrl).toURL().openConnection();
                 conn.setRequestMethod("POST");
                 conn.setRequestProperty("Content-Type", "application/json");
+                if (com.auction.client.model.User.getSessionToken() != null) {
+                    conn.setRequestProperty("X-Auth-Token", com.auction.client.model.User.getSessionToken());
+                }
 
                 int responseCode = conn.getResponseCode();
                 InputStream stream = (responseCode >= 200 && responseCode < 300) ? conn.getInputStream() : conn.getErrorStream();
@@ -121,5 +139,47 @@ public class UpToSellerController implements Initializable {
         lblMessage.setStyle("-fx-text-fill: #ef4444; -fx-font-weight: bold;");
         lblMessage.setVisible(true);
         lblMessage.setManaged(true);
+    }
+
+    private void showTermsAndCheck(javafx.scene.control.CheckBox checkBox, boolean isSignUp) {
+        String title, subtitle, termsText;
+        if (isSignUp) {
+            title = "Terms & Conditions";
+            subtitle = "Please read and scroll to the bottom to accept the BidPop terms.";
+            termsText = "BidPop Marketplace Terms & Conditions\n\n"
+                    + "Welcome to BidPop! By creating an account, you agree to comply with and be bound by the following terms of service. Please review them carefully.\n\n"
+                    + "1. Acceptance of Terms\n"
+                    + "By accessing or using BidPop, you agree to be bound by these Terms. If you do not agree, please do not use the application.\n\n"
+                    + "2. Account Registration\n"
+                    + "You must provide accurate and complete information during registration. You are responsible for keeping your credentials secure and confidential.\n\n"
+                    + "3. User Conduct\n"
+                    + "You agree not to engage in any prohibited activities, including bid shilling, fraud, or violating laws and rights of others.\n\n"
+                    + "4. Termination\n"
+                    + "We reserve the right to suspend or terminate accounts that violate our policies or engage in disruptive behavior.\n\n"
+                    + "5. Liability & Disclaimers\n"
+                    + "BidPop is provided 'as is' without warranties. We are not liable for transaction disputes between buyers and sellers.\n\n"
+                    + "Please scroll to the bottom to confirm you have read and accepted these terms.";
+        } else {
+            title = "Seller Policy Agreement";
+            subtitle = "Read the merchant terms before selling on BidPop.";
+            termsText = "BidPop Seller Terms & Policies\n\n"
+                    + "Welcome to the BidPop Seller Program! To upgrade your account and start selling, you must agree to these Seller Policies.\n\n"
+                    + "1. Product Listings\n"
+                    + "Sellers must describe their items accurately. Listing illegal, counterfeit, or prohibited items is strictly forbidden.\n\n"
+                    + "2. Auction Rules\n"
+                    + "Sellers agree to fulfill orders at the final winning bid. Shill bidding or manipulation is subject to immediate ban.\n\n"
+                    + "3. Fees & Commissions\n"
+                    + "BidPop charges fees on completed auctions. Detailed fee schedules are published under the Help Center.\n\n"
+                    + "4. Dispute Resolution\n"
+                    + "Sellers must cooperate with our support team to resolve buyer complaints. Failure to do so will affect your seller rating.\n\n"
+                    + "Please scroll to the bottom to confirm you have read and accepted the seller policies.";
+        }
+
+        boolean accepted = TermsDialog.show(checkBox.getScene().getWindow(), title, subtitle, termsText);
+        if (accepted) {
+            checkBox.setSelected(true);
+        } else {
+            checkBox.setSelected(false);
+        }
     }
 }

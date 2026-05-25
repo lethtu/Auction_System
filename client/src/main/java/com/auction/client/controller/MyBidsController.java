@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
+import com.auction.client.HttpClientSingleton;
 import javafx.application.Platform;
 import javafx.animation.PauseTransition;
 import javafx.event.ActionEvent;
@@ -24,6 +25,7 @@ import javafx.util.Duration;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import com.auction.client.model.User;
+import com.auction.client.util.ShippingInfoDialog;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.math.BigDecimal;
@@ -34,6 +36,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -45,7 +48,7 @@ import java.util.concurrent.TimeUnit;
 public class MyBidsController implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(MyBidsController.class);
 
-    private HttpClient client = HttpClient.newHttpClient();
+    private HttpClient client = HttpClientSingleton.getInstance().getHttpClient();
 
     @FXML
     private ScrollPane scrollPane;
@@ -155,18 +158,19 @@ public class MyBidsController implements Initializable {
         final double cardWidth = 250.0;
         final double hgap = 24.0;
         final int maxColumns = 8;
+        final double paddingOffset = 24.0; // 12px left + 12px right padding
 
-        int columns = Math.max(1, Math.min(maxColumns, (int) Math.floor((viewportWidth + hgap) / (cardWidth + hgap))));
+        int columns = Math.max(1, Math.min(maxColumns, (int) Math.floor((viewportWidth - paddingOffset + hgap) / (cardWidth + hgap))));
         double gridWidth = columns * cardWidth + Math.max(0, columns - 1) * hgap;
 
         productContainer.setAlignment(Pos.TOP_LEFT);
-        productContainer.setPrefWrapLength(gridWidth);
-        productContainer.setMinWidth(gridWidth);
-        productContainer.setPrefWidth(gridWidth);
-        productContainer.setMaxWidth(gridWidth);
+        productContainer.setPrefWrapLength(gridWidth + paddingOffset);
+        productContainer.setMinWidth(gridWidth + paddingOffset);
+        productContainer.setPrefWidth(gridWidth + paddingOffset);
+        productContainer.setMaxWidth(gridWidth + paddingOffset);
         productContainer.setHgap(hgap);
         productContainer.setVgap(28.0);
-        productContainer.setPadding(new Insets(10.0, 0.0, 18.0, 0.0));
+        productContainer.setPadding(new Insets(10.0, 12.0, 18.0, 12.0));
     }
 
     private void startPolling() {
@@ -175,7 +179,7 @@ public class MyBidsController implements Initializable {
             t.setDaemon(true);
             return t;
         });
-        pollingScheduler.scheduleAtFixedRate(this::fetchProductsData, 0, 5, TimeUnit.SECONDS);
+        pollingScheduler.scheduleWithFixedDelay(this::fetchProductsData, 0, 5, TimeUnit.SECONDS);
     }
 
     private void fetchProductsData() {
@@ -185,7 +189,6 @@ public class MyBidsController implements Initializable {
                 logger.warn("[MyBids-DEBUG] userId is NULL, skipping fetch");
                 return;
             }
-            logger.info("[MyBids-DEBUG] Fetching my-bids for userId={}", userId);
             HttpRequest.Builder builder = HttpRequest.newBuilder()
                     .uri(URI.create(Config.API_URL + "/api/bidder/my-bids?bidderId=" + userId))
                     .GET();
@@ -195,31 +198,18 @@ public class MyBidsController implements Initializable {
             HttpRequest request = builder.build();
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            logger.info("[MyBids-DEBUG] HTTP status={}, body length={}", response.statusCode(),
-                    response.body().length());
-            logger.info("[MyBids-DEBUG] Response body (first 500 chars): {}",
-                    response.body().substring(0, Math.min(500, response.body().length())));
-
             if (response.statusCode() == 200) {
                 JSONObject responseJson = new JSONObject(response.body());
                 int apiStatus = responseJson.getInt("status");
-                logger.info("[MyBids-DEBUG] API status={}", apiStatus);
 
                 if (apiStatus == 200) {
                     Object dataObj = responseJson.get("data");
-                    logger.info("[MyBids-DEBUG] data type={}", dataObj.getClass().getSimpleName());
                     JSONArray jsonArray = new JSONArray();
 
                     if (dataObj instanceof JSONObject) {
                         jsonArray = ((JSONObject) dataObj).getJSONArray("content");
                     } else if (dataObj instanceof JSONArray) {
                         jsonArray = (JSONArray) dataObj;
-                    }
-
-                    logger.info("[MyBids-DEBUG] jsonArray length={}", jsonArray.length());
-                    if (jsonArray.length() > 0) {
-                        logger.info("[MyBids-DEBUG] First item: {}", jsonArray.getJSONObject(0).toString().substring(0,
-                                Math.min(300, jsonArray.getJSONObject(0).toString().length())));
                     }
 
                     List<JSONObject> newProducts = new ArrayList<>();
@@ -229,14 +219,12 @@ public class MyBidsController implements Initializable {
 
                     allProducts.clear();
                     allProducts.addAll(newProducts);
-                    logger.info("[MyBids-DEBUG] allProducts size={}, currentTab={}", allProducts.size(), currentTab);
-
                     Platform.runLater(this::filterAndRenderProducts);
                 } else {
-                    logger.warn("[MyBids-DEBUG] API returned non-200 status: {}", apiStatus);
+                    logger.warn("My Bids API returned status {}", apiStatus);
                 }
             } else {
-                logger.warn("[MyBids-DEBUG] HTTP returned non-200 status: {}", response.statusCode());
+                logger.warn("My Bids request returned HTTP status {}", response.statusCode());
             }
         } catch (Exception e) {
             logger.error("Error loading products: {}", e.getMessage(), e);
@@ -255,8 +243,11 @@ public class MyBidsController implements Initializable {
 
         Platform.runLater(() -> {
             List<String> newStatesToRender = new ArrayList<>();
+            List<JSONObject> displayProducts = currentTab == Tab.ENDED
+                    ? prioritizeWonProducts(allProducts, currentUserId)
+                    : new ArrayList<>(allProducts);
 
-            for (JSONObject sessionObj : allProducts) {
+            for (JSONObject sessionObj : displayProducts) {
                 JSONObject itemObj = getItemObject(sessionObj);
                 String name = itemObj.optString("name", "");
                 String status = normalizeSessionStatus(sessionObj);
@@ -289,7 +280,7 @@ public class MyBidsController implements Initializable {
                 productContainer.getChildren().clear();
                 currentRenderedStates.clear();
 
-                for (JSONObject sessionObj : allProducts) {
+                for (JSONObject sessionObj : displayProducts) {
                     JSONObject itemObj = getItemObject(sessionObj);
                     String name = itemObj.optString("name", "");
                     String status = normalizeSessionStatus(sessionObj);
@@ -361,16 +352,31 @@ public class MyBidsController implements Initializable {
     }
 
     private boolean isWinningSession(JSONObject sessionObj, int currentUserId) {
-        return isActiveSession(sessionObj) && sessionObj.optInt("highestBidderId", -1) == currentUserId;
+        return sessionObj.optInt("highestBidderId", -1) == currentUserId
+                && (isActiveSession(sessionObj) || isWonSession(sessionObj, currentUserId));
     }
 
     private boolean isOutbidSession(JSONObject sessionObj, int currentUserId) {
         return isActiveSession(sessionObj) && sessionObj.optInt("highestBidderId", -1) != currentUserId;
     }
 
+    private boolean isWonSession(JSONObject sessionObj, int currentUserId) {
+        String status = normalizeSessionStatus(sessionObj);
+        boolean completed = "ENDED".equals(status) || "CLOSED".equals(status)
+                || "COMPLETED".equals(status) || "FINISHED".equals(status);
+        return completed && sessionObj.optInt("highestBidderId", -1) == currentUserId;
+    }
+
+    List<JSONObject> prioritizeWonProducts(List<JSONObject> products, int currentUserId) {
+        List<JSONObject> orderedProducts = new ArrayList<>(products);
+        orderedProducts.sort(Comparator.comparing(sessionObj -> !isWonSession(sessionObj, currentUserId)));
+        return orderedProducts;
+    }
+
     private String getRenderedStateKey(JSONObject sessionObj, BigDecimal currentPrice, int highestBidderId) {
         return sessionObj.optInt("id") + "_" + currentPrice + "_" + highestBidderId + "_"
-                + normalizeSessionStatus(sessionObj);
+                + normalizeSessionStatus(sessionObj) + "_"
+                + ShippingInfoDialog.hasDeliveryInfo(sessionObj.optInt("id"), sessionObj);
     }
 
     private boolean isActiveStatus(String status) {
@@ -405,11 +411,12 @@ public class MyBidsController implements Initializable {
         BigDecimal currentPrice = getMoney(sessionObj, "currentPrice",
                 getMoney(sessionObj, "startingPrice", BigDecimal.ZERO));
         String status = normalizeSessionStatus(sessionObj);
-        String imagePath = itemObj.optString("imagePath", "default.png");
+        String imagePath = itemObj.optString("imagePath", itemObj.optString("imageUrl", ""));
         int highestBidderId = sessionObj.optInt("highestBidderId", -1);
         int currentUserId = User.getId() != null ? User.getId() : -1;
         boolean activeSession = isActiveSession(sessionObj);
         boolean endedSession = isEndedSession(sessionObj);
+        boolean wonSession = isWonSession(sessionObj, currentUserId);
         boolean winningSession = isWinningSession(sessionObj, currentUserId);
         boolean outbidSession = isOutbidSession(sessionObj, currentUserId);
 
@@ -452,12 +459,16 @@ public class MyBidsController implements Initializable {
         imageView.setPreserveRatio(true);
         imageView.setSmooth(true);
 
-        Label imageStatusLabel = new Label("No Image");
-        imageStatusLabel.setAlignment(Pos.CENTER);
-        imageStatusLabel.setStyle("-fx-text-fill: #adb5bd;");
+        VBox placeholderBox = new VBox(6);
+        placeholderBox.setAlignment(Pos.CENTER);
+        Label placeholderIcon = new Label("\uE3F4");
+        placeholderIcon.setStyle("-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 32px; -fx-text-fill: -app-text-muted;");
+        Label placeholderText = new Label("No Image");
+        placeholderText.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -app-text-muted;");
+        placeholderBox.getChildren().addAll(placeholderIcon, placeholderText);
 
         String imageUrl = buildImageUrl(imagePath);
-        imageWrapper.getChildren().add(imageStatusLabel);
+        imageWrapper.getChildren().add(placeholderBox);
         if (!imageUrl.isBlank()) {
             Image cached = imageCache.get(imageUrl);
             if (cached == null || cached.isError()) {
@@ -469,8 +480,8 @@ public class MyBidsController implements Initializable {
             cached.errorProperty().addListener((obs, oldValue, isError) -> {
                 if (isError) {
                     imageWrapper.getChildren().remove(imageView);
-                    if (!imageWrapper.getChildren().contains(imageStatusLabel)) {
-                        imageWrapper.getChildren().add(0, imageStatusLabel);
+                    if (!imageWrapper.getChildren().contains(placeholderBox)) {
+                        imageWrapper.getChildren().add(0, placeholderBox);
                     }
                 }
             });
@@ -498,7 +509,7 @@ public class MyBidsController implements Initializable {
         badgeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px;");
 
         if (endedSession) {
-            if (highestBidderId == currentUserId) {
+            if (wonSession) {
                 statusBadge.setStyle(
                         "-fx-background-color: rgba(16, 185, 129, 0.15); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: rgba(16, 185, 129, 0.3); -fx-border-radius: 12px;");
                 badgeLabel.setText("Won");
@@ -594,7 +605,7 @@ public class MyBidsController implements Initializable {
 
         BigDecimal userMaxBid = getMoney(sessionObj, "userMaxBid", BigDecimal.ZERO);
         Label userPriceLabel = new Label();
-        if (winningSession || (endedSession && highestBidderId == currentUserId)) {
+        if (winningSession || wonSession) {
             userPriceLabel.setText("₫ " + formatPrice(currentPrice));
             userPriceLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #10b981;");
         } else if (outbidSession) {
@@ -611,7 +622,17 @@ public class MyBidsController implements Initializable {
         btnAction.setMaxWidth(Double.MAX_VALUE);
         btnAction.setPrefHeight(36.0);
 
-        if (outbidSession) {
+        if (wonSession) {
+            boolean hasDeliveryInfo = ShippingInfoDialog.hasDeliveryInfo(id, sessionObj);
+            btnAction.setText(hasDeliveryInfo ? "Edit" : "Delivery details");
+            btnAction.setStyle(
+                    "-fx-background-color: -fx-accent; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-25, 6, 0, 0, 1);");
+            Label shippingIcon = new Label(hasDeliveryInfo ? "\ue3c9" : "\ue558");
+            shippingIcon.setStyle(
+                    "-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 16px; -fx-text-fill: white; -fx-padding: 0 4px 0 0;");
+            btnAction.setGraphic(shippingIcon);
+            btnAction.setOnAction(event -> ShippingInfoDialog.show(id, name, sessionObj, this::filterAndRenderProducts));
+        } else if (outbidSession) {
             btnAction.setText("Increase Bid");
             btnAction.setStyle(
                     "-fx-background-color: -fx-accent; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-25, 6, 0, 0, 1);");
@@ -622,7 +643,7 @@ public class MyBidsController implements Initializable {
 
             btnAction.setOnMouseEntered(e -> {
                 btnAction.setStyle(
-                        "-fx-background-color: -app-accent-hover; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-35, 8, 0, 0, 2);");
+                        "-fx-background-color: -app-accent-hover; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-background-radius: 18px; -fx-cursor: hand; -fx-font-size: 13px; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-35, 6, 0, 0, 1);");
             });
             btnAction.setOnMouseExited(e -> {
                 btnAction.setStyle(
@@ -647,15 +668,17 @@ public class MyBidsController implements Initializable {
             });
         }
 
-        btnAction.setOnAction(event -> {
-            try {
-                FXMLLoader loader = SceneSwitcher.switchScene(event, "AuctionPage.fxml", 1280, 800);
-                AuctionPageController controller = loader.getController();
-                controller.setItem(sessionObj, itemObj);
-            } catch (IOException e) {
-                logger.error("Error switching to auction room", e);
-            }
-        });
+        if (!wonSession) {
+            btnAction.setOnAction(event -> {
+                try {
+                    FXMLLoader loader = SceneSwitcher.switchScene(event, "AuctionPage.fxml", 1280, 800);
+                    AuctionPageController controller = loader.getController();
+                    controller.setItem(sessionObj, itemObj);
+                } catch (IOException e) {
+                    logger.error("Error switching to auction room", e);
+                }
+            });
+        }
 
         vbox.getChildren().addAll(imageWrapper, nameLabel, categoryLabel, bidDetailsBox, btnAction);
 
@@ -793,6 +816,7 @@ public class MyBidsController implements Initializable {
         fallback.put("type", sessionObj.optString("productType", ""));
         fallback.put("description", sessionObj.optString("description", ""));
         fallback.put("imagePath", sessionObj.optString("imagePath", ""));
+        fallback.put("imageUrl", sessionObj.optString("imageUrl", ""));
         return fallback;
     }
 

@@ -33,6 +33,8 @@ public class CacheManager {
         thread.setDaemon(true);
         return thread;
     });
+    private static final java.util.Map<String, java.util.concurrent.CompletableFuture<Boolean>> activeDownloads =
+            new java.util.concurrent.ConcurrentHashMap<>();
 
     static {
         try {
@@ -85,8 +87,9 @@ public class CacheManager {
             return null;
         }
 
-        String key = getMd5(imageUrl);
-        String ext = getExtension(imageUrl, "png");
+        String stableUrl = stableCacheKeyUrl(imageUrl);
+        String key = getMd5(stableUrl);
+        String ext = getExtension(stableUrl, "png");
         Path cachedFile = Paths.get(Config.CACHE_IMAGES_DIR, key + "." + ext);
         Path metaFile = Paths.get(Config.CACHE_IMAGES_DIR, key + ".meta");
 
@@ -96,19 +99,21 @@ public class CacheManager {
         if (hasLocal) {
             try {
                 logger.info("Loading image from local cache: {}", cachedFile.toAbsolutePath());
-                cachedImage = new Image(cachedFile.toUri().toString(), true);
+                cachedImage = new Image(cachedFile.toUri().toString(), false);
             } catch (Exception e) {
                 logger.warn("Failed to load cached image from {}, falling back to remote", cachedFile, e);
                 hasLocal = false;
             }
         }
 
+        final boolean finalHasLocal = hasLocal;
+
         // Asynchronously check for server updates and download/reload if needed
         validateAndDownloadAsync(imageUrl, cachedFile, metaFile, isUpdated -> {
-            if (isUpdated) {
-                logger.info("Local image cache updated, reloading: {}", cachedFile.toAbsolutePath());
+            if (isUpdated || !finalHasLocal) {
+                logger.info("Local image cache updated or loaded for the first time, reloading: {}", cachedFile.toAbsolutePath());
                 try {
-                    Image newImage = new Image(cachedFile.toUri().toString(), true);
+                    Image newImage = new Image(cachedFile.toUri().toString(), false);
                     Platform.runLater(() -> onImageLoaded.accept(newImage));
                 } catch (Exception e) {
                     logger.error("Failed to load updated image from local file", e);
@@ -116,14 +121,25 @@ public class CacheManager {
             }
         });
 
-        if (hasLocal) {
+        if (finalHasLocal) {
             return cachedImage;
         } else {
-            // Return remote image as fallback while downloading/caching is in progress
-            logger.info("Image not cached locally. Loading remote image and caching: {}", imageUrl);
-            Image remoteImage = new Image(imageUrl, true);
-            return remoteImage;
+            // Return 1x1 transparent image to avoid duplicate download & lag; callback will set the real image once downloaded
+            return new javafx.scene.image.WritableImage(1, 1);
         }
+    }
+
+    private static String stableCacheKeyUrl(String url) {
+        if (url == null || url.isBlank()) {
+            return "";
+        }
+
+        String stable = url.trim();
+        stable = stable.replaceAll("/v\\d+/", "/");
+        stable = stable.replaceAll("([?&])t=\\d+(&?)", "$1");
+        stable = stable.replaceAll("[?&]$", "");
+        stable = stable.replace("?&", "?");
+        return stable;
     }
 
     /**
@@ -151,9 +167,50 @@ public class CacheManager {
     }
 
     /**
+     * Asynchronously gets the cached 3D model path, waiting for download if currently in progress.
+     */
+    public static java.util.concurrent.CompletableFuture<Path> getModelAsync(String modelUrl, String itemUuid) {
+        java.util.concurrent.CompletableFuture<Path> result = new java.util.concurrent.CompletableFuture<>();
+
+        Path cachedFile = Paths.get(Config.CACHE_3D_DIR, itemUuid + ".glb");
+        Path metaFile = Paths.get(Config.CACHE_3D_DIR, itemUuid + ".meta");
+
+        if (Files.exists(cachedFile) && Files.exists(metaFile)) {
+            result.complete(cachedFile);
+            validateAndDownloadAsync(modelUrl, cachedFile, metaFile, isUpdated -> {});
+            return result;
+        }
+
+        validateAndDownloadAsync(modelUrl, cachedFile, metaFile, isUpdated -> {
+            if (Files.exists(cachedFile)) {
+                result.complete(cachedFile);
+            } else {
+                result.complete(null);
+            }
+        });
+
+        return result;
+    }
+
+    /**
      * Sends a HEAD request to check for updates. If outdated or doesn't exist, downloads and updates.
      */
     private static void validateAndDownloadAsync(String fileUrl, Path cachedFile, Path metaFile, Consumer<Boolean> onComplete) {
+        java.util.concurrent.CompletableFuture<Boolean> future = activeDownloads.get(fileUrl);
+        if (future != null) {
+            logger.info("Asset is already downloading: {}", fileUrl);
+            future.thenAccept(onComplete);
+            return;
+        }
+
+        java.util.concurrent.CompletableFuture<Boolean> newFuture = new java.util.concurrent.CompletableFuture<>();
+        java.util.concurrent.CompletableFuture<Boolean> existingFuture = activeDownloads.putIfAbsent(fileUrl, newFuture);
+        if (existingFuture != null) {
+            logger.info("Asset is already downloading: {}", fileUrl);
+            existingFuture.thenAccept(onComplete);
+            return;
+        }
+
         executor.submit(() -> {
             try {
                 // Get remote metadata via HTTP HEAD request
@@ -165,9 +222,11 @@ public class CacheManager {
 
                 HttpResponse<Void> headResponse = httpClient.send(headRequest, HttpResponse.BodyHandlers.discarding());
                 if (headResponse.statusCode() != 200) {
-                    // Try with GET range request or just download if HEAD is not supported by target server
                     logger.warn("HEAD request returned status {}, downloading directly", headResponse.statusCode());
-                    downloadAndCache(fileUrl, cachedFile, metaFile, onComplete);
+                    downloadAndCache(fileUrl, cachedFile, metaFile, isUpdated -> {
+                        newFuture.complete(isUpdated);
+                        onComplete.accept(isUpdated);
+                    });
                     return;
                 }
 
@@ -204,20 +263,28 @@ public class CacheManager {
                 }
 
                 if (needsDownload) {
-                    logger.info("Cache is stale or missing for {}. Downloading...", fileUrl);
-                    downloadAndCache(fileUrl, cachedFile, metaFile, remoteLastModified, remoteContentLength, remoteETag, onComplete);
+                    downloadAndCache(fileUrl, cachedFile, metaFile, remoteLastModified, remoteContentLength, remoteETag, isUpdated -> {
+                        newFuture.complete(isUpdated);
+                        onComplete.accept(isUpdated);
+                    });
                 } else {
+                    newFuture.complete(false);
                     onComplete.accept(false);
                 }
 
             } catch (Exception e) {
                 logger.warn("Failed to validate cache for URL {}: {}", fileUrl, e.getMessage());
-                // If local file exists, we proceed with it, otherwise we try to download it
                 if (!Files.exists(cachedFile)) {
-                    downloadAndCache(fileUrl, cachedFile, metaFile, onComplete);
+                    downloadAndCache(fileUrl, cachedFile, metaFile, isUpdated -> {
+                        newFuture.complete(isUpdated);
+                        onComplete.accept(isUpdated);
+                    });
                 } else {
+                    newFuture.complete(false);
                     onComplete.accept(false);
                 }
+            } finally {
+                activeDownloads.remove(fileUrl);
             }
         });
     }

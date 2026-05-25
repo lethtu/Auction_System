@@ -6,6 +6,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.stage.Stage;
+import org.json.JSONObject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,6 +14,9 @@ import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.testfx.api.FxAssert.verifyThat;
 import static org.testfx.matcher.base.NodeMatchers.isVisible;
@@ -79,5 +83,20 @@ public class MyBidsControllerTest {
         // Click Active Tab
         robot.clickOn(btnActive);
         robot.sleep(200);
+    }
+
+    @Test
+    @DisplayName("Test: Ended products won by the bidder are ordered first")
+    public void endedProductsPrioritizeWins() {
+        MyBidsController controller = new MyBidsController();
+        JSONObject lostFirst = new JSONObject().put("id", 11).put("status", "ENDED").put("highestBidderId", 7);
+        JSONObject wonSecond = new JSONObject().put("id", 12).put("status", "ENDED").put("highestBidderId", 1);
+        JSONObject wonThird = new JSONObject().put("id", 13).put("status", "CLOSED").put("highestBidderId", 1);
+
+        List<JSONObject> ordered = controller.prioritizeWonProducts(
+                List.of(lostFirst, wonSecond, wonThird), 1);
+
+        assertEquals(List.of(12, 13, 11),
+                ordered.stream().map(product -> product.getInt("id")).toList());
     }
 }

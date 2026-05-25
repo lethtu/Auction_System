@@ -34,8 +34,8 @@
                     <Insets bottom="36.0" left="48.0" right="36.0" top="42.0"/>
                 </padding>
                 <VBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
-                    <Label text="Join BidPop" styleClass="auth-brand-title"/>
-                    <Label text="Create an account to start bidding on exclusive items today." styleClass="auth-brand-subtitle"/>
+                    <Label text="Join BidPop" styleClass="auth-brand-title" style="-fx-text-fill: #ffffff;"/>
+                    <Label text="Create an account to start bidding on exclusive items today." styleClass="auth-brand-subtitle" style="-fx-text-fill: #ffffff;"/>
                 </VBox>
 
                 <VBox alignment="CENTER" spacing="30.0" maxWidth="Infinity" VBox.vgrow="NEVER">
@@ -133,7 +133,7 @@
                         <CheckBox fx:id="chkTerms" text="I agree to the Terms &amp; Conditions" style="-fx-font-family: 'DM Sans'; -fx-text-fill: #604868; -fx-font-size: 13px;" styleClass="auth-check-box"/>
                     </HBox>
 
-                    <Button fx:id="btnSignUp" text="Create Account" onAction="#handleSignUp" maxWidth="Infinity" prefHeight="50.0" styleClass="auth-primary-button"/>
+                    <Button fx:id="btnSignUp" text="Create Account" onAction="#handleSignUp" maxWidth="Infinity" prefHeight="50.0" styleClass="auth-primary-button" style="-fx-text-fill: #ffffff;"/>
 
                     <HBox alignment="CENTER" spacing="5.0" maxWidth="Infinity">
                         <Label text="Already have an account?" style="-fx-font-family: 'DM Sans'; -fx-text-fill: #604868; -fx-font-weight: 500;"/>
@@ -144,17 +144,10 @@
         </VBox>
     </HBox>
 
-    <HBox alignment="CENTER" spacing="8" StackPane.alignment="TOP_RIGHT" maxHeight="-Infinity" maxWidth="-Infinity" style="-fx-padding: 20 25 0 0;">
-        <Button onAction="#handleMinimize" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 4;">
-            <graphic>
-                <Label text="−" style="-fx-font-family: 'DM Sans'; -fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: #907898;" />
-            </graphic>
-        </Button>
-        <Button onAction="#handleClose" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 4;">
-            <graphic>
-                <Label text="×" style="-fx-font-family: 'DM Sans'; -fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: #907898;" />
-            </graphic>
-        </Button>
+    <HBox alignment="CENTER" spacing="8" StackPane.alignment="TOP_RIGHT" maxHeight="-Infinity" maxWidth="-Infinity" styleClass="mac-window-controls-auth">
+        <Button accessibleText="Minimize" onAction="#handleMinimize" styleClass="mac-window-control-auth,mac-minimize-auth" />
+        <Button accessibleText="Maximize" onAction="#handleMaximize" styleClass="mac-window-control-auth,mac-maximize-auth" />
+        <Button accessibleText="Close" onAction="#handleClose" styleClass="mac-window-control-auth,mac-close-auth" />
     </HBox>
     </StackPane>
 </StackPane>

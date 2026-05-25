@@ -77,7 +77,7 @@ public class NotificationCenterController {
         
         List<AppNotification> filtered = service.getNotifications().stream().filter(n -> {
             if ("UNREAD".equals(currentFilter)) return !n.isRead();
-            if ("AUCTION".equals(currentFilter)) return n.getType() == NotificationType.NEW_BID || n.getType() == NotificationType.OUTBID || n.getType() == NotificationType.BID_SUCCESS || n.getType() == NotificationType.AUCTION_END_WIN || n.getType() == NotificationType.AUCTION_END_LOSE;
+            if ("AUCTION".equals(currentFilter)) return n.getType() == NotificationType.NEW_BID || n.getType() == NotificationType.OUTBID || n.getType() == NotificationType.BID_SUCCESS || n.getType() == NotificationType.AUCTION_END_WIN || n.getType() == NotificationType.AUCTION_END_LOSE || n.getType() == NotificationType.AUCTION_WON || n.getType() == NotificationType.AUCTION_LOST;
             if ("SYSTEM".equals(currentFilter)) return n.getType() == NotificationType.SYSTEM_ERROR;
             return true;
         }).collect(Collectors.toList());
@@ -126,6 +126,19 @@ public class NotificationCenterController {
         time.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 11px; ");
         textCol.getChildren().addAll(title, message, time);
 
+        if (n.hasAction()) {
+            Button actionButton = new Button(n.getActionLabel());
+            actionButton.setStyle("-fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-family: 'DM Sans';"
+                    + "-fx-font-size: 12px; -fx-font-weight: 900; -fx-background-radius: 999px;"
+                    + "-fx-padding: 7px 14px; -fx-cursor: hand;");
+            actionButton.setOnAction(event -> {
+                event.consume();
+                service.markAsRead(n.getId());
+                n.getAction().run();
+            });
+            textCol.getChildren().add(actionButton);
+        }
+
         Circle unreadDot = new Circle(4, Color.valueOf(com.auction.client.service.AppStyleManager.getAccentColorHex()));
         unreadDot.setVisible(!n.isRead());
 
@@ -141,7 +154,9 @@ public class NotificationCenterController {
             case BID_FAILED: return "error";
             case AUCTION_EXTENDED: return "timer";
             case AUCTION_END_WIN: return "emoji_events";
+            case AUCTION_WON: return "local_shipping";
             case AUCTION_END_LOSE: return "sentiment_dissatisfied";
+            case AUCTION_LOST: return "sentiment_dissatisfied";
             case AUTO_BID_CONFIGURED: return "bolt";
             case SYSTEM_ERROR: return "warning";
             default: return "notifications";

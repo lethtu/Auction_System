@@ -24,61 +24,7 @@
 <StackPane stylesheets="@styles.css" styleClass="rounded-window-root" style="-fx-font-family: 'DM Sans';" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.AuctionPageController">
     <BorderPane styleClass="rounded-window-content">
     <top>
-        <!-- Top Navigation Bar -->
-        <HBox fx:id="topNav" alignment="CENTER_LEFT" spacing="0.0" styleClass="app-topbar-even">
-            <children>
-                <HBox alignment="CENTER_LEFT" spacing="20.0">
-                    <Button fx:id="hamburgerBtn" onAction="#handleToggleSidebar" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 8;">
-                        <graphic>
-                            <Label text="&#xe5d2;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; " />
-                        </graphic>
-                    </Button>
-                    <Button fx:id="logoBtn" onAction="#handleGoBack" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0; -fx-border-color: transparent; -fx-font-family: 'DM Sans'; -fx-font-size: 28px; -fx-font-weight: 900; -fx-text-fill: -fx-accent;" text="BidPop" />
-                </HBox>
-                
-                <Region HBox.hgrow="ALWAYS" />
-                
-                <HBox alignment="CENTER_RIGHT" spacing="10.0" minHeight="52.0" prefHeight="52.0" maxHeight="52.0" style="-fx-padding: 0;">
-                    <StackPane alignment="CENTER" minWidth="44.0" prefWidth="44.0" maxWidth="44.0" minHeight="44.0" prefHeight="44.0" maxHeight="44.0">
-                        <Button fx:id="btnNotificationBell" minWidth="44.0" prefWidth="44.0" maxWidth="44.0" minHeight="44.0" prefHeight="44.0" maxHeight="44.0" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0; -fx-alignment: center;">
-                            <graphic>
-                                <Label text="&#xe7f4;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; " />
-                            </graphic>
-                        </Button>
-                        <Label fx:id="notificationBadge" text="0" visible="false" managed="false" style="-fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 1 5; -fx-background-radius: 10; -fx-translate-x: 12; -fx-translate-y: -12;" />
-                    </StackPane>
-                    <Button fx:id="btnSettings" minWidth="44.0" prefWidth="44.0" maxWidth="44.0" minHeight="44.0" prefHeight="44.0" maxHeight="44.0" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0; -fx-alignment: center;">
-                        <graphic>
-                            <Label text="&#xe8b8;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; " />
-                        </graphic>
-                    </Button>
-                    <MenuButton fx:id="userMenuButton" id="profile-menu" minWidth="58.0" prefWidth="58.0" maxWidth="58.0" minHeight="44.0" prefHeight="44.0" maxHeight="44.0" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0; -fx-alignment: center; -fx-background-insets: 0;">
-                        <graphic>
-                            <StackPane fx:id="topBarAvatarPane" minWidth="44" maxWidth="44" minHeight="44" maxHeight="44" prefWidth="44" prefHeight="44" style="-fx-background-color: #1a1a3a; -fx-background-radius: 22px;">
-                                <Label text="&#xe7fd;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: white;" />
-                            </StackPane>
-                        </graphic>
-                    </MenuButton>
-                    <HBox alignment="CENTER" spacing="6" style="-fx-padding: 0 0 0 10;">
-                        <Button onAction="#handleMinimize" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 4;">
-                            <graphic>
-                                <Label text="−" style="-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; " />
-                            </graphic>
-                        </Button>
-                        <Button onAction="#handleMaximize" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 4;">
-                            <graphic>
-                                <Label text="□" style="-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; " />
-                            </graphic>
-                        </Button>
-                        <Button onAction="#handleClose" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 4;">
-                            <graphic>
-                                <Label text="×" style="-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; " />
-                            </graphic>
-                        </Button>
-                    </HBox>
-                </HBox>
-            </children>
-        </HBox>
+        <fx:include source="Topbar.fxml" fx:id="topbar"/>
     </top>
     
     <left>
@@ -94,7 +40,7 @@
             <BorderPane.margin>
                 <Insets top="14.0" right="14.0" bottom="14.0" left="14.0" />
             </BorderPane.margin>
-            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="NEVER" styleClass="auction-page-scroll" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" styleClass="auction-page-scroll" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
                 <content>
                                     <VBox spacing="24.0" style="-fx-padding: 12px 0;" maxWidth="Infinity" alignment="TOP_CENTER">
                                     <children>
@@ -112,12 +58,12 @@
                                                             <children>
                                                                 <StackPane alignment="TOP_LEFT">
                                                                     <children>
-                                                                        <VBox alignment="CENTER" spacing="0.0" style="-fx-background-color: -app-surface-2; -fx-background-radius: 32; -fx-overflow: hidden;">
+                                                                        <StackPane fx:id="productMediaFrame" alignment="CENTER" minWidth="0.0" prefWidth="550.0" maxWidth="Infinity" minHeight="400.0" prefHeight="400.0" maxHeight="400.0" style="-fx-background-color: -app-surface-2; -fx-background-radius: 32; -fx-overflow: hidden;">
                                                                             <children>
                                                                                 <ImageView fx:id="productImageView" fitHeight="400.0" fitWidth="550.0" preserveRatio="true" />
-                                                                                <StackPane fx:id="model3DContainer" visible="false" managed="false" alignment="CENTER" prefHeight="400.0" prefWidth="550.0" styleClass="model-3d-overlay" />
+                                                                                <StackPane fx:id="model3DContainer" visible="false" managed="false" alignment="CENTER" maxWidth="Infinity" maxHeight="Infinity" styleClass="model-3d-overlay" />
                                                                             </children>
-                                                                        </VBox>
+                                                                        </StackPane>
                                                                         
                                                                         <HBox pickOnBounds="false" maxWidth="-Infinity" maxHeight="-Infinity" spacing="8.0" style="-fx-padding: 12;" StackPane.alignment="TOP_LEFT">
                                                                             <children>
@@ -129,13 +75,13 @@
                                                                                 </HBox>
                                                                             </children>
                                                                         </HBox>
-                                                                        
-                                                                        <Button fx:id="btnToggle3D" onAction="#handleToggle3D" visible="false" managed="false" StackPane.alignment="TOP_RIGHT" style="-fx-background-color: rgba(255, 255, 255, 0.9); -fx-text-fill: #e040a0; -fx-background-radius: 999; -fx-padding: 6 14; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(224, 64, 160, 0.3), 10, 0, 0, 4); -fx-border-color: #e040a0; -fx-border-width: 1.5; -fx-border-radius: 999; -fx-translate-x: -12; -fx-translate-y: 12;">
+
+                                                                        <Button fx:id="btnToggle3D" onAction="#handleToggle3D" visible="false" managed="false" StackPane.alignment="TOP_RIGHT" style="-fx-background-color: -app-card; -fx-text-fill: -fx-accent; -fx-background-radius: 999; -fx-padding: 6 14; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-30, 10, 0, 0, 4); -fx-border-color: -fx-accent; -fx-border-width: 1.5; -fx-border-radius: 999; -fx-translate-x: -12; -fx-translate-y: 12;">
                                                                             <graphic>
                                                                                 <HBox alignment="CENTER" spacing="6.0">
                                                                                     <children>
-                                                                                        <Label text="&#xe0b4;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 14px; -fx-text-fill: #e040a0;" />
-                                                                                        <Label text="3D VIEW" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: #e040a0;" />
+                                                                                        <Label text="&#xe0b4;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 14px; -fx-text-fill: -fx-accent;" />
+                                                                                        <Label text="3D VIEW" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: -fx-accent;" />
                                                                                     </children>
                                                                                 </HBox>
                                                                             </graphic>
@@ -172,21 +118,21 @@
                                                                         <ColumnConstraints percentWidth="33.3" />
                                                                     </columnConstraints>
                                                                     <children>
-                                                                        <VBox spacing="4.0" style="-fx-background-color: -app-surface-2; -fx-padding: 16; -fx-background-radius: 32; -fx-border-color: -app-border; -fx-border-width: 1; -fx-border-radius: 32;" GridPane.columnIndex="0">
+                                                                        <VBox spacing="4.0" styleClass="auction-stat-card" GridPane.columnIndex="0">
                                                                             <children>
                                                                                 <Label text="&#xe889;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #7c52aa;" />
                                                                                 <Label text="TOTAL BIDS" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: -app-text-muted; -fx-padding: 8 0 0 0;" />
                                                                                 <Label fx:id="totalBidsLabel" text="0" style="-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: 900; -fx-text-fill: -app-text;" />
                                                                             </children>
                                                                         </VBox>
-                                                                        <VBox spacing="4.0" style="-fx-background-color: -app-surface-2; -fx-padding: 16; -fx-background-radius: 32; -fx-border-color: -app-border; -fx-border-width: 1; -fx-border-radius: 32;" GridPane.columnIndex="1">
+                                                                        <VBox spacing="4.0" styleClass="auction-stat-card" GridPane.columnIndex="1">
                                                                             <children>
                                                                                 <Label text="&#xe7ff;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: #0096cc;" />
                                                                                 <Label text="WATCHING" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: -app-text-muted; -fx-padding: 8 0 0 0;" />
                                                                                 <Label fx:id="watchingLabel" text="0" style="-fx-font-family: 'DM Sans'; -fx-font-size: 20px; -fx-font-weight: 900; -fx-text-fill: -app-text;" />
                                                                             </children>
                                                                         </VBox>
-                                                                        <VBox spacing="4.0" style="-fx-background-color: -app-surface-2; -fx-padding: 16; -fx-background-radius: 32; -fx-border-color: -app-border; -fx-border-width: 1; -fx-border-radius: 32;" GridPane.columnIndex="2">
+                                                                        <VBox spacing="4.0" styleClass="auction-stat-card" GridPane.columnIndex="2">
                                                                             <children>
                                                                                 <Label text="&#xe8e5;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: -fx-accent;" />
                                                                                 <Label fx:id="startPriceTitleLabel" text="START PRICE" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: -app-text-muted; -fx-padding: 8 0 0 0;" />
@@ -244,6 +190,13 @@
                                                                         </StackPane>
                                                                     </children>
                                                                 </VBox>
+                                                                <HBox fx:id="quickBidBox" spacing="8.0">
+                                                                    <children>
+                                                                        <Button fx:id="btnQuickBidOne" maxWidth="Infinity" HBox.hgrow="ALWAYS" text="+1x" onAction="#handleQuickBidOne" style="-fx-background-color: -app-accent-opacity-08; -fx-text-fill: -fx-accent; -fx-border-color: -fx-accent; -fx-border-width: 1; -fx-border-radius: 999; -fx-background-radius: 999; -fx-padding: 8 12; -fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 900; -fx-cursor: hand;" />
+                                                                        <Button fx:id="btnQuickBidTwo" maxWidth="Infinity" HBox.hgrow="ALWAYS" text="+2x" onAction="#handleQuickBidTwo" style="-fx-background-color: -app-accent-opacity-08; -fx-text-fill: -fx-accent; -fx-border-color: -fx-accent; -fx-border-width: 1; -fx-border-radius: 999; -fx-background-radius: 999; -fx-padding: 8 12; -fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 900; -fx-cursor: hand;" />
+                                                                        <Button fx:id="btnQuickBidFive" maxWidth="Infinity" HBox.hgrow="ALWAYS" text="+5x" onAction="#handleQuickBidFive" style="-fx-background-color: -app-accent-opacity-08; -fx-text-fill: -fx-accent; -fx-border-color: -fx-accent; -fx-border-width: 1; -fx-border-radius: 999; -fx-background-radius: 999; -fx-padding: 8 12; -fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 900; -fx-cursor: hand;" />
+                                                                    </children>
+                                                                </HBox>
                                                                 <Button fx:id="placeBidBtn" maxWidth="Infinity" onAction="#handlePlaceBid" text="PLACE BID NOW" style="-fx-background-color: -fx-accent; -fx-text-fill: white; -fx-padding: 16; -fx-background-radius: 999; -fx-font-family: 'DM Sans'; -fx-font-size: 18px; -fx-font-weight: 900; -fx-cursor: hand;" />
                                                                 <Button fx:id="btnAutoBid" maxWidth="Infinity" onAction="#handleAutoBidConfig" text="⚡ Configure Auto-bid" style="-fx-background-color: transparent; -fx-text-fill: #7c52aa; -fx-border-color: #7c52aa; -fx-border-width: 2; -fx-border-radius: 999; -fx-background-radius: 999; -fx-padding: 12; -fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: 900; -fx-cursor: hand;" />
                                                                 
@@ -282,7 +235,7 @@
                                                                 </HBox>
 
                                                                 <!-- Bid History List (scrollable) -->
-                                                                <ScrollPane fitToWidth="true" vbarPolicy="NEVER" hbarPolicy="NEVER" maxHeight="300" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent; -fx-padding: 0;">
+                                                                <ScrollPane fitToWidth="true" vbarPolicy="AS_NEEDED" hbarPolicy="NEVER" maxHeight="300" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent; -fx-padding: 0;">
                                                                     <VBox fx:id="bidHistoryContainer" spacing="4" style="-fx-padding: 4 10 20 10;" />
                                                                 </ScrollPane>
                                                             </children>

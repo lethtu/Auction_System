@@ -1,5 +1,6 @@
 /* Orange Accent overrides */
-.root {
+.root,
+.accent-orange {
     -fx-accent: #f97316;
     -fx-focus-color: #f97316;
     

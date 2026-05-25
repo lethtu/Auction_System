@@ -117,13 +117,13 @@
 }
 
 .app-sidebar-content {
-    -fx-background-color: rgba(255, 255, 255, 0.97);
-    -fx-background-radius: 30;
-    -fx-border-color: #f2a6d8;
-    -fx-border-radius: 30;
-    -fx-border-width: 1.8;
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-radius: 0;
+    -fx-border-width: 0;
     -fx-padding: 28 10 28 10;
-    -fx-effect: dropshadow(gaussian, -app-accent-opacity-10, 18, 0.12, 0, 6);
+    -fx-effect: null;
 }
 
 
@@ -1271,13 +1271,23 @@
 }
 
 .button.admin-bidpop-logout-button {
-    -fx-background-color: -app-input-text;
-    -fx-text-fill: -app-bg !important;
+    -fx-background-color: #ef4444;
+    -fx-text-fill: white !important;
     -fx-font-weight: 800;
     -fx-background-radius: 999;
     -fx-padding: 8 18 8 18;
     -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(239, 68, 68, 0.25), 10, 0, 0, 2);
 }
+.button.admin-bidpop-logout-button:hover {
+    -fx-background-color: #dc2626;
+    -fx-text-fill: white !important;
+}
+.button.admin-bidpop-logout-button:pressed {
+    -fx-background-color: #b91c1c;
+    -fx-text-fill: white !important;
+}
+
 
 .admin-bidpop-sidebar {
     -fx-background-color: -app-surface;
@@ -2335,11 +2345,13 @@
 
 .app-toast {
 
-    -fx-background-color: rgba(255, 255, 255, 0.98);
+    -fx-background-color: -app-card;
 
     -fx-background-radius: 12px;
 
     -fx-border-radius: 12px;
+
+    -fx-border-color: -app-border;
 
     -fx-border-width: 1.5px;
 
@@ -2431,7 +2443,7 @@
 
     -fx-font-size: 15px;
 
-    -fx-text-fill: -app-input-text;
+    -fx-text-fill: -app-text;
 
 }
 
@@ -2441,7 +2453,7 @@
 
     -fx-font-size: 13.5px;
 
-    -fx-text-fill: #604868;
+    -fx-text-fill: -app-text-muted;
 
 }
 
@@ -2453,7 +2465,7 @@
 
     -fx-font-size: 18px;
 
-    -fx-text-fill: #907898;
+    -fx-text-fill: -app-text-muted;
 
     -fx-cursor: hand;
 
@@ -2469,7 +2481,51 @@
 
 .app-toast-close:hover {
 
-    -fx-text-fill: -app-input-text;
+    -fx-text-fill: -app-text;
+
+}
+
+
+
+.settings-toast {
+
+    -fx-background-color: -app-card;
+
+    -fx-text-fill: -app-text;
+
+    -fx-border-color: -app-border;
+
+    -fx-border-width: 1px;
+
+    -fx-padding: 12px 24px;
+
+    -fx-background-radius: 10px;
+
+    -fx-border-radius: 10px;
+
+    -fx-font-family: 'DM Sans';
+
+    -fx-font-weight: 700;
+
+    -fx-font-size: 14px;
+
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.14), 12, 0, 0, 4);
+
+}
+
+
+
+.settings-toast-success {
+
+    -fx-border-color: rgba(16, 185, 129, 0.65);
+
+}
+
+
+
+.settings-toast-error {
+
+    -fx-border-color: rgba(239, 68, 68, 0.70);
 
 }
 
@@ -3069,6 +3125,45 @@
     -fx-text-fill: #907898;
 }
 
+/* macOS-style window controls for the custom transparent stage. */
+.mac-window-controls {
+    -fx-padding: 0 0 0 14;
+}
+
+.mac-window-control {
+    -fx-min-width: 13px;
+    -fx-pref-width: 13px;
+    -fx-max-width: 13px;
+    -fx-min-height: 13px;
+    -fx-pref-height: 13px;
+    -fx-max-height: 13px;
+    -fx-padding: 0;
+    -fx-background-insets: 0;
+    -fx-background-radius: 999px;
+    -fx-border-radius: 999px;
+    -fx-border-width: 1px;
+    -fx-cursor: hand;
+}
+
+.mac-close {
+    -fx-background-color: #ff5f57;
+    -fx-border-color: #e0443e;
+}
+
+.mac-minimize {
+    -fx-background-color: #febc2e;
+    -fx-border-color: #d89c19;
+}
+
+.mac-maximize {
+    -fx-background-color: #28c840;
+    -fx-border-color: #19a62f;
+}
+
+.mac-window-control:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.23), 5, 0, 0, 1);
+}
+
 
 /* Unified roundness override */
 .admin-bidpop-root,
@@ -3575,7 +3670,7 @@
 
 .admin-bidpop-metric-desc {
     -fx-text-fill: #907898;
-    -fx-font-weight: 650;
+    -fx-font-weight: 600;
 }
 /* === FINAL UI TASKS 20260522 END === */
 
@@ -3717,13 +3812,13 @@
 }
 
 .app-sidebar-content {
-    -fx-background-color: transparent;
-    -fx-background: transparent;
-    -fx-background-radius: 0;
-    -fx-border-color: transparent;
-    -fx-border-width: 0;
-    -fx-padding: 0;
-    -fx-effect: null;
+    -fx-background-color: transparent !important;
+    -fx-background: transparent !important;
+    -fx-background-radius: 0 !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0 !important;
+    -fx-padding: 0 !important;
+    -fx-effect: null !important;
 }
 
 .app-sidebar-scroll-collapsed {
@@ -3744,12 +3839,12 @@
 }
 
 .app-sidebar-content-collapsed {
-    -fx-background-color: transparent;
-    -fx-background: transparent;
-    -fx-border-color: transparent;
-    -fx-border-width: 0;
-    -fx-padding: 0;
-    -fx-effect: null;
+    -fx-background-color: transparent !important;
+    -fx-background: transparent !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0 !important;
+    -fx-padding: 0 !important;
+    -fx-effect: null !important;
 }
 /* === SIDEBAR BORDER FIX V3 END === */
 
@@ -3945,25 +4040,29 @@
 /* === TOGGLE BUTTON CLEAN TILES END === */
 /* === SAFE PATCH: unify shell border with seller dashboard === */
 /* Match Main Menu frame and all main app frames to Seller Dashboard frame color/weight. */
-.app-sidebar-scroll,
-.app-sidebar-scroll-collapsed {
-    -fx-border-color: -app-accent-opacity-78;
+.app-sidebar-scroll {
+    -fx-border-color: rgba(224, 64, 160, 0.78);
     -fx-border-width: 2;
+    -fx-border-radius: 28;
+    -fx-background-radius: 28;
+}
+
+.app-sidebar-scroll-collapsed {
+    -fx-border-color: rgba(224, 64, 160, 0.78);
+    -fx-border-width: 2;
+    -fx-border-radius: 26;
+    -fx-background-radius: 26;
 }
 
 .app-content-panel,
 .app-content-scroll {
-    -fx-border-color: -app-accent-opacity-78;
+    -fx-border-color: rgba(224, 64, 160, 0.78);
     -fx-border-width: 2;
+    -fx-border-radius: 30;
+    -fx-background-radius: 30;
 }
 /* === END SAFE PATCH: unify shell border with seller dashboard === */
 
-.model-3d-overlay {
-    -fx-background-color: linear-gradient(to bottom, #fff5fa 0%, #f5e2f5 100%);
-    -fx-background-radius: 32;
-    -fx-border-color: rgba(224, 64, 160, 0.15);
-    -fx-border-width: 1;
-    -fx-border-radius: 32;
 /* ====== COMPACT AUCTION LIST ====== */
 .compact-title {
     -fx-font-family: 'DM Sans';
@@ -4077,3 +4176,238 @@
     -fx-border-radius: 22px;
     -fx-border-width: 2px;
 }
+
+/* ====== DIALOG PANE DARK MODE FIX ====== */
+.dialog-pane {
+    -fx-background-color: -app-card;
+    -fx-border-color: -app-border;
+    -fx-border-width: 1px;
+    -fx-border-radius: 16px;
+    -fx-background-radius: 16px;
+}
+.dialog-pane > .layout {
+    -fx-background-color: transparent;
+}
+.dialog-pane > .header-panel {
+    -fx-background-color: transparent;
+}
+.dialog-pane > .content-panel {
+    -fx-background-color: transparent;
+}
+.dialog-pane > .button-bar {
+    -fx-background-color: transparent;
+}
+.dialog-pane .label {
+    -fx-text-fill: -app-text;
+}
+.dialog-pane .content.label {
+    -fx-text-fill: -app-text-muted;
+}
+
+/* ====== SEARCH COMPONENT DECORATION FIXES ====== */
+.search-box {
+    -fx-background-color: -app-input-bg;
+    -fx-border-color: -app-border;
+    -fx-border-width: 1.5px;
+    -fx-border-radius: 999;
+    -fx-background-radius: 999;
+    -fx-padding: 6px 14px;
+}
+
+#searchContainer .text-field,
+#searchContainer .text-field:focused,
+.search-box .text-field,
+.search-box .text-field:focused {
+    -fx-background-color: transparent !important;
+    -fx-border-color: transparent !important;
+    -fx-background-insets: 0 !important;
+    -fx-border-width: 0 !important;
+    -fx-box-border: transparent !important;
+    -fx-focus-color: transparent !important;
+    -fx-faint-focus-color: transparent !important;
+}
+
+/* ====== AUCTION DETAIL STAT CARD ====== */
+.auction-stat-card {
+    -fx-background-color: -app-surface-2;
+    -fx-padding: 16px;
+    -fx-background-radius: 20px;
+    -fx-border-radius: 20px;
+    -fx-border-color: -app-border;
+    -fx-border-width: 1.5px;
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-05, 10, 0, 0, 2);
+}
+.auction-stat-card:hover {
+    -fx-background-color: -app-card;
+    -fx-border-color: -fx-accent;
+    -fx-scale-x: 1.03;
+    -fx-scale-y: 1.03;
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-15, 15, 0, 0, 4);
+}
+
+/* ====== FINAL POLISH: PASSWORD, MENU, HOVER ====== */
+.password-security-card {
+    -fx-background-color: -app-card;
+    -fx-padding: 24px 30px;
+    -fx-background-radius: 16px;
+    -fx-border-color: -app-border;
+    -fx-border-width: 1.5px;
+    -fx-border-radius: 16px;
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-08, 18, 0.10, 0, 4);
+}
+
+.password-security-card-warning {
+    -fx-background-color: -app-accent-chip-bg;
+    -fx-border-color: -fx-accent;
+    -fx-border-width: 2.5px;
+    -fx-border-insets: 0;
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-38, 20, 0.16, 0, 4);
+}
+
+.password-security-icon {
+    -fx-font-family: 'Material Symbols Outlined';
+    -fx-font-size: 24px;
+    -fx-text-fill: -fx-accent;
+}
+
+.password-security-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: 900;
+    -fx-text-fill: -app-text;
+}
+
+.password-security-description {
+    -fx-font-size: 14px;
+    -fx-text-fill: -app-text-muted;
+}
+
+.password-security-primary-btn {
+    -fx-background-color: -fx-accent;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: 900;
+    -fx-background-radius: 10px;
+    -fx-cursor: hand;
+    -fx-padding: 8px 24px;
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-20, 12, 0, 0, 3);
+}
+
+.password-security-primary-btn:hover {
+    -fx-background-color: -app-accent-hover;
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-38, 16, 0, 0, 5);
+}
+
+.context-menu {
+    -fx-padding: 8px;
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-20, 22, 0.16, 0, 7);
+}
+
+.menu-item {
+    -fx-padding: 10px 18px;
+}
+
+.menu-item:hover,
+.menu-item:focused {
+    -fx-background-color: -app-accent-chip-bg;
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-08, 8, 0, 0, 2);
+}
+
+.menu-item:hover .label,
+.menu-item:focused .label {
+    -fx-text-fill: -fx-accent;
+}
+
+.combo-box-popup .list-view .list-cell:filled:hover,
+.combo-box-popup .list-cell:filled:hover {
+    -fx-background-color: -app-accent-chip-bg;
+    -fx-text-fill: -fx-accent;
+}
+
+#profile-menu:hover,
+#profile-menu:showing {
+    -fx-background-color: transparent;
+}
+
+#profile-menu .arrow-button,
+#profile-menu .arrow {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+
+.topbar-avatar-frame {
+    -fx-background-color: -app-surface-2;
+    -fx-background-radius: 22px;
+    -fx-border-color: -app-border;
+    -fx-border-radius: 22px;
+    -fx-border-width: 1px;
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-08, 9, 0.10, 0, 2);
+}
+
+.topbar-avatar-frame:hover,
+#profile-menu:showing .topbar-avatar-frame {
+    -fx-border-color: -fx-accent;
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-20, 12, 0.15, 0, 3);
+}
+
+.topbar-avatar-initials {
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 14px;
+    -fx-font-weight: 900;
+    -fx-text-fill: -fx-accent;
+}
+
+/* ====== ADMIN + DARK HOVER FINAL TUNING ====== */
+.admin-bidpop-brand {
+    -fx-text-fill: -fx-accent !important;
+}
+
+.admin-bidpop-note-card,
+.admin-refresh-button {
+    -fx-background-color: -fx-accent;
+}
+
+.admin-bidpop-note-title,
+.admin-bidpop-note-text,
+.admin-refresh-button,
+.button.admin-refresh-button,
+.button.admin-refresh-button .text,
+.button.admin-bidpop-logout-button,
+.button.admin-bidpop-logout-button .text {
+    -fx-text-fill: white !important;
+    -fx-fill: white !important;
+}
+
+.admin-refresh-button:hover {
+    -fx-background-color: -app-accent-hover;
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-38, 18, 0.22, 0, 6);
+}
+
+.theme-dark .context-menu {
+    -fx-border-color: -app-accent-opacity-38;
+}
+
+.theme-dark .menu-item:hover,
+.theme-dark .menu-item:focused {
+    -fx-background-color: -fx-accent;
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-38, 12, 0, 0, 4);
+}
+
+.theme-dark .menu-item:hover .label,
+.theme-dark .menu-item:focused .label {
+    -fx-text-fill: white;
+}
+
+.theme-dark #profile-menu:hover,
+.theme-dark #profile-menu:showing {
+    -fx-background-color: transparent;
+    -fx-effect: null;
+}
+
+.model-3d-overlay {
+    -fx-background-color: transparent;
+    -fx-background-radius: 32px;
+    -fx-border-color: transparent;
+    -fx-border-width: 0px;
+    -fx-border-radius: 32px;
+}
+

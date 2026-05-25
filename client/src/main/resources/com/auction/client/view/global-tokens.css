@@ -1,4 +1,4 @@
-﻿/* Global UI components styling mapped to tokens */
+/* Global UI components styling mapped to tokens */
 .rounded-window-content {
     -fx-background-color: -app-bg;
 }
@@ -7,8 +7,8 @@
     -fx-border-color: -app-border;
 }
 .app-sidebar-content, .app-sidebar-content-collapsed {
-    -fx-background-color: -app-surface;
-    -fx-border-color: -app-border;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
 }
 .app-content-panel, .app-content-scroll {
     -fx-background-color: -app-surface-2;

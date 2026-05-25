@@ -19,6 +19,8 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
+import javafx.scene.image.Image;
+import com.auction.client.Config;
 
 import java.util.Optional;
 
@@ -100,8 +102,7 @@ public final class AlertUtil {
         actions.setAlignment(Pos.CENTER);
 
         VBox card = baseCard(Alert.AlertType.INFORMATION, title, message);
-        card.getChildren().add(card.getChildren().size() - 1, input);
-        card.getChildren().set(card.getChildren().size() - 1, actions);
+        card.getChildren().addAll(input, actions);
 
         Scene scene = new Scene(wrap(card));
         scene.setFill(Color.TRANSPARENT);
@@ -114,6 +115,50 @@ public final class AlertUtil {
         dialog.showAndWait();
 
         return value[0] == null ? Optional.empty() : Optional.of(value[0]);
+    }
+
+    public static boolean showConfirmation(String title, String message) {
+        return showDecision(title, message, Alert.AlertType.WARNING, "OK", "Cancel");
+    }
+
+    public static boolean showBidConfirmation(String title, String message, boolean highBidWarning) {
+        return showDecision(
+                title,
+                message,
+                highBidWarning ? Alert.AlertType.WARNING : Alert.AlertType.CONFIRMATION,
+                "Confirm",
+                "Cancel");
+    }
+
+    private static boolean showDecision(String title, String message, Alert.AlertType type, String confirmText, String cancelText) {
+        Stage dialog = createBaseStage(title);
+        VBox card = baseCard(type, title, message);
+        final boolean[] result = {false};
+
+        Button cancelButton = secondaryButton(cancelText == null || cancelText.isBlank() ? "Cancel" : cancelText);
+        Button okButton = primaryButton(confirmText == null || confirmText.isBlank() ? "OK" : confirmText);
+        cancelButton.setCancelButton(true);
+        okButton.setDefaultButton(true);
+        cancelButton.setOnAction(event -> dialog.close());
+        okButton.setOnAction(event -> {
+            result[0] = true;
+            dialog.close();
+        });
+
+        HBox actions = new HBox(12, cancelButton, okButton);
+        actions.setAlignment(Pos.CENTER);
+        card.getChildren().add(actions);
+
+        Scene scene = new Scene(wrap(card));
+        scene.setFill(Color.TRANSPARENT);
+        if (AlertUtil.class.getResource("/com/auction/client/view/styles.css") != null) {
+            scene.getStylesheets().add(AlertUtil.class.getResource("/com/auction/client/view/styles.css").toExternalForm());
+        }
+        com.auction.client.service.AppStyleManager.applyCurrentStyle(scene);
+        dialog.setScene(scene);
+        dialog.showAndWait();
+
+        return result[0];
     }
 
     public static void styleDialog(Dialog<?> dialog) {
@@ -133,22 +178,62 @@ public final class AlertUtil {
                 + " -fx-padding: 20px;"
                 + " -fx-font-family: 'DM Sans';");
 
-        pane.lookupAll(".header-panel").forEach(node -> node.setStyle("-fx-background-color: transparent;"));
-        pane.lookupAll(".header-panel .label").forEach(node -> node.setStyle("-fx-text-fill: -app-text; -fx-font-size: 20px; -fx-font-weight: 900;"));
-        pane.lookupAll(".content.label").forEach(node -> node.setStyle("-fx-text-fill: -app-text-muted; -fx-font-size: 14px; -fx-font-weight: 600;"));
-        pane.lookupAll(".text-field").forEach(node -> node.setStyle("-fx-background-color: -app-input-bg;"
-                + " -fx-border-color: -app-border;"
-                + " -fx-border-radius: 14px;"
-                + " -fx-background-radius: 14px;"
-                + " -fx-padding: 10px 14px;"
-                + " -fx-font-size: 14px;"
-                + " -fx-text-fill: -app-text;"));
         if (AlertUtil.class.getResource("/com/auction/client/view/styles.css") != null) {
-            pane.getStylesheets().add(AlertUtil.class.getResource("/com/auction/client/view/styles.css").toExternalForm());
+            String cssPath = AlertUtil.class.getResource("/com/auction/client/view/styles.css").toExternalForm();
+            if (!pane.getStylesheets().contains(cssPath)) {
+                pane.getStylesheets().add(cssPath);
+            }
         }
-        com.auction.client.service.AppStyleManager.applyCurrentStyle(pane);
-        pane.lookupAll(".button").forEach(AlertUtil::styleDialogButton);
+
+        pane.sceneProperty().addListener((observable, oldScene, newScene) -> {
+            if (newScene != null) {
+                com.auction.client.service.AppStyleManager.applyCurrentStyle(newScene);
+                javafx.application.Platform.runLater(() -> {
+                    pane.lookupAll(".header-panel").forEach(node -> node.setStyle("-fx-background-color: transparent;"));
+                    pane.lookupAll(".header-panel .label").forEach(node -> node.setStyle("-fx-text-fill: -app-text; -fx-font-size: 20px; -fx-font-weight: 900;"));
+                    pane.lookupAll(".content.label").forEach(node -> {
+                        node.setStyle("-fx-text-fill: -app-text-muted; -fx-font-size: 14px; -fx-font-weight: 600;");
+                        if (node instanceof javafx.scene.control.Label label) {
+                            label.setWrapText(true);
+                            label.setMaxWidth(360);
+                        }
+                    });
+                    pane.lookupAll(".text-field").forEach(node -> node.setStyle("-fx-background-color: -app-input-bg;"
+                            + " -fx-border-color: -app-border;"
+                            + " -fx-border-radius: 14px;"
+                            + " -fx-background-radius: 14px;"
+                            + " -fx-padding: 10px 14px;"
+                            + " -fx-font-size: 14px;"
+                            + " -fx-text-fill: -app-text;"));
+                    pane.lookupAll(".button").forEach(AlertUtil::styleDialogButton);
+                });
+            }
+        });
+
+        if (pane.getScene() != null) {
+            com.auction.client.service.AppStyleManager.applyCurrentStyle(pane.getScene());
+            javafx.application.Platform.runLater(() -> {
+                pane.lookupAll(".header-panel").forEach(node -> node.setStyle("-fx-background-color: transparent;"));
+                pane.lookupAll(".header-panel .label").forEach(node -> node.setStyle("-fx-text-fill: -app-text; -fx-font-size: 20px; -fx-font-weight: 900;"));
+                pane.lookupAll(".content.label").forEach(node -> {
+                    node.setStyle("-fx-text-fill: -app-text-muted; -fx-font-size: 14px; -fx-font-weight: 600;");
+                    if (node instanceof javafx.scene.control.Label label) {
+                        label.setWrapText(true);
+                        label.setMaxWidth(360);
+                    }
+                });
+                pane.lookupAll(".text-field").forEach(node -> node.setStyle("-fx-background-color: -app-input-bg;"
+                        + " -fx-border-color: -app-border;"
+                        + " -fx-border-radius: 14px;"
+                        + " -fx-background-radius: 14px;"
+                        + " -fx-padding: 10px 14px;"
+                        + " -fx-font-size: 14px;"
+                        + " -fx-text-fill: -app-text;"));
+                pane.lookupAll(".button").forEach(AlertUtil::styleDialogButton);
+            });
+        }
     }
+
 
     public static void styleAndShow(Alert alert) {
         if (alert == null) {
@@ -157,6 +242,14 @@ public final class AlertUtil {
 
         String title = alert.getTitle();
         String message = alert.getContentText();
+        String header = alert.getHeaderText();
+        if (header != null && !header.isBlank()) {
+            if (isBlank(message)) {
+                message = header;
+            } else {
+                message = header + "\n" + message;
+            }
+        }
 
         if (isBlank(title)) {
             if (alert.getAlertType() == Alert.AlertType.ERROR) {
@@ -197,6 +290,11 @@ public final class AlertUtil {
     private static Stage createBaseStage(String title) {
         Stage dialog = new Stage(StageStyle.TRANSPARENT);
         dialog.setTitle(title == null ? "" : title);
+        try {
+            dialog.getIcons().add(new Image(AlertUtil.class.getResourceAsStream(Config.LOGO_PATH)));
+        } catch (Exception e) {
+            // Ignored safely
+        }
         dialog.initModality(Modality.APPLICATION_MODAL);
         Window owner = findOwnerWindow();
         if (owner != null) {
@@ -346,7 +444,22 @@ public final class AlertUtil {
         };
     }
 
+
     private static String softIconBackground(Alert.AlertType type) {
+        boolean isDark = false;
+        try {
+            isDark = com.auction.client.service.SettingsService.getInstance().getTheme().toLowerCase().contains("dark");
+        } catch (Exception e) {
+            // Ignored
+        }
+        if (isDark) {
+            return switch (type) {
+                case INFORMATION -> "rgba(16, 185, 129, 0.15)";
+                case ERROR -> "rgba(239, 68, 68, 0.15)";
+                case WARNING -> "rgba(245, 158, 11, 0.15)";
+                default -> "rgba(224, 64, 160, 0.15)";
+            };
+        }
         return switch (type) {
             case INFORMATION -> "#dcfce7";
             case ERROR -> "#fee2e2";
@@ -354,6 +467,7 @@ public final class AlertUtil {
             default -> "#fce7f3";
         };
     }
+
 
     private static String extractErrorMessage(Exception e, String defaultMessage) {
         if (e != null && !isBlank(e.getMessage())) {

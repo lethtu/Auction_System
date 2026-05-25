@@ -2,11 +2,13 @@ package com.auction.server.controller;
 
 import com.auction.server.dto.ApiResponse;
 import com.auction.server.dto.BidHistoryDTO;
+import com.auction.server.dto.DeliveryInfoRequest;
 import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.mapper.SessionResponseMapper;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.repository.BidRepository;
 import com.auction.server.service.AuctionService;
+import com.auction.server.util.SessionManager;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -63,6 +65,21 @@ public class AuctionController {
         }
         List<BidHistoryDTO> history = auctionService.getBidHistory(id);
         return ResponseEntity.ok(history);
+    }
+
+    @PutMapping("/{id}/delivery")
+    public ResponseEntity<ApiResponse<String>> saveDeliveryInfo(
+            @PathVariable Integer id,
+            @RequestBody DeliveryInfoRequest request,
+            @RequestAttribute("sessionUser") SessionManager.SessionUser sessionUser) {
+        try {
+            auctionService.saveDeliveryInfo(id, sessionUser.getUserId(), request);
+            return ResponseEntity.ok(ApiResponse.success("Delivery information saved successfully.", "SAVED"));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(ApiResponse.error(403, e.getMessage()));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(400, e.getMessage()));
+        }
     }
 
     private SessionResponseDTO toSessionResponseDTO(AuctionSession session, Integer sessionId) {

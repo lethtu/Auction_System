@@ -16,6 +16,7 @@ public class AppNotification {
     private LocalDateTime createdAt;
     private BooleanProperty read;
     private String actionLabel;
+    private Runnable action;
     private boolean soundMuted = false;
 
     public AppNotification(NotificationType type, NotificationSeverity severity, String title, String message) {
@@ -46,4 +47,7 @@ public class AppNotification {
     public BooleanProperty readProperty() { return read; }
     public String getActionLabel() { return actionLabel; }
     public void setActionLabel(String actionLabel) { this.actionLabel = actionLabel; }
+    public Runnable getAction() { return action; }
+    public void setAction(Runnable action) { this.action = action; }
+    public boolean hasAction() { return action != null && actionLabel != null && !actionLabel.isBlank(); }
 }

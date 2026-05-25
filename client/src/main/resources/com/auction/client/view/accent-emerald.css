@@ -1,5 +1,6 @@
 /* Emerald Accent overrides */
-.root {
+.root,
+.accent-emerald {
     -fx-accent: #10b981;
     -fx-focus-color: #10b981;
     

@@ -25,7 +25,7 @@
 
                 <HBox spacing="10.0" alignment="BOTTOM_LEFT" style="-fx-padding: 0 0 10px 0;">
                     <VBox spacing="10.0">
-                        <Label text="System Settings" styleClass="settings-page-title" style="-fx-font-size: 32px; -fx-font-weight: bold;" />
+                        <Label text="System Settings" styleClass="settings-page-title" style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: -fx-accent;" />
                         <Label text="Customize notifications, app interface and your auction experience." styleClass="settings-page-subtitle" style="-fx-font-size: 15px;" />
                     </VBox>
                     <Region HBox.hgrow="ALWAYS" />
@@ -38,16 +38,30 @@
 
                 <ScrollPane fitToWidth="true" styleClass="scroll-pane" VBox.vgrow="ALWAYS">
                     <VBox spacing="24.0" style="-fx-padding: 10px;">
-                        <VBox fx:id="passwordSetBox" spacing="16.0" style="-fx-background-color: #fff9e6; -fx-padding: 24px 30px; -fx-background-radius: 16px; -fx-border-color: #ffe0b2; -fx-border-width: 2px; -fx-border-radius: 16px;">
+                        <VBox fx:id="passwordSetBox" spacing="16.0" styleClass="password-security-card password-security-card-warning">
                             <HBox spacing="10.0" alignment="CENTER_LEFT">
-                                <Label text="&#xe8a6;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 24px; -fx-text-fill: #e65100;" />
-                                <Label text="Set account password" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #e65100;" />
+                                <Label text="&#xe8a6;" styleClass="password-security-icon" />
+                                <Label text="Set account password" styleClass="password-security-title" />
                             </HBox>
-                            <Label text="This account was created through Google sign-in and does not have a local password yet." wrapText="true" style="-fx-font-size: 14px; -fx-text-fill: #5d4037;" />
+                            <Label text="This account was created through Google sign-in and does not have a local password yet." wrapText="true" styleClass="password-security-description" />
                             <HBox spacing="20.0" alignment="CENTER_LEFT">
                                 <PasswordField fx:id="txtNewPassword" promptText="New password, at least 6 characters" prefWidth="260.0" />
                                 <PasswordField fx:id="txtConfirmPassword" promptText="Confirm new password" prefWidth="220.0" />
-                                <Button fx:id="btnSetPassword" onAction="#handleSetPassword" text="Set Password" prefHeight="40.0" style="-fx-background-color: #e65100; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-cursor: hand; -fx-padding: 8px 24px;" />
+                                <Button fx:id="btnSetPassword" onAction="#handleSetPassword" text="Set Password" prefHeight="40.0" styleClass="password-security-primary-btn" />
+                            </HBox>
+                        </VBox>
+
+                        <VBox fx:id="passwordChangeBox" spacing="16.0" styleClass="password-security-card">
+                            <HBox spacing="10.0" alignment="CENTER_LEFT">
+                                <Label text="&#xe897;" styleClass="password-security-icon" />
+                                <Label text="Change password" styleClass="password-security-title" />
+                            </HBox>
+                            <Label text="Update your local password. Use a password with at least 6 characters." wrapText="true" styleClass="password-security-description" />
+                            <HBox spacing="20.0" alignment="CENTER_LEFT">
+                                <PasswordField fx:id="txtCurrentPassword" promptText="Current password" prefWidth="220.0" />
+                                <PasswordField fx:id="txtChangeNewPassword" promptText="New password" prefWidth="220.0" />
+                                <PasswordField fx:id="txtChangeConfirmPassword" promptText="Confirm new password" prefWidth="220.0" />
+                                <Button fx:id="btnChangePassword" onAction="#handleChangePassword" text="Change Password" prefHeight="40.0" styleClass="password-security-primary-btn" />
                             </HBox>
                         </VBox>
 
@@ -88,9 +102,6 @@
                                     <Region HBox.hgrow="ALWAYS" />
                                     <ComboBox fx:id="cbColor" prefWidth="180" />
                                 </HBox>
-                                <Separator />
-                                <CheckBox fx:id="chkCollapse" text="Auto-collapse sidebar" styleClass="setting-switch" />
-                                <CheckBox fx:id="chkRememberPage" text="Remember last page on startup" styleClass="setting-switch" />
                             </VBox>
 
                             <VBox spacing="20.0" prefWidth="480.0" styleClass="settings-card" style="-fx-padding: 24px; -fx-background-radius: 16px; -fx-border-radius: 16px; -fx-border-width: 1px;">
@@ -100,16 +111,10 @@
                                 </HBox>
                                 <Separator />
                                 <CheckBox fx:id="chkConfirmBid" text="Confirm before placing bid" styleClass="setting-switch" />
-                                <CheckBox fx:id="chkQuickBid" text="Enable Quick Bid buttons" styleClass="setting-switch" />
                                 <HBox spacing="10" alignment="CENTER_LEFT">
                                     <Label text="High bid warning (VND):" styleClass="setting-label" />
                                     <Region HBox.hgrow="ALWAYS" />
                                     <TextField fx:id="txtHighBidWarning" prefWidth="140" />
-                                </HBox>
-                                <HBox spacing="10" alignment="CENTER_LEFT">
-                                    <Label text="Default bid increment (VND):" styleClass="setting-label" />
-                                    <Region HBox.hgrow="ALWAYS" />
-                                    <TextField fx:id="txtDefaultIncrement" prefWidth="140" />
                                 </HBox>
                             </VBox>
 
@@ -122,7 +127,6 @@
                                 <CheckBox fx:id="chkShowEnded" text="Show ended auctions by default" styleClass="setting-switch" />
                                 <CheckBox fx:id="chkSortActive" text="Sort active auctions first" styleClass="setting-switch" />
                                 <CheckBox fx:id="chkShowCountdown" text="Show countdown timers" styleClass="setting-switch" />
-                                <CheckBox fx:id="chkCompactCards" text="Use compact product cards" styleClass="setting-switch" />
                             </VBox>
 
                             <VBox spacing="20.0" prefWidth="480.0" styleClass="settings-card" style="-fx-padding: 24px; -fx-background-radius: 16px; -fx-border-radius: 16px; -fx-border-width: 1px;">

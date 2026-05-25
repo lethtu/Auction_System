@@ -177,7 +177,7 @@ public class GoogleAuthController {
             try {
                 String timeStr = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
                 String emailBody = com.auction.server.util.EmailTemplateBuilder.buildGoogleRegisterEmail(user.getFullname(), user.getEmail(), timeStr);
-                emailServer.SendEmail(user.getEmail(), "Chào Mừng Bạn Đến Với BidPop - Đăng Ký Thành Công", emailBody);
+                emailServer.SendEmail(user.getEmail(), "Welcome to BidPop - Registration Successful", emailBody);
             } catch (Exception e) {
                 logger.error("Failed to send Google registration email notification", e);
             }

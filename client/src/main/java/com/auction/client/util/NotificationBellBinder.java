@@ -189,13 +189,27 @@ public class NotificationBellBinder {
         timeLabel.setStyle("-fx-text-fill: -app-placeholder; -fx-font-size: 11px;");
 
         textContent.getChildren().addAll(title, message, timeLabel);
+
+        if (notification.hasAction()) {
+            Button actionButton = new Button(notification.getActionLabel());
+            actionButton.setStyle("-fx-background-color: -fx-accent; -fx-text-fill: white; -fx-font-family: 'DM Sans';"
+                    + "-fx-font-size: 12px; -fx-font-weight: 900; -fx-background-radius: 999px;"
+                    + "-fx-padding: 6px 12px; -fx-cursor: hand;");
+            actionButton.setOnAction(event -> {
+                event.consume();
+                service.markAsRead(notification.getId());
+                notification.getAction().run();
+            });
+            textContent.getChildren().add(actionButton);
+        }
         
         card.getChildren().addAll(iconLabel, textContent);
 
         card.setOnMouseClicked(e -> {
             service.markAsRead(notification.getId());
-            // Here we could emit an event to navigate to the auction page if auctionId is present.
-            // For now, it just marks as read.
+            if (notification.hasAction()) {
+                notification.getAction().run();
+            }
         });
 
         return card;
@@ -207,9 +221,11 @@ public class NotificationBellBinder {
             case NEW_BID: return "\ue8d4"; // trending_up or gavel (\ue900)
             case AUCTION_EXTENDED: return "\ue8b5"; // schedule
             case AUCTION_END_WIN:
+            case AUCTION_WON:
             case BID_SUCCESS: return "\ue86c"; // check_circle
             case BID_FAILED:
             case AUCTION_END_LOSE:
+            case AUCTION_LOST:
             case SYSTEM_ERROR: return "\ue000"; // error
             case AUTO_BID_CONFIGURED:
             case AUTO_BID_PLACED: return "\uea0b"; // bolt

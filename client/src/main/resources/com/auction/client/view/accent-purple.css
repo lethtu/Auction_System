@@ -1,5 +1,6 @@
 /* Purple Accent overrides */
-.root {
+.root,
+.accent-purple {
     -fx-accent: #8b5cf6;
     -fx-focus-color: #8b5cf6;
     

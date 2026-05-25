@@ -1,5 +1,6 @@
 /* ====== LIGHT THEME: token definitions ====== */
-.root {
+.root,
+.theme-light {
     -app-bg:          #fff7fc;
     -app-bg-gradient: linear-gradient(to bottom right, #fffbff 0%, #fff6fb 52%, #fffaf6 100%);
     -app-topbar-bg: rgba(255, 251, 255, 0.97);
@@ -26,8 +27,6 @@
 .content-area,
 .app-topbar,
 .app-topbar-even,
-.theme-light .app-sidebar-content,
-.theme-light .app-sidebar-content-collapsed,
 .admin-bidpop-topbar {
     -fx-background-color: -app-bg;
 }
@@ -39,10 +38,20 @@
     -fx-fill:      -app-text;
 }
 
+.label .text,
+.button .text,
+.toggle-button .text,
+.check-box .text,
+.radio-button .text,
+.hyperlink .text {
+    -fx-fill: -fx-text-fill !important;
+}
+
 /* ====== BUTTONS ====== */
 .button {
     -fx-text-fill: -app-text;
 }
+
 
 /* ====== CHECKBOXES & RADIO ====== */
 .check-box,
@@ -197,4 +206,59 @@
 .theme-light .app-content-panel,
 .theme-light .app-content-scroll {
     -fx-border-color: -app-accent-opacity-78;
+}
+
+.theme-light .app-sidebar-scroll,
+.theme-light .app-sidebar-scroll-collapsed {
+    -fx-border-color: -app-accent-opacity-78;
+}
+
+/* ====== AUTH SCREEN OVERRIDES ====== */
+.auth-brand-title,
+.auth-root .auth-brand-title,
+.auth-root .label.auth-brand-title {
+    -fx-text-fill: #ffffff !important;
+}
+
+.auth-brand-subtitle,
+.auth-root .auth-brand-subtitle,
+.auth-root .label.auth-brand-subtitle {
+    -fx-text-fill: #ffffff !important;
+}
+
+.auth-primary-button,
+.auth-root .button.auth-primary-button,
+.auth-root .auth-primary-button {
+    -fx-text-fill: #ffffff !important;
+}
+
+
+
+/* === AUTH WHITE FOREGROUND FIX START ===
+   The global theme styles the internal .text node directly.
+   Lock both the control foreground and rendered Text fill for light and dark modes. */
+.auth-root .auth-brand-title,
+.auth-root .auth-brand-subtitle,
+.auth-root .button.auth-primary-button {
+    -fx-text-fill: #ffffff;
+    -fx-text-fill: #ffffff !important;
+}
+
+.auth-root .auth-brand-title .text,
+.auth-root .auth-brand-subtitle .text,
+.auth-root .button.auth-primary-button .text {
+    -fx-fill: #ffffff;
+    -fx-fill: #ffffff !important;
+}
+/* === AUTH WHITE FOREGROUND FIX END === */
+
+/* Keep accent action content readable after the global light-theme button rules. */
+.theme-light .button.password-security-primary-btn,
+.theme-light .button.action-btn-primary {
+    -fx-text-fill: #ffffff !important;
+}
+
+.theme-light .button.password-security-primary-btn .text,
+.theme-light .button.action-btn-primary .text {
+    -fx-fill: #ffffff !important;
 }

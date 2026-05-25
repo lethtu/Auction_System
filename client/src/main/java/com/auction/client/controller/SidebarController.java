@@ -394,10 +394,28 @@ public class SidebarController {
         }
     }
 
+    private boolean checkLogin(ActionEvent event) {
+        if (User.getId() == null) {
+            AlertUtil.showError("Access Denied", "Please log in to use this feature.");
+            try {
+                if (onBeforeNavigate != null)
+                    onBeforeNavigate.run();
+                SceneSwitcher.switchScene(event, "Login.fxml", 1100, 700);
+            } catch (IOException e) {
+                logger.error("Error switching to Login screen!", e);
+            }
+            return false;
+        }
+        return true;
+    }
+
     @FXML
     public void handleWatchlist(ActionEvent event) {
         autoCollapse();
         setActiveWatchlist();
+        if (!checkLogin(event)) {
+            return;
+        }
         if (listener != null) {
             listener.onFilterWatchlist(event);
         } else {
@@ -416,6 +434,9 @@ public class SidebarController {
     @FXML
     public void handleStartSelling(ActionEvent event) {
         autoCollapse();
+        if (!checkLogin(event)) {
+            return;
+        }
         try {
             if (onBeforeNavigate != null)
                 onBeforeNavigate.run();
@@ -429,6 +450,9 @@ public class SidebarController {
     public void handleMyBids(ActionEvent event) {
         autoCollapse();
         setActiveMyBids();
+        if (!checkLogin(event)) {
+            return;
+        }
         try {
             Stage stage = resolveStage(event);
             int currentWidth = stage == null ? APP_WIDTH : Math.max(APP_WIDTH, (int) Math.round(stage.getWidth()));
@@ -447,6 +471,9 @@ public class SidebarController {
     public void handleSelling(ActionEvent event) {
         autoCollapse();
         setActiveSelling();
+        if (!checkLogin(event)) {
+            return;
+        }
         try {
             Stage stage = resolveStage(event);
             int currentWidth = stage == null ? APP_WIDTH : Math.max(APP_WIDTH, (int) Math.round(stage.getWidth()));
@@ -483,6 +510,9 @@ public class SidebarController {
     public void handleSettings(ActionEvent event) {
         autoCollapse();
         setActiveSettings();
+        if (!checkLogin(event)) {
+            return;
+        }
         try {
             Stage stage = resolveStage(event);
             int currentWidth = stage == null ? APP_WIDTH : Math.max(APP_WIDTH, (int) Math.round(stage.getWidth()));

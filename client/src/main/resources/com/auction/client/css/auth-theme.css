@@ -2,6 +2,7 @@
     font-family: "DM Sans";
     src: url("../view/fonts/DMSans-Variable.ttf");
 }
+
 @font-face {
     font-family: "DM Sans";
     src: url("../view/fonts/DMSans-Variable.ttf");
@@ -19,15 +20,15 @@
     -fx-padding: 10;
 
     /* Force light-theme styling variables inside auth screens */
-    -app-bg:          #ffffff;
-    -app-surface:     #ffffff;
-    -app-surface-2:   #fbf1fb;
-    -app-card:        #ffffff;
-    -app-text:        #604868;
-    -app-text-muted:  #907898;
-    -app-border:      #f2e8f2;
-    -app-input-bg:    #fbf1fb;
-    -app-input-text:  #2e1a28;
+    -app-bg: #ffffff;
+    -app-surface: #ffffff;
+    -app-surface-2: #fbf1fb;
+    -app-card: #ffffff;
+    -app-text: #604868;
+    -app-text-muted: #907898;
+    -app-border: #f2e8f2;
+    -app-input-bg: #fbf1fb;
+    -app-input-text: #2e1a28;
     -app-placeholder: #dcc8e0;
 }
 
@@ -36,6 +37,15 @@
 .auth-root .text {
     -fx-text-fill: -app-text;
     -fx-fill: -app-text;
+}
+
+.auth-root .label .text,
+.auth-root .button .text,
+.auth-root .toggle-button .text,
+.auth-root .check-box .text,
+.auth-root .radio-button .text,
+.auth-root .hyperlink .text {
+    -fx-fill: -fx-text-fill !important;
 }
 
 .auth-root.window-maximized {
@@ -71,7 +81,7 @@
 }
 
 .auth-brand-panel {
-    -fx-background-color: linear-gradient(to bottom right, #df49aa 0%, #e13b9d 58%, #d9369a 100%);
+    -fx-background-color: -app-accent-gradient-dark;
     -fx-background-radius: 32 0 0 32;
     -fx-background-insets: 1 0 1 1;
 }
@@ -96,7 +106,7 @@
     -fx-font-family: "DM Sans" !important;
     -fx-font-size: 16px !important;
     -fx-font-weight: 500 !important;
-    -fx-text-fill: #ffd6ee !important;
+    -fx-text-fill: #ffffff !important;
     -fx-wrap-text: true !important;
     -fx-line-spacing: 4 !important;
 }
@@ -324,8 +334,9 @@
     -fx-padding: 12 24 12 24 !important;
 }
 
-.auth-social-button:hover {
+.auth-root .button.auth-social-button:hover {
     -fx-background-color: -app-surface-2 !important;
+    -fx-border-color: -fx-accent !important;
 }
 
 .auth-footer {
@@ -386,20 +397,63 @@
     -fx-padding: 6 8;
     -fx-background-radius: 6;
 }
+
 .window-control-btn:hover {
     -fx-background-color: rgba(0, 0, 0, 0.05);
 }
+
 .close-btn:hover {
     -fx-background-color: #ef4444;
 }
+
 .close-btn:hover .window-control-icon {
     -fx-text-fill: white;
 }
+
 .window-control-icon {
     -fx-font-family: 'DM Sans';
     -fx-font-size: 14px;
     -fx-font-weight: 900;
     -fx-text-fill: -app-text-muted;
+}
+
+/* macOS-style controls on the standalone authentication windows. */
+.mac-window-controls-auth {
+    -fx-padding: 20 25 0 0;
+}
+
+.mac-window-control-auth {
+    -fx-min-width: 13px;
+    -fx-pref-width: 13px;
+    -fx-max-width: 13px;
+    -fx-min-height: 13px;
+    -fx-pref-height: 13px;
+    -fx-max-height: 13px;
+    -fx-padding: 0;
+    -fx-background-insets: 0;
+    -fx-background-radius: 999px;
+    -fx-border-radius: 999px;
+    -fx-border-width: 1px;
+    -fx-cursor: hand;
+}
+
+.mac-close-auth {
+    -fx-background-color: #ff5f57;
+    -fx-border-color: #e0443e;
+}
+
+.mac-minimize-auth {
+    -fx-background-color: #febc2e;
+    -fx-border-color: #d89c19;
+}
+
+.mac-maximize-auth {
+    -fx-background-color: #28c840;
+    -fx-border-color: #19a62f;
+}
+
+.mac-window-control-auth:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.23), 5, 0, 0, 1);
 }
 
 
@@ -441,11 +495,11 @@
 }
 
 #rememberMeCheckBox .box,
-#rememberMeCheckBox > .box,
+#rememberMeCheckBox>.box,
 .remember-me-pill .box,
-.remember-me-pill > .box,
+.remember-me-pill>.box,
 .auth-remember-check .box,
-.auth-remember-check > .box {
+.auth-remember-check>.box {
     -fx-min-width: 22px;
     -fx-pref-width: 22px;
     -fx-max-width: 22px;
@@ -460,23 +514,24 @@
 }
 
 #rememberMeCheckBox:selected .box,
-#rememberMeCheckBox:selected > .box,
+#rememberMeCheckBox:selected>.box,
 .remember-me-pill:selected .box,
-.remember-me-pill:selected > .box,
+.remember-me-pill:selected>.box,
 .auth-remember-check:selected .box,
-.auth-remember-check:selected > .box {
+.auth-remember-check:selected>.box {
     -fx-background-color: -app-accent-gradient-dark;
     -fx-border-color: -fx-accent;
 }
 
 #rememberMeCheckBox:selected .mark,
-#rememberMeCheckBox:selected > .box > .mark,
+#rememberMeCheckBox:selected>.box>.mark,
 .remember-me-pill:selected .mark,
-.remember-me-pill:selected > .box > .mark,
+.remember-me-pill:selected>.box>.mark,
 .auth-remember-check:selected .mark,
-.auth-remember-check:selected > .box > .mark {
+.auth-remember-check:selected>.box>.mark {
     -fx-background-color: white;
 }
+
 /* === REMEMBER ME PILL FIX 20260522 END === */
 
 /* === AUTH CHECKBOX POLISH 20260522 START === */
@@ -485,12 +540,15 @@
     -fx-pref-height: 0;
     -fx-max-height: 0;
 }
+
 .auth-root .scroll-pane .scroll-bar:vertical {
     -fx-background-color: transparent;
     -fx-pref-width: 0;
     -fx-opacity: 0;
 }
-.remember-me-pill, .auth-check-box {
+
+.remember-me-pill,
+.auth-check-box {
     -fx-font-family: 'DM Sans';
     -fx-text-fill: -app-text;
     -fx-font-size: 14px;
@@ -498,7 +556,9 @@
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
 }
-.remember-me-pill > .box, .auth-check-box > .box {
+
+.remember-me-pill>.box,
+.auth-check-box>.box {
     -fx-background-color: -app-accent-chip-bg;
     -fx-border-color: -app-accent-chip-border;
     -fx-border-width: 1.6;
@@ -507,11 +567,34 @@
     -fx-padding: 4;
     -fx-effect: dropshadow(gaussian, -app-accent-opacity-12, 8, 0.10, 0, 2);
 }
-.remember-me-pill:selected > .box, .auth-check-box:selected > .box {
+
+.remember-me-pill:selected>.box,
+.auth-check-box:selected>.box {
     -fx-background-color: -fx-accent;
     -fx-border-color: -fx-accent;
 }
-.remember-me-pill:selected > .box > .mark, .auth-check-box:selected > .box > .mark {
+
+.remember-me-pill:selected>.box>.mark,
+.auth-check-box:selected>.box>.mark {
     -fx-background-color: white;
 }
+
 /* === AUTH CHECKBOX POLISH 20260522 END === */
+
+/* === AUTH WHITE FOREGROUND FIX START ===
+   The global theme styles the internal .text node directly.
+   Lock both the control foreground and rendered Text fill for light and dark modes. */
+.auth-root .auth-brand-title,
+.auth-root .auth-brand-subtitle,
+.auth-root .button.auth-primary-button {
+    -fx-text-fill: #ffffff;
+    -fx-text-fill: #ffffff !important;
+}
+
+.auth-root .auth-brand-title .text,
+.auth-root .auth-brand-subtitle .text,
+.auth-root .button.auth-primary-button .text {
+    -fx-fill: #ffffff;
+    -fx-fill: #ffffff !important;
+}
+/* === AUTH WHITE FOREGROUND FIX END === */

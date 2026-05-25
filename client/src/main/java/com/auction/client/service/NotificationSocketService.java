@@ -5,6 +5,7 @@ import com.auction.client.model.User;
 import com.auction.client.model.notification.AppNotification;
 import com.auction.client.model.notification.NotificationType;
 import com.auction.client.model.notification.NotificationSeverity;
+import com.auction.client.util.ShippingInfoDialog;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -23,6 +24,8 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class NotificationSocketService {
     private static final Logger logger = LoggerFactory.getLogger(NotificationSocketService.class);
@@ -34,6 +37,16 @@ public class NotificationSocketService {
     private Thread listenerThread;
     private volatile boolean running = false;
     private Integer userId;
+    private final HttpClient httpClient = HttpClient.newBuilder()
+            .followRedirects(HttpClient.Redirect.ALWAYS)
+            .build();
+    private final ExecutorService notificationExecutor = Executors.newFixedThreadPool(
+            Math.max(2, Math.min(4, Runtime.getRuntime().availableProcessors())),
+            runnable -> {
+                Thread thread = new Thread(runnable, "notification-worker");
+                thread.setDaemon(true);
+                return thread;
+            });
     
     // Use WeakReference to prevent memory leaks from registered controllers
     private final List<java.lang.ref.WeakReference<SocketEventListener>> listeners = new CopyOnWriteArrayList<>();
@@ -166,7 +179,7 @@ public class NotificationSocketService {
                 // Handle global events (e.g. AUCTION_ENDED)
                 if ("AUCTION_ENDED".equals(eventObj.optString("type"))) {
                     int sessionId = eventObj.getInt("sessionId");
-                    fetchAndNotifyAuctionEnd(sessionId);
+                    handleAuctionEndedEvent(sessionId, eventObj);
                 }
             } else if (line.startsWith("NOTICE:")) {
                 String jsonStr = line.substring(7);
@@ -225,14 +238,14 @@ public class NotificationSocketService {
     }
 
     private void fetchAndNotifyAuctionEnd(int sessionId) {
-        Thread thread = new Thread(() -> {
+        notificationExecutor.execute(() -> {
             try {
                 // Fetch auction session details
                 HttpRequest sessionReq = HttpRequest.newBuilder()
                         .uri(URI.create(Config.API_URL + "/api/auctions/" + sessionId))
                         .GET()
                         .build();
-                HttpResponse<String> sessionRes = HttpClient.newHttpClient().send(sessionReq, HttpResponse.BodyHandlers.ofString());
+                HttpResponse<String> sessionRes = httpClient.send(sessionReq, HttpResponse.BodyHandlers.ofString());
                 if (sessionRes.statusCode() != 200 || sessionRes.body() == null || sessionRes.body().isBlank()) {
                     return;
                 }
@@ -250,7 +263,7 @@ public class NotificationSocketService {
                         .uri(URI.create(Config.API_URL + "/api/auctions/" + sessionId + "/bid-history"))
                         .GET()
                         .build();
-                HttpResponse<String> historyRes = HttpClient.newHttpClient().send(historyReq, HttpResponse.BodyHandlers.ofString());
+                HttpResponse<String> historyRes = httpClient.send(historyReq, HttpResponse.BodyHandlers.ofString());
                 
                 boolean participated = false;
                 Integer currentUserId = User.getId();
@@ -275,6 +288,8 @@ public class NotificationSocketService {
                         );
                         notif.setAuctionId(sessionId);
                         notif.setItemName(itemName);
+                        notif.setActionLabel("Enter delivery info");
+                        notif.setAction(() -> ShippingInfoDialog.show(sessionId, itemName));
                         NotificationCenterService.getInstance().addNotification(notif);
                     } else {
                         AppNotification notif = new AppNotification(
@@ -292,8 +307,56 @@ public class NotificationSocketService {
                 logger.warn("Failed to fetch/notify auction end details for session {}: {}", sessionId, e.getMessage());
             }
         });
-        thread.setDaemon(true);
-        thread.start();
+    }
+
+    private void handleAuctionEndedEvent(int sessionId, JSONObject eventObj) {
+        Integer currentUserId = User.getId();
+        if (currentUserId == null) {
+            return;
+        }
+
+        Integer winnerId = eventObj.has("winnerId") && !eventObj.isNull("winnerId")
+                ? eventObj.optInt("winnerId")
+                : (eventObj.has("highestBidderId") && !eventObj.isNull("highestBidderId")
+                    ? eventObj.optInt("highestBidderId")
+                    : null);
+
+        if (winnerId != null) {
+            if (!currentUserId.equals(winnerId)) {
+                return;
+            }
+
+            BigDecimal finalPrice = parsePrice(eventObj.opt("finalPrice"));
+            String itemName = eventObj.optString("itemName", "Unknown Item");
+            AppNotification notif = new AppNotification(
+                    NotificationType.AUCTION_WON,
+                    NotificationSeverity.SUCCESS,
+                    "You won!",
+                    "Please enter delivery information for " + itemName + " at VND " + formatPrice(finalPrice));
+            notif.setAuctionId(sessionId);
+            notif.setItemName(itemName);
+            notif.setActionLabel("Enter delivery info");
+            notif.setAction(() -> ShippingInfoDialog.show(sessionId, itemName));
+            NotificationCenterService.getInstance().addNotification(notif);
+            return;
+        }
+
+        if (eventObj.has("hasWinner") && !eventObj.optBoolean("hasWinner")) {
+            return;
+        }
+
+        fetchAndNotifyAuctionEnd(sessionId);
+    }
+
+    private BigDecimal parsePrice(Object value) {
+        if (value == null || JSONObject.NULL.equals(value)) {
+            return BigDecimal.ZERO;
+        }
+        try {
+            return new BigDecimal(value.toString());
+        } catch (Exception e) {
+            return BigDecimal.ZERO;
+        }
     }
 
     private String formatPrice(BigDecimal price) {
