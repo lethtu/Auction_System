@@ -504,7 +504,6 @@
     -fx-cursor: hand;
     -fx-focus-color: transparent;
     -fx-faint-focus-color: transparent;
-    -fx-accent: -fx-accent;
     -fx-effect: dropshadow(gaussian, -app-accent-opacity-08, 10, 0.18, 0, 2);
 }
 

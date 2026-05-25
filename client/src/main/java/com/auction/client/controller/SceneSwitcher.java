@@ -34,13 +34,21 @@ public class SceneSwitcher {
     private static final double APP_HEIGHT = 800;
 
     public static Stage getStage(javafx.event.Event event) {
-        Object source = event.getSource();
-        if (source instanceof Node node) {
-            return (Stage) node.getScene().getWindow();
-        } else if (source instanceof MenuItem menuItem) {
-            return (Stage) menuItem.getParentPopup().getOwnerWindow();
+        if (event != null) {
+            Object source = event.getSource();
+            if (source instanceof Node node) {
+                return (Stage) node.getScene().getWindow();
+            } else if (source instanceof MenuItem menuItem) {
+                if (menuItem.getParentPopup() != null) {
+                    return (Stage) menuItem.getParentPopup().getOwnerWindow();
+                }
+            }
         }
-        return null;
+        return javafx.stage.Window.getWindows().stream()
+                .filter(w -> w instanceof Stage)
+                .map(w -> (Stage) w)
+                .findFirst()
+                .orElse(null);
     }
 
     public static void handleMinimize(javafx.event.Event event) {
@@ -74,13 +82,23 @@ public class SceneSwitcher {
         }
 
         Stage stage = null;
-        Object source = event.getSource();
+        Object source = event != null ? event.getSource() : null;
 
         if (source instanceof Node) {
             stage = (Stage) ((Node) source).getScene().getWindow();
         } else if (source instanceof MenuItem) {
             MenuItem menuItem = (MenuItem) source;
-            stage = (Stage) menuItem.getParentPopup().getOwnerWindow();
+            if (menuItem.getParentPopup() != null) {
+                stage = (Stage) menuItem.getParentPopup().getOwnerWindow();
+            }
+        }
+
+        if (stage == null) {
+            stage = javafx.stage.Window.getWindows().stream()
+                    .filter(w -> w instanceof Stage)
+                    .map(w -> (Stage) w)
+                    .findFirst()
+                    .orElse(null);
         }
 
         if (stage == null) {

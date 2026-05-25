@@ -50,7 +50,7 @@ public class SignUpControllerTest {
     public void testSignUp_EmptyFields(FxRobot robot) {
         robot.clickOn("#txtFullName").write("Lê Thanh Tùng");
         robot.clickOn("#btnSignUp");
-        verifyThat("Vui lòng điền đầy đủ các trường!", NodeMatchers.isVisible());
+        verifyThat("Please fill in all fields!", NodeMatchers.isVisible());
         robot.clickOn("OK");
     }
 
@@ -68,7 +68,7 @@ public class SignUpControllerTest {
         robot.clickOn("#chkTerms");
         robot.clickOn("#btnSignUp");
 
-        verifyThat("Mật khẩu xác nhận không khớp!", NodeMatchers.isVisible());
+        verifyThat("Confirm password does not match!", NodeMatchers.isVisible());
         robot.clickOn("OK");
     }
 
@@ -106,7 +106,7 @@ public class SignUpControllerTest {
     @DisplayName("Test: Mock Server báo thành công -> Hiện Popup Thành công")
     public void testSignUp_Success(FxRobot robot) throws Exception {
         // Nặn JSON giả thành công
-        String jsonSuccess = "{\"message\": \"Đăng ký thành công\"}";
+        String jsonSuccess = "{\"message\": \"success\"}";
         when(mockHttpClient.<String>send(any(HttpRequest.class), any())).thenReturn(mockHttpResponse);
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(jsonSuccess);
@@ -123,7 +123,7 @@ public class SignUpControllerTest {
         robot.sleep(1500);
         WaitForAsyncUtils.waitForFxEvents();
 
-        verifyThat("Đăng ký tài khoản thành công!", NodeMatchers.isVisible());
+        verifyThat("Account registered successfully!", NodeMatchers.isVisible());
         robot.clickOn("OK");
 
         robot.sleep(500);

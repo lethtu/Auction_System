@@ -170,7 +170,7 @@ public class SellerDashboardControllerTest {
 
         // 5. Xác minh thông báo Alert thành công xuất hiện và xác nhận
         verifyThat("Tạo phiên đấu giá thành công.", NodeMatchers.isVisible());
-        robot.clickOn("Đồng ý");
+        robot.clickOn("OK");
     }
 
     @Test
@@ -230,18 +230,17 @@ public class SellerDashboardControllerTest {
         robot.clickOn("#btnSubmit");
         robot.sleep(500);
 
-        // 5. Xác minh hộp thoại xác nhận thời gian bắt đầu quá khứ "Thời gian bắt đầu
-        // đã đến!" xuất hiện
-        verifyThat("Thời gian bắt đầu đã đến!", NodeMatchers.isVisible());
+        // 5. Xác minh hộp thoại xác nhận thời gian bắt đầu quá khứ "Start time has arrived!" xuất hiện
+        verifyThat("Start time has arrived!", NodeMatchers.isVisible());
 
-        // Giả lập click vào nút "Bắt đầu ngay" trên hộp thoại xác nhận
-        robot.clickOn("Bắt đầu ngay");
+        // Giả lập click vào nút "Start Now" trên hộp thoại xác nhận
+        robot.clickOn("Start Now");
         robot.sleep(1000);
         WaitForAsyncUtils.waitForFxEvents();
 
         // 6. Xác minh thông báo Alert thành công xuất hiện và xác nhận
         verifyThat("Tạo phiên đấu giá thành công.", NodeMatchers.isVisible());
-        robot.clickOn("Đồng ý");
+        robot.clickOn("OK");
     }
 
     @Test
@@ -301,7 +300,7 @@ public class SellerDashboardControllerTest {
         Label lblErrorEndDT = (Label) robot.lookup("#lblErrorEndDT").query();
 
         assertTrue(errorEndDT.isVisible(), "Thông báo lỗi End Time phải hiển thị");
-        assertEquals("Thời gian kết thúc phải ở tương lai", lblErrorEndDT.getText(),
+        assertEquals("End time must be in the future", lblErrorEndDT.getText(),
                 "Nội dung thông báo lỗi phải chính xác");
         Platform.runLater(() -> controller.handleCloseModal());
         WaitForAsyncUtils.waitForFxEvents();
@@ -364,7 +363,7 @@ public class SellerDashboardControllerTest {
         Label lblErrorEndDT = (Label) robot.lookup("#lblErrorEndDT").query();
 
         assertTrue(errorEndDT.isVisible(), "Thông báo lỗi End Time phải hiển thị");
-        assertEquals("Thời gian kết thúc phải sau thời gian bắt đầu", lblErrorEndDT.getText(),
+        assertEquals("End time must be after start time", lblErrorEndDT.getText(),
                 "Nội dung thông báo lỗi phải chính xác");
         Platform.runLater(() -> controller.handleCloseModal());
         WaitForAsyncUtils.waitForFxEvents();
@@ -430,7 +429,7 @@ public class SellerDashboardControllerTest {
 
         // 5. Xác minh thông báo Alert thành công xuất hiện và xác nhận
         verifyThat("Lưu bản nháp thành công.", NodeMatchers.isVisible());
-        robot.clickOn("Đồng ý");
+        robot.clickOn("OK");
     }
 
     @Test
@@ -534,7 +533,7 @@ public class SellerDashboardControllerTest {
         Label lblErrorEndDT = (Label) robot.lookup("#lblErrorEndDT").query();
 
         assertTrue(errorEndDT.isVisible(), "Thông báo lỗi End Time phải hiển thị");
-        assertEquals("Thời gian kết thúc phải ở tương lai", lblErrorEndDT.getText(),
+        assertEquals("End time must be in the future", lblErrorEndDT.getText(),
                 "Nội dung thông báo lỗi phải chính xác");
         Platform.runLater(() -> controller.handleCloseModal());
         WaitForAsyncUtils.waitForFxEvents();
@@ -597,7 +596,7 @@ public class SellerDashboardControllerTest {
         Label lblErrorEndDT = (Label) robot.lookup("#lblErrorEndDT").query();
 
         assertTrue(errorEndDT.isVisible(), "Thông báo lỗi End Time phải hiển thị");
-        assertEquals("Thời gian kết thúc phải sau thời gian bắt đầu", lblErrorEndDT.getText(),
+        assertEquals("End time must be after start time", lblErrorEndDT.getText(),
                 "Nội dung thông báo lỗi phải chính xác");
         Platform.runLater(() -> controller.handleCloseModal());
         WaitForAsyncUtils.waitForFxEvents();
@@ -731,7 +730,7 @@ public class SellerDashboardControllerTest {
 
         // 6. Xác minh hộp thoại thành công hiển thị và click xác nhận
         verifyThat("Cập nhật phiên đấu giá thành công.", NodeMatchers.isVisible());
-        robot.clickOn("Đồng ý");
+        robot.clickOn("OK");
     }
 
     @Test
@@ -775,7 +774,7 @@ public class SellerDashboardControllerTest {
 
         // 6. Xác minh hộp thoại thành công hiển thị và click xác nhận
         verifyThat("Cập nhật bản nháp thành công.", NodeMatchers.isVisible());
-        robot.clickOn("Đồng ý");
+        robot.clickOn("OK");
     }
 
     @Test
@@ -826,7 +825,7 @@ public class SellerDashboardControllerTest {
 
         // 6. Xác minh hộp thoại thành công hiển thị và click xác nhận
         verifyThat("Cập nhật phiên đấu giá thành công.", NodeMatchers.isVisible());
-        robot.clickOn("Đồng ý");
+        robot.clickOn("OK");
     }
 
     @Test
@@ -881,16 +880,15 @@ public class SellerDashboardControllerTest {
         robot.sleep(1000);
         WaitForAsyncUtils.waitForFxEvents();
 
-        // Vì start time ở quá khứ, cảnh báo bắt đầu ngay sẽ hiển thị -> click "Bắt đầu
-        // ngay"
-        verifyThat("Thời gian bắt đầu đã đến!", NodeMatchers.isVisible());
-        robot.clickOn("Bắt đầu ngay");
+        // Vì start time ở quá khứ, cảnh báo bắt đầu ngay sẽ hiển thị -> click "Start Now"
+        verifyThat("Start time has arrived!", NodeMatchers.isVisible());
+        robot.clickOn("Start Now");
         robot.sleep(1000);
         WaitForAsyncUtils.waitForFxEvents();
 
         // 6. Xác minh hộp thoại thành công hiển thị và click xác nhận
         verifyThat("Cập nhật phiên đấu giá thành công.", NodeMatchers.isVisible());
-        robot.clickOn("Đồng ý");
+        robot.clickOn("OK");
     }
 
     @Test
@@ -975,14 +973,14 @@ public class SellerDashboardControllerTest {
         WaitForAsyncUtils.waitForFxEvents();
 
         // 4. Click Đăng bán trên dialog xác nhận
-        verifyThat("Đăng bán nhanh", NodeMatchers.isVisible());
-        robot.clickOn("Đăng bán");
+        verifyThat("Quick Sale", NodeMatchers.isVisible());
+        robot.clickOn("Publish");
         robot.sleep(1000);
         WaitForAsyncUtils.waitForFxEvents();
 
         // 5. Xác minh hộp thoại thành công hiển thị và click xác nhận
         verifyThat("Đăng bán phiên đấu giá thành công.", NodeMatchers.isVisible());
-        robot.clickOn("Đồng ý");
+        robot.clickOn("OK");
         WaitForAsyncUtils.waitForFxEvents();
     }
 
@@ -1020,21 +1018,20 @@ public class SellerDashboardControllerTest {
         WaitForAsyncUtils.waitForFxEvents();
 
         // 4. Click Đăng bán trên dialog xác nhận
-        verifyThat("Đăng bán nhanh", NodeMatchers.isVisible());
-        robot.clickOn("Đăng bán");
+        verifyThat("Quick Sale", NodeMatchers.isVisible());
+        robot.clickOn("Publish");
         robot.sleep(500);
         WaitForAsyncUtils.waitForFxEvents();
 
-        // 5. Vì start time ở quá khứ, xác nhận bắt đầu ngay hiển thị -> click "Bắt đầu
-        // ngay"
-        verifyThat("Thời gian bắt đầu đã đến!", NodeMatchers.isVisible());
-        robot.clickOn("Bắt đầu ngay");
+        // 5. Vì start time ở quá khứ, xác nhận bắt đầu ngay hiển thị -> click "Start Now"
+        verifyThat("Start time has arrived!", NodeMatchers.isVisible());
+        robot.clickOn("Start Now");
         robot.sleep(1000);
         WaitForAsyncUtils.waitForFxEvents();
 
         // 6. Xác minh hộp thoại thành công hiển thị và click xác nhận
         verifyThat("Đăng bán phiên đấu giá thành công.", NodeMatchers.isVisible());
-        robot.clickOn("Đồng ý");
+        robot.clickOn("OK");
         WaitForAsyncUtils.waitForFxEvents();
     }
 

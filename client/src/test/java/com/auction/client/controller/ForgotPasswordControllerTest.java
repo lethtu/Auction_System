@@ -54,7 +54,7 @@ public class ForgotPasswordControllerTest {
     public void testGetOTP_EmptyEmail(FxRobot robot) {
         robot.clickOn("#btnGetOTP");
         robot.sleep(500);
-        assertAlertAndClose(robot, "Vui lòng nhập Email!");
+        assertAlertAndClose(robot, "Please enter your email!");
     }
 
     @Test
@@ -67,12 +67,7 @@ public class ForgotPasswordControllerTest {
         robot.clickOn("#txtEmail").write("mail_ao@gmail.com");
         robot.clickOn("#btnGetOTP");
 
-        DialogPane dialogPane = waitForOptionalDialogPane(robot, 8000);
-        if (dialogPane != null) {
-            assertEquals("Không có tài khoản nào liên kết với Email này", dialogPane.getContentText());
-            robot.clickOn(dialogPane.lookupButton(ButtonType.OK));
-            WaitForAsyncUtils.waitForFxEvents();
-        }
+        assertAlertAndClose(robot, "Không có tài khoản nào liên kết với Email này");
 
         Button getOtpButton = robot.lookup("#btnGetOTP").queryAs(Button.class);
         waitUntilButtonReset(getOtpButton);
@@ -80,7 +75,7 @@ public class ForgotPasswordControllerTest {
         verifyThat("#btnGetOTP", NodeMatchers.isEnabled());
         String currentOtpButtonText = getOtpButton.getText();
         org.junit.jupiter.api.Assertions.assertTrue(
-                currentOtpButtonText.equals("Gửi lại mã") || currentOtpButtonText.equals("Gửi mã xác thực"),
+                currentOtpButtonText.equalsIgnoreCase("Resend code") || currentOtpButtonText.equals("Gửi lại mã") || currentOtpButtonText.equals("Gửi mã xác thực"),
                 "Nút lấy OTP phải ở trạng thái có thể gửi lại hoặc gửi mã xác thực, nhưng đang là: " + currentOtpButtonText
         );
     }
@@ -104,12 +99,7 @@ public class ForgotPasswordControllerTest {
 
         robot.clickOn("#btnResetPassword");
         robot.sleep(500);
-        DialogPane mismatchDialog = waitForOptionalDialogPane(robot, 8000);
-        if (mismatchDialog != null) {
-            assertEquals("Thông tin không hợp lệ hoặc mật khẩu không khớp!", mismatchDialog.getContentText());
-            robot.clickOn(mismatchDialog.lookupButton(ButtonType.OK));
-            WaitForAsyncUtils.waitForFxEvents();
-        }
+        assertAlertAndClose(robot, "Invalid information or passwords do not match!");
 
         String jsonResetSuccess = "{\"status\": 200, \"message\": \"Đổi mật khẩu thành công!\"}";
         when(mockHttpResponse.body()).thenReturn(jsonResetSuccess);
@@ -118,23 +108,6 @@ public class ForgotPasswordControllerTest {
         robot.clickOn("#btnResetPassword");
         robot.sleep(500);
         assertAlertAndClose(robot, "Đổi mật khẩu thành công!");
-    }
-
-
-    private DialogPane waitForOptionalDialogPane(FxRobot robot, long timeoutMillis) {
-        long deadline = System.currentTimeMillis() + timeoutMillis;
-
-        while (System.currentTimeMillis() < deadline) {
-            WaitForAsyncUtils.waitForFxEvents();
-
-            if (robot.lookup(".dialog-pane").tryQuery().isPresent()) {
-                return robot.lookup(".dialog-pane").queryAs(DialogPane.class);
-            }
-
-            sleepBriefly();
-        }
-
-        return null;
     }
 
     private void waitUntilButtonReset(Button button) {
@@ -178,41 +151,39 @@ public class ForgotPasswordControllerTest {
     }
 
     private void assertAlertAndClose(FxRobot robot, String expectedMessage) {
-        DialogPane dialogPane = waitForDialogPane(robot);
-
-        assertEquals(expectedMessage, dialogPane.getContentText());
-
-        robot.clickOn(dialogPane.lookupButton(ButtonType.OK));
-        WaitForAsyncUtils.waitForFxEvents();
-    }
-
-    private DialogPane waitForDialogPane(FxRobot robot) {
         long deadline = System.currentTimeMillis() + 12000;
-
         while (System.currentTimeMillis() < deadline) {
             WaitForAsyncUtils.waitForFxEvents();
-
-            var directDialog = robot.lookup(".dialog-pane").tryQuery();
-            if (directDialog.isPresent() && directDialog.get() instanceof DialogPane dialogPane) {
-                return dialogPane;
-            }
-
             for (Window window : Window.getWindows()) {
                 if (window != null && window.isShowing() && window.getScene() != null) {
                     var root = window.getScene().getRoot();
-                    if (root != null) {
-                        var node = root.lookup(".dialog-pane");
-                        if (node instanceof DialogPane dialogPane) {
-                            return dialogPane;
+                    if (root != null && !root.getStyleClass().contains("auth-root")) {
+                        boolean foundMessage = false;
+                        for (javafx.scene.Node node : robot.from(root).lookup(".label").queryAll()) {
+                            if (node instanceof javafx.scene.control.Label lbl) {
+                                if (expectedMessage.equals(lbl.getText())) {
+                                    foundMessage = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (foundMessage) {
+                            for (javafx.scene.Node node : robot.from(root).lookup(".button").queryAll()) {
+                                if (node instanceof Button btn) {
+                                    if ("OK".equalsIgnoreCase(btn.getText())) {
+                                        robot.clickOn(btn);
+                                        WaitForAsyncUtils.waitForFxEvents();
+                                        return;
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
-
             sleepBriefly();
         }
-
-        throw new AssertionError("Không tìm thấy Alert trong 12 giây.");
+        throw new AssertionError("Không tìm thấy Alert với tin nhắn: " + expectedMessage);
     }
 
     private void sleepBriefly() {

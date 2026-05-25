@@ -58,7 +58,7 @@ class ApiResponseParserTest {
 
         assertFalse(result.success);
         assertEquals(500, result.status);
-        assertEquals("Thao tác thất bại. HTTP 500.", result.message);
+        assertEquals("Operation failed. HTTP 500.", result.message);
         assertNull(result.data);
     }
 
@@ -126,7 +126,7 @@ class ApiResponseParserTest {
 
         assertFalse(result.success);
         assertEquals(200, result.status);
-        assertEquals("Không có dữ liệu từ server.", result.message);
+        assertEquals("No data from server.", result.message);
         assertNotNull(result.data);
         assertEquals(0, result.data.length());
     }

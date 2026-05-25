@@ -20,6 +20,11 @@ public class SocketServerTest {
             public com.auction.server.dto.BidResponse updateBid(Integer itemId, Integer bidderId, BigDecimal amount) {
                 return new com.auction.server.dto.BidResponse(true, "TEST_SUCCESS", amount);
             }
+
+            @Override
+            public com.auction.server.dto.BidResponse resolveAutoBids(Integer sessionId) {
+                return null;
+            }
         });
 
         socketServer = new SocketServer(biddingController);

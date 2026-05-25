@@ -154,7 +154,7 @@ class SellerDashboardServiceTest {
 
         assertTrue(result.success);
         assertEquals(200, result.status);
-        assertEquals("Đã hủy phiên thành công.", result.message);
+        assertEquals("Session canceled successfully.", result.message);
     }
 
     private CreateAuctionRequest newRequest() {

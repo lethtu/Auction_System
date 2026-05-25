@@ -70,7 +70,7 @@ class SellerDashboardServiceImageUploadTest {
                 () -> service.createAuction(validRequest(), imageFile)
         );
 
-        assertEquals("Server đã nhận ảnh nhưng không trả về đường dẫn ảnh.", ex.getMessage());
+        assertEquals("Server received the image but did not return an image path.", ex.getMessage());
         assertEquals(imageFile, sellerApiClient.lastUploadedFile);
         assertNull(sellerApiClient.lastCreateBody);
     }
@@ -84,7 +84,7 @@ class SellerDashboardServiceImageUploadTest {
                 () -> service.createAuction(validRequest(), missingFile)
         );
 
-        assertEquals("File ảnh không tồn tại hoặc không hợp lệ.", ex.getMessage());
+        assertEquals("Image file does not exist or is invalid.", ex.getMessage());
         assertNull(sellerApiClient.lastUploadedFile);
         assertNull(sellerApiClient.lastCreateBody);
     }
@@ -106,7 +106,7 @@ class SellerDashboardServiceImageUploadTest {
         );
 
         assertEquals(
-                "Ảnh quá lớn. Hãy chọn ảnh nhỏ hơn hoặc tăng giới hạn upload của server.",
+                "Image is too large. Please select a smaller image or increase the server upload limit.",
                 ex.getMessage()
         );
         assertEquals(imageFile, sellerApiClient.lastUploadedFile);

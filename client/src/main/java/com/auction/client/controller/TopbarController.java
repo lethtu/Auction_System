@@ -97,6 +97,7 @@ public class TopbarController implements Initializable {
         MenuItem accountItem = new MenuItem("My Account");
         MenuItem depositMoney = new MenuItem("Deposit");
         MenuItem logoutItem = new MenuItem("Logout");
+        logoutItem.setId("menuLogout");
  
         accountItem.setOnAction(event -> {
             try {

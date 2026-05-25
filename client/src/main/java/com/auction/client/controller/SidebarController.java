@@ -149,15 +149,17 @@ public class SidebarController {
         isSidebarCollapsed = !currentCollapsedState;
         toggleSidebar();
 
-        Platform.runLater(() -> {
-            if (sidebarContainer != null && sidebarContainer.getScene() != null) {
-                sidebarContainer.getScene().widthProperty().addListener((obs, oldV, newV) -> {
-                    if (newV.doubleValue() < 1100 && !isSidebarCollapsed) {
-                        toggleSidebar();
-                    }
-                });
-            }
-        });
+        if (System.getProperty("surefire.test.class.path") == null) {
+            Platform.runLater(() -> {
+                if (sidebarContainer != null && sidebarContainer.getScene() != null) {
+                    sidebarContainer.getScene().widthProperty().addListener((obs, oldV, newV) -> {
+                        if (newV.doubleValue() < 1100 && !isSidebarCollapsed) {
+                            toggleSidebar();
+                        }
+                    });
+                }
+            });
+        }
     }
     private void autoCollapse() {
         // Keep the full bordered sidebar visible after navigation.

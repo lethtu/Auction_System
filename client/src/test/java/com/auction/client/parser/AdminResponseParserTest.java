@@ -59,7 +59,7 @@ class AdminResponseParserTest {
         Object row = result.get(0);
 
         assertEquals(0, read(row, "id", "sessionId"));
-        assertEquals("Không rõ", read(row, "productName", "product"));
+        assertEquals("Unknown", read(row, "productName", "product"));
         assertEquals(BigDecimal.ZERO, read(row, "startingPrice", "price"));
     }
 

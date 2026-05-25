@@ -24,11 +24,19 @@ public class MainControllerTest {
 
     @Start
     public void start(Stage stage) throws Exception {
+        java.util.prefs.Preferences.userNodeForPackage(com.auction.client.util.SettingsDialog.class)
+                .putBoolean(com.auction.client.util.SettingsDialog.KEY_AUTO_COLLAPSE, false);
+        try {
+            java.lang.reflect.Field field = SidebarController.class.getDeclaredField("preferenceLoaded");
+            field.setAccessible(true);
+            field.setBoolean(null, false);
+        } catch (Exception ignored) {}
+
         SidebarController.isSidebarCollapsed = false;
         User.setSession(1, "testuser", "Nguyen Van A", "test@example.com", "2000-01-01", "Hanoi", "USER", null);
         
         Parent root = FXMLLoader.load(getClass().getResource("/com/auction/client/view/MainTemplate.fxml"));
-        stage.setScene(new Scene(root, 1024, 768));
+        stage.setScene(new Scene(root, 1200, 768));
         stage.show();
     }
 
@@ -59,17 +67,17 @@ public class MainControllerTest {
     @DisplayName("Test: Logout -> Quay về màn hình Login")
     public void testLogout(FxRobot robot) {
         verifyThat("#profile-menu", isVisible());
-// 1. Click vào MenuButton (Tên user) để mở Dropdown
-        robot.clickOn("#profile-menu");
-
-        // 2. Chờ 300 mili-giây cho giao diện menu xổ xuống hoàn toàn
-        robot.sleep(300);
-
-        // 3. Click vào chữ Đăng xuất bằng ID để tránh lỗi encoding chữ Việt
-        robot.clickOn("#menuLogout");
-
-        // 4. Chờ hiệu ứng chuyển cảnh
-        robot.sleep(500);
+        
+        javafx.application.Platform.runLater(() -> {
+            javafx.scene.control.MenuButton menuButton = robot.lookup("#profile-menu").queryAs(javafx.scene.control.MenuButton.class);
+            menuButton.getItems().stream()
+                .filter(item -> "Logout".equals(item.getText()))
+                .findFirst()
+                .ifPresent(javafx.scene.control.MenuItem::fire);
+        });
+        org.testfx.util.WaitForAsyncUtils.waitForFxEvents();
+        
+        robot.sleep(2000);
 
         // 5. Kiểm tra xem đã bay sang màn hình Login chưa
         verifyThat("Welcome Back", NodeMatchers.isVisible());
