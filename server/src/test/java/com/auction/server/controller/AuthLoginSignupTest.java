@@ -80,7 +80,7 @@ public class AuthLoginSignupTest {
     }
 
     @Test
-    @DisplayName("API Login: Sai tài khoản/mật khẩu -> Trả về 400")
+    @DisplayName("API Login: Sai tài khoản/mật khẩu -> Trả về 401")
     public void testLogin_Fail() throws Exception {
         // MỚM LỜI GIẢ: Incorrect info -> Optional rỗng
         Mockito.when(rq.login("wronguser", "wrongpass")).thenReturn(Optional.empty());
@@ -95,9 +95,9 @@ public class AuthLoginSignupTest {
         mockMvc.perform(post("/api/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestJson))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value(400)) // Báo lỗi logic
-                .andExpect(jsonPath("$.message").value("Login failed"));
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.message").value("Incorrect username or password"));
     }
 
     // =====================================================================
