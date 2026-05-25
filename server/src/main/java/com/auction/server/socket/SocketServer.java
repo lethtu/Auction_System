@@ -2,6 +2,7 @@ package com.auction.server.socket;
 
 import org.json.JSONObject;
 import com.auction.server.controller.BiddingController;
+import com.auction.server.util.SessionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,7 @@ public class SocketServer {
         return thread;
     });
     private final BiddingController biddingController;
+    private final SessionManager sessionManager;
     private ServerSocket serverSocket;
     private volatile boolean running = true;
 
@@ -37,8 +39,9 @@ public class SocketServer {
     private static final ConcurrentHashMap<Integer, List<PrintWriter>> homeUserClients = new ConcurrentHashMap<>();
 
     @Autowired
-    public SocketServer(BiddingController biddingController) {
+    public SocketServer(BiddingController biddingController, SessionManager sessionManager) {
         this.biddingController = biddingController;
+        this.sessionManager = sessionManager;
     }
 
     // Set port manually (used for testing)
@@ -58,7 +61,7 @@ public class SocketServer {
                     try {
                         Socket clientSocket = serverSocket.accept();
                         logger.info("SERVER SOCKET: Accepted new connection from {}", clientSocket.getRemoteSocketAddress());
-                        threadPool.execute(new ClientHandler(clientSocket, biddingController));
+                        threadPool.execute(new ClientHandler(clientSocket, biddingController, sessionManager));
                     } catch (SocketException e) {
                         if (running) logger.error("Accept error: {}", e.getMessage());
                     }

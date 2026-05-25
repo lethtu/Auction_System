@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class SocketServerTest {
     private final int TEST_PORT = 8082;
     private SocketServer socketServer;
+    private String testToken;
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -27,7 +28,14 @@ public class SocketServerTest {
             }
         });
 
-        socketServer = new SocketServer(biddingController);
+        com.auction.server.util.SessionManager sessionManager = new com.auction.server.util.SessionManager();
+        com.auction.server.model.User testUser = new com.auction.server.model.User();
+        testUser.setId(12);
+        testUser.setUsername("test_bidder");
+        testUser.setAccountType("bidder");
+        testToken = sessionManager.createSession(testUser);
+
+        socketServer = new SocketServer(biddingController, sessionManager);
         // THÊM: Ép server test dùng đúng cổng 8081
         socketServer.setPort(TEST_PORT);
         socketServer.start();
@@ -48,6 +56,16 @@ public class SocketServerTest {
 
                 try (PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
                      BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))) {
+
+                    // Authenticate socket connection
+                    JSONObject authJson = new JSONObject();
+                    authJson.put("token", testToken);
+                    out.println("AUTH:" + authJson.toString());
+
+                    // Wait slightly for authentication response if needed, but since it's sequential TCP, we can proceed
+                    String authResponse = readUntilPrefix(in, "RESPONSE:");
+                    assertNotNull(authResponse, "Auth response should not be null");
+                    assertTrue(authResponse.contains("\"success\":true"), "Auth should succeed");
 
                     out.println("JOIN:1");
 

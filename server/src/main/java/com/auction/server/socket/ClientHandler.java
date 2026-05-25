@@ -3,6 +3,7 @@ package com.auction.server.socket;
 import com.auction.server.controller.BiddingController;
 import com.auction.server.dto.BidRequest;
 import com.auction.server.dto.BidResponse;
+import com.auction.server.util.SessionManager;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,11 +20,14 @@ public class ClientHandler implements Runnable {
 
     private final Socket clientSocket;
     private final BiddingController biddingController;
+    private final SessionManager sessionManager;
     private PrintWriter out;
+    private Integer authenticatedUserId = null;
 
-    public ClientHandler(Socket socket, BiddingController biddingController) {
+    public ClientHandler(Socket socket, BiddingController biddingController, SessionManager sessionManager) {
         this.clientSocket = socket;
         this.biddingController = biddingController;
+        this.sessionManager = sessionManager;
     }
 
     @Override
@@ -34,7 +38,9 @@ public class ClientHandler implements Runnable {
 
             while ((inputLine = in.readLine()) != null) {
                 logger.info("Received inputLine from client: {}", inputLine);
-                if (inputLine.startsWith("JOIN:")) {
+                if (inputLine.startsWith("AUTH:")) {
+                    handleAuthMessage(inputLine.substring(5));
+                } else if (inputLine.startsWith("JOIN:")) {
                     int sessionId = Integer.parseInt(inputLine.substring(5));
                     SocketServer.joinRoom(sessionId, out);
 
@@ -76,13 +82,23 @@ public class ClientHandler implements Runnable {
 
     private void handleBidMessage(String jsonString) {
         logger.info("handleBidMessage called with payload: {}", jsonString);
+        
+        if (authenticatedUserId == null) {
+            logger.warn("Unauthorized bid attempt: connection not authenticated.");
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "UNAUTHORIZED: Please authenticate first.");
+            sendRawResponse(errorResponse);
+            return;
+        }
+
         BidRequest request = null;
     
         try {
             JSONObject jsonObj = new JSONObject(jsonString);
             request = new BidRequest(
                     jsonObj.getInt("auctionId"),
-                    jsonObj.getInt("bidderId"),
+                    authenticatedUserId, // Safe bidderId from session
                     new BigDecimal(jsonObj.get("amount").toString())
             );
             logger.info("Parsed BidRequest: auctionId={}, bidderId={}, amount={}", request.getAuctionId(), request.getBidderId(), request.getBidAmount());
@@ -214,19 +230,27 @@ public class ClientHandler implements Runnable {
     }
 
     private void handleAutoBidMessage(String jsonString) {
+        if (authenticatedUserId == null) {
+            logger.warn("Unauthorized auto-bid attempt: connection not authenticated.");
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "UNAUTHORIZED: Please authenticate first.");
+            sendRawResponse(errorResponse);
+            return;
+        }
+
         try {
             JSONObject jsonObj = new JSONObject(jsonString);
             int auctionId = jsonObj.getInt("auctionId");
-            int bidderId = jsonObj.getInt("bidderId");
             BigDecimal maxBid = new BigDecimal(jsonObj.get("maxBid").toString());
             BigDecimal increment = new BigDecimal(jsonObj.get("increment").toString());
 
-            biddingController.registerAutoBid(auctionId, bidderId, maxBid, increment);
+            biddingController.registerAutoBid(auctionId, authenticatedUserId, maxBid, increment);
 
             logger.info(
                     "AUTOBID registered — auctionId={}, bidderId={}, maxBid={}, increment={}",
                     auctionId,
-                    bidderId,
+                    authenticatedUserId,
                     maxBid,
                     increment
             );
@@ -252,6 +276,33 @@ public class ClientHandler implements Runnable {
             JSONObject errorResponse = new JSONObject();
             errorResponse.put("success", false);
             errorResponse.put("message", "Auto-bidding processing error: " + e.getMessage());
+            sendRawResponse(errorResponse);
+        }
+    }
+
+    private void handleAuthMessage(String jsonString) {
+        try {
+            JSONObject jsonObj = new JSONObject(jsonString);
+            String token = jsonObj.getString("token");
+            SessionManager.SessionUser sessionUser = sessionManager.getSession(token);
+            
+            JSONObject response = new JSONObject();
+            if (sessionUser != null) {
+                this.authenticatedUserId = sessionUser.getUserId();
+                logger.info("Socket connection authenticated successfully for user: {}", authenticatedUserId);
+                response.put("success", true);
+                response.put("message", "Authenticated successfully.");
+            } else {
+                logger.warn("Socket authentication failed: invalid token.");
+                response.put("success", false);
+                response.put("message", "UNAUTHORIZED: Invalid token.");
+            }
+            sendRawResponse(response);
+        } catch (Exception e) {
+            logger.error("Error processing AUTH message", e);
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "AUTH ERROR: Invalid payload.");
             sendRawResponse(errorResponse);
         }
     }

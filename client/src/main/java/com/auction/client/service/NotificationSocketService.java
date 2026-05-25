@@ -128,6 +128,13 @@ public class NotificationSocketService {
                 out = new PrintWriter(socket.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
+                if (User.getSessionToken() != null) {
+                    JSONObject authJson = new JSONObject();
+                    authJson.put("token", User.getSessionToken());
+                    out.println("AUTH:" + authJson.toString());
+                    out.flush();
+                }
+
                 // Register with user ID
                 out.println("JOIN_HOME:" + userId);
                 delay = 2000; // reset delay on success

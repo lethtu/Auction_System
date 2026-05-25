@@ -1778,6 +1778,13 @@ public class AuctionPageController {
         out = new PrintWriter(socket.getOutputStream(), true);
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
+        if (com.auction.client.model.User.getSessionToken() != null) {
+            JSONObject authJson = new JSONObject();
+            authJson.put("token", com.auction.client.model.User.getSessionToken());
+            out.println("AUTH:" + authJson.toString());
+            out.flush();
+        }
+
         out.println(JOIN_PREFIX + currentSessionId);
     }
 
