@@ -35,7 +35,7 @@ public class AuthLoginSignup {
             User user = res.get();
             if (user.isBanned()) {
                 logger.warn("User {} account is banned", username);
-                return new ApiResponse<String>(403, "Account has been banned", "");
+                throw new com.auction.server.exception.AuthenticationException("Account has been banned");
             }
             String token = sessionManager.createSession(user);
             user.setSessionToken(token);
@@ -44,7 +44,7 @@ public class AuthLoginSignup {
         }
         else {
             logger.error("User {} login failed", username);
-            return new ApiResponse<String>(400, "Login failed", "");
+            throw new com.auction.server.exception.AuthenticationException("Incorrect username or password");
         }
     }
 

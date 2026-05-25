@@ -270,11 +270,11 @@ public class AuctionService {
             throw new IllegalStateException("Auto-bid is available only for active auctions.");
         }
         if (isSessionSeller(session, bidderId)) {
-            throw new IllegalArgumentException("Sellers cannot enable auto-bid on their own auction.");
+            throw new com.auction.server.exception.InvalidBidException("Sellers cannot enable auto-bid on their own auction.");
         }
         BigDecimal currentPrice = session.getCurrentPrice() == null ? BigDecimal.ZERO : session.getCurrentPrice();
         if (maxBid.compareTo(currentPrice) <= 0) {
-            throw new IllegalArgumentException("Maximum bid must be higher than the current price.");
+            throw new com.auction.server.exception.InvalidBidException("Maximum bid must be higher than the current price.");
         }
         if (userRepository.findById(bidderId).isEmpty()) {
             throw new IllegalArgumentException("Bidder not found.");
