@@ -96,8 +96,7 @@
                                                                                 <Label fx:id="productNameLabel" text="Loading..." style="-fx-font-family: 'DM Sans'; -fx-font-size: 30px; -fx-font-weight: 900; " wrapText="true" />
                                                                                 <HBox alignment="CENTER_LEFT" spacing="8.0">
                                                                                     <children>
-                                                                                        <Label text="&#xe1b1;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 14px; " />
-                                                                                        <Label text="Condition: Mint (A+) • Certificate Included" style="-fx-font-family: 'DM Sans'; -fx-font-size: 14px; " />
+<Label text="Real-time bidding • Active auction" style="-fx-font-family: 'DM Sans'; -fx-font-size: 14px; " />
                                                                                     </children>
                                                                                 </HBox>
                                                                             </children>
