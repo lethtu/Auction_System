@@ -14,8 +14,10 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.StackPane;
 import org.json.JSONObject;
@@ -93,6 +95,14 @@ public class AuctionPageController {
     private Button placeBidBtn;
     @FXML
     private Button btnAutoBid;
+    @FXML
+    private HBox quickBidBox;
+    @FXML
+    private Button btnQuickBidOne;
+    @FXML
+    private Button btnQuickBidTwo;
+    @FXML
+    private Button btnQuickBidFive;
     @FXML
     private Label messageLabel;
     @FXML
@@ -223,6 +233,7 @@ public class AuctionPageController {
     public void initialize() {
         createUserOption("Avatar");
         initDefaultView();
+        setupQuickBidControls();
 
         // The media frame owns the size. Switching from the 2D ImageView to the 3D
         // container must never allow the product card to shrink or change shape.
@@ -417,12 +428,76 @@ public class AuctionPageController {
             return;
         }
 
+        if (!confirmBidIfNeeded(bidAmount)) {
+            return;
+        }
+
         logger.info("Place Bid clicked: auctionId={}, bidderId={}, amount={}, socketReady={}", currentSessionId,
                 User.getId(), bidAmount, isSocketReady());
 
         myLastBidAmount = bidAmount;
         sendBidRequest(bidAmount);
         showBidProcessing();
+    }
+
+    private void setupQuickBidControls() {
+        if (quickBidBox != null) {
+            quickBidBox.setVisible(true);
+            quickBidBox.setManaged(true);
+        }
+        installQuickBidTooltip(btnQuickBidOne, 1);
+        installQuickBidTooltip(btnQuickBidTwo, 2);
+        installQuickBidTooltip(btnQuickBidFive, 5);
+    }
+
+    private void installQuickBidTooltip(Button button, int multiplier) {
+        if (button != null) {
+            button.setTooltip(new Tooltip("Set bid to current price plus " + multiplier + " increment"
+                    + (multiplier == 1 ? "" : "s")));
+        }
+    }
+
+    @FXML
+    private void handleQuickBidOne(ActionEvent event) {
+        applyQuickBid(1);
+    }
+
+    @FXML
+    private void handleQuickBidTwo(ActionEvent event) {
+        applyQuickBid(2);
+    }
+
+    @FXML
+    private void handleQuickBidFive(ActionEvent event) {
+        applyQuickBid(5);
+    }
+
+    private void applyQuickBid(int multiplier) {
+        BigDecimal increment = getEffectiveStepPrice();
+        BigDecimal amount = currentPrice.add(increment.multiply(BigDecimal.valueOf(multiplier)));
+        bidAmountField.setText(formatPrice(amount));
+    }
+
+    private boolean confirmBidIfNeeded(BigDecimal bidAmount) {
+        SettingsService settings = SettingsService.getInstance();
+        long warningThreshold = settings.getHighBidWarningThreshold();
+        boolean highBid = warningThreshold > 0
+                && bidAmount.compareTo(BigDecimal.valueOf(warningThreshold)) >= 0;
+
+        if (!settings.isConfirmBeforeBid() && !highBid) {
+            return true;
+        }
+
+        String message = "Place a bid of " + formatVnd(bidAmount) + " on this auction?";
+        if (highBid) {
+            message = "This bid is at or above your high bid warning threshold of "
+                    + formatVnd(BigDecimal.valueOf(warningThreshold)) + ".\n\n" + message;
+        }
+
+        return com.auction.client.util.AlertUtil.showBidConfirmation(
+                highBid ? "High Bid Warning" : "Confirm Bid",
+                message,
+                highBid);
     }
 
     @FXML
@@ -1605,9 +1680,13 @@ public class AuctionPageController {
     }
 
     private BigDecimal getEffectiveStepPrice() {
-        if (currentPrice == null)
+        if (stepPrice != null && stepPrice.compareTo(BigDecimal.ZERO) > 0) {
+            return stepPrice;
+        }
+        if (currentPrice == null) {
             return new BigDecimal("10000");
-            
+        }
+
         if (currentPrice.compareTo(new BigDecimal("100000")) < 0) {
             return new BigDecimal("10000");
         } else if (currentPrice.compareTo(new BigDecimal("500000")) < 0) {
@@ -1620,18 +1699,33 @@ public class AuctionPageController {
             return new BigDecimal("200000");
         } else if (currentPrice.compareTo(new BigDecimal("50000000")) < 0) {
             return new BigDecimal("500000");
-        } else {
-            return new BigDecimal("1000000");
         }
+        return new BigDecimal("1000000");
     }
 
     private void updateBidInfoLabels() {
+        updateQuickBidLabels(getEffectiveStepPrice());
         setLabelText(minIncrementLabel, "Min increment ₫ " + formatPrice(getEffectiveStepPrice()));
         setLabelText(highestBidderLabel, formatHighestBidder());
         setLabelText(reserveStatusLabel, formatReserveStatus());
         int displayBidCount = Math.max(Math.max(0, bidCount), allBidPoints.size());
         setLabelText(totalBidsLabel, String.valueOf(displayBidCount));
         setLabelText(watchingLabel, String.valueOf(Math.max(0, watchingCount)));
+    }
+
+    private void updateQuickBidLabels(BigDecimal increment) {
+        if (increment == null) {
+            return;
+        }
+        if (btnQuickBidOne != null) {
+            btnQuickBidOne.setText("+ " + formatPrice(increment));
+        }
+        if (btnQuickBidTwo != null) {
+            btnQuickBidTwo.setText("+ " + formatPrice(increment.multiply(BigDecimal.valueOf(2))));
+        }
+        if (btnQuickBidFive != null) {
+            btnQuickBidFive.setText("+ " + formatPrice(increment.multiply(BigDecimal.valueOf(5))));
+        }
     }
 
     private String formatHighestBidder() {
@@ -2461,6 +2555,10 @@ public class AuctionPageController {
 
         DecimalFormat decimalFormat = new DecimalFormat("###,###", symbols);
         return decimalFormat.format(price);
+    }
+
+    private String formatVnd(BigDecimal price) {
+        return formatPrice(price) + " ₫";
     }
 
     private void showError(String message) {

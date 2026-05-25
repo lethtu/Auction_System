@@ -20,7 +20,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.json.JSONObject;
@@ -53,18 +52,13 @@ public class SettingsController implements Initializable {
 
     @FXML private ComboBox<String> cbTheme;
     @FXML private ComboBox<String> cbColor;
-    @FXML private CheckBox chkCollapse;
-    @FXML private CheckBox chkRememberPage;
 
     @FXML private CheckBox chkConfirmBid;
-    @FXML private CheckBox chkQuickBid;
     @FXML private TextField txtHighBidWarning;
-    @FXML private TextField txtDefaultIncrement;
 
     @FXML private CheckBox chkShowEnded;
     @FXML private CheckBox chkSortActive;
     @FXML private CheckBox chkShowCountdown;
-    @FXML private CheckBox chkCompactCards;
 
     @FXML private VBox passwordSetBox;
     @FXML private VBox passwordChangeBox;
@@ -77,6 +71,7 @@ public class SettingsController implements Initializable {
     @FXML private Button btnChangePassword;
 
     private SettingsService settingsService;
+    private boolean loadingSettings;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -107,28 +102,45 @@ public class SettingsController implements Initializable {
             sidebarController.setActiveSettings();
         }
 
-        setupDisabledControls();
         setupPasswordSection();
         loadSettingsToUI();
+        setupSettingInteractions();
 
         sliderVolume.valueProperty().addListener((obs, oldVal, newVal) ->
                 lblVolumeValue.setText(String.format("%.0f%%", newVal.doubleValue())));
     }
 
-    private void setupDisabledControls() {
-        Tooltip comingSoon = new Tooltip("Coming soon");
+    private void setupSettingInteractions() {
+        chkNotificationsEnabled.selectedProperty().addListener((obs, oldVal, enabled) -> {
+            chkOutbid.setDisable(!enabled);
+            chkEndingSoon.setDisable(!enabled);
+            chkAuctionResult.setDisable(!enabled);
+        });
 
-        chkRememberPage.setDisable(true);
-        chkRememberPage.setTooltip(comingSoon);
+        chkSound.selectedProperty().addListener((obs, oldVal, enabled) -> {
+            sliderVolume.setDisable(!enabled);
+        });
 
-        chkShowEnded.setDisable(true);
-        chkShowEnded.setTooltip(comingSoon);
+        cbTheme.setOnAction(event -> handleImmediateAppearanceChange());
+        cbColor.setOnAction(event -> handleImmediateAppearanceChange());
 
-        chkSortActive.setDisable(true);
-        chkSortActive.setTooltip(comingSoon);
+        boolean notificationsEnabled = chkNotificationsEnabled.isSelected();
+        chkOutbid.setDisable(!notificationsEnabled);
+        chkEndingSoon.setDisable(!notificationsEnabled);
+        chkAuctionResult.setDisable(!notificationsEnabled);
 
-        chkCompactCards.setDisable(true);
-        chkCompactCards.setTooltip(comingSoon);
+        boolean soundEnabled = chkSound.isSelected();
+        sliderVolume.setDisable(!soundEnabled);
+    }
+
+    private void handleImmediateAppearanceChange() {
+        if (loadingSettings || cbTheme.getValue() == null || cbColor.getValue() == null) {
+            return;
+        }
+        settingsService.setTheme(cbTheme.getValue());
+        settingsService.setPrimaryColor(cbColor.getValue());
+        settingsService.flush();
+        applyCurrentStyle();
     }
 
     private void setupPasswordSection() {
@@ -144,6 +156,7 @@ public class SettingsController implements Initializable {
     }
 
     private void loadSettingsToUI() {
+        loadingSettings = true;
         chkNotificationsEnabled.setSelected(settingsService.isNotificationsEnabled());
         chkOutbid.setSelected(settingsService.isOutbidNotificationEnabled());
         chkEndingSoon.setSelected(settingsService.isEndingSoonNotificationEnabled());
@@ -159,33 +172,28 @@ public class SettingsController implements Initializable {
         cbColor.getItems().setAll("Rose Pink (Default)", "Purple", "Emerald", "Blue", "Orange");
         cbColor.setValue(settingsService.getPrimaryColor());
 
-        chkCollapse.setSelected(settingsService.isAutoCollapseSidebar());
-        chkRememberPage.setSelected(settingsService.isRememberLastPage());
-
         chkConfirmBid.setSelected(settingsService.isConfirmBeforeBid());
-        chkQuickBid.setSelected(settingsService.isQuickBidEnabled());
         txtHighBidWarning.setText(String.valueOf(settingsService.getHighBidWarningThreshold()));
-        txtDefaultIncrement.setText(String.valueOf(settingsService.getDefaultBidIncrement()));
 
         chkShowEnded.setSelected(settingsService.isShowEndedAuctions());
         chkSortActive.setSelected(settingsService.isSortActiveFirst());
         chkShowCountdown.setSelected(settingsService.isShowCountdownTimer());
-        chkCompactCards.setSelected(settingsService.isCompactCards());
+        loadingSettings = false;
     }
 
     @FXML
     public void handleSaveSettings(ActionEvent event) {
         long highBidWarning;
-        long defaultInc;
         try {
             highBidWarning = Long.parseLong(txtHighBidWarning.getText().trim());
-            defaultInc = Long.parseLong(txtDefaultIncrement.getText().trim());
         } catch (NumberFormatException e) {
-            showToast("Invalid number format for Auction Preferences.", true);
+            showToast("Invalid high bid warning amount.", true);
             return;
         }
-
-        boolean oldAutoCollapse = settingsService.isAutoCollapseSidebar();
+        if (highBidWarning < 0) {
+            showToast("High bid warning must be 0 or greater.", true);
+            return;
+        }
 
         settingsService.setNotificationsEnabled(chkNotificationsEnabled.isSelected());
         settingsService.setOutbidNotificationEnabled(chkOutbid.isSelected());
@@ -197,27 +205,16 @@ public class SettingsController implements Initializable {
 
         settingsService.setTheme(cbTheme.getValue());
         settingsService.setPrimaryColor(cbColor.getValue());
-        settingsService.setAutoCollapseSidebar(chkCollapse.isSelected());
-        settingsService.setRememberLastPage(chkRememberPage.isSelected());
 
         settingsService.setConfirmBeforeBid(chkConfirmBid.isSelected());
-        settingsService.setQuickBidEnabled(chkQuickBid.isSelected());
         settingsService.setHighBidWarningThreshold(highBidWarning);
-        settingsService.setDefaultBidIncrement(defaultInc);
 
         settingsService.setShowEndedAuctions(chkShowEnded.isSelected());
         settingsService.setSortActiveFirst(chkSortActive.isSelected());
         settingsService.setShowCountdownTimer(chkShowCountdown.isSelected());
-        settingsService.setCompactCards(chkCompactCards.isSelected());
+        settingsService.flush();
 
-        if (oldAutoCollapse != chkCollapse.isSelected() && sidebarController != null) {
-            sidebarController.toggleSidebar();
-        }
-
-        if (event.getSource() instanceof Node sourceNode && sourceNode.getScene() != null) {
-            sourceNode.getScene().setFill(javafx.scene.paint.Color.TRANSPARENT);
-            AppStyleManager.applyCurrentStyle(sourceNode.getScene());
-        }
+        applyCurrentStyle();
 
         showToast("Settings saved successfully.", false);
     }
@@ -347,13 +344,43 @@ public class SettingsController implements Initializable {
 
     @FXML
     public void handleResetFilters(ActionEvent event) {
+        settingsService.resetDashboardDisplayDefaults();
+        settingsService.flush();
+        chkShowEnded.setSelected(settingsService.isShowEndedAuctions());
+        chkSortActive.setSelected(settingsService.isSortActiveFirst());
+        chkShowCountdown.setSelected(settingsService.isShowCountdownTimer());
         MainController.initialHomeFilterMode = "ALL";
-        showToast("Filters reset to default.", false);
+        showToast("Dashboard filters reset to default.", false);
     }
 
     @FXML
     public void handleReloadData(ActionEvent event) {
         showToast("Synchronizing data from server...", false);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(Config.API_URL + "/api/auctions/all"))
+                .GET()
+                .build();
+        HttpClient.newHttpClient()
+                .sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .whenComplete((response, error) -> Platform.runLater(() -> {
+                    if (error != null) {
+                        logger.warn("Settings data sync failed", error);
+                        showToast("Data sync failed. Please check the server connection.", true);
+                    } else if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                        MainController.initialHomeFilterMode = "ALL";
+                        showToast("Latest auction data synced.", false);
+                    } else {
+                        showToast("Data sync failed with server status " + response.statusCode() + ".", true);
+                    }
+                }));
+    }
+
+    private void applyCurrentStyle() {
+        Node anchor = toastContainer != null ? toastContainer : btnChangePassword;
+        if (anchor != null && anchor.getScene() != null) {
+            anchor.getScene().setFill(javafx.scene.paint.Color.TRANSPARENT);
+            AppStyleManager.applyCurrentStyle(anchor.getScene());
+        }
     }
 
     private void showAlert(Alert.AlertType type, String title, String content) {

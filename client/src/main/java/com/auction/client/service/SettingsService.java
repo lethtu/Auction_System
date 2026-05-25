@@ -16,20 +16,15 @@ public class SettingsService {
     private static final double DEFAULT_SOUND_VOLUME = 0.6;
     private static final String DEFAULT_THEME = "Light";
     private static final String DEFAULT_ACCENT_COLOR = "Rose Pink (Default)";
-    private static final boolean DEFAULT_AUTO_COLLAPSE = false;
-    private static final boolean DEFAULT_REMEMBER_LAST_PAGE = true;
     
     // Auction defaults
     private static final boolean DEFAULT_CONFIRM_BID = true;
     private static final long DEFAULT_HIGH_BID_WARNING = 1000000L;
-    private static final long DEFAULT_BID_INCREMENT = 10000L;
-    private static final boolean DEFAULT_QUICK_BID = true;
 
     // Dashboard defaults
     private static final boolean DEFAULT_SHOW_ENDED = false;
     private static final boolean DEFAULT_SORT_ACTIVE_FIRST = true;
     private static final boolean DEFAULT_SHOW_COUNTDOWN = true;
-    private static final boolean DEFAULT_COMPACT_CARDS = false;
 
     private SettingsService() {
         // Use the old node for backward compatibility
@@ -96,7 +91,7 @@ public class SettingsService {
     }
 
     public void setSoundVolume(double volume) {
-        prefs.putDouble("sound_volume", volume);
+        prefs.putDouble("sound_volume", Math.max(0.0, Math.min(1.0, volume)));
     }
 
     // --- Appearance ---
@@ -116,22 +111,6 @@ public class SettingsService {
         prefs.put(SettingsDialog.KEY_ACCENT_COLOR, color);
     }
 
-    public boolean isAutoCollapseSidebar() {
-        return prefs.getBoolean(SettingsDialog.KEY_AUTO_COLLAPSE, DEFAULT_AUTO_COLLAPSE);
-    }
-
-    public void setAutoCollapseSidebar(boolean enabled) {
-        prefs.putBoolean(SettingsDialog.KEY_AUTO_COLLAPSE, enabled);
-    }
-
-    public boolean isRememberLastPage() {
-        return prefs.getBoolean("remember_last_page", DEFAULT_REMEMBER_LAST_PAGE);
-    }
-
-    public void setRememberLastPage(boolean enabled) {
-        prefs.putBoolean("remember_last_page", enabled);
-    }
-
     // --- Auction Preferences ---
     public boolean isConfirmBeforeBid() {
         return prefs.getBoolean("confirm_before_bid", DEFAULT_CONFIRM_BID);
@@ -146,23 +125,7 @@ public class SettingsService {
     }
 
     public void setHighBidWarningThreshold(long threshold) {
-        prefs.putLong("high_bid_warning_threshold", threshold);
-    }
-
-    public long getDefaultBidIncrement() {
-        return prefs.getLong("default_bid_increment", DEFAULT_BID_INCREMENT);
-    }
-
-    public void setDefaultBidIncrement(long increment) {
-        prefs.putLong("default_bid_increment", increment);
-    }
-
-    public boolean isQuickBidEnabled() {
-        return prefs.getBoolean("quick_bid_enabled", DEFAULT_QUICK_BID);
-    }
-
-    public void setQuickBidEnabled(boolean enabled) {
-        prefs.putBoolean("quick_bid_enabled", enabled);
+        prefs.putLong("high_bid_warning_threshold", Math.max(0L, threshold));
     }
 
     // --- Dashboard Display ---
@@ -190,11 +153,17 @@ public class SettingsService {
         prefs.putBoolean("show_countdown_timer", enabled);
     }
 
-    public boolean isCompactCards() {
-        return prefs.getBoolean("compact_cards", DEFAULT_COMPACT_CARDS);
+    public void resetDashboardDisplayDefaults() {
+        setShowEndedAuctions(DEFAULT_SHOW_ENDED);
+        setSortActiveFirst(DEFAULT_SORT_ACTIVE_FIRST);
+        setShowCountdownTimer(DEFAULT_SHOW_COUNTDOWN);
     }
 
-    public void setCompactCards(boolean enabled) {
-        prefs.putBoolean("compact_cards", enabled);
+    public void flush() {
+        try {
+            prefs.flush();
+        } catch (Exception ignored) {
+            // Preferences are best-effort; Java will retry later for the user node.
+        }
     }
 }
