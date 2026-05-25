@@ -1859,7 +1859,7 @@
 
     -fx-text-fill: -app-input-text;
 
-    -fx-font-size: 26px;
+    -fx-font-size: 42px;
 
     -fx-font-weight: 900;
 
@@ -1871,7 +1871,7 @@
 
     -fx-text-fill: #907898;
 
-    -fx-font-size: 14px;
+    -fx-font-size: 16px;
 
     -fx-font-weight: 600;
 
@@ -4251,17 +4251,9 @@
     -fx-padding: 24px 30px;
     -fx-background-radius: 16px;
     -fx-border-color: -app-border;
-    -fx-border-width: 1.5px;
+    -fx-border-width: 2px;
     -fx-border-radius: 16px;
     -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-08, 18, 0.10, 0, 4);
-}
-
-.password-security-card-warning {
-    -fx-background-color: -app-accent-chip-bg;
-    -fx-border-color: -fx-accent;
-    -fx-border-width: 2.5px;
-    -fx-border-insets: 0;
-    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-38, 20, 0.16, 0, 4);
 }
 
 .password-security-icon {

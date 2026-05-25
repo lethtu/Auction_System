@@ -40,4 +40,16 @@ public interface BidRepository extends JpaRepository<Bid, Integer> {
             @Param("sessionIds") Collection<Integer> sessionIds,
             @Param("bidderId") Integer bidderId
     );
+
+    @Query("""
+            SELECT b FROM Bid b
+            JOIN FETCH b.bidder
+            WHERE b.session.id IN :sessionIds
+              AND b.amount = (
+                  SELECT MAX(topBid.amount) FROM Bid topBid
+                  WHERE topBid.session.id = b.session.id
+              )
+            ORDER BY b.time ASC, b.id ASC
+            """)
+    List<Bid> findWinningBidsForSessions(@Param("sessionIds") Collection<Integer> sessionIds);
 }

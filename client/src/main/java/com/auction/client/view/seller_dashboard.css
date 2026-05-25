@@ -338,6 +338,51 @@
     -fx-background-color: -fx-error-container !important;
 }
 
+.seller-upload-dropzone {
+    -fx-min-height: 150px;
+    -fx-padding: 22px;
+    -fx-background-color: -app-surface-2;
+    -fx-background-radius: 14px;
+    -fx-border-color: -app-accent-opacity-38;
+    -fx-border-style: segments(5px, 4px);
+    -fx-border-width: 2px;
+    -fx-border-radius: 14px;
+    -fx-cursor: hand;
+}
+
+.seller-upload-dropzone:hover {
+    -fx-background-color: -app-accent-opacity-08;
+    -fx-border-color: -fx-accent;
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-16, 14, 0.12, 0, 3);
+}
+
+.seller-upload-icon {
+    -fx-icon-color: -fx-accent;
+    -fx-opacity: 0.9;
+}
+
+.seller-upload-title {
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+    -fx-text-fill: -app-text;
+}
+
+.seller-upload-file {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-accent;
+}
+
+.seller-upload-progress > .track {
+    -fx-background-color: -app-input-bg;
+    -fx-background-radius: 999px;
+}
+
+.seller-upload-progress > .bar {
+    -fx-background-color: -fx-accent;
+    -fx-background-radius: 999px;
+}
+
 /* ── Context Menu (Dropdown menus) ── */
 .context-menu {
     -fx-background-color: -app-card;
@@ -561,4 +606,18 @@
     -fx-background-color: -app-accent-opacity-25;
     -fx-background-radius: 999px;
     -fx-background-insets: 0 4 0 4;
+}
+
+.theme-dark .custom-table .column-header,
+.theme-dark .custom-table .filler {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-background-insets: 0;
+}
+
+.theme-dark .custom-table .column-header-background {
+    -fx-background-color: -app-surface-2;
+    -fx-border-color: -app-border;
+    -fx-border-width: 0 0 1 0;
 }

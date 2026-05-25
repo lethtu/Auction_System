@@ -1,6 +1,7 @@
 package com.auction.server.service;
 
 import com.auction.server.dto.BidResponse;
+import com.auction.server.dto.DeliveryInfoRequest;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.model.Bid;
@@ -19,6 +20,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -103,6 +106,22 @@ public class AuctionServiceTest {
     }
 
     @Test
+    @DisplayName("Dynamic minimum increment overrides a lower configured step as price increases")
+    public void dynamicMinimumIncrementRejectsLowBidAtHigherPrice() {
+        mockSession.setCurrentPrice(new BigDecimal("500000.00"));
+        mockSession.setStepPrice(new BigDecimal("10000.00"));
+        when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
+
+        BidResponse response = auctionService.updateBid(1, 99, new BigDecimal("520000.00"));
+
+        assertFalse(response.isSuccess());
+        assertTrue(response.getMessage().contains("550000.00"));
+        assertEquals(new BigDecimal("500000.00"), mockSession.getCurrentPrice());
+        verify(bidRepository, never()).save(any(Bid.class));
+        verify(auctionSessionRepository, never()).save(any(AuctionSession.class));
+    }
+
+    @Test
     @DisplayName("Seller cannot bid on an auction they created")
     public void sellerCannotBidOnOwnAuction() {
         Seller seller = new Seller();
@@ -131,6 +150,30 @@ public class AuctionServiceTest {
 
         assertEquals("Sellers cannot enable auto-bid on their own auction.", error.getMessage());
         verify(autoBidConfigRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Recorded winning bidder can submit delivery details when legacy session snapshot is stale")
+    public void recordedWinnerCanSubmitDelivery_WhenSessionSnapshotIsStale() {
+        mockSession.setStatus(AuctionStatus.ENDED);
+        mockSession.setHighestBidderId(7);
+        User recordedWinner = new User();
+        recordedWinner.setId(99);
+        Bid winningBid = new Bid(mockSession, recordedWinner, new BigDecimal("222222.00"), LocalDateTime.now());
+        when(auctionSessionRepository.findById(1)).thenReturn(Optional.of(mockSession));
+        when(bidRepository.findWinningBidsForSessions(List.of(1))).thenReturn(List.of(winningBid));
+
+        DeliveryInfoRequest request = new DeliveryInfoRequest();
+        request.setRecipientName("Nguyen Van A");
+        request.setPhoneNumber("0900000000");
+        request.setAddress("Ha Noi");
+
+        auctionService.saveDeliveryInfo(1, 99, request);
+
+        assertEquals("Nguyen Van A", mockSession.getDeliveryRecipient());
+        assertEquals("0900000000", mockSession.getDeliveryPhone());
+        assertEquals("Ha Noi", mockSession.getDeliveryAddress());
+        verify(auctionSessionRepository).save(mockSession);
     }
 
     // Test 3: KẾT THÚC PHIÊN ĐẤU GIÁ

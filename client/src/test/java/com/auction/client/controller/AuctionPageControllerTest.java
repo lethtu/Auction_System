@@ -16,6 +16,7 @@ import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 import org.testfx.matcher.control.LabeledMatchers;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.concurrent.CountDownLatch;
@@ -92,6 +93,16 @@ public class AuctionPageControllerTest {
     }
 
     @Test
+    public void testDynamicMinimumIncrementGrowsWithCurrentPrice() throws Exception {
+        assertEquals(new BigDecimal("50000"),
+                invokeEffectiveStepPrice(new BigDecimal("500000"), new BigDecimal("10000")));
+        assertEquals(new BigDecimal("200000"),
+                invokeEffectiveStepPrice(new BigDecimal("5000000"), new BigDecimal("10000")));
+        assertEquals(new BigDecimal("300000"),
+                invokeEffectiveStepPrice(new BigDecimal("5000000"), new BigDecimal("300000")));
+    }
+
+    @Test
     public void testNavigationButtons() {
         Label logoBrand = (Label) scene.lookup("#logoBrand");
         Button dashboardBtn = (Button) scene.lookup("#btnSidebarDashboard");
@@ -136,6 +147,20 @@ public class AuctionPageControllerTest {
         } catch (Exception e) {
             throw new RuntimeException("Cannot invoke updateResponsiveFonts", e);
         }
+    }
+
+    private BigDecimal invokeEffectiveStepPrice(BigDecimal price, BigDecimal configuredStep) throws Exception {
+        Field currentPriceField = AuctionPageController.class.getDeclaredField("currentPrice");
+        currentPriceField.setAccessible(true);
+        currentPriceField.set(controller, price);
+
+        Field stepPriceField = AuctionPageController.class.getDeclaredField("stepPrice");
+        stepPriceField.setAccessible(true);
+        stepPriceField.set(controller, configuredStep);
+
+        Method method = AuctionPageController.class.getDeclaredMethod("getEffectiveStepPrice");
+        method.setAccessible(true);
+        return (BigDecimal) method.invoke(controller);
     }
 
     private void runOnFxThread(Runnable action) throws Exception {

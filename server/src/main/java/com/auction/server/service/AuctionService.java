@@ -76,7 +76,10 @@ public class AuctionService {
         if (session.getStatus() != AuctionStatus.ENDED) {
             throw new IllegalStateException("Delivery details can be submitted only after the auction has ended.");
         }
-        if (winnerId == null || !winnerId.equals(session.getHighestBidderId())) {
+        Integer authoritativeWinnerId = getWinningBid(session.getId())
+                .map(bid -> bid.getBidder() == null ? null : bid.getBidder().getId())
+                .orElse(session.getHighestBidderId());
+        if (winnerId == null || !winnerId.equals(authoritativeWinnerId)) {
             throw new SecurityException("Only the auction winner can submit delivery information.");
         }
 
@@ -138,6 +141,7 @@ public class AuctionService {
         Optional<AuctionSession> sessionOpt = auctionSessionRepository.findById(sessionId);
         if (sessionOpt.isPresent()) {
             AuctionSession session = sessionOpt.get();
+            reconcileSessionResultFromBids(session);
             if (Boolean.TRUE.equals(session.getApplyMinRate()) && session.getMinRate() != null) {
                 if (session.getCurrentPrice() != null && session.getCurrentPrice().compareTo(session.getMinRate()) >= 0) {
                     session.setStatus(AuctionStatus.ENDED);
@@ -186,9 +190,7 @@ public class AuctionService {
         logger.info("AuctionService.updateBid - Session found: ID={}, status={}", sessionId, session.getStatus());
         logger.info("Current price for session {}: {}", sessionId, currentPrice);
 
-        BigDecimal stepPrice = session.getStepPrice() == null || session.getStepPrice().signum() <= 0
-                ? DEFAULT_BID_INCREMENT
-                : session.getStepPrice();
+        BigDecimal stepPrice = getEffectiveBidIncrement(session, currentPrice);
         BigDecimal minimumBid = currentPrice.add(stepPrice);
         logger.info("Minimum required bid for session {}: {}", sessionId, minimumBid);
 
@@ -322,6 +324,7 @@ public class AuctionService {
         BigDecimal increment = winner.getIncrement() == null || winner.getIncrement().signum() <= 0
                 ? DEFAULT_BID_INCREMENT
                 : winner.getIncrement();
+        increment = increment.max(getEffectiveBidIncrement(session, currentPrice));
         BigDecimal newPrice = currentPrice.add(increment);
         if (newPrice.compareTo(winner.getMaxBid()) > 0) {
             winner.setActive(false);
@@ -351,6 +354,53 @@ public class AuctionService {
                 && session.getSeller() != null
                 && bidderId != null
                 && bidderId.equals(session.getSeller().getId());
+    }
+
+    private BigDecimal getEffectiveBidIncrement(AuctionSession session, BigDecimal currentPrice) {
+        BigDecimal configuredIncrement = session != null && session.getStepPrice() != null
+                && session.getStepPrice().signum() > 0
+                ? session.getStepPrice()
+                : DEFAULT_BID_INCREMENT;
+        return configuredIncrement.max(getDynamicBidIncrement(currentPrice));
+    }
+
+    private BigDecimal getDynamicBidIncrement(BigDecimal currentPrice) {
+        if (currentPrice == null || currentPrice.compareTo(new BigDecimal("100000")) < 0) {
+            return new BigDecimal("10000");
+        }
+        if (currentPrice.compareTo(new BigDecimal("500000")) < 0) {
+            return new BigDecimal("20000");
+        }
+        if (currentPrice.compareTo(new BigDecimal("1000000")) < 0) {
+            return new BigDecimal("50000");
+        }
+        if (currentPrice.compareTo(new BigDecimal("5000000")) < 0) {
+            return new BigDecimal("100000");
+        }
+        if (currentPrice.compareTo(new BigDecimal("10000000")) < 0) {
+            return new BigDecimal("200000");
+        }
+        if (currentPrice.compareTo(new BigDecimal("50000000")) < 0) {
+            return new BigDecimal("500000");
+        }
+        return new BigDecimal("1000000");
+    }
+
+    private Optional<Bid> getWinningBid(Integer sessionId) {
+        if (sessionId == null) {
+            return Optional.empty();
+        }
+        return bidRepository.findWinningBidsForSessions(List.of(sessionId)).stream().findFirst();
+    }
+
+    private void reconcileSessionResultFromBids(AuctionSession session) {
+        getWinningBid(session.getId()).ifPresent(winningBid -> {
+            if (winningBid.getBidder() == null) {
+                return;
+            }
+            session.setCurrentPrice(winningBid.getAmount());
+            session.setHighestBidderId(winningBid.getBidder().getId());
+        });
     }
 
     /**

@@ -76,12 +76,13 @@
 
                                 <HBox fx:id="imageSliderHBox" alignment="CENTER_LEFT" prefHeight="230.0" prefWidth="400.0" maxHeight="230.0" maxWidth="400.0" spacing="0.0">
 
-                                    <!-- Fallback wrapper for the injected ImageView -->
-
                                     <StackPane prefWidth="400.0" prefHeight="230.0" minWidth="400.0" maxWidth="400.0" minHeight="230.0" maxHeight="230.0">
-
-                                        <Label fx:id="activeProductImagePlaceholder" text="Loading preview..." style="-fx-text-fill: rgba(96,72,104,0.45); -fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: 700;" StackPane.alignment="CENTER"/>
-                                        <ImageView fx:id="activeProductImage" fitWidth="360.0" fitHeight="210.0" preserveRatio="true" smooth="true" StackPane.alignment="CENTER"/>
+                                        <VBox fx:id="emptyProductPreview" visible="false" managed="false" alignment="CENTER" spacing="9.0" styleClass="auth-empty-product-preview">
+                                            <Label text="&#xe8b6;" styleClass="auth-empty-product-icon"/>
+                                            <Label text="No live auctions yet" styleClass="auth-empty-product-title"/>
+                                            <Label text="Fresh listings will appear here." styleClass="auth-empty-product-copy"/>
+                                        </VBox>
+                                        <ImageView fx:id="activeProductImage" visible="false" fitWidth="360.0" fitHeight="210.0" preserveRatio="true" smooth="true" StackPane.alignment="CENTER"/>
 
                                     </StackPane>
 
@@ -101,7 +102,7 @@
 
                                 <HBox alignment="CENTER_LEFT" spacing="8.0">
 
-                                    <Label text="LIVE" styleClass="auth-live-badge"/>
+                                    <Label fx:id="activeProductBadge" text="LIVE" styleClass="auth-live-badge"/>
 
                                     <Label fx:id="activeProductType" text="Featured auction" styleClass="auth-product-type"/>
 

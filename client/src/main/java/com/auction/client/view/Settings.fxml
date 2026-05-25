@@ -38,7 +38,7 @@
 
                 <ScrollPane fitToWidth="true" styleClass="scroll-pane" VBox.vgrow="ALWAYS">
                     <VBox spacing="24.0" style="-fx-padding: 10px;">
-                        <VBox fx:id="passwordSetBox" spacing="16.0" styleClass="password-security-card password-security-card-warning">
+                        <VBox fx:id="passwordSetBox" spacing="16.0" styleClass="password-security-card">
                             <HBox spacing="10.0" alignment="CENTER_LEFT">
                                 <Label text="&#xe8a6;" styleClass="password-security-icon" />
                                 <Label text="Set account password" styleClass="password-security-title" />

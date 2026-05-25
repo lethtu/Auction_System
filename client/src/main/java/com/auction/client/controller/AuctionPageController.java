@@ -649,11 +649,13 @@ public class AuctionPageController {
 
         Label incLabel = new Label("Auto Increment");
         incLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; ");
-        Label incHint = new Label("The system will add this increment each time");
+        BigDecimal minimumIncrement = getEffectiveStepPrice();
+        Label incHint = new Label("Minimum at current price: " + MONEY_PREFIX + formatPrice(minimumIncrement));
         incHint.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-text-fill: #a890a8;");
 
         TextField incrementField = new TextField();
-        incrementField.setPromptText("VD: 100000");
+        incrementField.setPromptText("VD: " + formatPrice(minimumIncrement));
+        incrementField.setText(formatPrice(minimumIncrement));
         incrementField.setStyle(
                 "-fx-background-color: #faf6fa;" +
                         "-fx-border-color: #e8d8e8;" +
@@ -743,8 +745,9 @@ public class AuctionPageController {
             return false;
         }
 
-        if (increment.compareTo(BigDecimal.ZERO) <= 0) {
-            showError("Increment must be greater than 0!");
+        BigDecimal minimumIncrement = getEffectiveStepPrice();
+        if (increment.compareTo(minimumIncrement) < 0) {
+            showError("Auto increment must be at least " + MONEY_PREFIX + formatPrice(minimumIncrement) + "!");
             return false;
         }
 
@@ -1176,40 +1179,24 @@ public class AuctionPageController {
         javafx.scene.layout.Region titleSpacer = new javafx.scene.layout.Region();
         javafx.scene.layout.HBox.setHgrow(titleSpacer, javafx.scene.layout.Priority.ALWAYS);
 
-        Button minBtn = new Button("−");
-        minBtn.setStyle(
-                "-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px;");
+        Button minBtn = new Button();
+        minBtn.setAccessibleText("Minimize");
+        minBtn.getStyleClass().addAll("mac-window-control", "mac-minimize");
         minBtn.setOnAction(ev -> popup.setIconified(true));
-        minBtn.setOnMouseEntered(ev -> minBtn.setStyle(
-                "-fx-background-color: #f2e8f2; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px; -fx-background-radius: 8;"));
-        minBtn.setOnMouseExited(ev -> minBtn.setStyle(
-                "-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px;"));
 
-        Button maxBtn = new Button("◻");
-        maxBtn.setStyle(
-                "-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px;");
-        maxBtn.setOnAction(ev -> {
-            boolean isMax = popup.isMaximized();
-            popup.setMaximized(!isMax);
-            maxBtn.setText(isMax ? "◻" : "❐");
-        });
-        maxBtn.setOnMouseEntered(ev -> maxBtn.setStyle(
-                "-fx-background-color: #f2e8f2; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px; -fx-background-radius: 8;"));
-        maxBtn.setOnMouseExited(ev -> maxBtn.setStyle(
-                "-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px;"));
+        Button maxBtn = new Button();
+        maxBtn.setAccessibleText("Maximize");
+        maxBtn.getStyleClass().addAll("mac-window-control", "mac-maximize");
+        maxBtn.setOnAction(ev -> popup.setMaximized(!popup.isMaximized()));
 
-        Button closeBtn = new Button("✕");
-        closeBtn.setStyle(
-                "-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 14px;");
+        Button closeBtn = new Button();
+        closeBtn.setAccessibleText("Close");
+        closeBtn.getStyleClass().addAll("mac-window-control", "mac-close");
         closeBtn.setOnAction(ev -> {
             fullHistoryPopup = null;
             fullHistoryUpdater = null;
             popup.close();
         });
-        closeBtn.setOnMouseEntered(ev -> closeBtn.setStyle(
-                "-fx-background-color: #ffe4e4; -fx-font-weight: bold; -fx-text-fill: #d32f2f; -fx-cursor: hand; -fx-font-size: 14px; -fx-background-radius: 8;"));
-        closeBtn.setOnMouseExited(ev -> closeBtn.setStyle(
-                "-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 14px;"));
 
         titleBar.getChildren().addAll(titleLbl, titleSpacer, minBtn, maxBtn, closeBtn);
 
@@ -1694,24 +1681,25 @@ public class AuctionPageController {
     }
 
     private BigDecimal getEffectiveStepPrice() {
-        if (stepPrice != null && stepPrice.compareTo(BigDecimal.ZERO) > 0) {
+        BigDecimal dynamicIncrement = getDynamicStepPrice(currentPrice);
+        if (stepPrice != null && stepPrice.compareTo(dynamicIncrement) > 0) {
             return stepPrice;
         }
-        if (currentPrice == null) {
-            return new BigDecimal("10000");
-        }
+        return dynamicIncrement;
+    }
 
-        if (currentPrice.compareTo(new BigDecimal("100000")) < 0) {
+    private BigDecimal getDynamicStepPrice(BigDecimal price) {
+        if (price == null || price.compareTo(new BigDecimal("100000")) < 0) {
             return new BigDecimal("10000");
-        } else if (currentPrice.compareTo(new BigDecimal("500000")) < 0) {
+        } else if (price.compareTo(new BigDecimal("500000")) < 0) {
             return new BigDecimal("20000");
-        } else if (currentPrice.compareTo(new BigDecimal("1000000")) < 0) {
+        } else if (price.compareTo(new BigDecimal("1000000")) < 0) {
             return new BigDecimal("50000");
-        } else if (currentPrice.compareTo(new BigDecimal("5000000")) < 0) {
+        } else if (price.compareTo(new BigDecimal("5000000")) < 0) {
             return new BigDecimal("100000");
-        } else if (currentPrice.compareTo(new BigDecimal("10000000")) < 0) {
+        } else if (price.compareTo(new BigDecimal("10000000")) < 0) {
             return new BigDecimal("200000");
-        } else if (currentPrice.compareTo(new BigDecimal("50000000")) < 0) {
+        } else if (price.compareTo(new BigDecimal("50000000")) < 0) {
             return new BigDecimal("500000");
         }
         return new BigDecimal("1000000");

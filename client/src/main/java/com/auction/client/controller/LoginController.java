@@ -82,6 +82,8 @@ public class LoginController {
     @FXML private Button btnFacebook;
     @FXML private StackPane activeProductCarousel;
     @FXML private ImageView activeProductImage;
+    @FXML private javafx.scene.layout.VBox emptyProductPreview;
+    @FXML private Label activeProductBadge;
     @FXML private Label activeProductType;
     @FXML private Label activeProductName;
     @FXML private Label activeProductPrice;
@@ -115,7 +117,7 @@ public class LoginController {
                 }
             });
         }
-        showFallbackProduct();
+        showEmptyProductState();
         loadActiveProducts();
     }
 
@@ -187,6 +189,13 @@ public class LoginController {
         featuredProducts.clear();
         featuredProducts.addAll(products);
         featuredProductIndex = 0;
+        if (emptyProductPreview != null) {
+            emptyProductPreview.setVisible(false);
+            emptyProductPreview.setManaged(false);
+        }
+        if (activeProductBadge != null) {
+            activeProductBadge.setText("LIVE");
+        }
 
         if (imageSliderHBox != null) {
             imageSliderHBox.getChildren().clear();
@@ -233,16 +242,20 @@ public class LoginController {
         showFeaturedProduct(featuredProducts.get(featuredProductIndex));
     }
 
-    private void showFallbackProduct() {
-        showFeaturedProduct(new FeaturedProduct(
-                0,
-                null,
-                null,
-                "Discover live auctions",
-                "Featured marketplace",
-                FALLBACK_PRODUCT_IMAGE,
-                "Ends: updating"
-        ));
+    private void showEmptyProductState() {
+        if (emptyProductPreview != null) {
+            emptyProductPreview.setVisible(true);
+            emptyProductPreview.setManaged(true);
+        }
+        if (activeProductImage != null) {
+            activeProductImage.setVisible(false);
+        }
+        if (activeProductBadge != null) {
+            activeProductBadge.setText("COMING SOON");
+        }
+        activeProductType.setText("Marketplace highlights");
+        activeProductName.setText("New auctions coming soon");
+        activeProductPrice.setText("Sign in to be ready for the next find");
     }
 
     private void showFeaturedProduct(FeaturedProduct product) {

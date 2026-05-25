@@ -196,9 +196,11 @@
     -fx-border-color: -app-border;
 }
 .column-header,
-.column-header .label,
 .column-header-background {
     -fx-background-color: -app-surface;
+}
+.column-header .label {
+    -fx-background-color: transparent;
     -fx-text-fill:        -app-text;
 }
 .placeholder .label {
@@ -308,6 +310,10 @@
 
 .theme-dark .app-sidebar-scroll,
 .theme-dark .app-sidebar-scroll-collapsed {
+    -fx-border-color: -app-accent-opacity-40;
+}
+
+.theme-dark .password-security-card {
     -fx-border-color: -app-accent-opacity-40;
 }
 

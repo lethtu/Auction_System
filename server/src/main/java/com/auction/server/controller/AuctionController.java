@@ -6,6 +6,7 @@ import com.auction.server.dto.DeliveryInfoRequest;
 import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.mapper.SessionResponseMapper;
 import com.auction.server.model.AuctionSession;
+import com.auction.server.model.Bid;
 import com.auction.server.repository.BidRepository;
 import com.auction.server.service.AuctionService;
 import com.auction.server.util.SessionManager;
@@ -85,6 +86,12 @@ public class AuctionController {
     private SessionResponseDTO toSessionResponseDTO(AuctionSession session, Integer sessionId) {
         int bidCount = Math.toIntExact(bidRepository.countBySessionId(sessionId));
         SessionResponseDTO dto = SessionResponseMapper.toDTO(session, bidCount);
+        List<Bid> winningBids = bidRepository.findWinningBidsForSessions(List.of(sessionId));
+        if (!winningBids.isEmpty() && winningBids.get(0).getBidder() != null) {
+            Bid winningBid = winningBids.get(0);
+            dto.setCurrentPrice(winningBid.getAmount());
+            dto.setHighestBidderId(winningBid.getBidder().getId());
+        }
         dto.setBids(bidRepository.findBySessionIdOrderByAmountAsc(sessionId));
         return dto;
     }

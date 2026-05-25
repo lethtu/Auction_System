@@ -100,6 +100,8 @@ public class MainController implements Initializable {
     private ScrollPane scrollPane;
     @FXML
     private FlowPane productContainer;
+    @FXML
+    private StackPane productViewport;
     private TextField txtSearch;
     @FXML
     private ComboBox<String> cbCategory;
@@ -184,8 +186,8 @@ public class MainController implements Initializable {
         cbCategory.setValue("All");
 
         // Initialize display status on main market
-        cbStatus.getItems().addAll("All", "Ongoing", "Starting Soon", "Ended");
-        cbStatus.setValue("All");
+        cbStatus.getItems().addAll("All", "Active", "Starting Soon", "Ended");
+        cbStatus.setValue("Active");
 
         updateViewToggleButton(false);
 
@@ -263,6 +265,7 @@ public class MainController implements Initializable {
     private void applyAuctionScrollPolicy() {
         if (scrollPane != null) {
             scrollPane.setFitToWidth(true);
+            scrollPane.setFitToHeight(true);
             scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         }
         if (productContainer != null) {
@@ -279,6 +282,11 @@ public class MainController implements Initializable {
 
         if (showingAccountScreen || showingCompactListScreen) {
             productContainer.setAlignment(Pos.TOP_LEFT);
+            if (productViewport != null) {
+                productViewport.setAlignment(Pos.TOP_LEFT);
+            }
+            productContainer.setMinHeight(Region.USE_COMPUTED_SIZE);
+            productContainer.setPrefHeight(Region.USE_COMPUTED_SIZE);
             productContainer.setMinWidth(0);
             productContainer.setPrefWidth(Math.max(0, scrollPane.getViewportBounds().getWidth()));
             productContainer.setMaxWidth(Double.MAX_VALUE);
@@ -305,6 +313,18 @@ public class MainController implements Initializable {
                 .anyMatch(node -> node.getStyleClass().contains("empty-state-card"));
 
         productContainer.setAlignment(emptyState ? Pos.CENTER : Pos.TOP_LEFT);
+        if (productViewport != null) {
+            productViewport.setAlignment(emptyState ? Pos.CENTER : Pos.TOP_LEFT);
+        }
+        if (emptyState) {
+            double viewportHeight = scrollPane.getViewportBounds().getHeight();
+            double centeredHeight = Math.max(320.0, viewportHeight - 12.0);
+            productContainer.setMinHeight(centeredHeight);
+            productContainer.setPrefHeight(centeredHeight);
+        } else {
+            productContainer.setMinHeight(Region.USE_COMPUTED_SIZE);
+            productContainer.setPrefHeight(Region.USE_COMPUTED_SIZE);
+        }
         productContainer.setPrefWrapLength(gridWidth + paddingOffset);
         productContainer.setMinWidth(gridWidth + paddingOffset);
         productContainer.setPrefWidth(gridWidth + paddingOffset);
@@ -595,16 +615,13 @@ public class MainController implements Initializable {
                     || itemType.equalsIgnoreCase(selectedCategory);
 
             boolean matchesStatus = "All".equalsIgnoreCase(selectedStatus)
-                    || ("Ongoing".equalsIgnoreCase(selectedStatus) && "RUNNING".equals(normalizedStatus))
+                    || (("Active".equalsIgnoreCase(selectedStatus) || "Ongoing".equalsIgnoreCase(selectedStatus))
+                            && "RUNNING".equals(normalizedStatus))
                     || ("Starting Soon".equalsIgnoreCase(selectedStatus) && "UPCOMING".equals(normalizedStatus))
                     || ("Ended".equalsIgnoreCase(selectedStatus)
                             && isEnded);
 
-            boolean hiddenEndedByPreference = "All".equalsIgnoreCase(selectedStatus)
-                    && isEnded
-                    && !settings.isShowEndedAuctions();
-
-            if (matchesKeyword && matchesCategory && matchesStatus && !hiddenEndedByPreference) {
+            if (matchesKeyword && matchesCategory && matchesStatus) {
                 filtered.add(sessionObj);
             }
         }
@@ -689,6 +706,9 @@ public class MainController implements Initializable {
         updateViewToggleButton(false);
         if (lblPageTitle != null)
             lblPageTitle.setText("Watchlist");
+        if (cbStatus != null) {
+            cbStatus.setValue("Active");
+        }
         filterAndRenderProducts();
     }
 
@@ -732,6 +752,9 @@ public class MainController implements Initializable {
         if (lblPageTitle != null)
             lblPageTitle.setText("Live Auctions");
         hideFilterControlsForAccountPage(false);
+        if (cbStatus != null) {
+            cbStatus.setValue("Active");
+        }
         filterAndRenderProducts();
     }
 

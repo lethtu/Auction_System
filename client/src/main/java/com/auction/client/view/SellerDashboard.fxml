@@ -236,11 +236,11 @@
                     <HBox spacing="16">
                         <VBox spacing="8" HBox.hgrow="ALWAYS" prefWidth="250">
                             <Label text="Product Image" style="-fx-font-weight: bold; -fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
-                            <VBox fx:id="imageUploadArea" alignment="CENTER" spacing="8" style="-fx-border-color: -app-border; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 24px; -fx-cursor: hand; -fx-background-color: transparent; -fx-min-height: 120px;">
-                                <FontIcon iconLiteral="mdi2c-cloud-upload" iconSize="36" iconColor="#907898"/>
-                                <Label text="Click or drag image" style="-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: -app-text-muted;"/>
-                                <Label fx:id="lblImageFileName" text="" style="-fx-font-size: 11px; -fx-text-fill: -fx-accent;"/>
-                                <ProgressBar fx:id="imageUploadProgress" progress="0" visible="false" managed="false" prefWidth="150" style="-fx-accent: -fx-accent;"/>
+                            <VBox fx:id="imageUploadArea" alignment="CENTER" spacing="8" styleClass="seller-upload-dropzone">
+                                <FontIcon iconLiteral="mdi2c-cloud-upload" iconSize="36" styleClass="seller-upload-icon"/>
+                                <Label text="Click or drag image" styleClass="seller-upload-title"/>
+                                <Label fx:id="lblImageFileName" text="" styleClass="seller-upload-file"/>
+                                <ProgressBar fx:id="imageUploadProgress" progress="0" visible="false" managed="false" prefWidth="150" styleClass="seller-upload-progress"/>
                                 <Label fx:id="lblImageUploadProgress" text="" visible="false" managed="false" style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -fx-accent;"/>
                             </VBox>
                             <TextField fx:id="imageUrlField" visible="false" managed="false" />
@@ -248,11 +248,11 @@
 
                         <VBox spacing="8" HBox.hgrow="ALWAYS" prefWidth="250">
                             <Label text="3D Model (Optional)" style="-fx-font-weight: bold; -fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
-                            <VBox fx:id="modelUploadArea" alignment="CENTER" spacing="8" style="-fx-border-color: -app-border; -fx-border-style: dashed; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 24px; -fx-cursor: hand; -fx-background-color: transparent; -fx-min-height: 120px;">
-                                <FontIcon iconLiteral="mdi2c-cube-outline" iconSize="36" iconColor="#907898"/>
-                                <Label text="Click or drag GLB file" style="-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: -app-text-muted;"/>
-                                <Label fx:id="lblModelFileName" text="" style="-fx-font-size: 11px; -fx-text-fill: -fx-accent;"/>
-                                <ProgressBar fx:id="modelUploadProgress" progress="0" visible="false" managed="false" prefWidth="150" style="-fx-accent: -fx-accent;"/>
+                            <VBox fx:id="modelUploadArea" alignment="CENTER" spacing="8" styleClass="seller-upload-dropzone">
+                                <FontIcon iconLiteral="mdi2c-cube-outline" iconSize="36" styleClass="seller-upload-icon"/>
+                                <Label text="Click or drag GLB file" styleClass="seller-upload-title"/>
+                                <Label fx:id="lblModelFileName" text="" styleClass="seller-upload-file"/>
+                                <ProgressBar fx:id="modelUploadProgress" progress="0" visible="false" managed="false" prefWidth="150" styleClass="seller-upload-progress"/>
                                 <Label fx:id="lblModelUploadProgress" text="" visible="false" managed="false" style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -fx-accent;"/>
                             </VBox>
                             <TextField fx:id="modelUrlField" visible="false" managed="false" />

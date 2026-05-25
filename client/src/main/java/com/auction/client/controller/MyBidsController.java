@@ -517,10 +517,14 @@ public class MyBidsController implements Initializable {
                 dot.setStyle("-fx-background-color: #10b981; -fx-background-radius: 4px;");
                 statusBadge.getChildren().setAll(dot, badgeLabel);
             } else {
-                statusBadge.setStyle(
-                        "-fx-background-color: rgba(108, 117, 125, 0.15); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: rgba(108, 117, 125, 0.3); -fx-border-radius: 12px;");
-                badgeLabel.setText("Ended");
-                badgeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #6c757d;");
+                boolean canceled = "CANCELED".equals(status) || "CANCELLED".equals(status);
+                statusBadge.setStyle(canceled
+                        ? "-fx-background-color: rgba(245, 158, 11, 0.15); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: rgba(245, 158, 11, 0.3); -fx-border-radius: 12px;"
+                        : "-fx-background-color: rgba(239, 68, 68, 0.12); -fx-background-radius: 12px; -fx-padding: 4px 10px; -fx-border-color: rgba(239, 68, 68, 0.26); -fx-border-radius: 12px;");
+                badgeLabel.setText(canceled ? "Canceled" : "Lost");
+                badgeLabel.setStyle(canceled
+                        ? "-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #f59e0b;"
+                        : "-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #ef4444;");
                 statusBadge.getChildren().setAll(badgeLabel);
             }
         } else if (winningSession) {
@@ -587,7 +591,7 @@ public class MyBidsController implements Initializable {
 
         HBox currentBidRow = new HBox();
         currentBidRow.setAlignment(Pos.CENTER_LEFT);
-        Label lblCurrentBid = new Label("CURRENT BID");
+        Label lblCurrentBid = new Label(endedSession ? "FINAL PRICE" : "CURRENT BID");
         lblCurrentBid.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: -app-text-muted;");
         Region spacer1 = new Region();
         HBox.setHgrow(spacer1, Priority.ALWAYS);
@@ -598,7 +602,7 @@ public class MyBidsController implements Initializable {
 
         HBox userBidRow = new HBox();
         userBidRow.setAlignment(Pos.CENTER_LEFT);
-        Label lblYourBid = new Label(outbidSession ? "YOUR MAX BID" : (endedSession ? "FINAL BID" : "YOUR BID"));
+        Label lblYourBid = new Label(outbidSession ? "YOUR MAX BID" : "YOUR BID");
         lblYourBid.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: -app-text-muted;");
         Region spacer2 = new Region();
         HBox.setHgrow(spacer2, Priority.ALWAYS);

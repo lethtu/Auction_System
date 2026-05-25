@@ -121,9 +121,6 @@ public class SettingsController implements Initializable {
             sliderVolume.setDisable(!enabled);
         });
 
-        cbTheme.setOnAction(event -> handleImmediateAppearanceChange());
-        cbColor.setOnAction(event -> handleImmediateAppearanceChange());
-
         boolean notificationsEnabled = chkNotificationsEnabled.isSelected();
         chkOutbid.setDisable(!notificationsEnabled);
         chkEndingSoon.setDisable(!notificationsEnabled);
@@ -131,16 +128,6 @@ public class SettingsController implements Initializable {
 
         boolean soundEnabled = chkSound.isSelected();
         sliderVolume.setDisable(!soundEnabled);
-    }
-
-    private void handleImmediateAppearanceChange() {
-        if (loadingSettings || cbTheme.getValue() == null || cbColor.getValue() == null) {
-            return;
-        }
-        settingsService.setTheme(cbTheme.getValue());
-        settingsService.setPrimaryColor(cbColor.getValue());
-        settingsService.flush();
-        applyCurrentStyle();
     }
 
     private void setupPasswordSection() {

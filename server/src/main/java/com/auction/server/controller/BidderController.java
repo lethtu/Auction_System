@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.model.AuctionStatus;
+import com.auction.server.model.Bid;
 import com.auction.server.repository.AuctionSessionRepository;
 import com.auction.server.dto.ApiResponse;
 import com.auction.server.repository.*;
@@ -98,10 +99,14 @@ public class BidderController {
         logger.info("Fetching participated auction sessions for bidderId: {}", bidderId);
         java.util.List<AuctionSession> sessions = bidRepository.findSessionsByBidderId(bidderId);
         Map<Integer, Object[]> statsBySessionId = new HashMap<>();
+        Map<Integer, Bid> winningBidsBySessionId = new HashMap<>();
         if (!sessions.isEmpty()) {
             List<Integer> sessionIds = sessions.stream().map(AuctionSession::getId).toList();
             for (Object[] row : bidRepository.findSessionStatsForBidder(sessionIds, bidderId)) {
                 statsBySessionId.put((Integer) row[0], row);
+            }
+            for (Bid bid : bidRepository.findWinningBidsForSessions(sessionIds)) {
+                winningBidsBySessionId.putIfAbsent(bid.getSession().getId(), bid);
             }
         }
         java.util.List<com.auction.server.dto.SessionResponseDTO> dtos = sessions.stream()
@@ -111,7 +116,14 @@ public class BidderController {
                     com.auction.server.dto.SessionResponseDTO dto = com.auction.server.mapper.SessionResponseMapper.toDTO(session, bidCount);
                     java.math.BigDecimal maxBid = stats == null ? null : (java.math.BigDecimal) stats[2];
                     dto.setUserMaxBid(maxBid);
-                    if (bidderId.equals(session.getHighestBidderId())) {
+                    Bid winningBid = winningBidsBySessionId.get(session.getId());
+                    Integer winnerId = session.getHighestBidderId();
+                    if (winningBid != null && winningBid.getBidder() != null) {
+                        winnerId = winningBid.getBidder().getId();
+                        dto.setCurrentPrice(winningBid.getAmount());
+                        dto.setHighestBidderId(winnerId);
+                    }
+                    if (bidderId.equals(winnerId)) {
                         dto.setDeliveryRecipient(session.getDeliveryRecipient());
                         dto.setDeliveryPhone(session.getDeliveryPhone());
                         dto.setDeliveryAddress(session.getDeliveryAddress());
