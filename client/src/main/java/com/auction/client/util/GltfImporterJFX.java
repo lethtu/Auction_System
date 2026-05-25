@@ -46,6 +46,7 @@ public class GltfImporterJFX {
         Color diffuseColor;
         double metallic;
         double roughness;
+        boolean isDial;
     }
 
     public static Node load(String glbUrl) {
@@ -241,6 +242,7 @@ public class GltfImporterJFX {
                                 double metFactor = 0.0;
                                 double roughFactor = 0.5;
                                 Image diffuseMap = null;
+                                boolean isDial = false;
                                 int matIdx = primitive.optInt("material", -1);
                                 if (matIdx >= 0) {
                                     org.json.JSONArray mats = gltf.optJSONArray("materials");
@@ -248,49 +250,52 @@ public class GltfImporterJFX {
                                         JSONObject mat = mats.getJSONObject(matIdx);
                                         String matName = mat.optString("name", "").toLowerCase();
                                         
+                                        // Skip rendering glass cover meshes to ensure maximum dial clarity and eliminate JavaFX transparency/sorting/darkening issues
+                                        if (matName.contains("glass") || matName.contains("lens") || matName.contains("crystal")) {
+                                            continue;
+                                        }
+                                        
                                         JSONObject pbr = mat.optJSONObject("pbrMetallicRoughness");
                                         if (pbr != null) {
-                                             if (matName.contains("dial") && !matName.contains("print")) {
-                                                 diffColor = Color.valueOf("#1a2b4c"); // AP signature Midnight Blue (Bleu Nuit)
-                                             } else {
-                                                 org.json.JSONArray bcf = pbr.optJSONArray("baseColorFactor");
-                                                 if (bcf != null && bcf.length() >= 3) {
-                                                     double r = Math.max(0.0, Math.min(1.0, bcf.getDouble(0)));
-                                                     double g = Math.max(0.0, Math.min(1.0, bcf.getDouble(1)));
-                                                     double b = Math.max(0.0, Math.min(1.0, bcf.getDouble(2)));
-                                                     double a = bcf.length() > 3 ? Math.max(0.0, Math.min(1.0, bcf.getDouble(3))) : 1.0;
-                                                     diffColor = new Color(r, g, b, a);
-                                                 }
-                                             }
-                                             
-                                             // Load baseColorTexture if present
-                                             JSONObject bct = pbr.optJSONObject("baseColorTexture");
-                                             if (bct != null) {
-                                                 int texIdx = bct.getInt("index");
-                                                 org.json.JSONArray textures = gltf.optJSONArray("textures");
-                                                 if (textures != null && texIdx >= 0 && texIdx < textures.length()) {
-                                                     JSONObject textureObj = textures.getJSONObject(texIdx);
-                                                     if (textureObj.has("source")) {
-                                                         int imgIdx = textureObj.getInt("source");
-                                                         if (imgIdx >= 0 && imgIdx < loadedImages.length) {
-                                                             if (loadedImages[imgIdx] == null) {
-                                                                 loadedImages[imgIdx] = readTextureImage(binBytes, gltf, imgIdx, glbUrl);
-                                                             }
-                                                             diffuseMap = loadedImages[imgIdx];
-                                                         }
-                                                     }
-                                                 }
-                                             }
-                                             
-                                             metFactor = pbr.optDouble("metallicFactor", 1.0);
-                                             roughFactor = pbr.optDouble("roughnessFactor", 1.0);
-                                             
-                                             // Override specific properties for watch dial to ensure brilliant, vibrant sunburst look
-                                             if (matName.contains("dial") && !matName.contains("print")) {
-                                                 diffColor = Color.valueOf("#224b80"); // Elegant, vibrant Royal Midnight Blue
-                                                 metFactor = 0.9; // Premium metallic sunburst reflection
-                                                 roughFactor = 0.12; // Smooth glossy luxury lacquer finish
-                                             }
+                                            org.json.JSONArray bcf = pbr.optJSONArray("baseColorFactor");
+                                            if (bcf != null && bcf.length() >= 3) {
+                                                double r = Math.max(0.0, Math.min(1.0, bcf.getDouble(0)));
+                                                double g = Math.max(0.0, Math.min(1.0, bcf.getDouble(1)));
+                                                double b = Math.max(0.0, Math.min(1.0, bcf.getDouble(2)));
+                                                double a = bcf.length() > 3 ? Math.max(0.0, Math.min(1.0, bcf.getDouble(3))) : 1.0;
+                                                diffColor = new Color(r, g, b, a);
+                                            }
+                                            
+                                            // Load baseColorTexture if present
+                                            JSONObject bct = pbr.optJSONObject("baseColorTexture");
+                                            if (bct != null) {
+                                                int texIdx = bct.getInt("index");
+                                                org.json.JSONArray textures = gltf.optJSONArray("textures");
+                                                if (textures != null && texIdx >= 0 && texIdx < textures.length()) {
+                                                    JSONObject textureObj = textures.getJSONObject(texIdx);
+                                                    if (textureObj.has("source")) {
+                                                        int imgIdx = textureObj.getInt("source");
+                                                        if (imgIdx >= 0 && imgIdx < loadedImages.length) {
+                                                            if (loadedImages[imgIdx] == null) {
+                                                                loadedImages[imgIdx] = readTextureImage(binBytes, gltf, imgIdx, glbUrl);
+                                                            }
+                                                            diffuseMap = loadedImages[imgIdx];
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            
+                                            metFactor = pbr.optDouble("metallicFactor", 1.0);
+                                            roughFactor = pbr.optDouble("roughnessFactor", 1.0);
+                                            
+                                            // Override specific properties for watch dial to ensure brilliant, vibrant sunburst look
+                                            if (matName.contains("dial") && !matName.contains("print")) {
+                                                isDial = true;
+                                                // Keep the original base color (e.g. beautiful Jade Green) from the model
+                                                // while optimizing the metallic and glossy lacquer reflection factors
+                                                metFactor = 0.95; // Highly metallic sunburst sheen
+                                                roughFactor = 0.08; // Ultra-glossy luxury lacquer finish
+                                            }
                                         }
                                     }
                                 }
@@ -298,6 +303,7 @@ public class GltfImporterJFX {
                                 primData.diffuseMap = diffuseMap;
                                 primData.metallic = metFactor;
                                 primData.roughness = roughFactor;
+                                primData.isDial = isDial;
                                 
                                 tempPrimitives.add(primData);
                             }
@@ -374,27 +380,52 @@ public class GltfImporterJFX {
                                 material.setDiffuseMap(prim.diffuseMap);
                             }
                             
-                            // Boost extremely dark diffuse colors (like black car body or tyres)
-                            // so that ambient and diffuse lights can beautifully reveal their geometry
-                            // while maintaining deep, high-contrast matte blacks.
-                            Color finalDiffColor = prim.diffuseColor;
-                            double avgColor = (finalDiffColor.getRed() + finalDiffColor.getGreen() + finalDiffColor.getBlue()) / 3.0;
-                            if (avgColor < 0.12) {
-                                double boostFactor = 0.16 / Math.max(0.01, avgColor);
-                                finalDiffColor = Color.color(
-                                    Math.min(1.0, finalDiffColor.getRed() * boostFactor),
-                                    Math.min(1.0, finalDiffColor.getGreen() * boostFactor),
-                                    Math.min(1.0, finalDiffColor.getBlue() * boostFactor),
-                                    finalDiffColor.getOpacity()
-                                );
-                            }
-                            material.setDiffuseColor(finalDiffColor);
-                            
-                            // Premium High-Contrast Glossy Specular Setup (mirroring professional showroom softbox reflections)
-                            // Smooth surfaces (low roughness) get tight, brilliant specular highlights (like polished car lacquer).
-                            // Rough surfaces get broad, matte, diffused specular reflections.
-                            double specularIntensity = Math.min(1.0, Math.max(0.3, (1.0 - prim.roughness) * 1.5));
-                            material.setSpecularColor(Color.color(specularIntensity, specularIntensity, specularIntensity));
+                             Color finalDiffColor = prim.diffuseColor;
+                             
+                               // 1. Emulate premium steel/chrome metal reflection bodies by darkening and cooling the diffuse color 
+                               // of metallic elements (metallic > 0.38, excluding watch dials) to a brilliant silver-steel range (72% to 80% brightness),
+                               // finding the perfect luxury midpoint between overexposed white and dark gunmetal.
+                               if (prim.metallic > 0.38 && !prim.isDial) {
+                                   finalDiffColor = Color.color(
+                                       finalDiffColor.getRed() * 0.72,
+                                       finalDiffColor.getGreen() * 0.74,
+                                       finalDiffColor.getBlue() * 0.80,
+                                       finalDiffColor.getOpacity()
+                                   );
+                               }
+                               
+                               // 2. Brighten watch dials slightly to compensate for glass reflection and bezel shadow
+                               if (prim.isDial) {
+                                   finalDiffColor = Color.color(
+                                       Math.min(1.0, finalDiffColor.getRed() * 1.35),
+                                       Math.min(1.0, finalDiffColor.getGreen() * 1.35),
+                                       Math.min(1.0, finalDiffColor.getBlue() * 1.35),
+                                       finalDiffColor.getOpacity()
+                                   );
+                               }
+                               
+                               // 3. Boost extremely dark diffuse colors (like black car body or tyres)
+                               // so that ambient and diffuse lights can beautifully reveal their geometry
+                               // while maintaining deep, high-contrast matte blacks.
+                               double avgColor = (finalDiffColor.getRed() + finalDiffColor.getGreen() + finalDiffColor.getBlue()) / 3.0;
+                               if (avgColor < 0.12) {
+                                   double boostFactor = 0.16 / Math.max(0.01, avgColor);
+                                   finalDiffColor = Color.color(
+                                       Math.min(1.0, finalDiffColor.getRed() * boostFactor),
+                                       Math.min(1.0, finalDiffColor.getGreen() * boostFactor),
+                                       Math.min(1.0, finalDiffColor.getBlue() * boostFactor),
+                                       finalDiffColor.getOpacity()
+                                   );
+                               }
+                               material.setDiffuseColor(finalDiffColor);
+                              
+                              // Premium High-Contrast Glossy Specular Setup (mirroring professional showroom softbox reflections)
+                              // Smooth surfaces (low roughness) get tight, brilliant specular highlights (like polished car lacquer).
+                              // Rough surfaces get broad, matte, diffused specular reflections.
+                              // Metallic case/strap elements get a perfectly balanced specular intensity (scaled by 1.10 instead of 1.35).
+                              double specMultiplier = (prim.metallic > 0.38 && !prim.isDial) ? 1.10 : 1.35;
+                              double specularIntensity = Math.min(0.9, Math.max(0.2, (1.0 - prim.roughness) * specMultiplier));
+                              material.setSpecularColor(Color.color(specularIntensity, specularIntensity, specularIntensity));
                             material.setSpecularPower(Math.max(8.0, 128.0 * (1.0 - prim.roughness)));
                             
                             meshView.setMaterial(material);
@@ -485,33 +516,33 @@ public class GltfImporterJFX {
         subScene.setCamera(camera);
         
         // Premium Showroom Multi-Point Studio Lighting System
-        // We use a rich, bright AmbientLight (61% brightness) to ensure clean baseline visibility.
-        AmbientLight ambientLight = new AmbientLight(Color.rgb(155, 155, 155));
+        // We use a rich, bright AmbientLight (80% brightness) to ensure clean baseline visibility.
+        AmbientLight ambientLight = new AmbientLight(Color.rgb(205, 205, 205));
         
-        // 1. Key Light (Main light source, top-left front): Casts highly brilliant white primary highlights (90% intensity)
-        PointLight keyLight = new PointLight(Color.rgb(230, 230, 240));
+        // 1. Key Light (Main light source, top-left front): Casts highly brilliant white primary highlights (98% intensity)
+        PointLight keyLight = new PointLight(Color.rgb(250, 250, 250));
         keyLight.getTransforms().add(new Translate(-400, -300, -400));
         
-        // 2. Fill Light (Secondary light source, top-right front): Strongly softens shadows and reveals details (53% intensity)
-        PointLight fillLight = new PointLight(Color.rgb(130, 130, 140));
+        // 2. Fill Light (Secondary light source, top-right front): Strongly softens shadows and reveals details (72% intensity)
+        PointLight fillLight = new PointLight(Color.rgb(180, 180, 190));
         fillLight.getTransforms().add(new Translate(400, -300, -400));
         
-        // 3. Backlight / Rim Light (Separates object from background, top-back): Creates sharp, brilliant contour highlights (70% intensity)
-        PointLight rimLight = new PointLight(Color.rgb(180, 180, 180));
+        // 3. Backlight / Rim Light (Separates object from background, top-back): Creates sharp, brilliant contour highlights (86% intensity)
+        PointLight rimLight = new PointLight(Color.rgb(220, 220, 220));
         rimLight.getTransforms().add(new Translate(0, -350, 450));
         
-        // 4. Overhead Studio Softbox (Top ceiling light): Casts bright overhead reflections onto wings, cockpit, and body (75% intensity)
-        PointLight ceilingLight = new PointLight(Color.rgb(190, 190, 200));
+        // 4. Overhead Studio Softbox (Top ceiling light): Casts bright overhead reflections onto wings, cockpit, and body (90% intensity)
+        PointLight ceilingLight = new PointLight(Color.rgb(230, 230, 240));
         ceilingLight.getTransforms().add(new Translate(0, -500, 0));
         
-        // 5. Frontal Camera Soft Light (On-axis fill light): Placed close to the camera to illuminate 
-        // the recessed watch dial and face from the front while keeping micro-shadows visible (30% intensity).
-        PointLight cameraLight = new PointLight(Color.rgb(80, 85, 95));
+        // 5. Frontal Camera Soft Light (On-axis fill light): Placed close to the camera to directly illuminate 
+        // the recessed watch dial and face from the front with brilliant clarity (85% intensity).
+        PointLight cameraLight = new PointLight(Color.rgb(215, 220, 230));
         cameraLight.getTransforms().add(new Translate(0, 0, -340));
         
         // 6. Grazing Studio Spotlight (Oblique side light): Placed close to the watch plane at a sharp angle 
-        // to cast rich micro-shadows and high-contrast grazing highlights on the Tapisserie relief dots (55% intensity).
-        PointLight grazingLight = new PointLight(Color.rgb(150, 155, 170));
+        // to cast rich micro-shadows and high-contrast grazing highlights on the Tapisserie relief dots (75% intensity).
+        PointLight grazingLight = new PointLight(Color.rgb(190, 195, 210));
         grazingLight.getTransforms().add(new Translate(-250, -200, -120));
         
         sceneRoot.getChildren().addAll(ambientLight, keyLight, fillLight, rimLight, ceilingLight, cameraLight, grazingLight);

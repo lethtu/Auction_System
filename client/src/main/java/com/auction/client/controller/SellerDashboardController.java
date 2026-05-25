@@ -2820,6 +2820,11 @@ public class SellerDashboardController {
             throw new IOException("3D model upload response did not contain model3dPath.");
         }
 
+        // Invalidate local cache for this model to force fresh download
+        if (existingUuid != null) {
+            com.auction.client.util.CacheManager.invalidateCache(existingUuid, null);
+        }
+
         // Trigger cache buster to immediately reflect the new 3D model across all views
         Config.triggerImageCacheBuster();
 
@@ -2863,6 +2868,11 @@ public class SellerDashboardController {
         String imagePath = data != null ? data.optString("imagePath", "") : obj.optString("imagePath", "");
         if (imagePath.isBlank()) {
             throw new IOException("Image upload response did not contain imagePath.");
+        }
+
+        // Invalidate local cache for this image to force fresh download
+        if (existingUuid != null) {
+            com.auction.client.util.CacheManager.invalidateCache(existingUuid, buildSellerImageUrl(existingUuid));
         }
 
         // Trigger cache buster to immediately reflect the new image across all views

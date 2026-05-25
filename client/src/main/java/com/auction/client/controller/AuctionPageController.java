@@ -2359,11 +2359,13 @@ public class AuctionPageController {
         }
 
         String cloudName = getCloudName(imagePath);
+        String url;
         if (cloudName != null && !cloudName.isBlank()) {
-            return "https://res.cloudinary.com/" + cloudName + "/raw/upload/auction_system/items/models_3d/" + uuid + ".glb";
+            url = "https://res.cloudinary.com/" + cloudName + "/raw/upload/auction_system/items/models_3d/" + uuid + ".glb";
+        } else {
+            url = Config.API_URL + "/api/files/models-3d/" + uuid + "/" + uuid + ".glb";
         }
-
-        return Config.API_URL + "/api/files/models-3d/" + uuid + "/" + uuid + ".glb";
+        return Config.applyCacheBuster(url);
     }
 
     private void reload3DModel() {
