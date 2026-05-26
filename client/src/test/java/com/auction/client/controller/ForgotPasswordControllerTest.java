@@ -50,7 +50,7 @@ public class ForgotPasswordControllerTest {
     }
 
     @Test
-    @DisplayName("Test: Bỏ trống Email -> Cảnh báo")
+    @DisplayName("Test: Bá» trá»‘ng Email -> Cáº£nh bÃ¡o")
     public void testGetOTP_EmptyEmail(FxRobot robot) {
         robot.clickOn("#btnGetOTP");
         robot.sleep(500);
@@ -58,9 +58,9 @@ public class ForgotPasswordControllerTest {
     }
 
     @Test
-    @DisplayName("Test: Email không tồn tại -> Cảnh báo lỗi")
+    @DisplayName("Test: Email khÃ´ng tá»“n táº¡i -> Cáº£nh bÃ¡o lá»—i")
     public void testGetOTP_EmailNotFound(FxRobot robot) throws Exception {
-        String jsonError = "{\"status\": 404, \"message\": \"Không có tài khoản nào liên kết với Email này\"}";
+        String jsonError = "{\"status\": 404, \"message\": \"KhÃ´ng cÃ³ tÃ i khoáº£n nÃ o liÃªn káº¿t vá»›i Email nÃ y\"}";
 
         mockSendResponse(200, jsonError);
 
@@ -75,8 +75,8 @@ public class ForgotPasswordControllerTest {
         verifyThat("#btnGetOTP", NodeMatchers.isEnabled());
         String currentOtpButtonText = getOtpButton.getText();
         org.junit.jupiter.api.Assertions.assertTrue(
-                currentOtpButtonText.equalsIgnoreCase("Resend code") || currentOtpButtonText.equals("Gửi lại mã") || currentOtpButtonText.equals("Gửi mã xác thực"),
-                "Nút lấy OTP phải ở trạng thái có thể gửi lại hoặc gửi mã xác thực, nhưng đang là: " + currentOtpButtonText
+                currentOtpButtonText.equalsIgnoreCase("Resend code") || currentOtpButtonText.equalsIgnoreCase("Send verification code") || currentOtpButtonText.equals("Gá»­i láº¡i mÃ£") || currentOtpButtonText.equals("Gá»­i mÃ£ xÃ¡c thá»±c"),
+                "NÃºt láº¥y OTP pháº£i á»Ÿ tráº¡ng thÃ¡i cÃ³ thá»ƒ gá»­i láº¡i hoáº·c gá»­i mÃ£ xÃ¡c thá»±c, nhÆ°ng Ä‘ang lÃ : " + currentOtpButtonText
         );
     }
 
@@ -124,7 +124,7 @@ public class ForgotPasswordControllerTest {
                 String text = button.getText();
                 boolean hasStableText = text != null
                         && !text.trim().isEmpty()
-                        && !text.toLowerCase().contains("đang")
+                        && !text.toLowerCase().contains("Ä‘ang")
                         && !text.toLowerCase().contains("dang")
                         && !text.contains("...");
 
@@ -212,7 +212,7 @@ public class ForgotPasswordControllerTest {
             }
             sleepBriefly();
         }
-        throw new AssertionError("Không tìm thấy Alert với tin nhắn: " + expectedMessage);
+        throw new AssertionError("KhÃ´ng tÃ¬m tháº¥y Alert vá»›i tin nháº¯n: " + expectedMessage);
     }
 
     private void sleepBriefly() {
@@ -220,7 +220,7 @@ public class ForgotPasswordControllerTest {
             Thread.sleep(50);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new AssertionError("Bị ngắt khi đang chờ Alert.", e);
+            throw new AssertionError("Bá»‹ ngáº¯t khi Ä‘ang chá» Alert.", e);
         }
     }
 }
