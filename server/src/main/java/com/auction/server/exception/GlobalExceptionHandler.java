@@ -40,10 +40,27 @@ public class GlobalExceptionHandler {
         return ApiResponse.error(400, ex.getMessage());
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
+    @ExceptionHandler({
+            IllegalArgumentException.class,
+            IllegalStateException.class
+    })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiResponse<?> handleIllegalArgumentException(IllegalArgumentException ex) {
-        logger.warn("Illegal argument: {}", ex.getMessage());
+    public ApiResponse<?> handleBadRequestException(RuntimeException ex) {
+        logger.warn("Bad request: {}", ex.getMessage());
         return ApiResponse.error(400, ex.getMessage());
+    }
+
+    @ExceptionHandler(SecurityException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ApiResponse<?> handleSecurityException(SecurityException ex) {
+        logger.warn("Forbidden request: {}", ex.getMessage());
+        return ApiResponse.error(403, ex.getMessage());
+    }
+
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ApiResponse<?> handleGenericException(Exception ex) {
+        logger.error("Unhandled server error", ex);
+        return ApiResponse.error(500, "Internal server error");
     }
 }
