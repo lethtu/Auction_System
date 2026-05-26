@@ -20,43 +20,50 @@ jobs:
 
       - name: Prepare Space Files
         run: |
-            mkdir -p hf-space
-            cp -r server hf-space/server
+          rm -rf hf-space
+          mkdir -p hf-space
+          cp -r server hf-space/server
 
-            cat > hf-space/Dockerfile <<'EOF'
-            FROM maven:3.9-eclipse-temurin-21 AS build
-            WORKDIR /app
-            COPY server ./server
+          cat > hf-space/Dockerfile <<'EOF'
+          FROM maven:3.9-eclipse-temurin-21 AS build
+          WORKDIR /app
+          COPY server ./server
 
-            WORKDIR /app/server
-            RUN mvn clean package -DskipTests
+          WORKDIR /app/server
+          RUN mvn clean package -DskipTests
 
-            FROM eclipse-temurin:21-jre
-            WORKDIR /app
-            COPY --from=build /app/server/target/*.jar app.jar
+          FROM eclipse-temurin:21-jre
+          WORKDIR /app
+          COPY --from=build /app/server/target/*.jar app.jar
 
-            ENV PORT=7860
-            EXPOSE 7860
+          ENV PORT=7860
+          EXPOSE 7860
 
-            CMD ["java", "-jar", "app.jar"]
-            EOF
+          CMD ["java", "-jar", "app.jar"]
+          EOF
 
-      - name: Deploy to Server
+      - name: Deploy to Hugging Face
         env:
           TOKEN: ${{ secrets.TOKEN }}
         run: |
-          pip install huggingface_hub
+          pip install "huggingface_hub==0.25.2"
 
           python - <<'PY'
           import os
           from huggingface_hub import HfApi
 
-          api = HfApi(token=os.environ["TOKEN"])
+          token = os.environ["TOKEN"].strip()
+          api = HfApi(token=token)
 
           api.upload_folder(
               folder_path="hf-space",
               repo_id="tbttkc/host-server-btl",
               repo_type="space",
-              commit_message="Auto deploy from GitHub"
+              commit_message="Auto deploy server",
+              ignore_patterns=[
+                  "server/target/*",
+                  "server/.idea/*",
+                  "server/.git/*"
+              ]
           )
           PY
