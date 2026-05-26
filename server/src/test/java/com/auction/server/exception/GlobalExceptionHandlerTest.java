@@ -3,8 +3,11 @@ package com.auction.server.exception;
 import com.auction.server.dto.ApiResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpMethod;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class GlobalExceptionHandlerTest {
 
@@ -58,8 +61,11 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(400, illegalArgument.getStatus());
         assertEquals("Missing field", illegalArgument.getMessage());
+        assertNull(illegalArgument.getData());
+
         assertEquals(400, illegalState.getStatus());
         assertEquals("Wrong state", illegalState.getMessage());
+        assertNull(illegalState.getData());
     }
 
     @Test
@@ -68,6 +74,17 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(403, response.getStatus());
         assertEquals("Forbidden", response.getMessage());
+        assertNull(response.getData());
+    }
+
+    @Test
+    void handleNoResourceFoundException_returnsNotFoundResponse() throws Exception {
+        NoResourceFoundException exception = new NoResourceFoundException(HttpMethod.GET, "/missing-page");
+
+        ApiResponse<?> response = handler.handleNoResourceFoundException(exception);
+
+        assertEquals(404, response.getStatus());
+        assertEquals("Resource not found", response.getMessage());
         assertNull(response.getData());
     }
 

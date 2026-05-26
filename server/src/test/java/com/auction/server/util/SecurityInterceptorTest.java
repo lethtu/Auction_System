@@ -133,4 +133,74 @@ class SecurityInterceptorTest {
         user.setAccountType(role);
         return sessionManager.createSession(user);
     }
+
+    @Test
+    void adminEndpoint_allowsAdminAndStoresSessionUser() throws Exception {
+        MockHttpServletRequest request = authenticatedRequest("GET", "/api/admin/users", tokenFor(1, "admin"));
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        assertTrue(interceptor.preHandle(request, response, new Object()));
+
+        Object sessionUser = request.getAttribute("sessionUser");
+        assertInstanceOf(SessionManager.SessionUser.class, sessionUser);
+        assertEquals(1, ((SessionManager.SessionUser) sessionUser).getUserId());
+    }
+
+    @Test
+    void sellerEndpoint_allowsAdminRole() throws Exception {
+        MockHttpServletRequest request = authenticatedRequest("GET", "/api/seller/my-sessions/10", tokenFor(1, "admin"));
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        assertTrue(interceptor.preHandle(request, response, new Object()));
+        assertNotNull(request.getAttribute("sessionUser"));
+    }
+
+    @Test
+    void bidderEndpoint_allowsMatchingBidderId() throws Exception {
+        MockHttpServletRequest request = authenticatedRequest("GET", "/api/bidder/deposit", tokenFor(30, "bidder"));
+        request.setParameter("bidderId", "30");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        assertTrue(interceptor.preHandle(request, response, new Object()));
+        assertNotNull(request.getAttribute("sessionUser"));
+    }
+
+    @Test
+    void bidderEndpoint_allowsMatchingUserIdWhenBidderIdMissing() throws Exception {
+        MockHttpServletRequest request = authenticatedRequest("GET", "/api/bidder/my-bids", tokenFor(31, "bidder"));
+        request.setParameter("userId", "31");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        assertTrue(interceptor.preHandle(request, response, new Object()));
+        assertNotNull(request.getAttribute("sessionUser"));
+    }
+
+    @Test
+    void bidderEndpoint_ignoresInvalidTargetId() throws Exception {
+        MockHttpServletRequest request = authenticatedRequest("GET", "/api/bidder/my-bids", tokenFor(32, "bidder"));
+        request.setParameter("bidderId", "not-a-number");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        assertTrue(interceptor.preHandle(request, response, new Object()));
+        assertNotNull(request.getAttribute("sessionUser"));
+    }
+
+    @Test
+    void userEndpoint_allowsSameUserProfile() throws Exception {
+        MockHttpServletRequest request = authenticatedRequest("PUT", "/api/users/50/profile", tokenFor(50, "seller"));
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        assertTrue(interceptor.preHandle(request, response, new Object()));
+        assertNotNull(request.getAttribute("sessionUser"));
+    }
+
+    @Test
+    void userEndpoint_ignoresNonNumericUserIdSegment() throws Exception {
+        MockHttpServletRequest request = authenticatedRequest("PUT", "/api/users/me/profile", tokenFor(50, "seller"));
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        assertTrue(interceptor.preHandle(request, response, new Object()));
+        assertNotNull(request.getAttribute("sessionUser"));
+    }
+
 }

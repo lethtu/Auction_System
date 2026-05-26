@@ -211,4 +211,69 @@ public class BidderServiceTest {
         assertEquals(10, result.get(0).getHighestBidderId());
         assertEquals("Winner", result.get(0).getDeliveryRecipient());
     }
+
+
+    @Test
+    @DisplayName("depositMoney: user khong ton tai -> tra Optional.empty")
+    public void depositMoney_UserMissing_ReturnsEmpty() {
+        when(userRepository.findById(77)).thenReturn(Optional.empty());
+
+        Optional<BigDecimal> result = bidderService.depositMoney(77, BigDecimal.TEN);
+
+        assertTrue(result.isEmpty());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("upToSeller: repository nem exception -> tra response loi he thong")
+    public void upToSeller_SystemError_ReturnsSafeResponse() {
+        when(userRepository.findById(10)).thenThrow(new RuntimeException("db down"));
+
+        Map<String, Object> result = bidderService.upToSeller(10);
+
+        assertFalse((Boolean) result.get("success"));
+        assertEquals("System error: db down", result.get("message"));
+        verify(userRepository, never()).updateRoleById(anyInt(), anyString());
+    }
+
+    @Test
+    @DisplayName("getMyBids: chua tung dau gia -> khong query stats/winner")
+    public void getMyBids_NoSessions_ReturnsEmptyWithoutStatsQuery() {
+        when(bidRepository.findSessionsByBidderId(10)).thenReturn(List.of());
+
+        List<SessionResponseDTO> result = bidderService.getMyBids(10);
+
+        assertTrue(result.isEmpty());
+        verify(bidRepository, never()).findSessionStatsForBidder(any(), anyInt());
+        verify(bidRepository, never()).findWinningBidsForSessions(any());
+    }
+
+    @Test
+    @DisplayName("getMyBids: thieu stats va winning bid khong co bidder -> giu snapshot session")
+    public void getMyBids_NoStatsAndWinningBidWithoutBidder_UsesSessionSnapshot() {
+        AuctionSession session = new AuctionSession();
+        session.setId(2);
+        session.setStatus(AuctionStatus.ACTIVE);
+        session.setCurrentPrice(new BigDecimal("100000"));
+        session.setHighestBidderId(55);
+        session.setDeliveryRecipient("Hidden winner");
+
+        Bid winningBidWithoutBidder = new Bid();
+        winningBidWithoutBidder.setSession(session);
+        winningBidWithoutBidder.setAmount(new BigDecimal("999999"));
+
+        when(bidRepository.findSessionsByBidderId(10)).thenReturn(List.of(session));
+        when(bidRepository.findSessionStatsForBidder(List.of(2), 10)).thenReturn(List.of());
+        when(bidRepository.findWinningBidsForSessions(List.of(2))).thenReturn(List.of(winningBidWithoutBidder));
+
+        List<SessionResponseDTO> result = bidderService.getMyBids(10);
+
+        assertEquals(1, result.size());
+        assertEquals(new BigDecimal("100000"), result.get(0).getCurrentPrice());
+        assertEquals(55, result.get(0).getHighestBidderId());
+        assertEquals(0, result.get(0).getBidCount());
+        assertEquals(null, result.get(0).getUserMaxBid());
+        assertEquals(null, result.get(0).getDeliveryRecipient());
+    }
+
 }

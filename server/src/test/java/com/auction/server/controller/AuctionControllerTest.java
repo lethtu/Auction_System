@@ -213,4 +213,43 @@ class AuctionControllerTest {
 
         return session;
     }
+
+    @Test
+    void getSessionDetail_mapsSessionWhenWinningBidsEmpty() {
+        AuctionSession session = sampleSession(16);
+
+        when(auctionService.getSessionById(16)).thenReturn(session);
+        when(bidRepository.countBySessionId(16)).thenReturn(0);
+        when(bidRepository.findWinningBidsForSessions(List.of(16))).thenReturn(List.of());
+        when(bidRepository.findBySessionIdOrderByAmountAsc(16)).thenReturn(List.of());
+
+        ResponseEntity<SessionResponseDTO> response = controller.getSessionDetail(16);
+
+        assertEquals(200, response.getStatusCode().value());
+        SessionResponseDTO dto = Objects.requireNonNull(response.getBody());
+        assertEquals(0, dto.getBidCount());
+        assertEquals(new BigDecimal("600000"), dto.getCurrentPrice());
+        assertTrue(dto.getBids().isEmpty());
+    }
+
+    @Test
+    void getSessionDetail_ignoresWinningBidWithoutBidder() {
+        AuctionSession session = sampleSession(17);
+        Bid winningBidWithoutBidder = new Bid();
+        winningBidWithoutBidder.setAmount(new BigDecimal("750000"));
+
+        when(auctionService.getSessionById(17)).thenReturn(session);
+        when(bidRepository.countBySessionId(17)).thenReturn(1);
+        when(bidRepository.findWinningBidsForSessions(List.of(17))).thenReturn(List.of(winningBidWithoutBidder));
+        when(bidRepository.findBySessionIdOrderByAmountAsc(17)).thenReturn(List.of(winningBidWithoutBidder));
+
+        ResponseEntity<SessionResponseDTO> response = controller.getSessionDetail(17);
+
+        assertEquals(200, response.getStatusCode().value());
+        SessionResponseDTO dto = Objects.requireNonNull(response.getBody());
+        assertEquals(1, dto.getBidCount());
+        assertEquals(new BigDecimal("600000"), dto.getCurrentPrice());
+        assertEquals(1, dto.getBids().size());
+    }
+
 }

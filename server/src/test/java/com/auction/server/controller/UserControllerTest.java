@@ -299,4 +299,298 @@ public class UserControllerTest {
         verify(cloudinaryService).uploadFileWithPublicId(any(), anyString(), anyString(), anyBoolean());
         verify(userService).updateAvatarUrl(eq(1), anyString());
     }
+
+
+    @Test
+    public void testUploadAvatar_NoExtensionRejected() throws Exception {
+        User user = new User();
+        user.setId(1);
+        when(userService.getUserById(1)).thenReturn(user);
+
+        byte[] validPngBytes = new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0, 0, 0, 0, 0, 0, 0, 0};
+        MockMultipartFile file = new MockMultipartFile("avatar", "avatar", "image/png", validPngBytes);
+
+        mockMvc.perform(multipart("/api/users/1/avatar").file(file))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message", org.hamcrest.Matchers.containsString("Please select a PNG")));
+    }
+
+    @Test
+    public void testUploadAvatar_NullOriginalFilenameRejected() throws Exception {
+        User user = new User();
+        user.setId(1);
+        when(userService.getUserById(1)).thenReturn(user);
+
+        byte[] validPngBytes = new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0, 0, 0, 0, 0, 0, 0, 0};
+        MockMultipartFile file = new MockMultipartFile("avatar", null, "image/png", validPngBytes);
+
+        mockMvc.perform(multipart("/api/users/1/avatar").file(file))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400));
+    }
+
+    @Test
+    public void testUploadAvatar_OctetStreamWithJpegMagicBytesSuccess() throws Exception {
+        User user = new User();
+        user.setId(1);
+        when(userService.getUserById(1)).thenReturn(user);
+        when(cloudinaryService.isConfigured()).thenReturn(false);
+
+        byte[] validJpegBytes = new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        MockMultipartFile file = new MockMultipartFile("avatar", "avatar.jpg", "application/octet-stream", validJpegBytes);
+
+        mockMvc.perform(multipart("/api/users/1/avatar").file(file))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.data.avatarUrl", org.hamcrest.Matchers.startsWith("/api/files/avatar/")));
+    }
+
+    @Test
+    public void testUploadAvatar_OctetStreamWithWebpMagicBytesSuccess() throws Exception {
+        User user = new User();
+        user.setId(1);
+        when(userService.getUserById(1)).thenReturn(user);
+        when(cloudinaryService.isConfigured()).thenReturn(false);
+
+        byte[] validWebpBytes = new byte[]{'R', 'I', 'F', 'F', 0, 0, 0, 0, 'W', 'E', 'B', 'P'};
+        MockMultipartFile file = new MockMultipartFile("avatar", "avatar.webp", "application/octet-stream", validWebpBytes);
+
+        mockMvc.perform(multipart("/api/users/1/avatar").file(file))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.data.avatarUrl", org.hamcrest.Matchers.startsWith("/api/files/avatar/")));
+    }
+
+    @Test
+    public void testUploadAvatar_InputStreamReadFailureRejected() throws Exception {
+        User user = new User();
+        user.setId(1);
+        when(userService.getUserById(1)).thenReturn(user);
+
+        org.springframework.web.multipart.MultipartFile file = mock(org.springframework.web.multipart.MultipartFile.class);
+        when(file.isEmpty()).thenReturn(false);
+        when(file.getSize()).thenReturn(12L);
+        when(file.getOriginalFilename()).thenReturn("avatar.png");
+        when(file.getContentType()).thenReturn("application/octet-stream");
+        when(file.getInputStream()).thenThrow(new java.io.IOException("cannot read"));
+
+        UserController controller = new UserController(userService, cloudinaryService);
+        org.springframework.http.ResponseEntity<?> response = controller.uploadAvatar(1, file);
+
+        org.junit.jupiter.api.Assertions.assertEquals(400, response.getStatusCode().value());
+    }
+
+    @Test
+    public void testUploadAvatar_TransferToFailureReturnsServerError() throws Exception {
+        User user = new User();
+        user.setId(1);
+        when(userService.getUserById(1)).thenReturn(user);
+        when(cloudinaryService.isConfigured()).thenReturn(false);
+
+        org.springframework.web.multipart.MultipartFile file = mock(org.springframework.web.multipart.MultipartFile.class);
+        when(file.isEmpty()).thenReturn(false);
+        when(file.getSize()).thenReturn(12L);
+        when(file.getOriginalFilename()).thenReturn("avatar.png");
+        when(file.getContentType()).thenReturn("image/png");
+        doThrow(new java.io.IOException("disk full")).when(file).transferTo(any(java.nio.file.Path.class));
+
+        UserController controller = new UserController(userService, cloudinaryService);
+        org.springframework.http.ResponseEntity<?> response = controller.uploadAvatar(1, file);
+
+        org.junit.jupiter.api.Assertions.assertEquals(500, response.getStatusCode().value());
+    }
+
+    @Test
+    public void testUploadAvatar_UpdateAvatarIllegalArgumentReturnsBadRequest() throws Exception {
+        User user = new User();
+        user.setId(1);
+        when(userService.getUserById(1)).thenReturn(user);
+        when(cloudinaryService.isConfigured()).thenReturn(false);
+        when(userService.updateAvatarUrl(eq(1), anyString())).thenThrow(new IllegalArgumentException("Invalid userId"));
+
+        byte[] validPngBytes = new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0, 0, 0, 0, 0, 0, 0, 0};
+        MockMultipartFile file = new MockMultipartFile("avatar", "avatar.png", "image/png", validPngBytes);
+
+        mockMvc.perform(multipart("/api/users/1/avatar").file(file))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Invalid userId"));
+    }
+
+    @Test
+    public void testUploadAvatar_NullCloudinaryServiceUsesLocalStorage() throws Exception {
+        User user = new User();
+        user.setId(1);
+        when(userService.getUserById(1)).thenReturn(user);
+
+        byte[] validPngBytes = new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0, 0, 0, 0, 0, 0, 0, 0};
+        MockMultipartFile file = new MockMultipartFile("avatar", "avatar.png", "image/png", validPngBytes);
+
+        UserController controller = new UserController(userService, null);
+        org.springframework.http.ResponseEntity<?> response = controller.uploadAvatar(1, file);
+
+        org.junit.jupiter.api.Assertions.assertEquals(200, response.getStatusCode().value());
+        verify(userService).updateAvatarUrl(eq(1), anyString());
+    }
+
+
+
+    @Test
+    public void testSetPassword_RuntimeExceptionReturnsServerError() throws Exception {
+        when(userService.setPassword(eq(3), anyString())).thenThrow(new RuntimeException("database down"));
+
+        mockMvc.perform(post("/api/users/3/set-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("password", "newPass123"))))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.message").value("Failed to set password."));
+    }
+
+    @Test
+    public void testChangePassword_RuntimeExceptionReturnsServerError() throws Exception {
+        when(userService.changePassword(eq(3), anyString(), anyString())).thenThrow(new RuntimeException("database down"));
+
+        mockMvc.perform(post("/api/users/3/change-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "oldPassword", "oldPass",
+                                "newPassword", "newPass"))))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.message").value("Failed to change password."));
+    }
+
+    @Test
+    public void testUploadAvatar_NullContentTypeWithPngMagicBytesSuccess() throws Exception {
+        User user = new User();
+        user.setId(1);
+        when(userService.getUserById(1)).thenReturn(user);
+        when(cloudinaryService.isConfigured()).thenReturn(false);
+
+        byte[] validPngBytes = new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0, 0, 0, 0, 0, 0, 0, 0};
+        MockMultipartFile file = new MockMultipartFile("avatar", "avatar.png", null, validPngBytes);
+
+        mockMvc.perform(multipart("/api/users/1/avatar").file(file))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.data.avatarUrl", org.hamcrest.Matchers.startsWith("/api/files/avatar/")));
+
+        verify(userService).updateAvatarUrl(eq(1), anyString());
+    }
+
+    @Test
+    public void testUploadAvatar_DeletesExistingOldLocalAvatar() throws Exception {
+        java.nio.file.Path avatarDir = java.nio.file.Paths.get("upload", "avatar").toAbsolutePath().normalize();
+        java.nio.file.Files.createDirectories(avatarDir);
+        java.nio.file.Path oldAvatar = avatarDir.resolve("phase29-old-avatar.png");
+        java.nio.file.Files.writeString(oldAvatar, "old-avatar");
+
+        User user = new User();
+        user.setId(1);
+        user.setAvatarUrl("/api/files/avatar/phase29-old-avatar.png");
+        when(userService.getUserById(1)).thenReturn(user);
+        when(cloudinaryService.isConfigured()).thenReturn(false);
+
+        byte[] validPngBytes = new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0, 0, 0, 0, 0, 0, 0, 0};
+        MockMultipartFile file = new MockMultipartFile("avatar", "avatar.png", "image/png", validPngBytes);
+
+        try {
+            mockMvc.perform(multipart("/api/users/1/avatar").file(file))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status").value(200));
+
+            org.junit.jupiter.api.Assertions.assertFalse(java.nio.file.Files.exists(oldAvatar));
+        } finally {
+            java.nio.file.Files.deleteIfExists(oldAvatar);
+        }
+    }
+
+    @Test
+    public void testUploadAvatar_SkipsUnsafeOldAvatarPath() throws Exception {
+        java.nio.file.Path outside = java.nio.file.Paths.get("upload", "phase29-outside-avatar.png").toAbsolutePath().normalize();
+        java.nio.file.Files.createDirectories(outside.getParent());
+        java.nio.file.Files.writeString(outside, "outside-avatar");
+
+        User user = new User();
+        user.setId(1);
+        user.setAvatarUrl("/api/files/avatar/../phase29-outside-avatar.png");
+        when(userService.getUserById(1)).thenReturn(user);
+        when(cloudinaryService.isConfigured()).thenReturn(false);
+
+        byte[] validPngBytes = new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0, 0, 0, 0, 0, 0, 0, 0};
+        MockMultipartFile file = new MockMultipartFile("avatar", "avatar.png", "image/png", validPngBytes);
+
+        try {
+            mockMvc.perform(multipart("/api/users/1/avatar").file(file))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status").value(200));
+
+            org.junit.jupiter.api.Assertions.assertTrue(java.nio.file.Files.exists(outside));
+        } finally {
+            java.nio.file.Files.deleteIfExists(outside);
+        }
+    }
+
+    @Test
+    public void testConstructorRejectsNullUserService() {
+        org.junit.jupiter.api.Assertions.assertThrows(
+                NullPointerException.class,
+                () -> new UserController(null, cloudinaryService)
+        );
+    }
+
+
+
+    @Test
+    public void testUploadAvatar_UppercaseContentTypeAndExtensionSuccess() throws Exception {
+        User user = new User();
+        user.setId(1);
+        when(userService.getUserById(1)).thenReturn(user);
+        when(cloudinaryService.isConfigured()).thenReturn(false);
+
+        byte[] validPngBytes = new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0, 0, 0, 0, 0, 0, 0, 0};
+        MockMultipartFile file = new MockMultipartFile("avatar", "AVATAR.PNG", "IMAGE/PNG", validPngBytes);
+
+        mockMvc.perform(multipart("/api/users/1/avatar").file(file))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.data.avatarUrl", org.hamcrest.Matchers.startsWith("/api/files/avatar/")));
+
+        verify(userService).updateAvatarUrl(eq(1), anyString());
+    }
+
+    @Test
+    public void testUploadAvatar_BlankOldAvatarUrlIsSkipped() throws Exception {
+        User user = new User();
+        user.setId(1);
+        user.setAvatarUrl("   ");
+        when(userService.getUserById(1)).thenReturn(user);
+        when(cloudinaryService.isConfigured()).thenReturn(false);
+
+        byte[] validPngBytes = new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0, 0, 0, 0, 0, 0, 0, 0};
+        MockMultipartFile file = new MockMultipartFile("avatar", "avatar.png", "image/png", validPngBytes);
+
+        mockMvc.perform(multipart("/api/users/1/avatar").file(file))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200));
+    }
+
+    @Test
+    public void testUploadAvatar_NonLocalOldAvatarUrlIsSkipped() throws Exception {
+        User user = new User();
+        user.setId(1);
+        user.setAvatarUrl("https://cdn.example.com/avatar.png");
+        when(userService.getUserById(1)).thenReturn(user);
+        when(cloudinaryService.isConfigured()).thenReturn(false);
+
+        byte[] validPngBytes = new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0, 0, 0, 0, 0, 0, 0, 0};
+        MockMultipartFile file = new MockMultipartFile("avatar", "avatar.png", "image/png", validPngBytes);
+
+        mockMvc.perform(multipart("/api/users/1/avatar").file(file))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200));
+    }
+
 }

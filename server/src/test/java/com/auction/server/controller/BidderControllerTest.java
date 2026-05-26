@@ -1,22 +1,26 @@
 package com.auction.server.controller;
 
 import com.auction.server.dto.SessionResponseDTO;
+import com.auction.server.model.AuctionSession;
 import com.auction.server.service.BidderService;
+import com.auction.server.util.SessionManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import com.auction.server.util.SessionManager;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -29,7 +33,6 @@ public class BidderControllerTest {
     @MockBean
     private SessionManager sessionManager;
 
-    // Mock toàn bộ tầng service và repository để controller test chạy độc lập
     @MockBean
     private BidderService bidderService;
 
@@ -42,16 +45,11 @@ public class BidderControllerTest {
     @MockBean
     private com.auction.server.repository.UserRepository userRepository;
 
-    // =====================================================================
-    // TEST 1: API /api/bidder/up-to-seller - Nâng cấp thành công
-    // =====================================================================
     @Test
-    @DisplayName("POST /up-to-seller: BIDDER hợp lệ -> HTTP 200 và success = true")
+    @DisplayName("POST /up-to-seller: valid bidder returns success body")
     public void testUpToSeller_API_ThanhCong() throws Exception {
-        Mockito.when(sessionManager.getSession("valid_token"))
-                .thenReturn(new SessionManager.SessionUser(10, "bidder_10", "bidder"));
+        mockBidderToken(10);
 
-        // Giả lập service trả về kết quả thành công
         Mockito.when(bidderService.upToSeller(10))
                 .thenReturn(Map.of("success", true, "message", "Account upgraded successfully"));
 
@@ -62,13 +60,12 @@ public class BidderControllerTest {
                 .andExpect(jsonPath("$.status").value(200))
                 .andExpect(jsonPath("$.message").value("Account upgraded successfully"))
                 .andExpect(jsonPath("$.data").value("SUCCESS"));
+
+        Mockito.verify(sessionManager).updateRoleByUserId(10, "seller");
     }
 
-    // =====================================================================
-    // TEST 2: API /api/bidder/up-to-seller - Không tìm thấy user
-    // =====================================================================
     @Test
-    @DisplayName("POST /up-to-seller: userId không tồn tại -> HTTP 200 với status 400 trong body")
+    @DisplayName("POST /up-to-seller: missing user returns failed body")
     public void testUpToSeller_API_KhongTimThayUser() throws Exception {
         Mockito.when(sessionManager.getSession("valid_token"))
                 .thenReturn(new SessionManager.SessionUser(999, "bidder_999", "bidder"));
@@ -83,13 +80,12 @@ public class BidderControllerTest {
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.message").value("User does not exist"))
                 .andExpect(jsonPath("$.data").value("FAILED"));
+
+        Mockito.verify(sessionManager, Mockito.never()).updateRoleByUserId(Mockito.anyInt(), Mockito.anyString());
     }
 
-    // =====================================================================
-    // TEST 3: API /api/bidder/up-to-seller - User đã là SELLER
-    // =====================================================================
     @Test
-    @DisplayName("POST /up-to-seller: User đã là SELLER -> HTTP 200 với status 400 trong body")
+    @DisplayName("POST /up-to-seller: seller account returns failed body")
     public void testUpToSeller_API_DaLaSeller() throws Exception {
         Mockito.when(sessionManager.getSession("valid_token"))
                 .thenReturn(new SessionManager.SessionUser(14, "bidder_14", "bidder"));
@@ -104,13 +100,111 @@ public class BidderControllerTest {
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.message").value("Account is not a BIDDER or is already a SELLER"))
                 .andExpect(jsonPath("$.data").value("FAILED"));
+
+        Mockito.verify(sessionManager, Mockito.never()).updateRoleByUserId(Mockito.anyInt(), Mockito.anyString());
+    }
+
+    @Test
+    @DisplayName("GET /active-sessions: returns paged active sessions")
+    public void activeSessions_ReturnsPagedDataFromService() throws Exception {
+        mockBidderToken(10);
+
+        AuctionSession session = new AuctionSession();
+        session.setId(99);
+
+        Mockito.when(bidderService.getActiveSessions(1, 5))
+                .thenReturn(new PageImpl<>(List.of(session)));
+
+        mockMvc.perform(get("/api/bidder/active-sessions")
+                        .header("X-Auth-Token", "valid_token")
+                        .param("page", "1")
+                        .param("size", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.message").value("Active auction sessions retrieved successfully"))
+                .andExpect(jsonPath("$.data.content[0].id").value(99));
+
+        Mockito.verify(bidderService).getActiveSessions(1, 5);
+    }
+
+    @Test
+    @DisplayName("GET /my-bidding-sessions: invalid bidderId returns 400 body")
+    public void myBiddingSessions_InvalidBidderId_ReturnsBadRequestBody() throws Exception {
+        Mockito.when(sessionManager.getSession("valid_token"))
+                .thenReturn(new SessionManager.SessionUser(1, "admin", "admin"));
+
+        mockMvc.perform(get("/api/bidder/my-bidding-sessions")
+                        .header("X-Auth-Token", "valid_token")
+                        .param("bidderId", "0"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Invalid bidderId"))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data.length()").value(0));
+
+        Mockito.verify(bidderService, Mockito.never()).getMyBiddingSessions(Mockito.anyInt());
+    }
+
+    @Test
+    @DisplayName("GET /my-bidding-sessions: valid bidderId returns sessions")
+    public void myBiddingSessions_ValidBidderId_ReturnsSessions() throws Exception {
+        mockBidderToken(10);
+
+        AuctionSession session = new AuctionSession();
+        session.setId(30);
+
+        Mockito.when(bidderService.getMyBiddingSessions(10)).thenReturn(List.of(session));
+
+        mockMvc.perform(get("/api/bidder/my-bidding-sessions")
+                        .header("X-Auth-Token", "valid_token")
+                        .param("bidderId", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.message").value("Bidder's auction sessions retrieved successfully"))
+                .andExpect(jsonPath("$.data[0].id").value(30));
+
+        Mockito.verify(bidderService).getMyBiddingSessions(10);
+    }
+
+    @Test
+    @DisplayName("POST /deposit: existing bidder returns new balance")
+    public void depositMoney_UserExists_ReturnsNewBalance() throws Exception {
+        mockBidderToken(10);
+
+        Mockito.when(bidderService.depositMoney(10, new BigDecimal("100.50")))
+                .thenReturn(Optional.of(new BigDecimal("600.50")));
+
+        mockMvc.perform(post("/api/bidder/deposit")
+                        .header("X-Auth-Token", "valid_token")
+                        .param("bidderId", "10")
+                        .param("amount", "100.50"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("New balance: 600.50"));
+
+        Mockito.verify(bidderService).depositMoney(10, new BigDecimal("100.50"));
+    }
+
+    @Test
+    @DisplayName("POST /deposit: missing bidder returns not found")
+    public void depositMoney_UserMissing_ReturnsNotFound() throws Exception {
+        mockBidderToken(10);
+
+        Mockito.when(bidderService.depositMoney(10, BigDecimal.TEN))
+                .thenReturn(Optional.empty());
+
+        mockMvc.perform(post("/api/bidder/deposit")
+                        .header("X-Auth-Token", "valid_token")
+                        .param("bidderId", "10")
+                        .param("amount", "10"))
+                .andExpect(status().isNotFound());
+
+        Mockito.verify(bidderService).depositMoney(10, BigDecimal.TEN);
     }
 
     @Test
     @DisplayName("GET /my-bids: returns bidder session DTOs from service")
     public void myBids_ReturnsDtosFromService() throws Exception {
-        Mockito.when(sessionManager.getSession("valid_token"))
-                .thenReturn(new SessionManager.SessionUser(10, "bidder_10", "bidder"));
+        mockBidderToken(10);
 
         SessionResponseDTO dto = new SessionResponseDTO();
         dto.setId(1);
@@ -124,8 +218,15 @@ public class BidderControllerTest {
                         .header("X-Auth-Token", "valid_token")
                         .param("bidderId", "10"))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.message").value("Participated auction sessions retrieved successfully"))
                 .andExpect(jsonPath("$.data[0].currentPrice").value(222222))
                 .andExpect(jsonPath("$.data[0].highestBidderId").value(10))
                 .andExpect(jsonPath("$.data[0].deliveryRecipient").value("Winner"));
+    }
+
+    private void mockBidderToken(int userId) {
+        Mockito.when(sessionManager.getSession("valid_token"))
+                .thenReturn(new SessionManager.SessionUser(userId, "bidder_" + userId, "bidder"));
     }
 }

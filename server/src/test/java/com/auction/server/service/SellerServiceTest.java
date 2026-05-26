@@ -250,14 +250,16 @@ public class SellerServiceTest {
     @DisplayName("Lấy thống kê seller thành công")
     public void testGetSellerStats() {
         AuctionSession session1 = new AuctionSession();
-        session1.setStatus(AuctionStatus.ENDED);
+        session1.setStatus(AuctionStatus.PAID);
         session1.setCurrentPrice(new BigDecimal("1500000"));
 
         AuctionSession session2 = new AuctionSession();
-        session2.setStatus(AuctionStatus.ENDED);
+        session2.setStatus(AuctionStatus.PAID);
         session2.setCurrentPrice(new BigDecimal("2500000"));
 
         when(auctionSessionRepository.findBySeller_IdAndStatus(2, AuctionStatus.ENDED))
+                .thenReturn(List.of());
+        when(auctionSessionRepository.findBySeller_IdAndStatus(2, AuctionStatus.PAID))
                 .thenReturn(List.of(session1, session2));
 
         SellerStatsDTO stats = sellerService.getSellerStats(2);
@@ -354,4 +356,130 @@ public class SellerServiceTest {
 
         verify(itemRepository, never()).save(any(Item.class));
     }
+
+
+    @Test
+    @DisplayName("Tao phien voi min rate: luu cau hinh minRate va publish ACTIVE")
+    public void createAuctionSession_WithMinRateSettings_SavesRateSettings() {
+        CreateAuctionRequest request = new CreateAuctionRequest();
+        request.setSellerId(2);
+        request.setName("Rate product");
+        request.setType("electronics");
+        request.setStartingPrice(new BigDecimal("1000000"));
+        request.setStepPrice(new BigDecimal("50000"));
+        request.setStartTime(LocalDateTime.now().minusHours(1));
+        request.setEndTime(LocalDateTime.now().plusDays(1));
+        request.setApplyMinRate(true);
+        request.setMinRate(new BigDecimal("15"));
+
+        when(sellerSessionGuard.getSellerById(2)).thenReturn(mockSeller);
+        when(itemRepository.save(any(Item.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(auctionSessionRepository.save(any(AuctionSession.class))).thenAnswer(inv -> {
+            AuctionSession saved = inv.getArgument(0);
+            saved.setId(40);
+            return saved;
+        });
+
+        SessionResponseDTO result = sellerService.createAuctionSession(request);
+
+        assertEquals("ACTIVE", result.getStatus());
+        assertEquals(Boolean.TRUE, result.getApplyMinRate());
+        assertEquals(new BigDecimal("15"), result.getMinRate());
+        assertNotNull(result.getApprovedAt());
+    }
+
+    @Test
+    @DisplayName("Lay danh sach phien theo status: trim status va sort moi nhat truoc")
+    public void getMySessions_WithStatusFilter_SortsNewestFirst() {
+        AuctionSession older = new AuctionSession();
+        older.setId(1);
+        older.setSeller(mockSeller);
+        older.setItem(mockItem);
+        older.setStatus(AuctionStatus.ACTIVE);
+        older.setStartTime(LocalDateTime.now().minusDays(2));
+
+        AuctionSession newer = new AuctionSession();
+        newer.setId(2);
+        newer.setSeller(mockSeller);
+        newer.setItem(mockItem);
+        newer.setStatus(AuctionStatus.ACTIVE);
+        newer.setStartTime(LocalDateTime.now().minusDays(1));
+
+        when(auctionSessionRepository.findBySeller_IdAndStatus(2, AuctionStatus.ACTIVE))
+                .thenReturn(List.of(older, newer));
+
+        List<SessionResponseDTO> result = sellerService.getMySessions(2, " active ");
+
+        assertEquals(2, result.size());
+        assertEquals(2, result.get(0).getId());
+        assertEquals(1, result.get(1).getId());
+        verify(auctionSessionRepository, never()).findBySeller_Id(2);
+    }
+
+    @Test
+    @DisplayName("Lay danh sach phien theo status sai -> tra list rong")
+    public void getMySessions_InvalidStatus_ReturnsEmptyList() {
+        List<SessionResponseDTO> result = sellerService.getMySessions(2, "not-a-status");
+
+        assertTrue(result.isEmpty());
+        verify(auctionSessionRepository, never()).findBySeller_Id(any());
+        verify(auctionSessionRepository, never()).findBySeller_IdAndStatus(any(), any());
+    }
+
+    @Test
+    @DisplayName("Lay chi tiet phien: dung owner -> validate owner va map DTO")
+    public void getSessionDetail_ValidOwner_ReturnsMappedDTO() {
+        AuctionSession session = new AuctionSession();
+        session.setId(60);
+        session.setSeller(mockSeller);
+        session.setItem(mockItem);
+        session.setStatus(AuctionStatus.COMING);
+
+        when(sellerSessionGuard.getSessionById(60)).thenReturn(session);
+
+        SessionResponseDTO result = sellerService.getSessionDetail(60, 2);
+
+        assertEquals(60, result.getId());
+        assertEquals("COMING", result.getStatus());
+        verify(sellerSessionGuard).validateSessionOwner(
+                session,
+                2,
+                "You do not have permission to view this session"
+        );
+    }
+
+    @Test
+    @DisplayName("Thong ke seller: bo qua currentPrice null")
+    public void getSellerStats_IgnoresNullCurrentPrice() {
+        AuctionSession noPrice = new AuctionSession();
+        noPrice.setCurrentPrice(null);
+
+        AuctionSession paid = new AuctionSession();
+        paid.setCurrentPrice(new BigDecimal("700000"));
+
+        when(auctionSessionRepository.findBySeller_IdAndStatus(2, AuctionStatus.ENDED))
+                .thenReturn(List.of());
+        when(auctionSessionRepository.findBySeller_IdAndStatus(2, AuctionStatus.PAID))
+                .thenReturn(List.of(noPrice, paid));
+
+        SellerStatsDTO stats = sellerService.getSellerStats(2);
+
+        assertEquals(2, stats.getTotalSoldItems());
+        assertEquals(new BigDecimal("700000"), stats.getTotalRevenue());
+    }
+
+    @Test
+    @DisplayName("Xoa san pham: khong tim thay product -> nem loi")
+    public void softDeleteItem_ProductMissing_Throws() {
+        when(itemRepository.findById(404)).thenReturn(Optional.empty());
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> sellerService.softDeleteItem(404, 2)
+        );
+
+        assertEquals("Product not found.", ex.getMessage());
+        verify(itemRepository, never()).save(any(Item.class));
+    }
+
 }
