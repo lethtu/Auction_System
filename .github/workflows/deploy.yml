@@ -20,24 +20,26 @@ jobs:
 
       - name: Prepare Space Files
         run: |
-          mkdir -p hf-space
+            mkdir -p hf-space
+            cp -r server hf-space/server
 
-          cp -r server hf-space/server
-          cp Dockerfile hf-space/Dockerfile
+            cat > hf-space/Dockerfile <<'EOF'
+            FROM maven:3.9-eclipse-temurin-21 AS build
+            WORKDIR /app
+            COPY server ./server
 
-          cat > hf-space/README.md <<'EOF'
-          ---
-          title: Host Server BTL
-          emoji: ⚡
-          colorFrom: indigo
-          colorTo: purple
-          sdk: docker
-          app_port: 7860
-          pinned: false
-          ---
+            WORKDIR /app/server
+            RUN mvn clean package -DskipTests
 
-          # Host Server BTL
-          EOF
+            FROM eclipse-temurin:21-jre
+            WORKDIR /app
+            COPY --from=build /app/server/target/*.jar app.jar
+
+            ENV PORT=7860
+            EXPOSE 7860
+
+            CMD ["java", "-jar", "app.jar"]
+            EOF
 
       - name: Deploy to Hugging Face
         env:
@@ -49,7 +51,7 @@ jobs:
           import os
           from huggingface_hub import HfApi
 
-          api = HfApi(token=os.environ["HF_TOKEN"])
+          api = HfApi(token=os.environ["TOKEN"])
 
           api.upload_folder(
               folder_path="hf-space",
