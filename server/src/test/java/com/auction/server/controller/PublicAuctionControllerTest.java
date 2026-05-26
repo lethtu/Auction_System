@@ -2,6 +2,7 @@ package com.auction.server.controller;
 
 import com.auction.server.dto.ApiResponse;
 import com.auction.server.dto.SessionResponseDTO;
+import com.auction.server.mapper.SessionResponseMapper;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.model.AuctionStatus;
 import com.auction.server.model.Electronics;
@@ -50,7 +51,7 @@ class PublicAuctionControllerTest {
                 List.of(AuctionStatus.DRAFT, AuctionStatus.CANCELED))).thenReturn(List.of(session));
 
         PublicAuctionController controller =
-                new PublicAuctionController(auctionSessionRepository, userRepository);
+                new PublicAuctionController(auctionSessionRepository, userRepository, new SessionResponseMapper());
 
         ResponseEntity<ApiResponse<List<SessionResponseDTO>>> response =
                 controller.getAllSessions();

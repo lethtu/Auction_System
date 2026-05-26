@@ -31,10 +31,16 @@ public class BidderService {
 
     private final UserRepository userRepository;
     private final BidRepository bidRepository;
+    private final SessionResponseMapper sessionResponseMapper;
 
-    public BidderService(UserRepository userRepository, BidRepository bidRepository) {
+    public BidderService(
+            UserRepository userRepository,
+            BidRepository bidRepository,
+            SessionResponseMapper sessionResponseMapper
+    ) {
         this.userRepository = userRepository;
         this.bidRepository = bidRepository;
+        this.sessionResponseMapper = sessionResponseMapper;
     }
 
     @Transactional
@@ -118,7 +124,7 @@ public class BidderService {
         Object[] stats = statsBySessionId.get(session.getId());
         int bidCount = stats == null ? 0 : ((Number) stats[1]).intValue();
 
-        SessionResponseDTO dto = SessionResponseMapper.toDTO(session, bidCount);
+        SessionResponseDTO dto = sessionResponseMapper.mapToDTO(session, bidCount);
         dto.setUserMaxBid(stats == null ? null : (java.math.BigDecimal) stats[2]);
 
         Integer winnerId = applyWinningBidSnapshot(dto, session, winningBidsBySessionId.get(session.getId()));

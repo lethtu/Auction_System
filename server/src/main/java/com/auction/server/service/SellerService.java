@@ -27,15 +27,18 @@ public class SellerService {
     private final ItemRepository itemRepository;
     private final AuctionSessionRepository auctionSessionRepository;
     private final SellerSessionGuard sellerSessionGuard;
+    private final SessionResponseMapper sessionResponseMapper;
 
     public SellerService(
             ItemRepository itemRepository,
             AuctionSessionRepository auctionSessionRepository,
-            SellerSessionGuard sellerSessionGuard
+            SellerSessionGuard sellerSessionGuard,
+            SessionResponseMapper sessionResponseMapper
     ) {
         this.itemRepository = itemRepository;
         this.auctionSessionRepository = auctionSessionRepository;
         this.sellerSessionGuard = sellerSessionGuard;
+        this.sessionResponseMapper = sessionResponseMapper;
     }
 
     @Transactional
@@ -80,7 +83,7 @@ public class SellerService {
         }
 
         AuctionSession savedSession = auctionSessionRepository.save(session);
-        return SessionResponseMapper.toDTO(savedSession);
+        return sessionResponseMapper.mapToDTO(savedSession);
     }
 
     public List<SessionResponseDTO> getMySessions(Integer sellerId, String status) {
@@ -92,7 +95,7 @@ public class SellerService {
                         .comparing(AuctionSession::getStartTime, Comparator.nullsLast(Comparator.naturalOrder()))
                         .reversed()
                         .thenComparing(AuctionSession::getId, Comparator.nullsLast(Comparator.reverseOrder())))
-                .map(SessionResponseMapper::toDTO)
+                .map(sessionResponseMapper::mapToDTO)
                 .toList();
     }
 
@@ -102,7 +105,7 @@ public class SellerService {
         AuctionSession session = sellerSessionGuard.getSessionById(sessionId);
         sellerSessionGuard.validateSessionOwner(session, sellerId, "You do not have permission to view this session");
 
-        return SessionResponseMapper.toDTO(session);
+        return sessionResponseMapper.mapToDTO(session);
     }
 
     @Transactional
@@ -138,7 +141,7 @@ public class SellerService {
         }
 
         AuctionSession savedSession = auctionSessionRepository.save(session);
-        return SessionResponseMapper.toDTO(savedSession);
+        return sessionResponseMapper.mapToDTO(savedSession);
     }
 
     @Transactional

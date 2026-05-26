@@ -22,10 +22,12 @@ public class PublicAuctionController {
 
     private final AuctionSessionRepository auctionSessionRepository;
     private final UserRepository userRepository;
+    private final SessionResponseMapper sessionResponseMapper;
 
     public PublicAuctionController(
             AuctionSessionRepository auctionSessionRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            SessionResponseMapper sessionResponseMapper
     ) {
         this.auctionSessionRepository = Objects.requireNonNull(
                 auctionSessionRepository,
@@ -34,6 +36,10 @@ public class PublicAuctionController {
         this.userRepository = Objects.requireNonNull(
                 userRepository,
                 "userRepository must not be null"
+        );
+        this.sessionResponseMapper = Objects.requireNonNull(
+                sessionResponseMapper,
+                "sessionResponseMapper must not be null"
         );
     }
 
@@ -44,7 +50,7 @@ public class PublicAuctionController {
         List<SessionResponseDTO> sessions = auctionSessionRepository
                 .findVisiblePublicSessionsExcludingStatuses(List.of(AuctionStatus.DRAFT, AuctionStatus.CANCELED))
                 .stream()
-                .map(SessionResponseMapper::toDTO)
+                .map(sessionResponseMapper::mapToDTO)
                 .toList();
 
         return ResponseEntity.ok(ApiResponse.success("All auction sessions retrieved successfully", sessions));

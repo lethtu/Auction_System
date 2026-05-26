@@ -178,7 +178,7 @@ class SellerControllerTest {
         private boolean deleteCalled;
 
         FakeSellerService() {
-            super(null, null, null);
+            super(null, null, null, org.mockito.Mockito.mock(com.auction.server.mapper.SessionResponseMapper.class));
         }
 
         @Override

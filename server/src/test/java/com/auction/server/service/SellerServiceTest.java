@@ -3,6 +3,7 @@ package com.auction.server.service;
 import com.auction.server.dto.CreateAuctionRequest;
 import com.auction.server.dto.SellerStatsDTO;
 import com.auction.server.dto.SessionResponseDTO;
+import com.auction.server.mapper.SessionResponseMapper;
 import com.auction.server.model.*;
 import com.auction.server.repository.AuctionSessionRepository;
 import com.auction.server.repository.ItemRepository;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
@@ -35,6 +37,9 @@ public class SellerServiceTest {
 
     @Mock
     private SellerSessionGuard sellerSessionGuard;
+
+    @Spy
+    private SessionResponseMapper sessionResponseMapper = new SessionResponseMapper();
 
     @InjectMocks
     private SellerService sellerService;
