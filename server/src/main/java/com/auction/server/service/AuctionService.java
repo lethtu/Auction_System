@@ -16,7 +16,6 @@ import com.auction.server.repository.AutoBidConfigRepository;
 import com.auction.server.repository.UserRepository;
 import com.auction.server.repository.BidRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -29,17 +28,21 @@ public class AuctionService {
     private static final Logger logger = LoggerFactory.getLogger(AuctionService.class);
     private static final BigDecimal DEFAULT_BID_INCREMENT = new BigDecimal("10000");
 
-    @Autowired
-    private BidRepository bidRepository;
+    private final BidRepository bidRepository;
+    private final AuctionSessionRepository auctionSessionRepository;
+    private final UserRepository userRepository;
+    private final AutoBidConfigRepository autoBidConfigRepository;
 
-    @Autowired
-    private AuctionSessionRepository auctionSessionRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private AutoBidConfigRepository autoBidConfigRepository;
+    public AuctionService(
+            BidRepository bidRepository,
+            AuctionSessionRepository auctionSessionRepository,
+            UserRepository userRepository,
+            AutoBidConfigRepository autoBidConfigRepository) {
+        this.bidRepository = bidRepository;
+        this.auctionSessionRepository = auctionSessionRepository;
+        this.userRepository = userRepository;
+        this.autoBidConfigRepository = autoBidConfigRepository;
+    }
 
     public List<AuctionSession> getActiveSessions() {
         return auctionSessionRepository.findByStatus(AuctionStatus.ACTIVE)
