@@ -41,9 +41,9 @@ jobs:
             CMD ["java", "-jar", "app.jar"]
             EOF
 
-      - name: Deploy to Hugging Face
+      - name: Deploy to Server
         env:
-          HF_TOKEN: ${{ secrets.TOKEN }}
+          TOKEN: ${{ secrets.TOKEN }}
         run: |
           pip install huggingface_hub
 
