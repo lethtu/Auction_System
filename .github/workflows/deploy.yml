@@ -42,7 +42,7 @@ jobs:
           CMD ["java", "-jar", "app.jar"]
           EOF
 
-      - name: Deploy to Hugging Face
+      - name: Deploy to Server
         env:
           TOKEN: ${{ secrets.TOKEN }}
         run: |
