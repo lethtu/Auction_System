@@ -221,7 +221,7 @@ public class AuctionServiceTest {
 
         // 3. Kiá»ƒm chá»©ng
         assertTrue(isSuccess);
-        assertEquals(AuctionStatus.ENDED, mockSession.getStatus(), "Tráº¡ng thÃ¡i pháº£i chuyá»ƒn thÃ nh ENDED");
+        assertEquals(AuctionStatus.PAID, mockSession.getStatus(), "Session with winning bid should move to PAID");
         assertEquals(new BigDecimal("50000.00"), mockSession.getCurrentPrice(), "GiÃ¡ phiÃªn pháº£i lÃ  giÃ¡ bid tháº¯ng");
         assertEquals(99, mockSession.getHighestBidderId(), "ID bidder cao nháº¥t pháº£i lÃ  99");
         assertSame(winningBidder, mockSession.getWinner(), "Winner cá»§a session pháº£i Ä‘Æ°á»£c set lÃ  winningBidder");
@@ -614,6 +614,7 @@ public class AuctionServiceTest {
     public void endSession_cancelsWhenMinRateNotMetAndReleasesFrozenBalance() {
         mockSession.setApplyMinRate(true);
         mockSession.setMinRate(new BigDecimal("20000.00"));
+        mockSession.setReservePrice(new BigDecimal("20000.00"));
         mockSession.setCurrentPrice(new BigDecimal("15000.00"));
         mockSession.setHighestBidderId(99);
         mockUser.setFrozenBalance(new BigDecimal("15000.00"));
@@ -623,7 +624,7 @@ public class AuctionServiceTest {
         boolean result = auctionService.endSession(1);
 
         assertTrue(result);
-        assertEquals(AuctionStatus.CANCELED, mockSession.getStatus());
+        assertEquals(AuctionStatus.ENDED, mockSession.getStatus());
         assertEquals(0, BigDecimal.ZERO.compareTo(mockUser.getFrozenBalance()));
         verify(userRepository).save(mockUser);
         verify(auctionSessionRepository).save(mockSession);
@@ -879,7 +880,7 @@ public class AuctionServiceTest {
 
         assertTrue(auctionService.endSession(1));
 
-        assertEquals(AuctionStatus.ENDED, mockSession.getStatus());
+        assertEquals(AuctionStatus.PAID, mockSession.getStatus());
         assertEquals(0, new BigDecimal("150000.00").compareTo(mockUser.getBalance()));
         assertEquals(0, BigDecimal.ZERO.compareTo(mockUser.getFrozenBalance()));
         assertEquals(0, new BigDecimal("150000.00").compareTo(seller.getBalance()));
@@ -903,6 +904,7 @@ public class AuctionServiceTest {
     public void endSession_cancelsMinRateSessionWhenTopBidderMissing() {
         mockSession.setApplyMinRate(true);
         mockSession.setMinRate(new BigDecimal("100000.00"));
+        mockSession.setReservePrice(new BigDecimal("100000.00"));
         mockSession.setCurrentPrice(new BigDecimal("50000.00"));
         mockSession.setHighestBidderId(123);
 
@@ -912,7 +914,7 @@ public class AuctionServiceTest {
 
         assertTrue(auctionService.endSession(1));
 
-        assertEquals(AuctionStatus.CANCELED, mockSession.getStatus());
+        assertEquals(AuctionStatus.ENDED, mockSession.getStatus());
         verify(userRepository).findById(123);
         verify(userRepository, never()).save(any(User.class));
         verify(auctionSessionRepository).save(mockSession);
@@ -933,7 +935,7 @@ public class AuctionServiceTest {
 
         assertTrue(auctionService.endSession(1));
 
-        assertEquals(AuctionStatus.ENDED, mockSession.getStatus());
+        assertEquals(AuctionStatus.PAID, mockSession.getStatus());
         assertEquals(0, new BigDecimal("150000.00").compareTo(mockUser.getBalance()));
         assertEquals(0, BigDecimal.ZERO.compareTo(mockUser.getFrozenBalance()));
         verify(userRepository).save(mockUser);
@@ -958,7 +960,7 @@ public class AuctionServiceTest {
 
         assertTrue(auctionService.endSession(1));
 
-        assertEquals(AuctionStatus.ENDED, mockSession.getStatus());
+        assertEquals(AuctionStatus.PAID, mockSession.getStatus());
         assertEquals(0, new BigDecimal("150000.00").compareTo(mockUser.getBalance()));
         verify(userRepository).save(mockUser);
         verify(userRepository, never()).save(seller);

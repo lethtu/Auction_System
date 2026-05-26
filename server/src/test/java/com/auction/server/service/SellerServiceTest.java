@@ -250,14 +250,16 @@ public class SellerServiceTest {
     @DisplayName("Lấy thống kê seller thành công")
     public void testGetSellerStats() {
         AuctionSession session1 = new AuctionSession();
-        session1.setStatus(AuctionStatus.ENDED);
+        session1.setStatus(AuctionStatus.PAID);
         session1.setCurrentPrice(new BigDecimal("1500000"));
 
         AuctionSession session2 = new AuctionSession();
-        session2.setStatus(AuctionStatus.ENDED);
+        session2.setStatus(AuctionStatus.PAID);
         session2.setCurrentPrice(new BigDecimal("2500000"));
 
         when(auctionSessionRepository.findBySeller_IdAndStatus(2, AuctionStatus.ENDED))
+                .thenReturn(List.of());
+        when(auctionSessionRepository.findBySeller_IdAndStatus(2, AuctionStatus.PAID))
                 .thenReturn(List.of(session1, session2));
 
         SellerStatsDTO stats = sellerService.getSellerStats(2);
@@ -456,6 +458,8 @@ public class SellerServiceTest {
         paid.setCurrentPrice(new BigDecimal("700000"));
 
         when(auctionSessionRepository.findBySeller_IdAndStatus(2, AuctionStatus.ENDED))
+                .thenReturn(List.of());
+        when(auctionSessionRepository.findBySeller_IdAndStatus(2, AuctionStatus.PAID))
                 .thenReturn(List.of(noPrice, paid));
 
         SellerStatsDTO stats = sellerService.getSellerStats(2);
