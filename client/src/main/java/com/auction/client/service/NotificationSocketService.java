@@ -226,6 +226,8 @@ public class NotificationSocketService {
 
             Integer currentUserId = User.getId();
             if (currentUserId == null) return;
+            logger.info("processNoticeNotification: auctionId={}, currentUserId={}, highestBidderId={}, previousHighestBidderId={}, newPrice={}",
+                    auctionId, currentUserId, highestBidderId, previousHighestBidderId, newPrice);
 
             // 1. Target outbid user: previousHighestBidderId == currentUserId && highestBidderId != currentUserId
             if (previousHighestBidderId != null && previousHighestBidderId.equals(currentUserId) && !currentUserId.equals(highestBidderId)) {

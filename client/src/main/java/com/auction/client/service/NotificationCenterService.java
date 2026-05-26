@@ -13,6 +13,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.net.URI;
@@ -26,6 +28,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class NotificationCenterService {
+    private static final Logger logger = LoggerFactory.getLogger(NotificationCenterService.class);
     private static NotificationCenterService instance;
     private final ObservableList<AppNotification> notifications;
     private final IntegerProperty unreadCount;
@@ -58,7 +61,11 @@ public class NotificationCenterService {
     }
 
     public void addNotification(AppNotification notification) {
+        logger.info("addNotification: type={}, severity={}, auctionId={}, title={}",
+                notification.getType(), notification.getSeverity(), notification.getAuctionId(), notification.getTitle());
         if (!shouldDisplayNotification(notification)) {
+            logger.info("Notification suppressed by display rules: type={}, auctionId={}",
+                    notification.getType(), notification.getAuctionId());
             return;
         }
 
@@ -68,6 +75,7 @@ public class NotificationCenterService {
         if (dedupKey != null) {
             Long lastTime = lastNotifiedMap.get(dedupKey);
             if (lastTime != null && (now - lastTime) < DEDUP_WINDOW_MS) {
+                logger.info("Notification suppressed by dedup: key={}", dedupKey);
                 return; // Duplicate within window
             }
             lastNotifiedMap.put(dedupKey, now);
