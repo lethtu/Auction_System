@@ -1,15 +1,29 @@
 package com.auction.server.service;
 
+import com.auction.server.dto.SessionResponseDTO;
+import com.auction.server.mapper.SessionResponseMapper;
+import com.auction.server.model.AuctionSession;
+import com.auction.server.model.AuctionStatus;
+import com.auction.server.model.Bid;
 import com.auction.server.model.User;
+import com.auction.server.repository.AuctionSessionRepository;
+import com.auction.server.repository.BidRepository;
 import com.auction.server.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class BidderService {
@@ -24,9 +38,39 @@ public class BidderService {
     private static final String UPDATE_SUCCESS_MESSAGE = "Account upgraded successfully";
 
     private final UserRepository userRepository;
+    private final BidRepository bidRepository;
+    private final AuctionSessionRepository auctionSessionRepository;
+    private final SessionResponseMapper sessionResponseMapper;
 
-    public BidderService(UserRepository userRepository) {
+    public BidderService(
+            UserRepository userRepository,
+            BidRepository bidRepository,
+            AuctionSessionRepository auctionSessionRepository,
+            SessionResponseMapper sessionResponseMapper
+    ) {
         this.userRepository = userRepository;
+        this.bidRepository = bidRepository;
+        this.auctionSessionRepository = auctionSessionRepository;
+        this.sessionResponseMapper = sessionResponseMapper;
+    }
+
+    public Page<AuctionSession> getActiveSessions(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "startTime"));
+        return auctionSessionRepository.findByStatus(AuctionStatus.ACTIVE, pageable);
+    }
+
+    public List<AuctionSession> getMyBiddingSessions(Integer bidderId) {
+        return bidRepository.findDistinctSessionsByBidderId(bidderId);
+    }
+
+    @Transactional
+    public Optional<BigDecimal> depositMoney(Integer bidderId, BigDecimal amount) {
+        return userRepository.findById(bidderId)
+                .map(user -> {
+                    user.setBalance(user.getBalance().add(amount));
+                    userRepository.save(user);
+                    return user.getBalance();
+                });
     }
 
     @Transactional
@@ -64,6 +108,78 @@ public class BidderService {
             response.put("message", "System error: " + e.getMessage());
             return response;
         }
+    }
+
+    public List<SessionResponseDTO> getMyBids(Integer bidderId) {
+        List<AuctionSession> sessions = bidRepository.findSessionsByBidderId(bidderId);
+        if (sessions.isEmpty()) {
+            return List.of();
+        }
+
+        List<Integer> sessionIds = sessions.stream()
+                .map(AuctionSession::getId)
+                .toList();
+
+        Map<Integer, Object[]> statsBySessionId = loadStatsBySessionId(sessionIds, bidderId);
+        Map<Integer, Bid> winningBidsBySessionId = loadWinningBidsBySessionId(sessionIds);
+
+        return sessions.stream()
+                .map(session -> toMyBidSessionDTO(session, bidderId, statsBySessionId, winningBidsBySessionId))
+                .toList();
+    }
+
+    private Map<Integer, Object[]> loadStatsBySessionId(List<Integer> sessionIds, Integer bidderId) {
+        Map<Integer, Object[]> statsBySessionId = new HashMap<>();
+        for (Object[] row : bidRepository.findSessionStatsForBidder(sessionIds, bidderId)) {
+            statsBySessionId.put((Integer) row[0], row);
+        }
+        return statsBySessionId;
+    }
+
+    private Map<Integer, Bid> loadWinningBidsBySessionId(List<Integer> sessionIds) {
+        Map<Integer, Bid> winningBidsBySessionId = new HashMap<>();
+        for (Bid bid : bidRepository.findWinningBidsForSessions(sessionIds)) {
+            if (bid.getSession() != null) {
+                winningBidsBySessionId.putIfAbsent(bid.getSession().getId(), bid);
+            }
+        }
+        return winningBidsBySessionId;
+    }
+
+    private SessionResponseDTO toMyBidSessionDTO(
+            AuctionSession session,
+            Integer bidderId,
+            Map<Integer, Object[]> statsBySessionId,
+            Map<Integer, Bid> winningBidsBySessionId) {
+        Object[] stats = statsBySessionId.get(session.getId());
+        int bidCount = stats == null ? 0 : ((Number) stats[1]).intValue();
+
+        SessionResponseDTO dto = sessionResponseMapper.mapToDTO(session, bidCount);
+        dto.setUserMaxBid(stats == null ? null : (java.math.BigDecimal) stats[2]);
+
+        Integer winnerId = applyWinningBidSnapshot(dto, session, winningBidsBySessionId.get(session.getId()));
+        if (bidderId.equals(winnerId)) {
+            copyWinnerDeliveryInfo(dto, session);
+        }
+        return dto;
+    }
+
+    private Integer applyWinningBidSnapshot(SessionResponseDTO dto, AuctionSession session, Bid winningBid) {
+        Integer winnerId = session.getHighestBidderId();
+        if (winningBid != null && winningBid.getBidder() != null) {
+            winnerId = winningBid.getBidder().getId();
+            dto.setCurrentPrice(winningBid.getAmount());
+            dto.setHighestBidderId(winnerId);
+        }
+        return winnerId;
+    }
+
+    private void copyWinnerDeliveryInfo(SessionResponseDTO dto, AuctionSession session) {
+        dto.setDeliveryRecipient(session.getDeliveryRecipient());
+        dto.setDeliveryPhone(session.getDeliveryPhone());
+        dto.setDeliveryAddress(session.getDeliveryAddress());
+        dto.setDeliveryNote(session.getDeliveryNote());
+        dto.setDeliverySubmittedAt(session.getDeliverySubmittedAt());
     }
 
     private Map<String, Object> buildResponse(boolean success, String message) {

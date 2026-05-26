@@ -9,21 +9,18 @@ import org.springframework.stereotype.Component;
 @Component
 public class SessionResponseMapper {
 
-    private static CloudinaryService cloudinaryService;
+    private CloudinaryService cloudinaryService;
 
     @Autowired(required = false)
     public void setCloudinaryService(CloudinaryService service) {
-        SessionResponseMapper.cloudinaryService = service;
+        this.cloudinaryService = service;
     }
 
-    private SessionResponseMapper() {
+    public SessionResponseDTO mapToDTO(AuctionSession session) {
+        return mapToDTO(session, 0);
     }
 
-    public static SessionResponseDTO toDTO(AuctionSession session) {
-        return toDTO(session, 0);
-    }
-
-    public static SessionResponseDTO toDTO(AuctionSession session, Integer bidCount) {
+    public SessionResponseDTO mapToDTO(AuctionSession session, Integer bidCount) {
         SessionResponseDTO dto = new SessionResponseDTO();
 
         dto.setId(session.getId());
@@ -86,6 +83,14 @@ public class SessionResponseMapper {
         dto.setMinRate(session.getMinRate());
 
         return dto;
+    }
+
+    public static SessionResponseDTO toDTO(AuctionSession session) {
+        return new SessionResponseMapper().mapToDTO(session, 0);
+    }
+
+    public static SessionResponseDTO toDTO(AuctionSession session, Integer bidCount) {
+        return new SessionResponseMapper().mapToDTO(session, bidCount);
     }
 
     private static boolean isUuid(String str) {

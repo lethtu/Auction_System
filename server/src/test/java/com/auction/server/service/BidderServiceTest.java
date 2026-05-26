@@ -1,8 +1,16 @@
 package com.auction.server.service;
 
+import com.auction.server.dto.SessionResponseDTO;
+import com.auction.server.mapper.SessionResponseMapper;
 import com.auction.server.model.Admin;
+import com.auction.server.model.AuctionSession;
+import com.auction.server.model.AuctionStatus;
+import com.auction.server.model.Bid;
 import com.auction.server.model.Bidder;
 import com.auction.server.model.Seller;
+import com.auction.server.model.User;
+import com.auction.server.repository.AuctionSessionRepository;
+import com.auction.server.repository.BidRepository;
 import com.auction.server.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -10,15 +18,19 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.never;
@@ -31,6 +43,15 @@ public class BidderServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private BidRepository bidRepository;
+
+    @Mock
+    private AuctionSessionRepository auctionSessionRepository;
+
+    @Spy
+    private SessionResponseMapper sessionResponseMapper = new SessionResponseMapper();
 
     @InjectMocks
     private BidderService bidderService;
@@ -119,5 +140,75 @@ public class BidderServiceTest {
         assertEquals("Account is not a BIDDER or is already a SELLER", result.get("message"));
 
         verify(userRepository, never()).updateRoleById(anyInt(), anyString());
+    }
+
+    @Test
+    @DisplayName("getActiveSessions: delegates paging query to repository")
+    public void getActiveSessions_DelegatesToRepository() {
+        AuctionSession session = new AuctionSession();
+        session.setId(20);
+
+        when(auctionSessionRepository.findByStatus(
+                org.mockito.ArgumentMatchers.eq(AuctionStatus.ACTIVE),
+                any()
+        )).thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(session)));
+
+        org.springframework.data.domain.Page<AuctionSession> result = bidderService.getActiveSessions(0, 10);
+
+        assertEquals(1, result.getContent().size());
+        assertEquals(20, result.getContent().get(0).getId());
+    }
+
+    @Test
+    @DisplayName("getMyBiddingSessions: delegates bidder session lookup to repository")
+    public void getMyBiddingSessions_DelegatesToRepository() {
+        AuctionSession session = new AuctionSession();
+        session.setId(30);
+
+        when(bidRepository.findDistinctSessionsByBidderId(10)).thenReturn(List.of(session));
+
+        List<AuctionSession> result = bidderService.getMyBiddingSessions(10);
+
+        assertEquals(1, result.size());
+        assertEquals(30, result.get(0).getId());
+    }
+
+    @Test
+    @DisplayName("depositMoney: updates balance and saves user")
+    public void depositMoney_UpdatesBalanceAndSavesUser() {
+        when(userRepository.findById(10)).thenReturn(Optional.of(mockBidder));
+
+        Optional<BigDecimal> result = bidderService.depositMoney(10, BigDecimal.valueOf(100));
+
+        assertTrue(result.isPresent());
+        assertEquals(BigDecimal.valueOf(600), result.get());
+        verify(userRepository, times(1)).save(mockBidder);
+    }
+
+    @Test
+    @DisplayName("getMyBids: recorded winning bid repairs stale session winner snapshot")
+    public void getMyBids_UsesRecordedWinningBid_WhenSessionSnapshotIsStale() {
+        AuctionSession session = new AuctionSession();
+        session.setId(1);
+        session.setStatus(AuctionStatus.ENDED);
+        session.setCurrentPrice(new BigDecimal("123456"));
+        session.setHighestBidderId(7);
+        session.setDeliveryRecipient("Winner");
+
+        User bidder = new User();
+        bidder.setId(10);
+        Bid winningBid = new Bid(session, bidder, new BigDecimal("222222"), LocalDateTime.now());
+
+        when(bidRepository.findSessionsByBidderId(10)).thenReturn(List.of(session));
+        when(bidRepository.findSessionStatsForBidder(List.of(1), 10))
+                .thenReturn(List.<Object[]>of(new Object[] { 1, 1L, new BigDecimal("222222") }));
+        when(bidRepository.findWinningBidsForSessions(List.of(1))).thenReturn(List.of(winningBid));
+
+        List<SessionResponseDTO> result = bidderService.getMyBids(10);
+
+        assertEquals(1, result.size());
+        assertEquals(new BigDecimal("222222"), result.get(0).getCurrentPrice());
+        assertEquals(10, result.get(0).getHighestBidderId());
+        assertEquals("Winner", result.get(0).getDeliveryRecipient());
     }
 }

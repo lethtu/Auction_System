@@ -27,15 +27,18 @@ public class SellerService {
     private final ItemRepository itemRepository;
     private final AuctionSessionRepository auctionSessionRepository;
     private final SellerSessionGuard sellerSessionGuard;
+    private final SessionResponseMapper sessionResponseMapper;
 
     public SellerService(
             ItemRepository itemRepository,
             AuctionSessionRepository auctionSessionRepository,
-            SellerSessionGuard sellerSessionGuard
+            SellerSessionGuard sellerSessionGuard,
+            SessionResponseMapper sessionResponseMapper
     ) {
         this.itemRepository = itemRepository;
         this.auctionSessionRepository = auctionSessionRepository;
         this.sellerSessionGuard = sellerSessionGuard;
+        this.sessionResponseMapper = sessionResponseMapper;
     }
 
     @Transactional
@@ -57,30 +60,39 @@ public class SellerService {
             session.setStartTime(LocalDateTime.now());
         }
 
+        applyRateSettings(session, request);
+        markAsPublishedWithoutAdminApproval(session);
+        session.setStatus(resolvePublishStatus(request, session));
+
+        AuctionSession savedSession = auctionSessionRepository.save(session);
+        return sessionResponseMapper.mapToDTO(savedSession);
+    }
+
+    private void applyRateSettings(AuctionSession session, CreateAuctionRequest request) {
         session.setApplyMinRate(request.getApplyMinRate() != null ? request.getApplyMinRate() : false);
         session.setMinRate(request.getMinRate() != null ? request.getMinRate() : BigDecimal.ZERO);
-        SellerSessionUpdater.resetApprovalInfo(session);
+    }
 
+    private void markAsPublishedWithoutAdminApproval(AuctionSession session) {
+        SellerSessionUpdater.resetApprovalInfo(session);
         session.setApprovedAt(LocalDateTime.now());
         session.setRejectedAt(null);
         session.setRejectReason(null);
         session.setApprovedByAdminId(null);
         session.setRejectedByAdminId(null);
+    }
 
+    private AuctionStatus resolvePublishStatus(CreateAuctionRequest request, AuctionSession session) {
         if ("DRAFT".equalsIgnoreCase(request.getStatus())) {
-            session.setStatus(AuctionStatus.DRAFT);
-        } else {
-            LocalDateTime now = LocalDateTime.now();
-            LocalDateTime startTime = session.getStartTime();
-            if (startTime != null && startTime.isAfter(now)) {
-                session.setStatus(AuctionStatus.COMING);
-            } else {
-                session.setStatus(AuctionStatus.ACTIVE);
-            }
+            return AuctionStatus.DRAFT;
         }
 
-        AuctionSession savedSession = auctionSessionRepository.save(session);
-        return SessionResponseMapper.toDTO(savedSession);
+        LocalDateTime startTime = session.getStartTime();
+        if (startTime != null && startTime.isAfter(LocalDateTime.now())) {
+            return AuctionStatus.COMING;
+        }
+
+        return AuctionStatus.ACTIVE;
     }
 
     public List<SessionResponseDTO> getMySessions(Integer sellerId, String status) {
@@ -92,7 +104,7 @@ public class SellerService {
                         .comparing(AuctionSession::getStartTime, Comparator.nullsLast(Comparator.naturalOrder()))
                         .reversed()
                         .thenComparing(AuctionSession::getId, Comparator.nullsLast(Comparator.reverseOrder())))
-                .map(SessionResponseMapper::toDTO)
+                .map(sessionResponseMapper::mapToDTO)
                 .toList();
     }
 
@@ -102,7 +114,7 @@ public class SellerService {
         AuctionSession session = sellerSessionGuard.getSessionById(sessionId);
         sellerSessionGuard.validateSessionOwner(session, sellerId, "You do not have permission to view this session");
 
-        return SessionResponseMapper.toDTO(session);
+        return sessionResponseMapper.mapToDTO(session);
     }
 
     @Transactional
@@ -122,23 +134,11 @@ public class SellerService {
         itemRepository.save(item);
 
         SellerSessionUpdater.updateSessionFromRequest(session, request);
-        session.setApplyMinRate(request.getApplyMinRate() != null ? request.getApplyMinRate() : false);
-        session.setMinRate(request.getMinRate() != null ? request.getMinRate() : BigDecimal.ZERO);
-
-        if ("DRAFT".equalsIgnoreCase(request.getStatus())) {
-            session.setStatus(AuctionStatus.DRAFT);
-        } else {
-            LocalDateTime now = LocalDateTime.now();
-            LocalDateTime startTime = session.getStartTime();
-            if (startTime != null && startTime.isAfter(now)) {
-                session.setStatus(AuctionStatus.COMING);
-            } else {
-                session.setStatus(AuctionStatus.ACTIVE);
-            }
-        }
+        applyRateSettings(session, request);
+        session.setStatus(resolvePublishStatus(request, session));
 
         AuctionSession savedSession = auctionSessionRepository.save(session);
-        return SessionResponseMapper.toDTO(savedSession);
+        return sessionResponseMapper.mapToDTO(savedSession);
     }
 
     @Transactional

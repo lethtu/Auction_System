@@ -16,17 +16,14 @@ public class SocketServerTest {
     @BeforeEach
     public void setUp() throws Exception {
         BiddingController biddingController = new BiddingController();
-        biddingController.setAuctionService(new com.auction.server.service.AuctionService() {
-            @Override
-            public com.auction.server.dto.BidResponse updateBid(Integer itemId, Integer bidderId, BigDecimal amount) {
-                return new com.auction.server.dto.BidResponse(true, "TEST_SUCCESS", amount);
-            }
-
-            @Override
-            public com.auction.server.dto.BidResponse resolveAutoBids(Integer sessionId) {
-                return null;
-            }
-        });
+        com.auction.server.service.AuctionService auctionService = org.mockito.Mockito.mock(com.auction.server.service.AuctionService.class);
+        org.mockito.Mockito.when(auctionService.updateBid(
+                org.mockito.ArgumentMatchers.anyInt(),
+                org.mockito.ArgumentMatchers.anyInt(),
+                org.mockito.ArgumentMatchers.any(BigDecimal.class)
+        )).thenAnswer(invocation -> new com.auction.server.dto.BidResponse(true, "TEST_SUCCESS", invocation.getArgument(2)));
+        org.mockito.Mockito.when(auctionService.resolveAutoBids(org.mockito.ArgumentMatchers.anyInt())).thenReturn(null);
+        biddingController.setAuctionService(auctionService);
 
         com.auction.server.util.SessionManager sessionManager = new com.auction.server.util.SessionManager();
         com.auction.server.model.User testUser = new com.auction.server.model.User();
@@ -36,7 +33,7 @@ public class SocketServerTest {
         testToken = sessionManager.createSession(testUser);
 
         socketServer = new SocketServer(biddingController, sessionManager);
-        // THÊM: Ép server test dùng đúng cổng 8081
+        // THÃŠM: Ã‰p server test dÃ¹ng Ä‘Ãºng cá»•ng 8081
         socketServer.setPort(TEST_PORT);
         socketServer.start();
         Thread.sleep(1000);
@@ -48,7 +45,7 @@ public class SocketServerTest {
     }
 
     @Test
-    @DisplayName("Test kết nối và gửi lệnh BID bằng JSON")
+    @DisplayName("Test káº¿t ná»‘i vÃ  gá»­i lá»‡nh BID báº±ng JSON")
     public void testBidWithJson() {
         assertDoesNotThrow(() -> {
             try (Socket clientSocket = new Socket("127.0.0.1", TEST_PORT)) {
@@ -76,12 +73,12 @@ public class SocketServerTest {
                     out.println("BID:" + jsonBid.toString());
 
                     String response = readUntilPrefix(in, "RESPONSE:");
-                    System.out.println("TEST: Server trả về: " + response);
+                    System.out.println("TEST: Server tráº£ vá»: " + response);
 
-                    assertNotNull(response, "Server không được trả về null!");
-                    assertTrue(response.startsWith("RESPONSE:"), "Phải bắt đầu bằng RESPONSE:");
+                    assertNotNull(response, "Server khÃ´ng Ä‘Æ°á»£c tráº£ vá» null!");
+                    assertTrue(response.startsWith("RESPONSE:"), "Pháº£i báº¯t Ä‘áº§u báº±ng RESPONSE:");
 
-                    // Cắt lấy phần JSON sau "RESPONSE:" (9 ký tự)
+                    // Cáº¯t láº¥y pháº§n JSON sau "RESPONSE:" (9 kÃ½ tá»±)
                     JSONObject resJson = new JSONObject(response.substring(9));
                     assertTrue(resJson.getBoolean("success"));
                     assertEquals("TEST_SUCCESS", resJson.getString("message"));

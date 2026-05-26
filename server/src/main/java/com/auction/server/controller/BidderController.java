@@ -1,25 +1,22 @@
 package com.auction.server.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.auction.server.model.AuctionSession;
-import com.auction.server.model.AuctionStatus;
-import com.auction.server.model.Bid;
-import com.auction.server.repository.AuctionSessionRepository;
 import com.auction.server.dto.ApiResponse;
-import com.auction.server.repository.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import com.auction.server.dto.SessionResponseDTO;
+import com.auction.server.model.AuctionSession;
 import com.auction.server.service.BidderService;
 import com.auction.server.util.SessionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,17 +24,9 @@ import java.util.Map;
 @RequestMapping("/api/bidder")
 public class BidderController {
     private static final Logger logger = LoggerFactory.getLogger(BidderController.class);
+
     @Autowired
     private BidderService bidderService;
-
-    @Autowired
-    private AuctionSessionRepository auctionSessionRepository;
-
-    @Autowired
-    private BidRepository bidRepository;
-
-    @Autowired
-    private UserRepository userRepository;
 
     @Autowired
     private SessionManager sessionManager;
@@ -48,16 +37,9 @@ public class BidderController {
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size) {
         logger.info("Fetching auction session list");
-        // Sort by newest first (startTime descending)
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "startTime"));
-
-        // Call paginated query from Repository with ACTIVE status
-        Page<AuctionSession> activeSessions = auctionSessionRepository.findByStatus(AuctionStatus.ACTIVE, pageable);
-
-        // Wrap data in standard ApiResponse format
+        Page<AuctionSession> activeSessions = bidderService.getActiveSessions(page, size);
         return new ApiResponse<>(200, "Active auction sessions retrieved successfully", activeSessions);
     }
-
 
     @GetMapping("/my-bidding-sessions")
     public ApiResponse<List<AuctionSession>> getMyBiddingSessions(@RequestParam Integer bidderId) {
@@ -65,19 +47,15 @@ public class BidderController {
             return new ApiResponse<>(400, "Invalid bidderId", List.of());
         }
 
-        List<AuctionSession> sessions = bidRepository.findDistinctSessionsByBidderId(bidderId);
+        List<AuctionSession> sessions = bidderService.getMyBiddingSessions(bidderId);
         return new ApiResponse<>(200, "Bidder's auction sessions retrieved successfully", sessions);
     }
 
     // API to deposit money
     @PostMapping("/deposit")
     public ResponseEntity<?> depositMoney(@RequestParam Integer bidderId, @RequestParam BigDecimal amount) {
-        return userRepository.findById(bidderId)
-                .map(user -> {
-                    user.setBalance(user.getBalance().add(amount));
-                    userRepository.save(user);
-                    return ResponseEntity.ok("New balance: " + user.getBalance());
-                })
+        return bidderService.depositMoney(bidderId, amount)
+                .map(balance -> ResponseEntity.ok("New balance: " + balance))
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -95,44 +73,9 @@ public class BidderController {
     }
 
     @GetMapping("/my-bids")
-    public ApiResponse<java.util.List<com.auction.server.dto.SessionResponseDTO>> getMyBids(@RequestParam Integer bidderId) {
+    public ApiResponse<List<SessionResponseDTO>> getMyBids(@RequestParam Integer bidderId) {
         logger.info("Fetching participated auction sessions for bidderId: {}", bidderId);
-        java.util.List<AuctionSession> sessions = bidRepository.findSessionsByBidderId(bidderId);
-        Map<Integer, Object[]> statsBySessionId = new HashMap<>();
-        Map<Integer, Bid> winningBidsBySessionId = new HashMap<>();
-        if (!sessions.isEmpty()) {
-            List<Integer> sessionIds = sessions.stream().map(AuctionSession::getId).toList();
-            for (Object[] row : bidRepository.findSessionStatsForBidder(sessionIds, bidderId)) {
-                statsBySessionId.put((Integer) row[0], row);
-            }
-            for (Bid bid : bidRepository.findWinningBidsForSessions(sessionIds)) {
-                winningBidsBySessionId.putIfAbsent(bid.getSession().getId(), bid);
-            }
-        }
-        java.util.List<com.auction.server.dto.SessionResponseDTO> dtos = sessions.stream()
-                .map(session -> {
-                    Object[] stats = statsBySessionId.get(session.getId());
-                    int bidCount = stats == null ? 0 : ((Number) stats[1]).intValue();
-                    com.auction.server.dto.SessionResponseDTO dto = com.auction.server.mapper.SessionResponseMapper.toDTO(session, bidCount);
-                    java.math.BigDecimal maxBid = stats == null ? null : (java.math.BigDecimal) stats[2];
-                    dto.setUserMaxBid(maxBid);
-                    Bid winningBid = winningBidsBySessionId.get(session.getId());
-                    Integer winnerId = session.getHighestBidderId();
-                    if (winningBid != null && winningBid.getBidder() != null) {
-                        winnerId = winningBid.getBidder().getId();
-                        dto.setCurrentPrice(winningBid.getAmount());
-                        dto.setHighestBidderId(winnerId);
-                    }
-                    if (bidderId.equals(winnerId)) {
-                        dto.setDeliveryRecipient(session.getDeliveryRecipient());
-                        dto.setDeliveryPhone(session.getDeliveryPhone());
-                        dto.setDeliveryAddress(session.getDeliveryAddress());
-                        dto.setDeliveryNote(session.getDeliveryNote());
-                        dto.setDeliverySubmittedAt(session.getDeliverySubmittedAt());
-                    }
-                    return dto;
-                })
-                .toList();
+        List<SessionResponseDTO> dtos = bidderService.getMyBids(bidderId);
         return new ApiResponse<>(200, "Participated auction sessions retrieved successfully", dtos);
     }
 }
