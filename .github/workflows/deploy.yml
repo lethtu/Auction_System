@@ -1,0 +1,27 @@
+name: Auto Deploy Server
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  deploy:
+    name: Build and Publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Build application
+        run: mvn clean package -DskipTests
+
+      - name: Publish server
+        uses: huggingface/hub-sync@v0.1.0
+        with:
+          github_repo_id: lethtu/Auction_System
+          huggingface_repo_id: tbttkc/host-server-btl
+          hf_token: ${{ secrets.TOKEN }}
+          space_sdk: docker
