@@ -231,4 +231,65 @@ public class AuctionServiceTest {
         // 5. Đảm bảo đã lưu xuống DB
         verify(auctionSessionRepository, times(1)).save(mockSession);
     }
+
+    @Test
+    @DisplayName("getActiveSessions only returns sessions with visible products")
+    public void getActiveSessions_filtersHiddenAndMissingItems() {
+        AuctionSession visibleSession = mock(AuctionSession.class, RETURNS_DEEP_STUBS);
+        AuctionSession hiddenSession = mock(AuctionSession.class, RETURNS_DEEP_STUBS);
+        AuctionSession missingItemSession = new AuctionSession();
+
+        when(visibleSession.getItem().isHidden()).thenReturn(false);
+        when(hiddenSession.getItem().isHidden()).thenReturn(true);
+        when(auctionSessionRepository.findByStatus(AuctionStatus.ACTIVE))
+                .thenReturn(List.of(visibleSession, hiddenSession, missingItemSession));
+
+        List<AuctionSession> result = auctionService.getActiveSessions();
+
+        assertEquals(List.of(visibleSession), result);
+        verify(auctionSessionRepository).findByStatus(AuctionStatus.ACTIVE);
+    }
+
+    @Test
+    @DisplayName("getSessionById returns session with total bid count")
+    public void getSessionById_returnsSessionWithTotalBidCount() {
+        when(auctionSessionRepository.findById(1)).thenReturn(Optional.of(mockSession));
+        when(bidRepository.countBySessionId(1)).thenReturn(3);
+
+        AuctionSession result = auctionService.getSessionById(1);
+
+        assertSame(mockSession, result);
+        assertEquals(Integer.valueOf(3), result.getTotalBids());
+        verify(bidRepository).countBySessionId(1);
+    }
+
+    @Test
+    @DisplayName("getSessionById returns null when session does not exist")
+    public void getSessionById_returnsNullWhenSessionDoesNotExist() {
+        when(auctionSessionRepository.findById(404)).thenReturn(Optional.empty());
+
+        AuctionSession result = auctionService.getSessionById(404);
+
+        assertNull(result);
+        verify(bidRepository, never()).countBySessionId(anyInt());
+    }
+
+    @Test
+    @DisplayName("getBidHistory maps bid history and tolerates missing bidder")
+    public void getBidHistory_mapsBidsAndToleratesMissingBidder() {
+        User bidder = new User();
+        bidder.setId(99);
+        LocalDateTime firstBidTime = LocalDateTime.of(2026, 5, 26, 10, 0);
+        Bid firstBid = new Bid(mockSession, bidder, new BigDecimal("12000.00"), firstBidTime);
+        Bid anonymousBid = new Bid(mockSession, null, new BigDecimal("13000.00"), firstBidTime.plusMinutes(1));
+        when(bidRepository.findBySessionIdOrderByTimeAsc(1)).thenReturn(List.of(firstBid, anonymousBid));
+
+        var history = auctionService.getBidHistory(1);
+
+        assertEquals(2, history.size());
+        assertNotNull(history.get(0));
+        assertNotNull(history.get(1));
+        verify(bidRepository).findBySessionIdOrderByTimeAsc(1);
+    }
+
 }

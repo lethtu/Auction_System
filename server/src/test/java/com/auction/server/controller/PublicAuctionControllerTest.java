@@ -69,4 +69,43 @@ class PublicAuctionControllerTest {
         assertEquals(new BigDecimal("18500000"), dto.getCurrentPrice());
         assertEquals(new BigDecimal("500000"), dto.getStepPrice());
     }
+
+    @Test
+    void getPublicStats_returnsRepositoryCountsWhenActiveBiddersExist() {
+        when(auctionSessionRepository.countByStatus(AuctionStatus.ACTIVE)).thenReturn(7L);
+        when(userRepository.countAllByRole("USER")).thenReturn(42L);
+
+        PublicAuctionController controller =
+                new PublicAuctionController(auctionSessionRepository, userRepository, new SessionResponseMapper());
+
+        ResponseEntity<java.util.Map<String, Object>> response = controller.getPublicStats();
+
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals(200, response.getBody().get("status"));
+
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) response.getBody().get("data");
+        assertEquals(42L, data.get("activeBidders"));
+        assertEquals(7L, data.get("liveAuctions"));
+    }
+
+    @Test
+    void getPublicStats_usesFallbackActiveBiddersWhenRepositoryReturnsZero() {
+        when(auctionSessionRepository.countByStatus(AuctionStatus.ACTIVE)).thenReturn(3L);
+        when(userRepository.countAllByRole("USER")).thenReturn(0L);
+
+        PublicAuctionController controller =
+                new PublicAuctionController(auctionSessionRepository, userRepository, new SessionResponseMapper());
+
+        ResponseEntity<java.util.Map<String, Object>> response = controller.getPublicStats();
+
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) response.getBody().get("data");
+        assertEquals(12000L, ((Number) data.get("activeBidders")).longValue());
+        assertEquals(3L, data.get("liveAuctions"));
+    }
 }

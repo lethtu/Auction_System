@@ -197,4 +197,71 @@ public class UserServiceTest {
         User result = userService.changePassword(1, "correctOld", "newPassword123");
         assertTrue(PasswordUtil.checkPassword("newPassword123", result.getPassword()));
     }
+
+    @Test
+    public void testUpdateProfile_AllowsSameUsernameEmailAndUsesPlaceOfBirthFallback() {
+        User user = new User();
+        user.setId(1);
+        user.setUsername("oldUser");
+        user.setEmail("old@test.com");
+
+        when(userRepository.findById(1)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername("oldUser")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmail("old@test.com")).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArguments()[0]);
+
+        Map<String, String> request = new HashMap<>();
+        request.put("username", " oldUser ");
+        request.put("fullname", " Same User ");
+        request.put("email", " old@test.com ");
+        request.put("placeOfBirth", "   ");
+        request.put("place_of_birth", " Hue ");
+
+        User result = userService.updateProfile(1, request);
+
+        assertEquals("oldUser", result.getUsername());
+        assertEquals("Same User", result.getFullname());
+        assertEquals("old@test.com", result.getEmail());
+        assertEquals("Hue", result.getPlaceOfBirth());
+    }
+
+    @Test
+    public void testUpdateProfile_BlankOptionalFieldsBecomeNull() {
+        User user = new User();
+        user.setId(1);
+
+        when(userRepository.findById(1)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername("newUser")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("new@test.com")).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArguments()[0]);
+
+        Map<String, String> request = new HashMap<>();
+        request.put("username", "newUser");
+        request.put("fullname", "New User");
+        request.put("email", "new@test.com");
+        request.put("dob", "   ");
+        request.put("placeOfBirth", "   ");
+
+        User result = userService.updateProfile(1, request);
+
+        assertNull(result.getDob());
+        assertNull(result.getPlaceOfBirth());
+    }
+
+    @Test
+    public void testPasswordValidation_NullOrBlankValues() {
+        User user = new User();
+        user.setId(1);
+        user.setPasswordSet(false);
+
+        when(userRepository.findById(1)).thenReturn(Optional.of(user));
+
+        assertThrows(IllegalArgumentException.class, () -> userService.setPassword(1, null));
+        assertThrows(IllegalArgumentException.class, () -> userService.setPassword(1, "   "));
+
+        user.setPasswordSet(true);
+        user.setPassword(null);
+
+        assertThrows(IllegalArgumentException.class, () -> userService.changePassword(1, "old", "newPassword123"));
+    }
 }
