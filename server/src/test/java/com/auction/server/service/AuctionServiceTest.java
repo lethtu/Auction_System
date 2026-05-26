@@ -897,4 +897,126 @@ public class AuctionServiceTest {
         return request;
     }
 
+
+    @Test
+    @DisplayName("endSession cancels min-rate session safely when top bidder is missing")
+    public void endSession_cancelsMinRateSessionWhenTopBidderMissing() {
+        mockSession.setApplyMinRate(true);
+        mockSession.setMinRate(new BigDecimal("100000.00"));
+        mockSession.setCurrentPrice(new BigDecimal("50000.00"));
+        mockSession.setHighestBidderId(123);
+
+        when(auctionSessionRepository.findById(1)).thenReturn(Optional.of(mockSession));
+        when(bidRepository.findWinningBidsForSessions(List.of(1))).thenReturn(List.of());
+        when(userRepository.findById(123)).thenReturn(Optional.empty());
+
+        assertTrue(auctionService.endSession(1));
+
+        assertEquals(AuctionStatus.CANCELED, mockSession.getStatus());
+        verify(userRepository).findById(123);
+        verify(userRepository, never()).save(any(User.class));
+        verify(auctionSessionRepository).save(mockSession);
+    }
+
+    @Test
+    @DisplayName("endSession deducts winner and handles missing seller safely")
+    public void endSession_deductsWinnerWhenSessionHasNoSeller() {
+        mockSession.setSeller(null);
+        mockSession.setCurrentPrice(new BigDecimal("50000.00"));
+        mockSession.setHighestBidderId(99);
+        mockUser.setBalance(new BigDecimal("200000.00"));
+        mockUser.setFrozenBalance(new BigDecimal("50000.00"));
+
+        when(auctionSessionRepository.findById(1)).thenReturn(Optional.of(mockSession));
+        when(bidRepository.findWinningBidsForSessions(List.of(1))).thenReturn(List.of());
+        when(userRepository.findById(99)).thenReturn(Optional.of(mockUser));
+
+        assertTrue(auctionService.endSession(1));
+
+        assertEquals(AuctionStatus.ENDED, mockSession.getStatus());
+        assertEquals(0, new BigDecimal("150000.00").compareTo(mockUser.getBalance()));
+        assertEquals(0, BigDecimal.ZERO.compareTo(mockUser.getFrozenBalance()));
+        verify(userRepository).save(mockUser);
+        verify(auctionSessionRepository).save(mockSession);
+    }
+
+    @Test
+    @DisplayName("endSession deducts winner and skips seller credit when seller is not found")
+    public void endSession_skipsSellerCreditWhenSellerNotFound() {
+        Seller seller = new Seller();
+        seller.setId(55);
+        mockSession.setSeller(seller);
+        mockSession.setCurrentPrice(new BigDecimal("50000.00"));
+        mockSession.setHighestBidderId(99);
+        mockUser.setBalance(new BigDecimal("200000.00"));
+        mockUser.setFrozenBalance(new BigDecimal("50000.00"));
+
+        when(auctionSessionRepository.findById(1)).thenReturn(Optional.of(mockSession));
+        when(bidRepository.findWinningBidsForSessions(List.of(1))).thenReturn(List.of());
+        when(userRepository.findById(99)).thenReturn(Optional.of(mockUser));
+        when(userRepository.findById(55)).thenReturn(Optional.empty());
+
+        assertTrue(auctionService.endSession(1));
+
+        assertEquals(AuctionStatus.ENDED, mockSession.getStatus());
+        assertEquals(0, new BigDecimal("150000.00").compareTo(mockUser.getBalance()));
+        verify(userRepository).save(mockUser);
+        verify(userRepository, never()).save(seller);
+        verify(auctionSessionRepository).save(mockSession);
+    }
+
+    @Test
+    @DisplayName("endSession ignores winning bid snapshot without bidder")
+    public void endSession_ignoresWinningBidSnapshotWithoutBidder() {
+        mockSession.setCurrentPrice(new BigDecimal("10000.00"));
+        mockSession.setHighestBidderId(null);
+        Bid winningBidWithoutBidder = new Bid(mockSession, null, new BigDecimal("50000.00"), LocalDateTime.now());
+
+        when(auctionSessionRepository.findById(1)).thenReturn(Optional.of(mockSession));
+        when(bidRepository.findWinningBidsForSessions(List.of(1))).thenReturn(List.of(winningBidWithoutBidder));
+
+        assertTrue(auctionService.endSession(1));
+
+        assertEquals(AuctionStatus.ENDED, mockSession.getStatus());
+        assertEquals(0, new BigDecimal("10000.00").compareTo(mockSession.getCurrentPrice()));
+        assertNull(mockSession.getHighestBidderId());
+        assertNull(mockSession.getWinner());
+        verify(userRepository, never()).findById(anyInt());
+        verify(auctionSessionRepository).save(mockSession);
+    }
+
+    @Test
+    @DisplayName("updateBid treats null current price as zero")
+    public void updateBid_treatsNullCurrentPriceAsZero() {
+        mockSession.setCurrentPrice(null);
+        mockUser.setBalance(new BigDecimal("100000.00"));
+        mockUser.setFrozenBalance(BigDecimal.ZERO);
+
+        when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
+        when(userRepository.findById(99)).thenReturn(Optional.of(mockUser));
+        when(bidRepository.countBySessionId(1)).thenReturn(1);
+
+        BidResponse response = auctionService.updateBid(1, 99, new BigDecimal("15000.00"));
+
+        assertTrue(response.isSuccess());
+        assertEquals(0, new BigDecimal("15000.00").compareTo(mockSession.getCurrentPrice()));
+        assertEquals(0, new BigDecimal("15000.00").compareTo(mockUser.getFrozenBalance()));
+        verify(bidRepository).save(any(Bid.class));
+        verify(auctionSessionRepository).save(mockSession);
+    }
+
+    @Test
+    @DisplayName("registerAutoBid creates new config when none exists")
+    public void registerAutoBid_createsNewConfigWhenNoneExists() {
+        mockSession.setCurrentPrice(new BigDecimal("10000.00"));
+
+        when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
+        when(userRepository.findById(99)).thenReturn(Optional.of(mockUser));
+        when(autoBidConfigRepository.findBySessionIdAndBidderIdAndActiveTrue(1, 99)).thenReturn(Optional.empty());
+
+        auctionService.registerAutoBid(1, 99, new BigDecimal("50000.00"), new BigDecimal("5000.00"));
+
+        verify(autoBidConfigRepository).save(any(AutoBidConfig.class));
+    }
+
 }

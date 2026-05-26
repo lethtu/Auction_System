@@ -136,4 +136,23 @@ public class AuctionSchedulerServiceTest {
         verify(auctionService).endSession(5);
         verify(auctionSessionRepository).findById(5);
     }
+
+    @Test
+    void scanAndUpdateAuctionStatus_broadcastLookupThrows_isSwallowed() {
+        AuctionSession activeSession = new AuctionSession();
+        activeSession.setId(6);
+        activeSession.setStatus(AuctionStatus.ACTIVE);
+
+        when(auctionSessionRepository.findByStatusAndStartTimeLessThanEqual(eq(AuctionStatus.COMING), any()))
+                .thenReturn(Collections.emptyList());
+        when(auctionSessionRepository.findByStatusAndEndTimeLessThanEqual(eq(AuctionStatus.ACTIVE), any()))
+                .thenReturn(Collections.singletonList(activeSession));
+        when(auctionSessionRepository.findById(6)).thenThrow(new RuntimeException("db down"));
+
+        auctionSchedulerService.scanAndUpdateAuctionStatus();
+
+        verify(auctionService).endSession(6);
+        verify(auctionSessionRepository).findById(6);
+    }
+
 }
