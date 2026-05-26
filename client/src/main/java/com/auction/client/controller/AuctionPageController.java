@@ -227,6 +227,10 @@ public class AuctionPageController {
     private int bidCount;
     private int watchingCount;
     private BigDecimal myLastBidAmount = null;
+    private boolean bidRequestInFlight = false;
+    private Integer pendingBidAuctionId = null;
+    private Integer pendingBidderId = null;
+    private BigDecimal pendingBidAmount = null;
 
     private Timeline timeline;
     private Timeline bidTimeout;
@@ -443,8 +447,12 @@ public class AuctionPageController {
                 User.getId(), bidAmount, isSocketReady());
 
         myLastBidAmount = bidAmount;
-        sendBidRequest(bidAmount);
-        showBidProcessing();
+        markLocalBidRequestInFlight(bidAmount);
+        if (sendBidRequest(bidAmount)) {
+            showBidProcessing();
+        } else {
+            clearLocalBidRequest("send failed");
+        }
     }
 
     private void setupQuickBidControls() {
@@ -1768,8 +1776,11 @@ public class AuctionPageController {
             logger.error("Socket connection error", e);
             Platform.runLater(() -> {
                 finishBidProcessing();
+                clearLocalBidRequest("socket error");
                 showError("Lost connection to Socket server!");
             });
+        } finally {
+            clearLocalBidRequest("socket listener stopped");
         }
     }
 
@@ -1818,6 +1829,11 @@ public class AuctionPageController {
 
     private void handleNoticeMessage(String jsonString) {
         JSONObject noticeObj = new JSONObject(jsonString);
+        logger.info("handleNoticeMessage: auctionId={}, bidderId={}, highestBidderId={}, newPrice={}",
+                noticeObj.optInt("auctionId", currentSessionId),
+                noticeObj.optInt("bidderId", -1),
+                noticeObj.opt("highestBidderId"),
+                noticeObj.opt("newPrice"));
 
         Platform.runLater(() -> {
             BigDecimal newPrice = noticeObj.getBigDecimal("newPrice");
@@ -1860,12 +1876,20 @@ public class AuctionPageController {
 
     private void handleBidResponseMessage(String jsonString) {
         JSONObject responseObj = new JSONObject(jsonString);
+        logger.info("handleBidResponseMessage: auctionId={}, bidderId={}, highestBidderId={}, type={}, success={}, pendingLocalBid={}",
+                responseObj.opt("auctionId"),
+                responseObj.opt("bidderId"),
+                responseObj.opt("highestBidderId"),
+                responseObj.optString("type", ""),
+                responseObj.optBoolean("success", false),
+                hasPendingLocalBidRequest());
 
         Platform.runLater(() -> {
-            finishBidProcessing();
-
             if (responseObj.getBoolean("success")) {
                 if ("AUTOBID_CONFIG".equals(responseObj.optString("type"))) {
+                    if (!hasPendingLocalBidRequest()) {
+                        finishBidProcessing();
+                    }
                     messageLabel.setStyle(SUCCESS_STYLE);
                     messageLabel.setText(responseObj.optString("message"));
 
@@ -1877,9 +1901,26 @@ public class AuctionPageController {
                     notif.setItemName(productNameLabel.getText());
                     NotificationCenterService.getInstance().addNotification(notif);
                 } else {
+                    if (!isExpectedLocalBidResponse(responseObj)) {
+                        logger.info("Ignoring successful RESPONSE without matching local BID request: {}", responseObj);
+                        return;
+                    }
+                    finishBidProcessing();
+                    clearLocalBidRequest("successful response handled");
                     handleSuccessfulBid(responseObj);
                 }
             } else {
+                if (!hasPendingLocalBidRequest()) {
+                    logger.info("Ignoring non-bid failure RESPONSE with no local BID request: {}", responseObj);
+                    return;
+                }
+                boolean expectedFailure = isExpectedLocalBidResponse(responseObj);
+                finishBidProcessing();
+                clearLocalBidRequest("failure response handled");
+                if (!expectedFailure) {
+                    logger.warn("Ignoring failure RESPONSE that does not match local BID request: {}", responseObj);
+                    return;
+                }
                 showError(responseObj.optString("message", "Bid placement failed."));
                 AppNotification notif = new AppNotification(NotificationType.BID_FAILED, NotificationSeverity.DANGER,
                         "Bid failed", responseObj.optString("message", "Bid placement failed."));
@@ -1896,6 +1937,12 @@ public class AuctionPageController {
     }
 
     private void handleSuccessfulBid(JSONObject responseObj) {
+        logger.info("handleSuccessfulBid: auctionId={}, bidderId={}, highestBidderId={}, bidId={}, currentUserId={}",
+                responseObj.opt("auctionId"),
+                responseObj.opt("bidderId"),
+                responseObj.opt("highestBidderId"),
+                responseObj.opt("bidId"),
+                User.getId());
         currentPrice = getMoney(responseObj, "currentPrice", currentPrice);
         highestBidderId = getOptionalInt(responseObj, "highestBidderId");
         bidCount = getOptionalIntOrDefault(responseObj, "bidCount", bidCount);
@@ -1975,6 +2022,64 @@ public class AuctionPageController {
 
         stopTimeline();
         stopBidTimeout();
+        clearLocalBidRequest("socket disconnected");
+    }
+
+    private synchronized void markLocalBidRequestInFlight(BigDecimal bidAmount) {
+        bidRequestInFlight = true;
+        pendingBidAuctionId = currentSessionId;
+        pendingBidderId = User.getId();
+        pendingBidAmount = bidAmount;
+        logger.info("Local BID request marked in-flight: auctionId={}, bidderId={}, amount={}",
+                pendingBidAuctionId, pendingBidderId, pendingBidAmount);
+    }
+
+    private synchronized boolean hasPendingLocalBidRequest() {
+        return bidRequestInFlight;
+    }
+
+    private synchronized void clearLocalBidRequest(String reason) {
+        if (bidRequestInFlight) {
+            logger.info("Clearing local BID request: reason={}, auctionId={}, bidderId={}, amount={}",
+                    reason, pendingBidAuctionId, pendingBidderId, pendingBidAmount);
+        }
+        bidRequestInFlight = false;
+        pendingBidAuctionId = null;
+        pendingBidderId = null;
+        pendingBidAmount = null;
+    }
+
+    private synchronized boolean isExpectedLocalBidResponse(JSONObject responseObj) {
+        if (!bidRequestInFlight) {
+            return false;
+        }
+
+        if (responseObj.has("auctionId") && !responseObj.isNull("auctionId")
+                && responseObj.optInt("auctionId") != pendingBidAuctionId) {
+            return false;
+        }
+
+        if (responseObj.has("bidderId") && !responseObj.isNull("bidderId")
+                && responseObj.optInt("bidderId") != pendingBidderId) {
+            return false;
+        }
+
+        Integer currentUserId = User.getId();
+        if (currentUserId == null || pendingBidderId == null || !pendingBidderId.equals(currentUserId)) {
+            return false;
+        }
+
+        if (responseObj.optBoolean("success", false)) {
+            if (!responseObj.has("currentPrice")) {
+                return false;
+            }
+            if (responseObj.has("highestBidderId") && !responseObj.isNull("highestBidderId")
+                    && responseObj.optInt("highestBidderId") != currentUserId) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private boolean isUserLoggedIn() {
@@ -2044,7 +2149,7 @@ public class AuctionPageController {
         return socket != null && !socket.isClosed() && out != null;
     }
 
-    private void sendBidRequest(BigDecimal bidAmount) {
+    private boolean sendBidRequest(BigDecimal bidAmount) {
         JSONObject jsonBid = new JSONObject();
         jsonBid.put("auctionId", currentSessionId);
         jsonBid.put("bidderId", User.getId());
@@ -2065,8 +2170,9 @@ public class AuctionPageController {
                     bidErrorSoundPlayedForCurrentAttempt = true;
                 }
             });
-            return;
+            return false;
         }
+        return true;
     }
 
     private void showBidProcessing() {
@@ -2091,6 +2197,7 @@ public class AuctionPageController {
             if (PROCESSING_MESSAGE.equals(messageLabel.getText())) {
                 messageLabel.setStyle(WARNING_STYLE);
                 messageLabel.setText("Server response is slow, please check connection or try again.");
+                clearLocalBidRequest("timeout");
                 if (!bidErrorSoundPlayedForCurrentAttempt) {
                     com.auction.client.service.SoundManager.getInstance()
                             .playSound(com.auction.client.model.audio.SoundEvent.BID_ERROR);

@@ -119,7 +119,7 @@ public class ClientHandler implements Runnable {
     
             // IMPORTANT:
             // Return the main bid result first, so client/test receives the correct SUCCESS RESPONSE.
-            sendBidResponse(response);
+            sendBidResponse(request, response);
     
             if (response.isSuccess()) {
                 broadcastBidNotice(request.getAuctionId(), response);
@@ -157,11 +157,15 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private void sendBidResponse(BidResponse response) {
+    private void sendBidResponse(BidRequest request, BidResponse response) {
         JSONObject jsonResponse = new JSONObject();
         jsonResponse.put("success", response.isSuccess());
         jsonResponse.put("message", response.getMessage());
         jsonResponse.put("currentPrice", response.getCurrentPrice());
+        if (request != null) {
+            jsonResponse.put("auctionId", request.getAuctionId());
+            jsonResponse.put("bidderId", request.getBidderId());
+        }
 
         if (response.getHighestBidderId() != null) {
             jsonResponse.put("highestBidderId", response.getHighestBidderId());
@@ -172,7 +176,19 @@ public class ClientHandler implements Runnable {
         if (response.getNewEndTime() != null) {
             jsonResponse.put("newEndTime", response.getNewEndTime());
         }
+        if (response.getBidTime() != null) {
+            jsonResponse.put("bidTime", response.getBidTime());
+        }
+        if (response.getBidId() != null) {
+            jsonResponse.put("bidId", response.getBidId());
+        }
 
+        logger.info("sendBidResponse: auctionId={}, bidderId={}, highestBidderId={}, bidId={}, success={}",
+                request != null ? request.getAuctionId() : null,
+                request != null ? request.getBidderId() : null,
+                response.getHighestBidderId(),
+                response.getBidId(),
+                response.isSuccess());
         sendRawResponse(jsonResponse);
     }
 
@@ -198,6 +214,12 @@ public class ClientHandler implements Runnable {
             notice.put("bidId", response.getBidId());
         }
 
+        logger.info("broadcastBidNotice: auctionId={}, highestBidderId={}, bidId={}, bidCount={}, newPrice={}",
+                auctionId,
+                response.getHighestBidderId(),
+                response.getBidId(),
+                response.getBidCount(),
+                response.getCurrentPrice());
         SocketServer.broadcastToRoom(auctionId, "NOTICE:" + notice);
 
         if (response.getPreviousHighestBidderId() != null) {

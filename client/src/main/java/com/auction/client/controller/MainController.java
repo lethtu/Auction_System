@@ -2499,6 +2499,8 @@ public class MainController implements Initializable {
 
     private void openAuctionPage(javafx.event.Event event, JSONObject sessionObj, JSONObject itemObj, String name,
             int id, BigDecimal currentPrice) {
+        logger.info("openAuctionPage: auctionId={}, itemName={}, currentPrice={}, userId={}",
+                id, name, currentPrice, User.getId());
         ClientLogger.logViewHistory(User.getUsername(), name, id, currentPrice);
         cleanupControllerResources();
         try {
