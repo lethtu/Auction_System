@@ -243,4 +243,134 @@ public class GoogleAuthControllerTest {
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.message").value("Missing authorization code or redirect URI"));
     }
+
+
+    @Test
+    public void testGetGoogleConfig_RealClientId_NotMock() throws Exception {
+        ReflectionTestUtils.setField(googleAuthController, "clientId", "real-client-id");
+
+        mockMvc.perform(get("/api/auth/google/config"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.data.mock").value(false));
+    }
+
+    @Test
+    public void testGoogleLogin_RealConfig_TokenExchangeFails() throws Exception {
+        ReflectionTestUtils.setField(googleAuthController, "clientId", "real-client-id");
+        ReflectionTestUtils.setField(googleAuthController, "clientSecret", "real-client-secret");
+        installGoogleHttpResponses(googleHttpResponse(401, "{}"));
+
+        mockMvc.perform(post("/api/auth/google")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "code", "bad-code",
+                                "redirectUri", "http://localhost/callback"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Failed to exchange Google authorization code"));
+    }
+
+    @Test
+    public void testGoogleLogin_RealConfig_TokenResponseMissingAccessToken() throws Exception {
+        ReflectionTestUtils.setField(googleAuthController, "clientId", "real-client-id");
+        ReflectionTestUtils.setField(googleAuthController, "clientSecret", "real-client-secret");
+        installGoogleHttpResponses(googleHttpResponse(200, "{}"));
+
+        mockMvc.perform(post("/api/auth/google")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "code", "code-without-token",
+                                "redirectUri", "http://localhost/callback"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Failed to retrieve access token from Google"));
+    }
+
+    @Test
+    public void testGoogleLogin_RealConfig_ProfileFetchFails() throws Exception {
+        ReflectionTestUtils.setField(googleAuthController, "clientId", "real-client-id");
+        ReflectionTestUtils.setField(googleAuthController, "clientSecret", "real-client-secret");
+        installGoogleHttpResponses(
+                googleHttpResponse(200, "{\"access_token\":\"token-123\"}"),
+                googleHttpResponse(503, "{}")
+        );
+
+        mockMvc.perform(post("/api/auth/google")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "code", "good-code",
+                                "redirectUri", "http://localhost/callback"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Failed to retrieve user profile from Google"));
+    }
+
+    @Test
+    public void testGoogleLogin_RealConfig_ProfileWithoutEmailRejected() throws Exception {
+        ReflectionTestUtils.setField(googleAuthController, "clientId", "real-client-id");
+        ReflectionTestUtils.setField(googleAuthController, "clientSecret", "real-client-secret");
+        installGoogleHttpResponses(
+                googleHttpResponse(200, "{\"access_token\":\"token-123\"}"),
+                googleHttpResponse(200, "{\"name\":\"No Email\"}")
+        );
+
+        mockMvc.perform(post("/api/auth/google")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "code", "good-code",
+                                "redirectUri", "http://localhost/callback"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Email not provided by Google"));
+    }
+
+    @Test
+    public void testGoogleLogin_RealConfig_ExistingUserSuccess() throws Exception {
+        ReflectionTestUtils.setField(googleAuthController, "clientId", "real-client-id");
+        ReflectionTestUtils.setField(googleAuthController, "clientSecret", "real-client-secret");
+        installGoogleHttpResponses(
+                googleHttpResponse(200, "{\"access_token\":\"token-123\"}"),
+                googleHttpResponse(200, "{\"email\":\"real@gmail.com\",\"name\":\"Real User\"}")
+        );
+
+        User user = new User();
+        user.setId(21);
+        user.setUsername("realuser");
+        user.setEmail("real@gmail.com");
+        user.setBanned(false);
+
+        when(loginSignup.findByUsernameOrEmail("real@gmail.com")).thenReturn(Optional.of(user));
+        when(sessionManager.createSession(user)).thenReturn("real-token");
+
+        mockMvc.perform(post("/api/auth/google")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "code", "good-code",
+                                "redirectUri", "http://localhost/callback"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.message").value("Login successful"))
+                .andExpect(jsonPath("$.data.sessionToken").value("real-token"));
+    }
+
+    @SafeVarargs
+    private final void installGoogleHttpResponses(java.net.http.HttpResponse<String>... responses) throws Exception {
+        java.util.Queue<java.net.http.HttpResponse<String>> queue = new java.util.ArrayDeque<>(java.util.Arrays.asList(responses));
+        java.net.http.HttpClient httpClient = org.mockito.Mockito.mock(java.net.http.HttpClient.class);
+        when(httpClient.send(
+                any(java.net.http.HttpRequest.class),
+                org.mockito.ArgumentMatchers.<java.net.http.HttpResponse.BodyHandler<String>>any()
+        )).thenAnswer(invocation -> queue.remove());
+        ReflectionTestUtils.setField(googleAuthController, "httpClient", httpClient);
+    }
+
+    @SuppressWarnings("unchecked")
+    private java.net.http.HttpResponse<String> googleHttpResponse(int status, String body) {
+        java.net.http.HttpResponse<String> response =
+                (java.net.http.HttpResponse<String>) org.mockito.Mockito.mock(java.net.http.HttpResponse.class);
+        when(response.statusCode()).thenReturn(status);
+        when(response.body()).thenReturn(body);
+        return response;
+    }
 }

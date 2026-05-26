@@ -434,4 +434,31 @@ public class UserControllerTest {
         verify(userService).updateAvatarUrl(eq(1), anyString());
     }
 
+
+
+    @Test
+    public void testSetPassword_RuntimeExceptionReturnsServerError() throws Exception {
+        when(userService.setPassword(eq(3), anyString())).thenThrow(new RuntimeException("database down"));
+
+        mockMvc.perform(post("/api/users/3/set-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("password", "newPass123"))))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.message").value("Failed to set password."));
+    }
+
+    @Test
+    public void testChangePassword_RuntimeExceptionReturnsServerError() throws Exception {
+        when(userService.changePassword(eq(3), anyString(), anyString())).thenThrow(new RuntimeException("database down"));
+
+        mockMvc.perform(post("/api/users/3/change-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "oldPassword", "oldPass",
+                                "newPassword", "newPass"))))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.message").value("Failed to change password."));
+    }
 }

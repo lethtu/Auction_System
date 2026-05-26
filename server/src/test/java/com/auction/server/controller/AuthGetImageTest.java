@@ -455,4 +455,43 @@ public class AuthGetImageTest {
                     });
         }
     }
+
+
+    @Test
+    @DisplayName("Extra private helpers: path and content helper branches")
+    public void testAdditionalPrivateHelperBranchesForPathsAndContent() throws Exception {
+        Path createdFolder = ReflectionTestUtils.invokeMethod(authGetImageController, "createItemFolder", tempDir);
+        assertNotNull(createdFolder);
+        assertTrue(Files.exists(createdFolder));
+        assertTrue(createdFolder.normalize().startsWith(tempDir.normalize()));
+
+        Path folder = tempDir.resolve("extra-folder");
+        Files.createDirectories(folder);
+        Path destination = folder.resolve("avatar.png");
+        Files.writeString(destination, "image-data");
+
+        assertEquals("extra-folder/avatar.png", ReflectionTestUtils.invokeMethod(authGetImageController, "toClientImagePath", destination));
+        assertTrue(Boolean.TRUE.equals(ReflectionTestUtils.invokeMethod(authGetImageController, "isInsideRootLocation", destination)));
+        assertFalse(Boolean.TRUE.equals(ReflectionTestUtils.invokeMethod(authGetImageController, "isInsideRootLocation", (Path) null)));
+
+        assertTrue(Boolean.TRUE.equals(ReflectionTestUtils.invokeMethod(authGetImageController, "isImageContentType", "image/jpeg")));
+        assertFalse(Boolean.TRUE.equals(ReflectionTestUtils.invokeMethod(authGetImageController, "isImageContentType", (String) null)));
+        assertTrue(Boolean.TRUE.equals(ReflectionTestUtils.invokeMethod(authGetImageController, "isSafeExtension", ".abc123")));
+        assertFalse(Boolean.TRUE.equals(ReflectionTestUtils.invokeMethod(authGetImageController, "isSafeExtension", ".")));
+        assertFalse(Boolean.TRUE.equals(ReflectionTestUtils.invokeMethod(authGetImageController, "isSafeExtension", ".toolongextension")));
+    }
+
+    @Test
+    @DisplayName("serveFrom handles null path as bad request")
+    public void testServeFromRejectsNullFile() {
+        ResponseEntity<Resource> response = ReflectionTestUtils.invokeMethod(
+                authGetImageController,
+                "serveFrom",
+                null,
+                tempDir.toAbsolutePath().normalize()
+        );
+
+        assertNotNull(response);
+        assertEquals(400, response.getStatusCode().value());
+    }
 }
