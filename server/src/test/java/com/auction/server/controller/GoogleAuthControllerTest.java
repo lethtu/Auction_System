@@ -373,4 +373,37 @@ public class GoogleAuthControllerTest {
         when(response.body()).thenReturn(body);
         return response;
     }
+
+    @Test
+    public void testGetGoogleConfig_NullClientId_TreatsAsMock() throws Exception {
+        ReflectionTestUtils.setField(googleAuthController, "clientId", null);
+
+        mockMvc.perform(get("/api/auth/google/config"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.data.mock").value(true));
+    }
+
+    @Test
+    public void testGoogleLogin_RealConfig_HttpClientExceptionReturnsServerError() throws Exception {
+        ReflectionTestUtils.setField(googleAuthController, "clientId", "real-client-id");
+        ReflectionTestUtils.setField(googleAuthController, "clientSecret", "real-client-secret");
+
+        java.net.http.HttpClient httpClient = org.mockito.Mockito.mock(java.net.http.HttpClient.class);
+        when(httpClient.send(
+                any(java.net.http.HttpRequest.class),
+                org.mockito.ArgumentMatchers.<java.net.http.HttpResponse.BodyHandler<String>>any()
+        )).thenThrow(new java.io.IOException("network down"));
+        ReflectionTestUtils.setField(googleAuthController, "httpClient", httpClient);
+
+        mockMvc.perform(post("/api/auth/google")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "code", "good-code",
+                                "redirectUri", "http://localhost/callback"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.message", org.hamcrest.Matchers.containsString("Google Authentication error")));
+    }
+
 }

@@ -65,6 +65,7 @@ public class AuthGetImageTest {
         deleteIfExists(Paths.get("upload", "models_3d", "phase13-model"));
         deleteIfExists(Paths.get("upload", "models_3d", "phase13-model-fallback"));
         deleteIfExists(Paths.get("upload", "models_3d", "phase13-serve-model"));
+        deleteIfExists(Paths.get("upload", "models_3d", "phase26-model-io"));
         Files.deleteIfExists(Paths.get("upload", "avatar", "phase13-avatar.png"));
     }
 
@@ -494,4 +495,65 @@ public class AuthGetImageTest {
         assertNotNull(response);
         assertEquals(400, response.getStatusCode().value());
     }
+
+    @Test
+    @DisplayName("uploadImage returns 500 when local copy cannot read input stream")
+    public void testUploadImageInputStreamFailureReturnsServerError() throws Exception {
+        org.springframework.web.multipart.MultipartFile file = org.mockito.Mockito.mock(org.springframework.web.multipart.MultipartFile.class);
+        when(file.isEmpty()).thenReturn(false);
+        when(file.getContentType()).thenReturn("image/png");
+        when(file.getOriginalFilename()).thenReturn("avatar.png");
+        when(file.getInputStream()).thenThrow(new java.io.IOException("cannot read"));
+
+        ResponseEntity<?> response = authGetImageController.uploadImage(file, "phase26-image-io");
+
+        assertEquals(500, response.getStatusCode().value());
+    }
+
+    @Test
+    @DisplayName("uploadModel3D rejects null file as bad request")
+    public void testUploadModel3DNullFileReturnsBadRequest() {
+        ResponseEntity<?> response = authGetImageController.uploadModel3D(null, "phase26-null-model");
+
+        assertEquals(400, response.getStatusCode().value());
+    }
+
+    @Test
+    @DisplayName("uploadModel3D returns 500 when local copy cannot read input stream")
+    public void testUploadModel3DInputStreamFailureReturnsServerError() throws Exception {
+        org.springframework.web.multipart.MultipartFile file = org.mockito.Mockito.mock(org.springframework.web.multipart.MultipartFile.class);
+        when(file.isEmpty()).thenReturn(false);
+        when(file.getInputStream()).thenThrow(new java.io.IOException("cannot read model"));
+
+        ResponseEntity<?> response = authGetImageController.uploadModel3D(file, "phase26-model-io");
+
+        assertEquals(500, response.getStatusCode().value());
+    }
+
+    @Test
+    @DisplayName("serveModel3D catches invalid path arguments")
+    public void testServeModel3DInvalidPathReturnsServerError() {
+        ResponseEntity<Resource> response = authGetImageController.serveModel3D(null, "model.glb");
+
+        assertEquals(500, response.getStatusCode().value());
+    }
+
+    @Test
+    @DisplayName("serveFileInFolder catches invalid upload root")
+    public void testServeFileInFolderInvalidRootReturnsServerError() {
+        System.setProperty("auction.upload.dir", "invalid\0dir");
+
+        ResponseEntity<Resource> response = authGetImageController.serveFileInFolder("folder", "avatar.png");
+
+        assertEquals(500, response.getStatusCode().value());
+    }
+
+    @Test
+    @DisplayName("serveAvatar catches invalid path arguments")
+    public void testServeAvatarInvalidPathReturnsServerError() {
+        ResponseEntity<Resource> response = authGetImageController.serveAvatar(null);
+
+        assertEquals(500, response.getStatusCode().value());
+    }
+
 }
