@@ -63,6 +63,17 @@ class SellerSessionGuardTest {
     }
 
     @Test
+    void getSessionById_existingSession_returnsSession() {
+        Seller seller = seller(5);
+        AuctionSession session = session(12, seller, AuctionStatus.ACTIVE);
+        sessionRepository.sessions.put(12, session);
+
+        AuctionSession result = guard.getSessionById(12);
+
+        assertSame(session, result);
+    }
+
+    @Test
     void getSessionById_missingSession_throwsException() {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> guard.getSessionById(10));
 
@@ -74,6 +85,38 @@ class SellerSessionGuardTest {
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> guard.getSessionById(null));
 
         assertEquals("Auction session does not exist", ex.getMessage());
+    }
+
+    @Test
+    void validateSessionOwner_matchingSeller_doesNotThrow() {
+        Seller seller = seller(7);
+        AuctionSession session = session(20, seller, AuctionStatus.COMING);
+
+        assertDoesNotThrow(() -> guard.validateSessionOwner(session, 7, "no permission"));
+    }
+
+    @Test
+    void validateSessionOwner_nullSeller_throwsCustomMessage() {
+        AuctionSession session = session(21, null, AuctionStatus.COMING);
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> guard.validateSessionOwner(session, 7, "custom denied")
+        );
+
+        assertEquals("custom denied", ex.getMessage());
+    }
+
+    @Test
+    void validateSessionOwner_differentSeller_throwsCustomMessage() {
+        AuctionSession session = session(22, seller(8), AuctionStatus.ACTIVE);
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> guard.validateSessionOwner(session, 7, "not yours")
+        );
+
+        assertEquals("not yours", ex.getMessage());
     }
 
     private Seller seller(Integer id) {

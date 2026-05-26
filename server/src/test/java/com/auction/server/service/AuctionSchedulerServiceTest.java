@@ -8,8 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
-import java.util.Arrays;
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -60,7 +59,6 @@ public class AuctionSchedulerServiceTest {
         when(auctionSessionRepository.findByStatusAndEndTimeLessThanEqual(eq(AuctionStatus.ACTIVE), any()))
                 .thenReturn(Collections.singletonList(activeSession));
 
-        // Re-fetch mocked call in broadcast loop
         AuctionSession endedSession = new AuctionSession();
         endedSession.setId(2);
         endedSession.setStatus(AuctionStatus.ENDED);
@@ -72,5 +70,70 @@ public class AuctionSchedulerServiceTest {
 
         verify(auctionSessionRepository, times(1)).saveAll(Collections.singletonList(comingSession));
         verify(auctionService, times(1)).endSession(2);
+    }
+
+    @Test
+    void scanAndUpdateAuctionStatus_endSessionThrows_stillContinuesBroadcastLoopSafely() {
+        AuctionSession activeSession = new AuctionSession();
+        activeSession.setId(3);
+        activeSession.setStatus(AuctionStatus.ACTIVE);
+
+        when(auctionSessionRepository.findByStatusAndStartTimeLessThanEqual(eq(AuctionStatus.COMING), any()))
+                .thenReturn(Collections.emptyList());
+        when(auctionSessionRepository.findByStatusAndEndTimeLessThanEqual(eq(AuctionStatus.ACTIVE), any()))
+                .thenReturn(Collections.singletonList(activeSession));
+        doThrow(new RuntimeException("boom")).when(auctionService).endSession(3);
+        when(auctionSessionRepository.findById(3)).thenReturn(Optional.empty());
+
+        auctionSchedulerService.scanAndUpdateAuctionStatus();
+
+        verify(auctionService).endSession(3);
+        verify(auctionSessionRepository).findById(3);
+        verify(auctionSessionRepository, never()).saveAll(anyList());
+    }
+
+    @Test
+    void scanAndUpdateAuctionStatus_refetchedSessionWithNullId_isSkippedSafely() {
+        AuctionSession activeSession = new AuctionSession();
+        activeSession.setId(4);
+        activeSession.setStatus(AuctionStatus.ACTIVE);
+
+        AuctionSession updatedWithoutId = new AuctionSession();
+        updatedWithoutId.setStatus(AuctionStatus.ENDED);
+
+        when(auctionSessionRepository.findByStatusAndStartTimeLessThanEqual(eq(AuctionStatus.COMING), any()))
+                .thenReturn(Collections.emptyList());
+        when(auctionSessionRepository.findByStatusAndEndTimeLessThanEqual(eq(AuctionStatus.ACTIVE), any()))
+                .thenReturn(Collections.singletonList(activeSession));
+        when(auctionSessionRepository.findById(4)).thenReturn(Optional.of(updatedWithoutId));
+
+        auctionSchedulerService.scanAndUpdateAuctionStatus();
+
+        verify(auctionService).endSession(4);
+        verify(auctionSessionRepository).findById(4);
+    }
+
+    @Test
+    void scanAndUpdateAuctionStatus_endedWithoutWinnerAndWithFinalPrice_isHandledSafely() {
+        AuctionSession activeSession = new AuctionSession();
+        activeSession.setId(5);
+        activeSession.setStatus(AuctionStatus.ACTIVE);
+
+        AuctionSession endedWithoutWinner = new AuctionSession();
+        endedWithoutWinner.setId(5);
+        endedWithoutWinner.setStatus(AuctionStatus.ENDED);
+        endedWithoutWinner.setHighestBidderId(null);
+        endedWithoutWinner.setCurrentPrice(new BigDecimal("125000"));
+
+        when(auctionSessionRepository.findByStatusAndStartTimeLessThanEqual(eq(AuctionStatus.COMING), any()))
+                .thenReturn(Collections.emptyList());
+        when(auctionSessionRepository.findByStatusAndEndTimeLessThanEqual(eq(AuctionStatus.ACTIVE), any()))
+                .thenReturn(Collections.singletonList(activeSession));
+        when(auctionSessionRepository.findById(5)).thenReturn(Optional.of(endedWithoutWinner));
+
+        auctionSchedulerService.scanAndUpdateAuctionStatus();
+
+        verify(auctionService).endSession(5);
+        verify(auctionSessionRepository).findById(5);
     }
 }
