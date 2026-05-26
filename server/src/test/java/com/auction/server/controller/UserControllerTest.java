@@ -461,4 +461,85 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.status").value(500))
                 .andExpect(jsonPath("$.message").value("Failed to change password."));
     }
+
+    @Test
+    public void testUploadAvatar_NullContentTypeWithPngMagicBytesSuccess() throws Exception {
+        User user = new User();
+        user.setId(1);
+        when(userService.getUserById(1)).thenReturn(user);
+        when(cloudinaryService.isConfigured()).thenReturn(false);
+
+        byte[] validPngBytes = new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0, 0, 0, 0, 0, 0, 0, 0};
+        MockMultipartFile file = new MockMultipartFile("avatar", "avatar.png", null, validPngBytes);
+
+        mockMvc.perform(multipart("/api/users/1/avatar").file(file))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.data.avatarUrl", org.hamcrest.Matchers.startsWith("/api/files/avatar/")));
+
+        verify(userService).updateAvatarUrl(eq(1), anyString());
+    }
+
+    @Test
+    public void testUploadAvatar_DeletesExistingOldLocalAvatar() throws Exception {
+        java.nio.file.Path avatarDir = java.nio.file.Paths.get("upload", "avatar").toAbsolutePath().normalize();
+        java.nio.file.Files.createDirectories(avatarDir);
+        java.nio.file.Path oldAvatar = avatarDir.resolve("phase29-old-avatar.png");
+        java.nio.file.Files.writeString(oldAvatar, "old-avatar");
+
+        User user = new User();
+        user.setId(1);
+        user.setAvatarUrl("/api/files/avatar/phase29-old-avatar.png");
+        when(userService.getUserById(1)).thenReturn(user);
+        when(cloudinaryService.isConfigured()).thenReturn(false);
+
+        byte[] validPngBytes = new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0, 0, 0, 0, 0, 0, 0, 0};
+        MockMultipartFile file = new MockMultipartFile("avatar", "avatar.png", "image/png", validPngBytes);
+
+        try {
+            mockMvc.perform(multipart("/api/users/1/avatar").file(file))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status").value(200));
+
+            org.junit.jupiter.api.Assertions.assertFalse(java.nio.file.Files.exists(oldAvatar));
+        } finally {
+            java.nio.file.Files.deleteIfExists(oldAvatar);
+        }
+    }
+
+    @Test
+    public void testUploadAvatar_SkipsUnsafeOldAvatarPath() throws Exception {
+        java.nio.file.Path outside = java.nio.file.Paths.get("upload", "phase29-outside-avatar.png").toAbsolutePath().normalize();
+        java.nio.file.Files.createDirectories(outside.getParent());
+        java.nio.file.Files.writeString(outside, "outside-avatar");
+
+        User user = new User();
+        user.setId(1);
+        user.setAvatarUrl("/api/files/avatar/../phase29-outside-avatar.png");
+        when(userService.getUserById(1)).thenReturn(user);
+        when(cloudinaryService.isConfigured()).thenReturn(false);
+
+        byte[] validPngBytes = new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0, 0, 0, 0, 0, 0, 0, 0};
+        MockMultipartFile file = new MockMultipartFile("avatar", "avatar.png", "image/png", validPngBytes);
+
+        try {
+            mockMvc.perform(multipart("/api/users/1/avatar").file(file))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status").value(200));
+
+            org.junit.jupiter.api.Assertions.assertTrue(java.nio.file.Files.exists(outside));
+        } finally {
+            java.nio.file.Files.deleteIfExists(outside);
+        }
+    }
+
+    @Test
+    public void testConstructorRejectsNullUserService() {
+        org.junit.jupiter.api.Assertions.assertThrows(
+                NullPointerException.class,
+                () -> new UserController(null, cloudinaryService)
+        );
+    }
+
+
 }

@@ -556,4 +556,64 @@ public class AuthGetImageTest {
         assertEquals(500, response.getStatusCode().value());
     }
 
+
+    @Test
+    @DisplayName("uploadImage rejects null file")
+    public void testUploadImageNullFileReturnsBadRequest() {
+        ResponseEntity<?> response = authGetImageController.uploadImage(null, "phase29-null-image");
+
+        assertEquals(400, response.getStatusCode().value());
+    }
+
+    @Test
+    @DisplayName("uploadImage accepts null content type when extension is safe")
+    public void testUploadImageNullContentTypeWithSafeExtensionSucceeds() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "avatar.png",
+                null,
+                "fake_image_data_123".getBytes()
+        );
+
+        mockMvc.perform(multipart("/api/files/images")
+                        .file(file)
+                        .param("uuid", "phase29-null-content-type"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.data.imagePath").value("phase29-null-content-type"));
+    }
+
+    @Test
+    @DisplayName("serveOldFile rejects traversal path")
+    public void testServeOldFileRejectsTraversalPathDirectly() {
+        ResponseEntity<Resource> response = authGetImageController.serveOldFile("../outside.png");
+
+        assertEquals(400, response.getStatusCode().value());
+    }
+
+    @Test
+    @DisplayName("serveFileInFolder rejects traversal path")
+    public void testServeFileInFolderRejectsTraversalPathDirectly() {
+        ResponseEntity<Resource> response = authGetImageController.serveFileInFolder("../outside", "avatar.png");
+
+        assertEquals(400, response.getStatusCode().value());
+    }
+
+    @Test
+    @DisplayName("serveModel3D rejects traversal path")
+    public void testServeModel3DRejectsTraversalPathDirectly() {
+        ResponseEntity<Resource> response = authGetImageController.serveModel3D("../outside", "model.glb");
+
+        assertEquals(400, response.getStatusCode().value());
+    }
+
+    @Test
+    @DisplayName("serveAvatar rejects traversal path")
+    public void testServeAvatarRejectsTraversalPathDirectly() {
+        ResponseEntity<Resource> response = authGetImageController.serveAvatar("../avatar.png");
+
+        assertEquals(400, response.getStatusCode().value());
+    }
+
+
 }
