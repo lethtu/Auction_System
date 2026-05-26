@@ -22,21 +22,31 @@ jobs:
         run: |
           rm -rf hf-space
           mkdir -p hf-space
+
           cp -r server hf-space/server
+
+          sed -i 's/server.port=8080/server.port=7860/g' \
+          hf-space/server/src/main/resources/application.properties
 
           cat > hf-space/Dockerfile <<'EOF'
           FROM maven:3.9-eclipse-temurin-21 AS build
+
           WORKDIR /app
+
           COPY server ./server
 
           WORKDIR /app/server
+
           RUN mvn clean package -DskipTests
 
           FROM eclipse-temurin:21-jre
+
           WORKDIR /app
+
           COPY --from=build /app/server/target/*.jar app.jar
 
           ENV PORT=7860
+
           EXPOSE 7860
 
           CMD ["java", "-jar", "app.jar"]
@@ -44,7 +54,7 @@ jobs:
 
       - name: Deploy to Server
         env:
-          TOKEN: ${{ secrets.TOKEN }}
+          HF_TOKEN: ${{ secrets.TOKEN }}
         run: |
           pip install "huggingface_hub==0.25.2"
 
@@ -52,7 +62,8 @@ jobs:
           import os
           from huggingface_hub import HfApi
 
-          token = os.environ["TOKEN"].strip()
+          token = os.environ["HF_TOKEN"].strip()
+
           api = HfApi(token=token)
 
           api.upload_folder(
@@ -63,7 +74,8 @@ jobs:
               ignore_patterns=[
                   "server/target/*",
                   "server/.idea/*",
-                  "server/.git/*"
+                  "server/.git/*",
+                  "**/__pycache__/*"
               ]
           )
           PY
