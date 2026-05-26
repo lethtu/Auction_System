@@ -261,4 +261,42 @@ public class UserControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400));
     }
+    @Test
+    public void testUploadAvatar_OctetStreamWithPngMagicBytesSuccess() throws Exception {
+        User user = new User();
+        user.setId(1);
+        when(userService.getUserById(1)).thenReturn(user);
+        when(cloudinaryService.isConfigured()).thenReturn(false);
+
+        byte[] validPngBytes = new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0, 0, 0, 0, 0, 0, 0, 0};
+        MockMultipartFile file = new MockMultipartFile("avatar", "avatar.png", "application/octet-stream", validPngBytes);
+
+        mockMvc.perform(multipart("/api/users/1/avatar").file(file))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.data.avatarUrl", org.hamcrest.Matchers.startsWith("/api/files/avatar/")));
+
+        verify(userService).updateAvatarUrl(eq(1), anyString());
+    }
+
+    @Test
+    public void testUploadAvatar_CloudinaryFailureFallsBackToLocalStorage() throws Exception {
+        User user = new User();
+        user.setId(1);
+        when(userService.getUserById(1)).thenReturn(user);
+        when(cloudinaryService.isConfigured()).thenReturn(true);
+        when(cloudinaryService.uploadFileWithPublicId(any(), anyString(), anyString(), anyBoolean()))
+                .thenThrow(new RuntimeException("cloudinary down"));
+
+        byte[] validPngBytes = new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0, 0, 0, 0, 0, 0, 0, 0};
+        MockMultipartFile file = new MockMultipartFile("avatar", "avatar.png", "image/png", validPngBytes);
+
+        mockMvc.perform(multipart("/api/users/1/avatar").file(file))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.data.avatarUrl", org.hamcrest.Matchers.startsWith("/api/files/avatar/")));
+
+        verify(cloudinaryService).uploadFileWithPublicId(any(), anyString(), anyString(), anyBoolean());
+        verify(userService).updateAvatarUrl(eq(1), anyString());
+    }
 }
