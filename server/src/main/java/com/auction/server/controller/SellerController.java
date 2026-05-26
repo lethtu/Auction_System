@@ -51,8 +51,7 @@ public class SellerController {
                 LOG_CREATE_AUCTION,
                 SUCCESS_CREATE_AUCTION,
                 () -> {
-                    SessionManager.SessionUser actor = (SessionManager.SessionUser) request.getAttribute("sessionUser");
-                    Integer secureSellerId = actor.getUserId();
+                    Integer secureSellerId = getAuthenticatedSellerId(request);
                     createRequest.setSellerId(secureSellerId);
                     return sellerService.createAuctionSession(createRequest);
                 }
@@ -69,8 +68,7 @@ public class SellerController {
                 LOG_VIEW_MY_SESSIONS,
                 SUCCESS_VIEW_MY_SESSIONS,
                 () -> {
-                    SessionManager.SessionUser actor = (SessionManager.SessionUser) request.getAttribute("sessionUser");
-                    Integer secureSellerId = actor.getUserId();
+                    Integer secureSellerId = getAuthenticatedSellerId(request);
                     return sellerService.getMySessions(secureSellerId, status);
                 }
         );
@@ -86,8 +84,7 @@ public class SellerController {
                 LOG_GET_SESSION_DETAIL,
                 SUCCESS_GET_SESSION_DETAIL,
                 () -> {
-                    SessionManager.SessionUser actor = (SessionManager.SessionUser) request.getAttribute("sessionUser");
-                    Integer secureSellerId = actor.getUserId();
+                    Integer secureSellerId = getAuthenticatedSellerId(request);
                     return sellerService.getSessionDetail(sessionId, secureSellerId);
                 }
         );
@@ -107,8 +104,7 @@ public class SellerController {
                 LOG_UPDATE_PENDING_SESSION,
                 SUCCESS_UPDATE_PENDING_SESSION,
                 () -> {
-                    SessionManager.SessionUser actor = (SessionManager.SessionUser) request.getAttribute("sessionUser");
-                    Integer secureSellerId = actor.getUserId();
+                    Integer secureSellerId = getAuthenticatedSellerId(request);
                     updateRequest.setSellerId(secureSellerId);
                     return sellerService.updateSession(sessionId, secureSellerId, updateRequest);
                 }
@@ -125,8 +121,7 @@ public class SellerController {
                 LOG_CANCEL_AUCTION,
                 SUCCESS_CANCEL_AUCTION,
                 () -> {
-                    SessionManager.SessionUser actor = (SessionManager.SessionUser) request.getAttribute("sessionUser");
-                    Integer secureSellerId = actor.getUserId();
+                    Integer secureSellerId = getAuthenticatedSellerId(request);
                     sellerService.cancelSession(sessionId, secureSellerId);
                 }
         );
@@ -141,8 +136,7 @@ public class SellerController {
                 LOG_GET_STATS,
                 SUCCESS_GET_STATS,
                 () -> {
-                    SessionManager.SessionUser actor = (SessionManager.SessionUser) request.getAttribute("sessionUser");
-                    Integer secureSellerId = actor.getUserId();
+                    Integer secureSellerId = getAuthenticatedSellerId(request);
                     return sellerService.getSellerStats(secureSellerId);
                 }
         );
@@ -157,11 +151,18 @@ public class SellerController {
                 "Deleting product",
                 "Product removed",
                 () -> {
-                    SessionManager.SessionUser actor = (SessionManager.SessionUser) request.getAttribute("sessionUser");
-                    Integer secureSellerId = actor.getUserId();
+                    Integer secureSellerId = getAuthenticatedSellerId(request);
                     sellerService.softDeleteItem(itemId, secureSellerId);
                 }
         );
+    }
+
+    private Integer getAuthenticatedSellerId(HttpServletRequest request) {
+        SessionManager.SessionUser actor = (SessionManager.SessionUser) request.getAttribute("sessionUser");
+        if (actor == null || actor.getUserId() == null) {
+            throw new IllegalArgumentException("Seller not authenticated");
+        }
+        return actor.getUserId();
     }
 
     private ApiResponse<Void> handleCommand(
