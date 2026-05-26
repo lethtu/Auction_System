@@ -48,7 +48,7 @@ public class AuctionServiceTest {
     @InjectMocks
     private AuctionService auctionService;
 
-    // Dữ liệu giả (Mock Data)
+    // Dá»¯ liá»‡u giáº£ (Mock Data)
     private AuctionSession mockSession;
     private User mockUser;
 
@@ -59,50 +59,50 @@ public class AuctionServiceTest {
         mockSession.setCurrentPrice(new BigDecimal("1000.00"));
         mockSession.setStatus(AuctionStatus.ACTIVE);
 
-        // Chuẩn bị một Bidder giả
+        // Chuáº©n bá»‹ má»™t Bidder giáº£
         mockUser = new User();
         mockUser.setId(99);
         mockUser.setBalance(new BigDecimal("9999999.00")); // Anti joy-bidding requires sufficient balance
     }
-    // Test 1: ĐẶT GIÁ HỢP LỆ
+    // Test 1: Äáº¶T GIÃ Há»¢P Lá»†
     @Test
-    @DisplayName("Đặt giá hợp lệ: Giá mới lớn hơn giá hiện tại")
+    @DisplayName("Äáº·t giÃ¡ há»£p lá»‡: GiÃ¡ má»›i lá»›n hÆ¡n giÃ¡ hiá»‡n táº¡i")
     public void testBid_HopLe() {
-        // 1. Giả lập Database trả về dữ liệu khi được gọi
+        // 1. Giáº£ láº­p Database tráº£ vá» dá»¯ liá»‡u khi Ä‘Æ°á»£c gá»i
         when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
         when(userRepository.findById(99)).thenReturn(Optional.of(mockUser));
 
-        // 2. Chạy hành động đặt giá (Giá mới = 15000 >= 11000)
+        // 2. Cháº¡y hÃ nh Ä‘á»™ng Ä‘áº·t giÃ¡ (GiÃ¡ má»›i = 15000 >= 11000)
         BigDecimal validBidPrice = new BigDecimal("15000.00");
         BidResponse response = auctionService.updateBid(1, 99, validBidPrice);
 
-        System.out.println("LÝ DO THẤT BẠI: " + response.getMessage());
-        // 3. Kiểm chứng
-        assertTrue(response.isSuccess(), "Response phải trả về true");
-        assertEquals(validBidPrice, mockSession.getCurrentPrice(), "Giá của session phải được cập nhật");
+        System.out.println("LÃ DO THáº¤T Báº I: " + response.getMessage());
+        // 3. Kiá»ƒm chá»©ng
+        assertTrue(response.isSuccess(), "Response pháº£i tráº£ vá» true");
+        assertEquals(validBidPrice, mockSession.getCurrentPrice(), "GiÃ¡ cá»§a session pháº£i Ä‘Æ°á»£c cáº­p nháº­t");
 
-        // 4. Kiểm tra xem Database có được gọi lệnh 'save' không?
-        verify(bidRepository, times(1)).save(any(Bid.class)); // Bảng bids phải được lưu 1 lần
-        verify(auctionSessionRepository, times(1)).save(mockSession); // Bảng session phải được cập nhật
+        // 4. Kiá»ƒm tra xem Database cÃ³ Ä‘Æ°á»£c gá»i lá»‡nh 'save' khÃ´ng?
+        verify(bidRepository, times(1)).save(any(Bid.class)); // Báº£ng bids pháº£i Ä‘Æ°á»£c lÆ°u 1 láº§n
+        verify(auctionSessionRepository, times(1)).save(mockSession); // Báº£ng session pháº£i Ä‘Æ°á»£c cáº­p nháº­t
     }
 
-    // Test 2: ĐẶT GIÁ KHÔNG HỢP LỆ (Giá quá thấp)
+    // Test 2: Äáº¶T GIÃ KHÃ”NG Há»¢P Lá»† (GiÃ¡ quÃ¡ tháº¥p)
     @Test
-    @DisplayName("Đặt giá không hợp lệ: Giá mới nhỏ hơn hoặc bằng giá hiện tại")
+    @DisplayName("Äáº·t giÃ¡ khÃ´ng há»£p lá»‡: GiÃ¡ má»›i nhá» hÆ¡n hoáº·c báº±ng giÃ¡ hiá»‡n táº¡i")
     public void testBid_KhongHopLe_GiaThap() {
-        // 1. Giả lập Database
+        // 1. Giáº£ láº­p Database
         when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
-        // Không cần mock User vì code sẽ bị chặn trước khi gọi đến User
+        // KhÃ´ng cáº§n mock User vÃ¬ code sáº½ bá»‹ cháº·n trÆ°á»›c khi gá»i Ä‘áº¿n User
 
-        // 2. Đặt giá (Giá mới = 900 < 1000)
+        // 2. Äáº·t giÃ¡ (GiÃ¡ má»›i = 900 < 1000)
         BigDecimal invalidBidPrice = new BigDecimal("900.00");
         BidResponse response = auctionService.updateBid(1, 99, invalidBidPrice);
 
-        // 3. Kiểm chứng
-        assertFalse(response.isSuccess(), "Response phải trả về false");
-        assertEquals(new BigDecimal("1000.00"), mockSession.getCurrentPrice(), "Giá của session không được phép thay đổi");
+        // 3. Kiá»ƒm chá»©ng
+        assertFalse(response.isSuccess(), "Response pháº£i tráº£ vá» false");
+        assertEquals(new BigDecimal("1000.00"), mockSession.getCurrentPrice(), "GiÃ¡ cá»§a session khÃ´ng Ä‘Æ°á»£c phÃ©p thay Ä‘á»•i");
 
-        // 4. Đảm bảo Database KHÔNG BỊ GHI rác
+        // 4. Äáº£m báº£o Database KHÃ”NG Bá»Š GHI rÃ¡c
         verify(bidRepository, never()).save(any(Bid.class));
         verify(auctionSessionRepository, never()).save(any(AuctionSession.class));
     }
@@ -178,29 +178,29 @@ public class AuctionServiceTest {
         verify(auctionSessionRepository).save(mockSession);
     }
 
-    // Test 3: KẾT THÚC PHIÊN ĐẤU GIÁ
+    // Test 3: Káº¾T THÃšC PHIÃŠN Äáº¤U GIÃ
 
     @Test
-    @DisplayName("Kết thúc phiên: Cập nhật trạng thái thành CLOSED")
+    @DisplayName("Káº¿t thÃºc phiÃªn: Cáº­p nháº­t tráº¡ng thÃ¡i thÃ nh CLOSED")
     public void testKetThucPhien_HopLe() {
-        // 1. Giả lập Database
+        // 1. Giáº£ láº­p Database
         when(auctionSessionRepository.findById(1)).thenReturn(Optional.of(mockSession));
 
-        // 2. Chạy hành động
+        // 2. Cháº¡y hÃ nh Ä‘á»™ng
         boolean isSuccess = auctionService.endSession(1);
 
-        // 3. Kiểm chứng
+        // 3. Kiá»ƒm chá»©ng
         assertTrue(isSuccess);
-        assertEquals(AuctionStatus.ENDED, mockSession.getStatus(), "Trạng thái phải chuyển thành CLOSED");
+        assertEquals(AuctionStatus.ENDED, mockSession.getStatus(), "Tráº¡ng thÃ¡i pháº£i chuyá»ƒn thÃ nh CLOSED");
 
-        // 4. Đảm bảo đã lưu xuống DB
+        // 4. Äáº£m báº£o Ä‘Ã£ lÆ°u xuá»‘ng DB
         verify(auctionSessionRepository, times(1)).save(mockSession);
     }
 
     @Test
-    @DisplayName("Kết thúc phiên: Cập nhật trạng thái thành ENDED và lưu winner chính thức")
+    @DisplayName("Káº¿t thÃºc phiÃªn: Cáº­p nháº­t tráº¡ng thÃ¡i thÃ nh ENDED vÃ  lÆ°u winner chÃ­nh thá»©c")
     public void testKetThucPhien_SetsWinnerAndPersists() {
-        // 1. Giả lập Database
+        // 1. Giáº£ láº­p Database
         mockSession.setStatus(AuctionStatus.ACTIVE);
         mockSession.setHighestBidderId(null);
         mockSession.setWinner(null);
@@ -216,21 +216,21 @@ public class AuctionServiceTest {
         when(bidRepository.findWinningBidsForSessions(List.of(1))).thenReturn(List.of(winningBid));
         when(userRepository.findById(99)).thenReturn(Optional.of(winningBidder));
 
-        // 2. Chạy hành động
+        // 2. Cháº¡y hÃ nh Ä‘á»™ng
         boolean isSuccess = auctionService.endSession(1);
 
-        // 3. Kiểm chứng
+        // 3. Kiá»ƒm chá»©ng
         assertTrue(isSuccess);
-        assertEquals(AuctionStatus.ENDED, mockSession.getStatus(), "Trạng thái phải chuyển thành ENDED");
-        assertEquals(new BigDecimal("50000.00"), mockSession.getCurrentPrice(), "Giá phiên phải là giá bid thắng");
-        assertEquals(99, mockSession.getHighestBidderId(), "ID bidder cao nhất phải là 99");
-        assertSame(winningBidder, mockSession.getWinner(), "Winner của session phải được set là winningBidder");
+        assertEquals(AuctionStatus.ENDED, mockSession.getStatus(), "Tráº¡ng thÃ¡i pháº£i chuyá»ƒn thÃ nh ENDED");
+        assertEquals(new BigDecimal("50000.00"), mockSession.getCurrentPrice(), "GiÃ¡ phiÃªn pháº£i lÃ  giÃ¡ bid tháº¯ng");
+        assertEquals(99, mockSession.getHighestBidderId(), "ID bidder cao nháº¥t pháº£i lÃ  99");
+        assertSame(winningBidder, mockSession.getWinner(), "Winner cá»§a session pháº£i Ä‘Æ°á»£c set lÃ  winningBidder");
 
-        // 4. Kiểm tra balances
-        assertEquals(0, new BigDecimal("950000.00").compareTo(winningBidder.getBalance()), "Winner balance phải trừ 50000");
-        assertEquals(0, BigDecimal.ZERO.compareTo(winningBidder.getFrozenBalance()), "Winner frozenBalance phải giải tỏa 50000");
+        // 4. Kiá»ƒm tra balances
+        assertEquals(0, new BigDecimal("950000.00").compareTo(winningBidder.getBalance()), "Winner balance pháº£i trá»« 50000");
+        assertEquals(0, BigDecimal.ZERO.compareTo(winningBidder.getFrozenBalance()), "Winner frozenBalance pháº£i giáº£i tá»a 50000");
 
-        // 5. Đảm bảo đã lưu xuống DB
+        // 5. Äáº£m báº£o Ä‘Ã£ lÆ°u xuá»‘ng DB
         verify(auctionSessionRepository, times(1)).save(mockSession);
     }
 
@@ -705,6 +705,186 @@ public class AuctionServiceTest {
         assertEquals(500, mockSession.getDeliveryAddress().length());
         assertEquals(500, mockSession.getDeliveryNote().length());
         assertNotNull(mockSession.getDeliverySubmittedAt());
+        verify(auctionSessionRepository).save(mockSession);
+    }
+
+
+    @Test
+    @DisplayName("updateBid extends end time when bid arrives in the final minute")
+    public void updateBid_extendsEndTimeInFinalMinute() {
+        LocalDateTime originalEndTime = LocalDateTime.now().plusSeconds(30);
+        mockSession.setCurrentPrice(new BigDecimal("10000.00"));
+        mockSession.setEndTime(originalEndTime);
+        mockUser.setBalance(new BigDecimal("100000.00"));
+        mockUser.setFrozenBalance(BigDecimal.ZERO);
+        when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
+        when(userRepository.findById(99)).thenReturn(Optional.of(mockUser));
+        when(bidRepository.countBySessionId(1)).thenReturn(6);
+
+        BidResponse response = auctionService.updateBid(1, 99, new BigDecimal("25000.00"));
+
+        assertTrue(response.isSuccess());
+        assertNotNull(response.getNewEndTime());
+        assertEquals(originalEndTime.plusSeconds(60), mockSession.getEndTime());
+        assertEquals(Integer.valueOf(6), response.getBidCount());
+        verify(bidRepository).save(any(Bid.class));
+        verify(auctionSessionRepository).save(mockSession);
+    }
+
+    @Test
+    @DisplayName("updateBid uses dynamic increments for higher price bands")
+    public void updateBid_usesDynamicIncrementBands() {
+        assertMinimumBidMessage(new BigDecimal("100000.00"), new BigDecimal("119999.00"), "120000.00");
+        assertMinimumBidMessage(new BigDecimal("1000000.00"), new BigDecimal("1099999.00"), "1100000.00");
+        assertMinimumBidMessage(new BigDecimal("5000000.00"), new BigDecimal("5199999.00"), "5200000.00");
+        assertMinimumBidMessage(new BigDecimal("10000000.00"), new BigDecimal("10499999.00"), "10500000.00");
+        assertMinimumBidMessage(new BigDecimal("50000000.00"), new BigDecimal("50999999.00"), "51000000.00");
+    }
+
+    private void assertMinimumBidMessage(BigDecimal currentPrice, BigDecimal attemptedBid, String expectedMinimum) {
+        AuctionSession session = new AuctionSession();
+        session.setId(1);
+        session.setStatus(AuctionStatus.ACTIVE);
+        session.setCurrentPrice(currentPrice);
+        session.setStepPrice(new BigDecimal("1000.00"));
+        reset(auctionSessionRepository, userRepository, bidRepository, autoBidConfigRepository);
+        when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(session));
+
+        BidResponse response = auctionService.updateBid(1, 99, attemptedBid);
+
+        assertFalse(response.isSuccess());
+        assertTrue(response.getMessage().contains(expectedMinimum), "Expected minimum " + expectedMinimum + " in: " + response.getMessage());
+        verify(userRepository, never()).findById(anyInt());
+    }
+
+    @Test
+    @DisplayName("resolveAutoBids executes auto bid, releases previous top bidder and deactivates capped configs")
+    public void resolveAutoBids_executesAutoBidAndDeactivatesCappedConfigs() {
+        LocalDateTime originalEndTime = LocalDateTime.now().plusSeconds(30);
+        mockSession.setCurrentPrice(new BigDecimal("10000.00"));
+        mockSession.setHighestBidderId(77);
+        mockSession.setEndTime(originalEndTime);
+
+        User autoBidder = new User();
+        autoBidder.setId(99);
+        autoBidder.setBalance(new BigDecimal("100000.00"));
+        autoBidder.setFrozenBalance(BigDecimal.ZERO);
+
+        User oldTopBidder = new User();
+        oldTopBidder.setId(77);
+        oldTopBidder.setBalance(new BigDecimal("100000.00"));
+        oldTopBidder.setFrozenBalance(new BigDecimal("10000.00"));
+
+        AutoBidConfig winner = new AutoBidConfig(1, 99, new BigDecimal("50000.00"), new BigDecimal("1000.00"));
+        winner.setId(1);
+        AutoBidConfig capped = new AutoBidConfig(1, 88, new BigDecimal("20000.00"), new BigDecimal("1000.00"));
+        capped.setId(2);
+
+        when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
+        when(autoBidConfigRepository.findBySessionIdAndActiveTrueOrderByMaxBidDesc(1)).thenReturn(List.of(winner, capped));
+        when(userRepository.findById(99)).thenReturn(Optional.of(autoBidder));
+        when(userRepository.findById(77)).thenReturn(Optional.of(oldTopBidder));
+        when(bidRepository.countBySessionId(1)).thenReturn(7);
+
+        BidResponse response = auctionService.resolveAutoBids(1);
+
+        assertNotNull(response);
+        assertTrue(response.isSuccess());
+        assertEquals("Auto-bid: Price has been automatically raised!", response.getMessage());
+        assertEquals(0, new BigDecimal("20000.00").compareTo(response.getCurrentPrice()));
+        assertEquals(Integer.valueOf(99), response.getHighestBidderId());
+        assertEquals(Integer.valueOf(77), response.getPreviousHighestBidderId());
+        assertEquals(Integer.valueOf(7), response.getBidCount());
+        assertEquals(originalEndTime.plusSeconds(60), mockSession.getEndTime());
+        assertEquals(0, new BigDecimal("20000.00").compareTo(autoBidder.getFrozenBalance()));
+        assertEquals(0, BigDecimal.ZERO.compareTo(oldTopBidder.getFrozenBalance()));
+        assertFalse(capped.isActive());
+        verify(autoBidConfigRepository).save(capped);
+        verify(bidRepository).save(any(Bid.class));
+        verify(auctionSessionRepository).save(mockSession);
+    }
+
+    @Test
+    @DisplayName("resolveAutoBids returns null when auto bidder no longer exists")
+    public void resolveAutoBids_returnsNullWhenAutoBidderMissing() {
+        mockSession.setCurrentPrice(new BigDecimal("10000.00"));
+        AutoBidConfig winner = new AutoBidConfig(1, 99, new BigDecimal("50000.00"), new BigDecimal("1000.00"));
+        winner.setId(1);
+        when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
+        when(autoBidConfigRepository.findBySessionIdAndActiveTrueOrderByMaxBidDesc(1)).thenReturn(List.of(winner));
+        when(userRepository.findById(99)).thenReturn(Optional.empty());
+
+        assertNull(auctionService.resolveAutoBids(1));
+
+        verify(bidRepository, never()).save(any(Bid.class));
+        verify(auctionSessionRepository, never()).save(any(AuctionSession.class));
+    }
+
+    @Test
+    @DisplayName("resolveAutoBids deactivates winner config when balance is insufficient")
+    public void resolveAutoBids_deactivatesWinnerWhenBalanceInsufficient() {
+        mockSession.setCurrentPrice(new BigDecimal("10000.00"));
+        AutoBidConfig winner = new AutoBidConfig(1, 99, new BigDecimal("50000.00"), new BigDecimal("1000.00"));
+        winner.setId(1);
+        User poorBidder = new User();
+        poorBidder.setId(99);
+        poorBidder.setBalance(new BigDecimal("1000.00"));
+        poorBidder.setFrozenBalance(BigDecimal.ZERO);
+        when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
+        when(autoBidConfigRepository.findBySessionIdAndActiveTrueOrderByMaxBidDesc(1)).thenReturn(List.of(winner));
+        when(userRepository.findById(99)).thenReturn(Optional.of(poorBidder));
+
+        assertNull(auctionService.resolveAutoBids(1));
+
+        assertFalse(winner.isActive());
+        verify(autoBidConfigRepository).save(winner);
+        verify(bidRepository, never()).save(any(Bid.class));
+    }
+
+    @Test
+    @DisplayName("resolveAutoBids returns null when saving bid fails")
+    public void resolveAutoBids_returnsNullWhenSavingBidFails() {
+        mockSession.setCurrentPrice(new BigDecimal("10000.00"));
+        AutoBidConfig winner = new AutoBidConfig(1, 99, new BigDecimal("50000.00"), new BigDecimal("1000.00"));
+        winner.setId(1);
+        User autoBidder = new User();
+        autoBidder.setId(99);
+        autoBidder.setBalance(new BigDecimal("100000.00"));
+        autoBidder.setFrozenBalance(BigDecimal.ZERO);
+        when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
+        when(autoBidConfigRepository.findBySessionIdAndActiveTrueOrderByMaxBidDesc(1)).thenReturn(List.of(winner));
+        when(userRepository.findById(99)).thenReturn(Optional.of(autoBidder));
+        when(bidRepository.save(any(Bid.class))).thenThrow(new RuntimeException("db down"));
+
+        assertNull(auctionService.resolveAutoBids(1));
+
+        verify(auctionSessionRepository, never()).save(any(AuctionSession.class));
+    }
+
+    @Test
+    @DisplayName("endSession credits seller after winner deduction")
+    public void endSession_creditsSellerWhenSellerExists() {
+        Seller seller = new Seller();
+        seller.setId(55);
+        seller.setBalance(new BigDecimal("100000.00"));
+        mockSession.setSeller(seller);
+        mockSession.setCurrentPrice(new BigDecimal("50000.00"));
+        mockSession.setHighestBidderId(99);
+        mockUser.setBalance(new BigDecimal("200000.00"));
+        mockUser.setFrozenBalance(new BigDecimal("50000.00"));
+        when(auctionSessionRepository.findById(1)).thenReturn(Optional.of(mockSession));
+        when(bidRepository.findWinningBidsForSessions(List.of(1))).thenReturn(List.of());
+        when(userRepository.findById(99)).thenReturn(Optional.of(mockUser));
+        when(userRepository.findById(55)).thenReturn(Optional.of(seller));
+
+        assertTrue(auctionService.endSession(1));
+
+        assertEquals(AuctionStatus.ENDED, mockSession.getStatus());
+        assertEquals(0, new BigDecimal("150000.00").compareTo(mockUser.getBalance()));
+        assertEquals(0, BigDecimal.ZERO.compareTo(mockUser.getFrozenBalance()));
+        assertEquals(0, new BigDecimal("150000.00").compareTo(seller.getBalance()));
+        verify(userRepository).save(mockUser);
+        verify(userRepository).save(seller);
         verify(auctionSessionRepository).save(mockSession);
     }
 
