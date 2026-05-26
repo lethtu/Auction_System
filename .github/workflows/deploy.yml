@@ -19,10 +19,42 @@ jobs:
         working-directory: ./server
         run: mvn clean package -DskipTests
 
-      - name: Publish server
-        uses: huggingface/hub-sync@v0.1.0
-        with:
-          github_repo_id: lethtu/Auction_System
-          huggingface_repo_id: tbttkc/host-server-btl
-          hf_token: ${{ secrets.TOKEN }}
-          space_sdk: docker
+      - name: Prepare Hugging Face Space
+        run: |
+          mkdir -p hf-space
+          cp -r server hf-space/server
+          cp Dockerfile hf-space/Dockerfile
+
+          cat > hf-space/README.md <<'EOF'
+          ---
+          title: Host Server BTL
+          emoji: 🚀
+          colorFrom: pink
+          colorTo: blue
+          sdk: docker
+          app_port: 7860
+          pinned: false
+          ---
+
+          # Host Server BTL
+          EOF
+
+      - name: Deploy to Space
+        env:
+          HF_TOKEN: ${{ secrets.TOKEN }}
+        run: |
+          pip install huggingface_hub
+          python - <<'PY'
+          import os
+          from huggingface_hub import HfApi
+
+          api = HfApi(token=os.environ["HF_TOKEN"])
+
+          api.upload_folder(
+              folder_path="hf-space",
+              repo_id="tbttkc/host-server-btl",
+              repo_type="space",
+              commit_message="Deploy server",
+              delete_patterns=["*"]
+          )
+          PY
