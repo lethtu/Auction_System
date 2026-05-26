@@ -5,12 +5,14 @@ import com.auction.server.repository.HandleLoginSignup;
 import com.auction.server.util.SessionManager;
 import com.auction.server.view.EmailServer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.HashMap;
@@ -37,6 +39,9 @@ class GoogleAuthControllerEdgeTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private GoogleAuthController googleAuthController;
+
     @MockBean
     private HandleLoginSignup loginSignup;
 
@@ -45,6 +50,12 @@ class GoogleAuthControllerEdgeTest {
 
     @MockBean
     private EmailServer emailServer;
+
+    @BeforeEach
+    void forceMockGoogleConfig() {
+        ReflectionTestUtils.setField(googleAuthController, "clientId", "mock");
+        ReflectionTestUtils.setField(googleAuthController, "clientSecret", "mock");
+    }
 
     @Test
     void googleLogin_mockModeDefaultsEmailAndNameWhenPayloadBlank() throws Exception {
