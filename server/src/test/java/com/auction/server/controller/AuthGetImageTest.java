@@ -1,26 +1,40 @@
 package com.auction.server.controller;
 
+import com.auction.server.service.CloudinaryService;
+import com.auction.server.util.SessionManager;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Comparator;
+import java.util.UUID;
+import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-import com.auction.server.util.SessionManager;
-import com.auction.server.service.CloudinaryService;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
 @WebMvcTest(AuthGetImage.class)
 public class AuthGetImageTest {
@@ -45,8 +59,17 @@ public class AuthGetImageTest {
         System.setProperty("auction.upload.dir", tempDir.toAbsolutePath().toString());
     }
 
+    @AfterEach
+    public void cleanup() throws Exception {
+        System.clearProperty("auction.upload.dir");
+        deleteIfExists(Paths.get("upload", "models_3d", "phase13-model"));
+        deleteIfExists(Paths.get("upload", "models_3d", "phase13-model-fallback"));
+        deleteIfExists(Paths.get("upload", "models_3d", "phase13-serve-model"));
+        Files.deleteIfExists(Paths.get("upload", "avatar", "phase13-avatar.png"));
+    }
+
     @Test
-    @DisplayName("API UploadImage: Upload ảnh thành công -> Trả về 200 và imagePath")
+    @DisplayName("API UploadImage: Upload áº£nh thÃ nh cÃ´ng -> Tráº£ vá» 200 vÃ  imagePath")
     public void testUploadImageSuccess() throws Exception {
         MockMultipartFile file = new MockMultipartFile(
                 "file",
@@ -62,7 +85,7 @@ public class AuthGetImageTest {
     }
 
     @Test
-    @DisplayName("API UploadImage: File không phải ảnh -> Trả về 400")
+    @DisplayName("API UploadImage: File khÃ´ng pháº£i áº£nh -> Tráº£ vá» 400")
     public void testUploadImageInvalidContentType() throws Exception {
         MockMultipartFile file = new MockMultipartFile(
                 "file",
@@ -77,7 +100,7 @@ public class AuthGetImageTest {
     }
 
     @Test
-    @DisplayName("API UploadImage: File có Content-Type application/octet-stream nhưng đuôi .png -> Trả về 200")
+    @DisplayName("API UploadImage: File cÃ³ Content-Type application/octet-stream nhÆ°ng Ä‘uÃ´i .png -> Tráº£ vá» 200")
     public void testUploadImageOctetStreamWithImageExtension() throws Exception {
         MockMultipartFile file = new MockMultipartFile(
                 "file",
@@ -93,7 +116,89 @@ public class AuthGetImageTest {
     }
 
     @Test
-    @DisplayName("API GetImage: File tồn tại -> Trả về 200 và nội dung file")
+    @DisplayName("API UploadImage: File rá»—ng -> Tráº£ vá» 400")
+    public void testUploadImageEmptyFile() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "avatar.png",
+                "image/png",
+                new byte[0]
+        );
+
+        mockMvc.perform(multipart("/api/files/images").file(file))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Image file is empty."));
+    }
+
+    @Test
+    @DisplayName("API UploadImage: Octet-stream vá»›i Ä‘uÃ´i khÃ´ng an toÃ n -> Tráº£ vá» 400")
+    public void testUploadImageOctetStreamWithUnsafeExtension() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "payload.exe",
+                "application/octet-stream",
+                "not_an_image".getBytes()
+        );
+
+        mockMvc.perform(multipart("/api/files/images").file(file))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Only image files are accepted."));
+    }
+
+    @Test
+    @DisplayName("API UploadImage: UUID truyá»n vÃ o Ä‘Æ°á»£c trim vÃ  dÃ¹ng cho local URL")
+    public void testUploadImageUsesTrimmedUuidForLocalStorage() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "avatar.png",
+                "image/png",
+                "fake_image_data_123".getBytes()
+        );
+
+        mockMvc.perform(multipart("/api/files/images")
+                        .file(file)
+                        .param("uuid", " phase13-image "))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.data.imagePath").value("phase13-image"))
+                .andExpect(jsonPath("$.data.imageUrl").value("/api/files/images/phase13-image/phase13-image.png"));
+
+        assertTrue(Files.exists(tempDir.resolve("phase13-image").resolve("phase13-image.png")));
+    }
+
+    @Test
+    @DisplayName("API UploadImage: Cloudinary lá»—i thÃ¬ fallback local")
+    public void testUploadImageCloudinaryFailureFallsBackToLocalStorage() throws Exception {
+        when(cloudinaryService.isConfigured()).thenReturn(true);
+        when(cloudinaryService.uploadFileWithPublicId(
+                any(),
+                eq("auction_system/items/images"),
+                anyString(),
+                eq(false)
+        )).thenThrow(new RuntimeException("cloudinary down"));
+
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "avatar.png",
+                "image/png",
+                "fake_image_data_123".getBytes()
+        );
+
+        mockMvc.perform(multipart("/api/files/images")
+                        .file(file)
+                        .param("uuid", "phase13-fallback"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.data.imagePath").value("phase13-fallback"))
+                .andExpect(jsonPath("$.data.imageUrl").value("/api/files/images/phase13-fallback/phase13-fallback.png"));
+
+        assertTrue(Files.exists(tempDir.resolve("phase13-fallback").resolve("phase13-fallback.png")));
+    }
+
+    @Test
+    @DisplayName("API GetImage: File tá»“n táº¡i -> Tráº£ vá» 200 vÃ  ná»™i dung file")
     public void testServeFileSuccess() throws Exception {
         String fileName = "avatar.png";
         Path fakeFile = tempDir.resolve(fileName);
@@ -106,14 +211,27 @@ public class AuthGetImageTest {
     }
 
     @Test
-    @DisplayName("API GetImage: File không tồn tại -> Trả về 404")
+    @DisplayName("API GetImage: File trong folder tá»“n táº¡i -> Tráº£ vá» 200")
+    public void testServeFileInFolderSuccess() throws Exception {
+        Path folder = tempDir.resolve("phase13-folder");
+        Files.createDirectories(folder);
+        Files.writeString(folder.resolve("avatar.png"), "folder_image_data");
+
+        mockMvc.perform(get("/api/files/images/phase13-folder/avatar.png"))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"avatar.png\""))
+                .andExpect(content().string("folder_image_data"));
+    }
+
+    @Test
+    @DisplayName("API GetImage: File khÃ´ng tá»“n táº¡i -> Tráº£ vá» 404")
     public void testServeFileNotFound() throws Exception {
         mockMvc.perform(get("/api/files/images/tung_pro_123.jpg"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @DisplayName("API GetImage: Lỗi I/O nội bộ -> Trả về 500")
+    @DisplayName("API GetImage: Lá»—i I/O ná»™i bá»™ -> Tráº£ vá» 500")
     public void testServeFileInternalServerError() throws Exception {
         System.setProperty("auction.upload.dir", "invalid\0dir");
 
@@ -122,14 +240,14 @@ public class AuthGetImageTest {
     }
 
     @Test
-    @DisplayName("API UploadImage: Upload ảnh thành công lên Cloudinary -> Trả về 200 và imagePath/imageUrl")
+    @DisplayName("API UploadImage: Upload áº£nh thÃ nh cÃ´ng lÃªn Cloudinary -> Tráº£ vá» 200 vÃ  imagePath/imageUrl")
     public void testUploadImageCloudinarySuccess() throws Exception {
-        org.mockito.Mockito.when(cloudinaryService.isConfigured()).thenReturn(true);
-        org.mockito.Mockito.when(cloudinaryService.uploadFileWithPublicId(
-                org.mockito.Mockito.any(),
-                org.mockito.Mockito.eq("auction_system/items/images"),
-                org.mockito.Mockito.anyString(),
-                org.mockito.Mockito.eq(false)
+        when(cloudinaryService.isConfigured()).thenReturn(true);
+        when(cloudinaryService.uploadFileWithPublicId(
+                any(),
+                eq("auction_system/items/images"),
+                anyString(),
+                eq(false)
         )).thenReturn("https://res.cloudinary.com/testcloud/image/upload/auction_system/items/images/test-uuid.jpg");
 
         MockMultipartFile file = new MockMultipartFile(
@@ -147,14 +265,14 @@ public class AuthGetImageTest {
     }
 
     @Test
-    @DisplayName("API UploadModel3D: Upload file 3D thành công lên Cloudinary -> Trả về 200")
+    @DisplayName("API UploadModel3D: Upload file 3D thÃ nh cÃ´ng lÃªn Cloudinary -> Tráº£ vá» 200")
     public void testUploadModel3DCloudinarySuccess() throws Exception {
-        org.mockito.Mockito.when(cloudinaryService.isConfigured()).thenReturn(true);
-        org.mockito.Mockito.when(cloudinaryService.uploadFileWithPublicId(
-                org.mockito.Mockito.any(),
-                org.mockito.Mockito.eq("auction_system/items/models_3d"),
-                org.mockito.Mockito.anyString(),
-                org.mockito.Mockito.eq(true)
+        when(cloudinaryService.isConfigured()).thenReturn(true);
+        when(cloudinaryService.uploadFileWithPublicId(
+                any(),
+                eq("auction_system/items/models_3d"),
+                anyString(),
+                eq(true)
         )).thenReturn("https://res.cloudinary.com/testcloud/raw/upload/auction_system/items/models_3d/test-uuid.glb");
 
         MockMultipartFile file = new MockMultipartFile(
@@ -169,5 +287,172 @@ public class AuthGetImageTest {
                 .andExpect(jsonPath("$.status").value(200))
                 .andExpect(jsonPath("$.data.model3dPath").isNotEmpty())
                 .andExpect(jsonPath("$.data.model3dUrl").value("https://res.cloudinary.com/testcloud/raw/upload/auction_system/items/models_3d/test-uuid.glb"));
+    }
+
+    @Test
+    @DisplayName("API UploadModel3D: File rá»—ng -> Tráº£ vá» 400")
+    public void testUploadModel3DEmptyFile() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "model.glb",
+                "application/octet-stream",
+                new byte[0]
+        );
+
+        mockMvc.perform(multipart("/api/files/models-3d").file(file))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("File 3D is empty."));
+    }
+
+    @Test
+    @DisplayName("API UploadModel3D: Upload local thÃ nh cÃ´ng khi khÃ´ng cáº¥u hÃ¬nh Cloudinary")
+    public void testUploadModel3DLocalSuccessWithUuid() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "model.glb",
+                "application/octet-stream",
+                "fake_3d_data_123".getBytes()
+        );
+
+        mockMvc.perform(multipart("/api/files/models-3d")
+                        .file(file)
+                        .param("uuid", " phase13-model "))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.data.model3dPath").value("phase13-model"))
+                .andExpect(jsonPath("$.data.model3dUrl").value("/api/files/models-3d/phase13-model/phase13-model.glb"));
+
+        assertTrue(Files.exists(Paths.get("upload", "models_3d", "phase13-model", "phase13-model.glb")));
+    }
+
+    @Test
+    @DisplayName("API UploadModel3D: Cloudinary lá»—i thÃ¬ fallback local")
+    public void testUploadModel3DCloudinaryFailureFallsBackToLocalStorage() throws Exception {
+        when(cloudinaryService.isConfigured()).thenReturn(true);
+        when(cloudinaryService.uploadFileWithPublicId(
+                any(),
+                eq("auction_system/items/models_3d"),
+                anyString(),
+                eq(true)
+        )).thenThrow(new RuntimeException("cloudinary down"));
+
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "model.glb",
+                "application/octet-stream",
+                "fake_3d_data_123".getBytes()
+        );
+
+        mockMvc.perform(multipart("/api/files/models-3d")
+                        .file(file)
+                        .param("uuid", "phase13-model-fallback"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.data.model3dPath").value("phase13-model-fallback"))
+                .andExpect(jsonPath("$.data.model3dUrl").value("/api/files/models-3d/phase13-model-fallback/phase13-model-fallback.glb"));
+
+        assertTrue(Files.exists(Paths.get("upload", "models_3d", "phase13-model-fallback", "phase13-model-fallback.glb")));
+    }
+
+    @Test
+    @DisplayName("API GetModel3D: File tá»“n táº¡i -> Tráº£ vá» 200")
+    public void testServeModel3DSuccess() throws Exception {
+        Path folder = Paths.get("upload", "models_3d", "phase13-serve-model");
+        Files.createDirectories(folder);
+        Files.writeString(folder.resolve("phase13-serve-model.glb"), "model_data");
+
+        mockMvc.perform(get("/api/files/models-3d/phase13-serve-model/phase13-serve-model.glb"))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"phase13-serve-model.glb\""))
+                .andExpect(content().string("model_data"));
+    }
+
+    @Test
+    @DisplayName("API GetModel3D: File khÃ´ng tá»“n táº¡i -> Tráº£ vá» 404")
+    public void testServeModel3DNotFound() throws Exception {
+        mockMvc.perform(get("/api/files/models-3d/missing-folder/missing.glb"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("API GetAvatar: File tá»“n táº¡i -> Tráº£ vá» 200")
+    public void testServeAvatarSuccess() throws Exception {
+        Path avatarRoot = Paths.get("upload", "avatar");
+        Files.createDirectories(avatarRoot);
+        Files.writeString(avatarRoot.resolve("phase13-avatar.png"), "avatar_data");
+
+        mockMvc.perform(get("/api/files/avatar/phase13-avatar.png"))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"phase13-avatar.png\""))
+                .andExpect(content().string("avatar_data"));
+    }
+
+    @Test
+    @DisplayName("API GetAvatar: File khÃ´ng tá»“n táº¡i -> Tráº£ vá» 404")
+    public void testServeAvatarNotFound() throws Exception {
+        mockMvc.perform(get("/api/files/avatar/missing-avatar.png"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("Helper riÃªng: extension, filename vÃ  text Ä‘Æ°á»£c xá»­ lÃ½ an toÃ n")
+    public void testPrivateHelperBranches() {
+        assertEquals(".png", ReflectionTestUtils.invokeMethod(authGetImageController, "getSafeExtension", (String) null));
+        assertEquals(".png", ReflectionTestUtils.invokeMethod(authGetImageController, "getSafeExtension", "no_extension"));
+        assertEquals(".jpg", ReflectionTestUtils.invokeMethod(authGetImageController, "getSafeExtension", "PHOTO.JPG"));
+        assertEquals(".png", ReflectionTestUtils.invokeMethod(authGetImageController, "getSafeExtension", "archive.tar.gz!"));
+        assertEquals(".png", ReflectionTestUtils.invokeMethod(authGetImageController, "getSafeExtension", "file.verylongextension"));
+
+        assertFalse(Boolean.TRUE.equals(ReflectionTestUtils.invokeMethod(authGetImageController, "isSafeImageExtension", (String) null)));
+        assertTrue(Boolean.TRUE.equals(ReflectionTestUtils.invokeMethod(authGetImageController, "isSafeImageExtension", ".PNG")));
+        assertFalse(Boolean.TRUE.equals(ReflectionTestUtils.invokeMethod(authGetImageController, "isSafeImageExtension", ".exe")));
+
+        assertEquals("image", ReflectionTestUtils.invokeMethod(authGetImageController, "safeFileName", (String) null));
+        assertEquals("image", ReflectionTestUtils.invokeMethod(authGetImageController, "safeFileName", "   "));
+        assertEquals("a_b_c___png", ReflectionTestUtils.invokeMethod(authGetImageController, "safeFileName", "a\\b/c\"\r\npng"));
+
+        assertFalse(Boolean.TRUE.equals(ReflectionTestUtils.invokeMethod(authGetImageController, "hasText", (String) null)));
+        assertFalse(Boolean.TRUE.equals(ReflectionTestUtils.invokeMethod(authGetImageController, "hasText", "   ")));
+        assertTrue(Boolean.TRUE.equals(ReflectionTestUtils.invokeMethod(authGetImageController, "hasText", "x")));
+
+        String storedFileName = ReflectionTestUtils.invokeMethod(authGetImageController, "buildStoredFileName", "avatar.jpeg");
+        assertNotNull(storedFileName);
+        assertTrue(storedFileName.endsWith(".jpeg"));
+        UUID.fromString(storedFileName.substring(0, storedFileName.length() - ".jpeg".length()));
+    }
+
+    @Test
+    @DisplayName("Helper riÃªng: serveFrom cháº·n file náº±m ngoÃ i thÆ° má»¥c cho phÃ©p")
+    public void testServeFromRejectsOutsideAllowedRoot() {
+        Path allowedRoot = tempDir.resolve("allowed").toAbsolutePath().normalize();
+        Path outsideFile = tempDir.resolve("outside.png").toAbsolutePath().normalize();
+
+        ResponseEntity<Resource> response = ReflectionTestUtils.invokeMethod(
+                authGetImageController,
+                "serveFrom",
+                outsideFile,
+                allowedRoot
+        );
+
+        assertNotNull(response);
+        assertEquals(400, response.getStatusCode().value());
+    }
+
+    private void deleteIfExists(Path path) throws Exception {
+        if (!Files.exists(path)) {
+            return;
+        }
+
+        try (Stream<Path> stream = Files.walk(path)) {
+            stream.sorted(Comparator.reverseOrder())
+                    .forEach(current -> {
+                        try {
+                            Files.deleteIfExists(current);
+                        } catch (Exception ignored) {
+                            // best-effort cleanup for tests
+                        }
+                    });
+        }
     }
 }
