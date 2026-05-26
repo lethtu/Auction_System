@@ -81,7 +81,7 @@ public class DatabaseCompatibilityInitializer implements ApplicationRunner {
         runStatement(
                 "Update auction_sessions.status column enum values",
                 "ALTER TABLE auction_sessions MODIFY COLUMN status "
-                        + "ENUM('ACTIVE','ENDED','CANCELED','COMING','DRAFT') NOT NULL"
+                        + "ENUM('ACTIVE','ENDED','PAID','CANCELED','COMING','DRAFT') NOT NULL"
         );
     }
 

@@ -2367,6 +2367,12 @@ public class MainController implements Initializable {
                 if ("AUCTION_ENDED".equals(event.optString("type"))) {
                     int sessionId = event.getInt("sessionId");
                     Platform.runLater(() -> markCardAsEnded(sessionId));
+                } else if ("USER_PROFILE_UPDATED".equals(event.optString("type"))) {
+                    Platform.runLater(() -> {
+                        if (showingAccountScreen) {
+                            renderAccountScreen(false);
+                        }
+                    });
                 }
             }
 

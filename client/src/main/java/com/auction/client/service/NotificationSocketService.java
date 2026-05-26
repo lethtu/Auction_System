@@ -213,6 +213,70 @@ public class NotificationSocketService {
         }
     }
 
+    public void fetchLatestUserBalance() {
+        if (userId == null) return;
+        notificationExecutor.execute(() -> {
+            try {
+                HttpRequest.Builder builder = HttpRequest.newBuilder()
+                        .uri(URI.create(Config.API_URL + "/api/users/" + userId))
+                        .GET();
+                if (User.getSessionToken() != null) {
+                    builder.header("X-Auth-Token", User.getSessionToken());
+                }
+                HttpRequest request = builder.build();
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                if (response.statusCode() == 200) {
+                    JSONObject responseJson = new JSONObject(response.body());
+                    if (responseJson.optInt("status", 500) == 200) {
+                        JSONObject data = responseJson.optJSONObject("data");
+                        if (data != null) {
+                            BigDecimal balance = new BigDecimal(data.opt("balance").toString());
+                            BigDecimal frozen = new BigDecimal(data.opt("frozenBalance").toString());
+                            User.updateProfile(
+                                    data.optString("username", User.getUsername()),
+                                    data.optString("fullname", User.getFullname()),
+                                    data.optString("email", User.getEmail()),
+                                    data.optString("dob", User.getDob()),
+                                    data.optString("placeOfBirth",
+                                            data.optString("place_of_birth", User.getPlace_of_birth())),
+                                    balance,
+                                    frozen,
+                                    data.optString("avatarUrl", data.optString("avatar_url", User.getAvatarUrl())));
+                            
+                            // Propagate UI update event
+                            javafx.application.Platform.runLater(() -> {
+                                try {
+                                    JSONObject userUpdate = new JSONObject();
+                                    userUpdate.put("type", "USER_PROFILE_UPDATED");
+                                    userUpdate.put("userId", userId);
+                                    userUpdate.put("balance", balance);
+                                    userUpdate.put("frozenBalance", frozen);
+                                    
+                                    for (java.lang.ref.WeakReference<SocketEventListener> ref : listeners) {
+                                        SocketEventListener l = ref.get();
+                                        if (l != null) {
+                                            try {
+                                                l.onEvent(userUpdate);
+                                            } catch (Exception ex) {
+                                                logger.error("Error sending user update to listener: {}", ex.getMessage());
+                                            }
+                                        } else {
+                                            listeners.remove(ref);
+                                        }
+                                    }
+                                } catch (Exception e) {
+                                    logger.error("Error creating/sending user update event: {}", e.getMessage());
+                                }
+                            });
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                logger.warn("Failed to fetch latest user balance: {}", e.getMessage());
+            }
+        });
+    }
+
     private void processNoticeNotification(JSONObject noticeObj) {
         try {
             int auctionId = noticeObj.optInt("auctionId", -1);
@@ -240,6 +304,7 @@ public class NotificationSocketService {
                 notif.setAuctionId(auctionId);
                 notif.setItemName(itemName);
                 NotificationCenterService.getInstance().addNotification(notif);
+                fetchLatestUserBalance();
             }
         } catch (Exception e) {
             logger.error("Error processing notice notification: {}", e.getMessage(), e);
@@ -311,6 +376,7 @@ public class NotificationSocketService {
                         notif.setItemName(itemName);
                         NotificationCenterService.getInstance().addNotification(notif);
                     }
+                    fetchLatestUserBalance();
                 }
             } catch (Exception e) {
                 logger.warn("Failed to fetch/notify auction end details for session {}: {}", sessionId, e.getMessage());
@@ -332,6 +398,8 @@ public class NotificationSocketService {
 
         if (winnerId != null) {
             if (!currentUserId.equals(winnerId)) {
+                // If it's not us, we still might have participated and lost, so check and update
+                fetchAndNotifyAuctionEnd(sessionId);
                 return;
             }
 
@@ -347,6 +415,7 @@ public class NotificationSocketService {
             notif.setActionLabel("Enter delivery info");
             notif.setAction(() -> ShippingInfoDialog.show(sessionId, itemName));
             NotificationCenterService.getInstance().addNotification(notif);
+            fetchLatestUserBalance();
             return;
         }
 

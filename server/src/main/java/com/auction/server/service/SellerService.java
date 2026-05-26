@@ -162,13 +162,18 @@ public class SellerService {
                 sellerId,
                 AuctionStatus.ENDED
         );
+        List<AuctionSession> paidSessions = auctionSessionRepository.findBySeller_IdAndStatus(
+                sellerId,
+                AuctionStatus.PAID
+        );
 
-        BigDecimal revenue = endedSessions.stream()
+        BigDecimal revenue = paidSessions.stream()
                 .map(AuctionSession::getCurrentPrice)
                 .filter(price -> price != null)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        return new SellerStatsDTO(endedSessions.size(), revenue);
+        int totalEndedCount = endedSessions.size() + paidSessions.size();
+        return new SellerStatsDTO(totalEndedCount, revenue);
     }
 
     private List<AuctionSession> findSessionsBySellerAndStatus(Integer sellerId, String status) {
