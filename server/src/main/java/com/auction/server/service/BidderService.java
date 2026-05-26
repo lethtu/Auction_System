@@ -1,6 +1,11 @@
 package com.auction.server.service;
 
+import com.auction.server.dto.SessionResponseDTO;
+import com.auction.server.mapper.SessionResponseMapper;
+import com.auction.server.model.AuctionSession;
+import com.auction.server.model.Bid;
 import com.auction.server.model.User;
+import com.auction.server.repository.BidRepository;
 import com.auction.server.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -24,9 +30,11 @@ public class BidderService {
     private static final String UPDATE_SUCCESS_MESSAGE = "Account upgraded successfully";
 
     private final UserRepository userRepository;
+    private final BidRepository bidRepository;
 
-    public BidderService(UserRepository userRepository) {
+    public BidderService(UserRepository userRepository, BidRepository bidRepository) {
         this.userRepository = userRepository;
+        this.bidRepository = bidRepository;
     }
 
     @Transactional
@@ -64,6 +72,78 @@ public class BidderService {
             response.put("message", "System error: " + e.getMessage());
             return response;
         }
+    }
+
+    public List<SessionResponseDTO> getMyBids(Integer bidderId) {
+        List<AuctionSession> sessions = bidRepository.findSessionsByBidderId(bidderId);
+        if (sessions.isEmpty()) {
+            return List.of();
+        }
+
+        List<Integer> sessionIds = sessions.stream()
+                .map(AuctionSession::getId)
+                .toList();
+
+        Map<Integer, Object[]> statsBySessionId = loadStatsBySessionId(sessionIds, bidderId);
+        Map<Integer, Bid> winningBidsBySessionId = loadWinningBidsBySessionId(sessionIds);
+
+        return sessions.stream()
+                .map(session -> toMyBidSessionDTO(session, bidderId, statsBySessionId, winningBidsBySessionId))
+                .toList();
+    }
+
+    private Map<Integer, Object[]> loadStatsBySessionId(List<Integer> sessionIds, Integer bidderId) {
+        Map<Integer, Object[]> statsBySessionId = new HashMap<>();
+        for (Object[] row : bidRepository.findSessionStatsForBidder(sessionIds, bidderId)) {
+            statsBySessionId.put((Integer) row[0], row);
+        }
+        return statsBySessionId;
+    }
+
+    private Map<Integer, Bid> loadWinningBidsBySessionId(List<Integer> sessionIds) {
+        Map<Integer, Bid> winningBidsBySessionId = new HashMap<>();
+        for (Bid bid : bidRepository.findWinningBidsForSessions(sessionIds)) {
+            if (bid.getSession() != null) {
+                winningBidsBySessionId.putIfAbsent(bid.getSession().getId(), bid);
+            }
+        }
+        return winningBidsBySessionId;
+    }
+
+    private SessionResponseDTO toMyBidSessionDTO(
+            AuctionSession session,
+            Integer bidderId,
+            Map<Integer, Object[]> statsBySessionId,
+            Map<Integer, Bid> winningBidsBySessionId) {
+        Object[] stats = statsBySessionId.get(session.getId());
+        int bidCount = stats == null ? 0 : ((Number) stats[1]).intValue();
+
+        SessionResponseDTO dto = SessionResponseMapper.toDTO(session, bidCount);
+        dto.setUserMaxBid(stats == null ? null : (java.math.BigDecimal) stats[2]);
+
+        Integer winnerId = applyWinningBidSnapshot(dto, session, winningBidsBySessionId.get(session.getId()));
+        if (bidderId.equals(winnerId)) {
+            copyWinnerDeliveryInfo(dto, session);
+        }
+        return dto;
+    }
+
+    private Integer applyWinningBidSnapshot(SessionResponseDTO dto, AuctionSession session, Bid winningBid) {
+        Integer winnerId = session.getHighestBidderId();
+        if (winningBid != null && winningBid.getBidder() != null) {
+            winnerId = winningBid.getBidder().getId();
+            dto.setCurrentPrice(winningBid.getAmount());
+            dto.setHighestBidderId(winnerId);
+        }
+        return winnerId;
+    }
+
+    private void copyWinnerDeliveryInfo(SessionResponseDTO dto, AuctionSession session) {
+        dto.setDeliveryRecipient(session.getDeliveryRecipient());
+        dto.setDeliveryPhone(session.getDeliveryPhone());
+        dto.setDeliveryAddress(session.getDeliveryAddress());
+        dto.setDeliveryNote(session.getDeliveryNote());
+        dto.setDeliverySubmittedAt(session.getDeliverySubmittedAt());
     }
 
     private Map<String, Object> buildResponse(boolean success, String message) {

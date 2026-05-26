@@ -1,10 +1,7 @@
 package com.auction.server.controller;
 
+import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.service.BidderService;
-import com.auction.server.model.AuctionSession;
-import com.auction.server.model.AuctionStatus;
-import com.auction.server.model.Bid;
-import com.auction.server.model.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -15,7 +12,6 @@ import com.auction.server.util.SessionManager;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -111,26 +107,18 @@ public class BidderControllerTest {
     }
 
     @Test
-    @DisplayName("GET /my-bids: recorded highest bid repairs a stale session winner snapshot")
-    public void myBids_UsesRecordedWinningBid_WhenSessionSnapshotIsStale() throws Exception {
+    @DisplayName("GET /my-bids: returns bidder session DTOs from service")
+    public void myBids_ReturnsDtosFromService() throws Exception {
         Mockito.when(sessionManager.getSession("valid_token"))
                 .thenReturn(new SessionManager.SessionUser(10, "bidder_10", "bidder"));
 
-        AuctionSession session = new AuctionSession();
-        session.setId(1);
-        session.setStatus(AuctionStatus.ENDED);
-        session.setCurrentPrice(new BigDecimal("123456"));
-        session.setHighestBidderId(7);
-        session.setDeliveryRecipient("Winner");
+        SessionResponseDTO dto = new SessionResponseDTO();
+        dto.setId(1);
+        dto.setCurrentPrice(new BigDecimal("222222"));
+        dto.setHighestBidderId(10);
+        dto.setDeliveryRecipient("Winner");
 
-        User bidder = new User();
-        bidder.setId(10);
-        Bid winningBid = new Bid(session, bidder, new BigDecimal("222222"), LocalDateTime.now());
-
-        Mockito.when(bidRepository.findSessionsByBidderId(10)).thenReturn(List.of(session));
-        Mockito.when(bidRepository.findSessionStatsForBidder(List.of(1), 10))
-                .thenReturn(List.<Object[]>of(new Object[] { 1, 1L, new BigDecimal("222222") }));
-        Mockito.when(bidRepository.findWinningBidsForSessions(List.of(1))).thenReturn(List.of(winningBid));
+        Mockito.when(bidderService.getMyBids(10)).thenReturn(List.of(dto));
 
         mockMvc.perform(get("/api/bidder/my-bids")
                         .header("X-Auth-Token", "valid_token")
