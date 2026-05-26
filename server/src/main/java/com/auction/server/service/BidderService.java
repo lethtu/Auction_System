@@ -3,19 +3,27 @@ package com.auction.server.service;
 import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.mapper.SessionResponseMapper;
 import com.auction.server.model.AuctionSession;
+import com.auction.server.model.AuctionStatus;
 import com.auction.server.model.Bid;
 import com.auction.server.model.User;
+import com.auction.server.repository.AuctionSessionRepository;
 import com.auction.server.repository.BidRepository;
 import com.auction.server.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class BidderService {
@@ -31,16 +39,38 @@ public class BidderService {
 
     private final UserRepository userRepository;
     private final BidRepository bidRepository;
+    private final AuctionSessionRepository auctionSessionRepository;
     private final SessionResponseMapper sessionResponseMapper;
 
     public BidderService(
             UserRepository userRepository,
             BidRepository bidRepository,
+            AuctionSessionRepository auctionSessionRepository,
             SessionResponseMapper sessionResponseMapper
     ) {
         this.userRepository = userRepository;
         this.bidRepository = bidRepository;
+        this.auctionSessionRepository = auctionSessionRepository;
         this.sessionResponseMapper = sessionResponseMapper;
+    }
+
+    public Page<AuctionSession> getActiveSessions(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "startTime"));
+        return auctionSessionRepository.findByStatus(AuctionStatus.ACTIVE, pageable);
+    }
+
+    public List<AuctionSession> getMyBiddingSessions(Integer bidderId) {
+        return bidRepository.findDistinctSessionsByBidderId(bidderId);
+    }
+
+    @Transactional
+    public Optional<BigDecimal> depositMoney(Integer bidderId, BigDecimal amount) {
+        return userRepository.findById(bidderId)
+                .map(user -> {
+                    user.setBalance(user.getBalance().add(amount));
+                    userRepository.save(user);
+                    return user.getBalance();
+                });
     }
 
     @Transactional

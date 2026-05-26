@@ -3,19 +3,12 @@ package com.auction.server.controller;
 import com.auction.server.dto.ApiResponse;
 import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.model.AuctionSession;
-import com.auction.server.model.AuctionStatus;
-import com.auction.server.repository.AuctionSessionRepository;
-import com.auction.server.repository.BidRepository;
-import com.auction.server.repository.UserRepository;
 import com.auction.server.service.BidderService;
 import com.auction.server.util.SessionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,15 +29,6 @@ public class BidderController {
     private BidderService bidderService;
 
     @Autowired
-    private AuctionSessionRepository auctionSessionRepository;
-
-    @Autowired
-    private BidRepository bidRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
     private SessionManager sessionManager;
 
     // API to get active auction sessions (paginated)
@@ -53,13 +37,7 @@ public class BidderController {
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size) {
         logger.info("Fetching auction session list");
-        // Sort by newest first (startTime descending)
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "startTime"));
-
-        // Call paginated query from Repository with ACTIVE status
-        Page<AuctionSession> activeSessions = auctionSessionRepository.findByStatus(AuctionStatus.ACTIVE, pageable);
-
-        // Wrap data in standard ApiResponse format
+        Page<AuctionSession> activeSessions = bidderService.getActiveSessions(page, size);
         return new ApiResponse<>(200, "Active auction sessions retrieved successfully", activeSessions);
     }
 
@@ -69,19 +47,15 @@ public class BidderController {
             return new ApiResponse<>(400, "Invalid bidderId", List.of());
         }
 
-        List<AuctionSession> sessions = bidRepository.findDistinctSessionsByBidderId(bidderId);
+        List<AuctionSession> sessions = bidderService.getMyBiddingSessions(bidderId);
         return new ApiResponse<>(200, "Bidder's auction sessions retrieved successfully", sessions);
     }
 
     // API to deposit money
     @PostMapping("/deposit")
     public ResponseEntity<?> depositMoney(@RequestParam Integer bidderId, @RequestParam BigDecimal amount) {
-        return userRepository.findById(bidderId)
-                .map(user -> {
-                    user.setBalance(user.getBalance().add(amount));
-                    userRepository.save(user);
-                    return ResponseEntity.ok("New balance: " + user.getBalance());
-                })
+        return bidderService.depositMoney(bidderId, amount)
+                .map(balance -> ResponseEntity.ok("New balance: " + balance))
                 .orElse(ResponseEntity.notFound().build());
     }
 

@@ -9,6 +9,7 @@ import com.auction.server.model.Bid;
 import com.auction.server.model.Bidder;
 import com.auction.server.model.Seller;
 import com.auction.server.model.User;
+import com.auction.server.repository.AuctionSessionRepository;
 import com.auction.server.repository.BidRepository;
 import com.auction.server.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +30,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.never;
@@ -44,6 +46,9 @@ public class BidderServiceTest {
 
     @Mock
     private BidRepository bidRepository;
+
+    @Mock
+    private AuctionSessionRepository auctionSessionRepository;
 
     @Spy
     private SessionResponseMapper sessionResponseMapper = new SessionResponseMapper();
@@ -135,6 +140,49 @@ public class BidderServiceTest {
         assertEquals("Account is not a BIDDER or is already a SELLER", result.get("message"));
 
         verify(userRepository, never()).updateRoleById(anyInt(), anyString());
+    }
+
+    @Test
+    @DisplayName("getActiveSessions: delegates paging query to repository")
+    public void getActiveSessions_DelegatesToRepository() {
+        AuctionSession session = new AuctionSession();
+        session.setId(20);
+
+        when(auctionSessionRepository.findByStatus(
+                org.mockito.ArgumentMatchers.eq(AuctionStatus.ACTIVE),
+                any()
+        )).thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(session)));
+
+        org.springframework.data.domain.Page<AuctionSession> result = bidderService.getActiveSessions(0, 10);
+
+        assertEquals(1, result.getContent().size());
+        assertEquals(20, result.getContent().get(0).getId());
+    }
+
+    @Test
+    @DisplayName("getMyBiddingSessions: delegates bidder session lookup to repository")
+    public void getMyBiddingSessions_DelegatesToRepository() {
+        AuctionSession session = new AuctionSession();
+        session.setId(30);
+
+        when(bidRepository.findDistinctSessionsByBidderId(10)).thenReturn(List.of(session));
+
+        List<AuctionSession> result = bidderService.getMyBiddingSessions(10);
+
+        assertEquals(1, result.size());
+        assertEquals(30, result.get(0).getId());
+    }
+
+    @Test
+    @DisplayName("depositMoney: updates balance and saves user")
+    public void depositMoney_UpdatesBalanceAndSavesUser() {
+        when(userRepository.findById(10)).thenReturn(Optional.of(mockBidder));
+
+        Optional<BigDecimal> result = bidderService.depositMoney(10, BigDecimal.valueOf(100));
+
+        assertTrue(result.isPresent());
+        assertEquals(BigDecimal.valueOf(600), result.get());
+        verify(userRepository, times(1)).save(mockBidder);
     }
 
     @Test
