@@ -55,6 +55,10 @@ jobs:
             echo "Data.sql not found, skipping database import."
           fi
 
+      - name: Check Code Convention (Checkstyle)
+        working-directory: server
+        run: mvn -B checkstyle:check
+
       - name: Build and Test Server
         working-directory: server
         run: mvn -B clean test
@@ -76,6 +80,10 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y xvfb libgtk-3-0 libxrender1 libxtst6 libxi6
+
+      - name: Check Code Convention (Checkstyle)
+        working-directory: client
+        run: mvn -B checkstyle:check
 
       - name: Build and Test Client
         working-directory: client

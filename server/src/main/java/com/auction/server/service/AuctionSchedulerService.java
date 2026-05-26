@@ -67,7 +67,7 @@ public class AuctionSchedulerService {
                         endEvent.put("type", "AUCTION_ENDED");
                         endEvent.put("sessionId", updated.getId());
                         endEvent.put("finalStatus", updated.getStatus().name());
-                        boolean hasWinner = updated.getStatus() == AuctionStatus.ENDED
+                        boolean hasWinner = updated.getStatus() == AuctionStatus.PAID
                                 && updated.getHighestBidderId() != null;
                         endEvent.put("hasWinner", hasWinner);
                         if (hasWinner) {

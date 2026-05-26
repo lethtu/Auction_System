@@ -342,6 +342,7 @@ public class MyBidsController implements Initializable {
             return false;
         }
         return "ENDED".equals(status)
+                || "PAID".equals(status)
                 || "CLOSED".equals(status)
                 || "COMPLETED".equals(status)
                 || "FINISHED".equals(status)
@@ -363,7 +364,7 @@ public class MyBidsController implements Initializable {
     private boolean isWonSession(JSONObject sessionObj, int currentUserId) {
         String status = normalizeSessionStatus(sessionObj);
         boolean completed = "ENDED".equals(status) || "CLOSED".equals(status)
-                || "COMPLETED".equals(status) || "FINISHED".equals(status);
+                || "COMPLETED".equals(status) || "FINISHED".equals(status) || "PAID".equals(status);
         return completed && sessionObj.optInt("highestBidderId", -1) == currentUserId;
     }
 
@@ -396,6 +397,7 @@ public class MyBidsController implements Initializable {
         }
         String normalized = status.trim();
         return "ENDED".equalsIgnoreCase(normalized)
+                || "PAID".equalsIgnoreCase(normalized)
                 || "CLOSED".equalsIgnoreCase(normalized)
                 || "COMPLETED".equalsIgnoreCase(normalized)
                 || "FINISHED".equalsIgnoreCase(normalized)

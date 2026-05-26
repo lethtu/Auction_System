@@ -164,7 +164,7 @@ public class AdminService {
 
         AuctionSession session = getSessionById(sessionId);
 
-        if (session.getStatus() == AuctionStatus.ENDED || session.getStatus() == AuctionStatus.CANCELED) {
+        if (session.getStatus() == AuctionStatus.ENDED || session.getStatus() == AuctionStatus.PAID || session.getStatus() == AuctionStatus.CANCELED) {
             throw new IllegalArgumentException(ERROR_CANCEL_FINISHED_SESSION);
         }
 

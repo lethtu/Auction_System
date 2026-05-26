@@ -145,34 +145,39 @@ public class AuctionService {
         if (sessionOpt.isPresent()) {
             AuctionSession session = sessionOpt.get();
             reconcileSessionResultFromBids(session);
-            if (Boolean.TRUE.equals(session.getApplyMinRate()) && session.getMinRate() != null) {
-                if (session.getCurrentPrice() != null && session.getCurrentPrice().compareTo(session.getMinRate()) >= 0) {
-                    session.setStatus(AuctionStatus.ENDED);
-                    finalizeWinnerDeduction(session);
-                } else {
-                    session.setStatus(AuctionStatus.CANCELED);
-                    logger.info("Session ID {} canceled because final price ({}) did not meet min rate ({})",
-                            session.getId(), session.getCurrentPrice(), session.getMinRate());
 
-                    // ============ RELEASE FROZEN BALANCE WHEN SESSION IS CANCELED ============
-                    if (session.getHighestBidderId() != null) {
-                        User topBidder = userRepository.findById(session.getHighestBidderId()).orElse(null);
-                        if (topBidder != null && session.getCurrentPrice() != null) {
-                            topBidder.setFrozenBalance(topBidder.getFrozenBalance().subtract(session.getCurrentPrice()));
-                            userRepository.save(topBidder);
-                            logger.info("Released frozen balance {} for User ID={} due to CANCELED session",
-                                    session.getCurrentPrice(), topBidder.getId());
-                        } else {
-                            logger.warn("Cannot release frozen balance: Top Bidder ID={} does not exist in DB",
-                                    session.getHighestBidderId());
-                        }
+            BigDecimal finalPrice = session.getCurrentPrice();
+            BigDecimal reservePrice = session.getReservePrice();
+            boolean reserveMet = true;
+            if (reservePrice != null && reservePrice.compareTo(BigDecimal.ZERO) > 0) {
+                if (finalPrice == null || finalPrice.compareTo(reservePrice) < 0) {
+                    reserveMet = false;
+                }
+            }
+
+            // Always end the session first
+            session.setStatus(AuctionStatus.ENDED);
+
+            if (session.getHighestBidderId() != null && finalPrice != null) {
+                if (reserveMet) {
+                    session.setStatus(AuctionStatus.PAID);
+                    finalizeWinnerDeduction(session);
+                    logger.info("Session ID {} ended as PAID because final price ({}) met reserve ({})",
+                            session.getId(), finalPrice, reservePrice);
+                } else {
+                    // Reserve price NOT met: keep status as ENDED, but release the highest bidder's frozen balance
+                    User topBidder = userRepository.findById(session.getHighestBidderId()).orElse(null);
+                    if (topBidder != null) {
+                        topBidder.setFrozenBalance(topBidder.getFrozenBalance().subtract(finalPrice));
+                        userRepository.save(topBidder);
+                        logger.info("Released frozen balance {} for User ID={} because reserve price ({}) was not met (final price: {})",
+                                finalPrice, topBidder.getId(), reservePrice, finalPrice);
                     }
-                    // =========================================================================
                 }
             } else {
-                session.setStatus(AuctionStatus.ENDED);
-                finalizeWinnerDeduction(session);
+                logger.info("Session ID {} ended with no bids.", session.getId());
             }
+
             auctionSessionRepository.save(session);
             logger.info("Auction session ID: {} ended with status: {}", sessionId, session.getStatus());
             return true;
