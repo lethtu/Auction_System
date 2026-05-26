@@ -542,4 +542,55 @@ public class UserControllerTest {
     }
 
 
+
+    @Test
+    public void testUploadAvatar_UppercaseContentTypeAndExtensionSuccess() throws Exception {
+        User user = new User();
+        user.setId(1);
+        when(userService.getUserById(1)).thenReturn(user);
+        when(cloudinaryService.isConfigured()).thenReturn(false);
+
+        byte[] validPngBytes = new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0, 0, 0, 0, 0, 0, 0, 0};
+        MockMultipartFile file = new MockMultipartFile("avatar", "AVATAR.PNG", "IMAGE/PNG", validPngBytes);
+
+        mockMvc.perform(multipart("/api/users/1/avatar").file(file))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.data.avatarUrl", org.hamcrest.Matchers.startsWith("/api/files/avatar/")));
+
+        verify(userService).updateAvatarUrl(eq(1), anyString());
+    }
+
+    @Test
+    public void testUploadAvatar_BlankOldAvatarUrlIsSkipped() throws Exception {
+        User user = new User();
+        user.setId(1);
+        user.setAvatarUrl("   ");
+        when(userService.getUserById(1)).thenReturn(user);
+        when(cloudinaryService.isConfigured()).thenReturn(false);
+
+        byte[] validPngBytes = new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0, 0, 0, 0, 0, 0, 0, 0};
+        MockMultipartFile file = new MockMultipartFile("avatar", "avatar.png", "image/png", validPngBytes);
+
+        mockMvc.perform(multipart("/api/users/1/avatar").file(file))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200));
+    }
+
+    @Test
+    public void testUploadAvatar_NonLocalOldAvatarUrlIsSkipped() throws Exception {
+        User user = new User();
+        user.setId(1);
+        user.setAvatarUrl("https://cdn.example.com/avatar.png");
+        when(userService.getUserById(1)).thenReturn(user);
+        when(cloudinaryService.isConfigured()).thenReturn(false);
+
+        byte[] validPngBytes = new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0, 0, 0, 0, 0, 0, 0, 0};
+        MockMultipartFile file = new MockMultipartFile("avatar", "avatar.png", "image/png", validPngBytes);
+
+        mockMvc.perform(multipart("/api/users/1/avatar").file(file))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200));
+    }
+
 }

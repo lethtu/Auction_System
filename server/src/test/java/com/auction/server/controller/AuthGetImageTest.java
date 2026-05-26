@@ -616,4 +616,30 @@ public class AuthGetImageTest {
     }
 
 
+
+    @Test
+    public void testServeOldFileInvalidRootReturnsServerError() {
+        System.setProperty("auction.upload.dir", "invalid\0dir");
+
+        ResponseEntity<Resource> response = authGetImageController.serveOldFile("avatar.png");
+
+        assertEquals(500, response.getStatusCode().value());
+    }
+
+    @Test
+    public void testServeFromNullAllowedRootReturnsServerError() throws Exception {
+        Path file = tempDir.resolve("phase33-null-root.png").toAbsolutePath().normalize();
+        Files.writeString(file, "image-data");
+
+        ResponseEntity<Resource> response = ReflectionTestUtils.invokeMethod(
+                authGetImageController,
+                "serveFrom",
+                file,
+                null
+        );
+
+        assertNotNull(response);
+        assertEquals(500, response.getStatusCode().value());
+    }
+
 }
