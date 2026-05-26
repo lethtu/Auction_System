@@ -1,7 +1,11 @@
 package com.auction.server.util;
 
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PasswordUtilTest {
 
@@ -58,5 +62,10 @@ public class PasswordUtilTest {
         assertFalse(PasswordUtil.isPlaintext("$2a$12$somevalidlookinghashhere"));
         assertFalse(PasswordUtil.isPlaintext("$2b$12$somevalidlookinghashhere"));
         assertFalse(PasswordUtil.isPlaintext("$2y$12$somevalidlookinghashhere"));
+    }
+
+    @Test
+    void constructorCanBeInstantiatedForLegacyUtilityClass() {
+        assertNotNull(new PasswordUtil());
     }
 }

@@ -69,6 +69,25 @@ class ItemTest {
     }
 
     @Test
+    void imagePathStoresBlankValueWhenInputIsOnlyWhitespace() {
+        TestItem item = new TestItem();
+
+        item.setImagePath("   ");
+
+        assertEquals("", item.getImagePath());
+    }
+
+    @Test
+    void invalidUuidShapedImagePathFallsBackToRawTrimmedValue() {
+        TestItem item = new TestItem();
+        String invalidUuid = "zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz";
+
+        item.setImagePath("  " + invalidUuid + "  ");
+
+        assertEquals(invalidUuid, item.getImagePath());
+    }
+
+    @Test
     void nullImagePathDoesNotOverrideExistingUuid() {
         TestItem item = new TestItem();
         item.setUuid(UUID);
