@@ -8,7 +8,10 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AdminControllerTest {
 
@@ -109,6 +112,20 @@ class AdminControllerTest {
     }
 
     @Test
+    void banUser_success_returnsSuccessResponse() {
+        FakeAdminService service = new FakeAdminService();
+        AdminController controller = new AdminController(service);
+
+        ApiResponse<Void> response = controller.banUser(2, 1);
+
+        assertEquals(200, response.getStatus());
+        assertEquals("User account has been banned.", response.getMessage());
+        assertEquals(2, service.lastUserId);
+        assertEquals(1, service.lastAdminId);
+        assertTrue(service.banCalled);
+    }
+
+    @Test
     void banUser_runtimeException_returnsServerError() {
         FakeAdminService service = new FakeAdminService();
         AdminController controller = new AdminController(service);
@@ -120,6 +137,20 @@ class AdminControllerTest {
         assertEquals(500, response.getStatus());
         assertEquals("Cannot ban another Admin account", response.getMessage());
         assertNull(response.getData());
+    }
+
+    @Test
+    void restoreUser_success_returnsSuccessResponse() {
+        FakeAdminService service = new FakeAdminService();
+        AdminController controller = new AdminController(service);
+
+        ApiResponse<Void> response = controller.restoreUser(2, 1);
+
+        assertEquals(200, response.getStatus());
+        assertEquals("User account has been restored.", response.getMessage());
+        assertEquals(2, service.lastUserId);
+        assertEquals(1, service.lastAdminId);
+        assertTrue(service.restoreCalled);
     }
 
     @Test
@@ -135,6 +166,34 @@ class AdminControllerTest {
         assertEquals(20, service.lastSessionId);
         assertEquals(1, service.lastAdminId);
         assertTrue(service.cancelCalled);
+    }
+
+    @Test
+    void hideProduct_success_returnsSuccessResponse() {
+        FakeAdminService service = new FakeAdminService();
+        AdminController controller = new AdminController(service);
+
+        ApiResponse<Void> response = controller.hideProduct(30, 1);
+
+        assertEquals(200, response.getStatus());
+        assertEquals("Product has been hidden.", response.getMessage());
+        assertEquals(30, service.lastProductId);
+        assertEquals(1, service.lastAdminId);
+        assertTrue(service.hideCalled);
+    }
+
+    @Test
+    void showProduct_success_returnsSuccessResponse() {
+        FakeAdminService service = new FakeAdminService();
+        AdminController controller = new AdminController(service);
+
+        ApiResponse<Void> response = controller.showProduct(30, 1);
+
+        assertEquals(200, response.getStatus());
+        assertEquals("Product is now visible.", response.getMessage());
+        assertEquals(30, service.lastProductId);
+        assertEquals(1, service.lastAdminId);
+        assertTrue(service.showCalled);
     }
 
     @Test
@@ -164,13 +223,19 @@ class AdminControllerTest {
 
         private Integer lastSessionId;
         private Integer lastAdminId;
+        private Integer lastUserId;
+        private Integer lastProductId;
         private String lastStatus;
         private String lastReason;
         private String lastRole;
 
         private boolean approveCalled;
         private boolean rejectCalled;
+        private boolean banCalled;
+        private boolean restoreCalled;
         private boolean cancelCalled;
+        private boolean hideCalled;
+        private boolean showCalled;
 
         private RuntimeException banException;
         private IllegalArgumentException rejectException;
@@ -227,8 +292,16 @@ class AdminControllerTest {
                 throw banException;
             }
 
-            this.lastSessionId = targetUserId;
+            this.lastUserId = targetUserId;
             this.lastAdminId = adminId;
+            this.banCalled = true;
+        }
+
+        @Override
+        public void restoreUser(Integer targetUserId, Integer adminId) {
+            this.lastUserId = targetUserId;
+            this.lastAdminId = adminId;
+            this.restoreCalled = true;
         }
 
         @Override
@@ -236,6 +309,20 @@ class AdminControllerTest {
             this.lastSessionId = sessionId;
             this.lastAdminId = adminId;
             this.cancelCalled = true;
+        }
+
+        @Override
+        public void hideProduct(Integer productId, Integer adminId) {
+            this.lastProductId = productId;
+            this.lastAdminId = adminId;
+            this.hideCalled = true;
+        }
+
+        @Override
+        public void showProduct(Integer productId, Integer adminId) {
+            this.lastProductId = productId;
+            this.lastAdminId = adminId;
+            this.showCalled = true;
         }
     }
 }

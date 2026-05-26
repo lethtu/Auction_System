@@ -12,7 +12,10 @@ import org.springframework.mock.web.MockHttpServletRequest;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SellerControllerTest {
 
@@ -43,7 +46,7 @@ class SellerControllerTest {
         assertEquals("Auction session created successfully.", response.getMessage());
         assertSame(dto, response.getData());
         assertSame(request, service.createdRequest);
-        assertEquals(10, request.getSellerId()); // secure seller ID is overridden
+        assertEquals(10, request.getSellerId());
     }
 
     @Test
@@ -51,13 +54,27 @@ class SellerControllerTest {
         FakeSellerService service = new FakeSellerService();
         SellerController controller = new SellerController(service);
 
-        service.createException = new IllegalArgumentException("Giá khởi điểm không hợp lệ");
+        service.createException = new IllegalArgumentException("Invalid starting price");
 
         ApiResponse<SessionResponseDTO> response = controller.createAuction(mockReq, new CreateAuctionRequest());
 
         assertEquals(400, response.getStatus());
-        assertEquals("Giá khởi điểm không hợp lệ", response.getMessage());
+        assertEquals("Invalid starting price", response.getMessage());
         assertNull(response.getData());
+    }
+
+    @Test
+    void createAuction_missingSessionUser_returnsBadRequest() {
+        FakeSellerService service = new FakeSellerService();
+        SellerController controller = new SellerController(service);
+        MockHttpServletRequest requestWithoutUser = new MockHttpServletRequest();
+
+        ApiResponse<SessionResponseDTO> response = controller.createAuction(requestWithoutUser, new CreateAuctionRequest());
+
+        assertEquals(400, response.getStatus());
+        assertEquals("Seller not authenticated", response.getMessage());
+        assertNull(response.getData());
+        assertNull(service.createdRequest);
     }
 
     @Test
@@ -99,6 +116,41 @@ class SellerControllerTest {
     }
 
     @Test
+    void updateSession_success_overridesSellerIdAndReturnsSession() {
+        FakeSellerService service = new FakeSellerService();
+        SellerController controller = new SellerController(service);
+        CreateAuctionRequest request = new CreateAuctionRequest();
+
+        SessionResponseDTO dto = new SessionResponseDTO();
+        dto.setId(9);
+        service.updateResult = dto;
+
+        ApiResponse<SessionResponseDTO> response = controller.updateSession(mockReq, 9, 999, request);
+
+        assertEquals(200, response.getStatus());
+        assertEquals("Pending session updated successfully.", response.getMessage());
+        assertSame(dto, response.getData());
+        assertEquals(9, service.lastSessionId);
+        assertEquals(10, service.lastSellerId);
+        assertSame(request, service.updatedRequest);
+        assertEquals(10, request.getSellerId());
+    }
+
+    @Test
+    void updateSession_runtimeException_returnsServerError() {
+        FakeSellerService service = new FakeSellerService();
+        SellerController controller = new SellerController(service);
+
+        service.updateException = new RuntimeException("Update failed");
+
+        ApiResponse<SessionResponseDTO> response = controller.updateSession(mockReq, 9, 999, new CreateAuctionRequest());
+
+        assertEquals(500, response.getStatus());
+        assertEquals("Update failed", response.getMessage());
+        assertNull(response.getData());
+    }
+
+    @Test
     void cancelAuction_success_returnsSuccessResponse() {
         FakeSellerService service = new FakeSellerService();
         SellerController controller = new SellerController(service);
@@ -118,12 +170,12 @@ class SellerControllerTest {
         FakeSellerService service = new FakeSellerService();
         SellerController controller = new SellerController(service);
 
-        service.cancelException = new RuntimeException("Không thể hủy phiên này");
+        service.cancelException = new RuntimeException("Cannot cancel session");
 
         ApiResponse<Void> response = controller.cancelAuction(mockReq, 8, 10);
 
         assertEquals(500, response.getStatus());
-        assertEquals("Không thể hủy phiên này", response.getMessage());
+        assertEquals("Cannot cancel session", response.getMessage());
         assertNull(response.getData());
     }
 
@@ -171,6 +223,7 @@ class SellerControllerTest {
         private boolean cancelCalled;
 
         private RuntimeException createException;
+        private RuntimeException updateException;
         private RuntimeException cancelException;
 
         private Integer lastDeletedItemId;
@@ -203,6 +256,18 @@ class SellerControllerTest {
             this.lastSessionId = sessionId;
             this.lastSellerId = sellerId;
             return detailResult;
+        }
+
+        @Override
+        public SessionResponseDTO updateSession(Integer sessionId, Integer sellerId, CreateAuctionRequest request) {
+            if (updateException != null) {
+                throw updateException;
+            }
+
+            this.lastSessionId = sessionId;
+            this.lastSellerId = sellerId;
+            this.updatedRequest = request;
+            return updateResult;
         }
 
         @Override
