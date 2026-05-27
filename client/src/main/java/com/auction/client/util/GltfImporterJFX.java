@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
-import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URL;
 import java.nio.ByteBuffer;
@@ -442,8 +441,11 @@ public class GltfImporterJFX {
                 try {
                     Files.createDirectories(Paths.get("client", "cache_3d"));
                     StringWriter sw = new StringWriter();
-                    PrintWriter pw = new PrintWriter(sw);
-                    e.printStackTrace(pw);
+                    sw.write(e.toString());
+                    sw.write(System.lineSeparator());
+                    for (StackTraceElement element : e.getStackTrace()) {
+                        sw.write("\tat " + element + System.lineSeparator());
+                    }
                     Files.writeString(
                         Paths.get("client", "cache_3d", "error.txt"),
                         "Error loading GLB URL: " + glbUrl + "\n\nStacktrace:\n" + sw.toString(),

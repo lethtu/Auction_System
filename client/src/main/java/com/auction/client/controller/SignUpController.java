@@ -180,7 +180,7 @@ public class SignUpController {
         json.put("email", email);
         json.put("fullname", fullname);
         String jsonBody = json.toString();
-        logger.info(jsonBody);
+        logger.info("Submitting signup request.");
         //Run on separate thread to avoid freezing UI
         new Thread(() -> {
             try {

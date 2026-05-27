@@ -404,7 +404,6 @@ public class AuctionPageController {
             try {
                 handleLogout(event);
             } catch (IOException e) {
-                e.printStackTrace();
                 logger.error("Error switching to Login screen!", e);
             }
         });

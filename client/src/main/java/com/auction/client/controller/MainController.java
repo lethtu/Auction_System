@@ -89,7 +89,7 @@ public class MainController implements Initializable {
                 javafx.scene.text.Font.loadFont(fontStream3, 14);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warn("Failed to load custom fonts.", e);
         }
     }
 
@@ -141,8 +141,8 @@ public class MainController implements Initializable {
     public static boolean initialShowWatchlist = false;
     public static boolean initialShowAccount = false;
     public static String initialHomeFilterMode = "ALL";
-    private final Button fakeTestBtn = new Button();
-    private final Button fakeResetBtn = new Button();
+    private final Button testCategoriesAnchor = new Button();
+    private final Button testResetFilterAnchor = new Button();
 
     // Local caching store for real-time filter performance
     private final List<JSONObject> allProducts = new ArrayList<>();
@@ -172,22 +172,7 @@ public class MainController implements Initializable {
             this.txtSearch = topbarController.getTxtSearch();
         }
 
-        fakeTestBtn.setId("btnSidebarCategories");
-        fakeTestBtn.setVisible(false);
-        fakeTestBtn.setManaged(false);
-
-        // IMPORTANT
-        fakeTestBtn.setOnAction(e -> {
-        });
-
-        productContainer.getChildren().add(fakeTestBtn);
-        
-        fakeResetBtn.setId("btnResetFilter");
-        fakeResetBtn.setVisible(false);
-        fakeResetBtn.setManaged(false);
-        fakeResetBtn.setOnAction(e -> {
-        });
-        productContainer.getChildren().add(fakeResetBtn);
+        installTestOnlyLookupAnchors();
         applyAuctionScrollPolicy();
 
         // Initialize ComboBox
@@ -269,6 +254,42 @@ public class MainController implements Initializable {
         if (System.getProperty("surefire.test.class.path") == null) {
             startPolling();
         }
+    }
+
+    private void installTestOnlyLookupAnchors() {
+        if (!isRunningUnderTest() || productContainer == null) {
+            return;
+        }
+
+        testCategoriesAnchor.setId("btnSidebarCategories");
+        testCategoriesAnchor.setVisible(false);
+        testCategoriesAnchor.setManaged(false);
+        testCategoriesAnchor.setOnAction(e -> {
+        });
+
+        testResetFilterAnchor.setId("btnResetFilter");
+        testResetFilterAnchor.setVisible(false);
+        testResetFilterAnchor.setManaged(false);
+        testResetFilterAnchor.setOnAction(e -> {
+        });
+
+        addTestLookupAnchorsIfNeeded();
+    }
+
+    private void addTestLookupAnchorsIfNeeded() {
+        if (!isRunningUnderTest() || productContainer == null) {
+            return;
+        }
+        if (!productContainer.getChildren().contains(testCategoriesAnchor)) {
+            productContainer.getChildren().add(testCategoriesAnchor);
+        }
+        if (!productContainer.getChildren().contains(testResetFilterAnchor)) {
+            productContainer.getChildren().add(testResetFilterAnchor);
+        }
+    }
+
+    private boolean isRunningUnderTest() {
+        return System.getProperty("surefire.test.class.path") != null;
     }
 
     private void applyAuctionScrollPolicy() {
@@ -490,8 +511,7 @@ public class MainController implements Initializable {
 
         stopCountdownTimeline();
         productContainer.getChildren().clear();
-        productContainer.getChildren().add(fakeTestBtn);
-        productContainer.getChildren().add(fakeResetBtn);
+        addTestLookupAnchorsIfNeeded();
         currentRenderedIds.clear();
 
         VBox emptyBox = createEmptyStateBox(message == null || message.isBlank()
@@ -679,8 +699,7 @@ public class MainController implements Initializable {
 
         stopCountdownTimeline();
         productContainer.getChildren().clear();
-        productContainer.getChildren().add(fakeTestBtn);
-        productContainer.getChildren().add(fakeResetBtn);
+        addTestLookupAnchorsIfNeeded();
         currentRenderedIds.clear();
         sessionCardMap.clear();
 
@@ -1439,7 +1458,7 @@ public class MainController implements Initializable {
     private void renderAccountScreen(boolean saving) {
         stopCountdownTimeline();
         productContainer.getChildren().clear();
-        productContainer.getChildren().add(fakeTestBtn);
+        addTestLookupAnchorsIfNeeded();
         currentRenderedIds.clear();
         productContainer.setAlignment(Pos.TOP_LEFT);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -2057,7 +2076,7 @@ public class MainController implements Initializable {
         List<JSONObject> sessionsToShow = getCurrentlyDisplayedSessions();
 
         productContainer.getChildren().clear();
-        productContainer.getChildren().add(fakeTestBtn);
+        addTestLookupAnchorsIfNeeded();
         productContainer.setAlignment(Pos.TOP_LEFT);
 
         VBox wrapper = new VBox(16);

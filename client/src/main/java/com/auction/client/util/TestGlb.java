@@ -2,6 +2,8 @@ package com.auction.client.util;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -9,6 +11,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 public class TestGlb {
+    private static final Logger logger = LoggerFactory.getLogger(TestGlb.class);
+
     public static void main(String[] args) {
         try {
             File file = new File("client/cache_3d/decb6a78-7b77-489c-ba3c-f6dad9c6a37b.glb");
@@ -31,7 +35,7 @@ public class TestGlb {
             JSONArray accessors = gltf.getJSONArray("accessors");
             JSONArray meshes = gltf.getJSONArray("meshes");
 
-            System.out.println("--- Inspecting Unnamed Node Meshes (33 to 39) ---");
+            logger.info("--- Inspecting Unnamed Node Meshes (33 to 39) ---");
             int[] unnamedNodes = {33, 34, 35, 36, 37, 38, 39};
             for (int nIdx : unnamedNodes) {
                 JSONObject node = nodes.getJSONObject(nIdx);
@@ -42,12 +46,12 @@ public class TestGlb {
                 JSONObject attrs = prim.getJSONObject("attributes");
                 int posIdx = attrs.getInt("POSITION");
                 JSONObject acc = accessors.getJSONObject(posIdx);
-                System.out.printf("Node %d (Mesh %d '%s'):\n", nIdx, mIdx, mesh.optString("name"));
-                System.out.println("  POSITION Accessor: " + acc.toString());
+                logger.info("Node {} (Mesh {} '{}'):", nIdx, mIdx, mesh.optString("name"));
+                logger.info("  POSITION Accessor: {}", acc);
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Failed to inspect GLB file.", e);
         }
     }
 }
