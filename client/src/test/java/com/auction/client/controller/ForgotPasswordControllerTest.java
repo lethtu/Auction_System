@@ -4,8 +4,9 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.DialogPane;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import org.junit.jupiter.api.DisplayName;
@@ -22,7 +23,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.testfx.api.FxAssert.verifyThat;
@@ -32,6 +32,13 @@ public class ForgotPasswordControllerTest {
 
     private HttpClient mockHttpClient;
     private HttpResponse<String> mockHttpResponse;
+
+    private TextField emailField;
+    private TextField otpField;
+    private PasswordField newPasswordField;
+    private PasswordField confirmNewPasswordField;
+    private Button getOtpButton;
+    private Button resetPasswordButton;
 
     @Start
     public void start(Stage stage) throws Exception {
@@ -44,87 +51,99 @@ public class ForgotPasswordControllerTest {
         ForgotPasswordController controller = loader.getController();
         controller.setHttpClient(mockHttpClient);
 
+        emailField = (TextField) loader.getNamespace().get("txtEmail");
+        otpField = (TextField) loader.getNamespace().get("txtOTP");
+        newPasswordField = (PasswordField) loader.getNamespace().get("txtNewPassword");
+        confirmNewPasswordField = (PasswordField) loader.getNamespace().get("txtConfirmNewPassword");
+        getOtpButton = (Button) loader.getNamespace().get("btnGetOTP");
+        resetPasswordButton = (Button) loader.getNamespace().get("btnResetPassword");
+
         stage.setScene(new Scene(root, 1000, 650));
         stage.show();
         stage.toFront();
     }
 
     @Test
-    @DisplayName("Test: Bá» trá»‘ng Email -> Cáº£nh bÃ¡o")
+    @DisplayName("Test: Empty email shows warning")
     public void testGetOTP_EmptyEmail(FxRobot robot) {
-        robot.clickOn("#btnGetOTP");
-        robot.sleep(500);
+        robot.clickOn(getOtpButton);
         assertAlertAndClose(robot, "Please enter your email!");
     }
 
     @Test
-    @DisplayName("Test: Email khÃ´ng tá»“n táº¡i -> Cáº£nh bÃ¡o lá»—i")
+    @DisplayName("Test: Unknown email keeps OTP button usable")
     public void testGetOTP_EmailNotFound(FxRobot robot) throws Exception {
-        String jsonError = "{\"status\": 404, \"message\": \"KhÃ´ng cÃ³ tÃ i khoáº£n nÃ o liÃªn káº¿t vá»›i Email nÃ y\"}";
+        String jsonError = "{\"status\": 404, \"message\": \"Email not found\"}";
 
         mockSendResponse(200, jsonError);
 
-        robot.clickOn("#txtEmail").write("mail_ao@gmail.com");
-        robot.clickOn("#btnGetOTP");
+        robot.interact(() -> emailField.setText("mail_ao@gmail.com"));
+        robot.clickOn(getOtpButton);
 
         closeAnyAlertIfPresent(robot);
-
-        Button getOtpButton = robot.lookup("#btnGetOTP").queryAs(Button.class);
         waitUntilButtonReset(getOtpButton);
 
-        verifyThat("#btnGetOTP", NodeMatchers.isEnabled());
+        verifyThat(getOtpButton, NodeMatchers.isEnabled());
         String currentOtpButtonText = getOtpButton.getText();
         org.junit.jupiter.api.Assertions.assertTrue(
-                currentOtpButtonText.equalsIgnoreCase("Resend code") || currentOtpButtonText.equalsIgnoreCase("Send verification code") || currentOtpButtonText.equals("Gá»­i láº¡i mÃ£") || currentOtpButtonText.equals("Gá»­i mÃ£ xÃ¡c thá»±c"),
-                "NÃºt láº¥y OTP pháº£i á»Ÿ tráº¡ng thÃ¡i cÃ³ thá»ƒ gá»­i láº¡i hoáº·c gá»­i mÃ£ xÃ¡c thá»±c, nhÆ°ng Ä‘ang lÃ : " + currentOtpButtonText
+                equalsAnyIgnoreCase(currentOtpButtonText, "Resend code", "Send verification code", "Gui lai ma", "Gui ma xac thuc"),
+                "OTP button should be ready to send again, but was: " + currentOtpButtonText
         );
     }
 
     @Test
     @DisplayName("Test Full Flow: Get OTP -> Password mismatch -> Correct password -> Success")
     public void testFullFlow_SuccessToMismatchToSuccess(FxRobot robot) throws Exception {
-        String jsonSendOtpSuccess = "{\"status\": 200, \"message\": \"\u0110\u00e3 g\u1eedi m\u00e3 x\u00e1c nh\u1eadn\"}";
+        String jsonSendOtpSuccess = "{\"status\": 200, \"message\": \"OTP sent\"}";
 
         mockSendResponse(200, jsonSendOtpSuccess);
 
-        robot.clickOn("#txtEmail").write("real_email@gmail.com");
-        robot.clickOn("#btnGetOTP");
+        robot.interact(() -> emailField.setText("real_email@gmail.com"));
+        robot.clickOn(getOtpButton);
 
-        assertAlertAndClose(robot, "\u0110\u00e3 g\u1eedi m\u00e3 x\u00e1c nh\u1eadn");
-        verifyThat("#txtOTP", NodeMatchers.isVisible());
+        assertAlertAndClose(robot, "OTP sent");
+        verifyThat(otpField, NodeMatchers.isVisible());
 
-        robot.clickOn("#txtOTP").write("123456");
-        robot.clickOn("#txtNewPassword").write("Tungpro@123");
-        robot.clickOn("#txtConfirmNewPassword").write("Tungpro@456");
+        robot.interact(() -> {
+            otpField.setText("123456");
+            newPasswordField.setText("Tungpro@123");
+            confirmNewPasswordField.setText("Tungpro@456");
+        });
 
-        javafx.scene.control.Button resetButton =
-                robot.lookup("#btnResetPassword").queryAs(javafx.scene.control.Button.class);
-        javafx.scene.control.TextInputControl confirmPasswordField =
-                robot.lookup("#txtConfirmNewPassword").queryAs(javafx.scene.control.TextInputControl.class);
-
-        robot.clickOn(resetButton);
-        robot.sleep(500);
+        robot.clickOn(resetPasswordButton);
         assertAlertAndClose(robot, "Invalid information or passwords do not match!");
 
-        String jsonResetSuccess = "{\"status\": 200, \"message\": \"\u0110\u1ed5i m\u1eadt kh\u1ea9u th\u00e0nh c\u00f4ng!\"}";
+        String jsonResetSuccess = "{\"status\": 200, \"message\": \"Password changed successfully!\"}";
         when(mockHttpResponse.body()).thenReturn(jsonResetSuccess);
 
-        robot.interact(() -> confirmPasswordField.setText("Tungpro@123"));
-        robot.clickOn(resetButton);
-        robot.sleep(500);
-        assertAlertAndClose(robot, "\u0110\u1ed5i m\u1eadt kh\u1ea9u th\u00e0nh c\u00f4ng!");
+        robot.interact(() -> confirmNewPasswordField.setText("Tungpro@123"));
+        robot.clickOn(resetPasswordButton);
+
+        assertAlertAndClose(robot, "Password changed successfully!");
     }
+
+    private boolean equalsAnyIgnoreCase(String value, String... candidates) {
+        if (value == null) {
+            return false;
+        }
+        for (String candidate : candidates) {
+            if (value.equalsIgnoreCase(candidate)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void waitUntilButtonReset(Button button) {
         long deadline = System.currentTimeMillis() + 12000;
 
         while (System.currentTimeMillis() < deadline) {
             try {
-                org.testfx.util.WaitForAsyncUtils.waitForFxEvents();
+                WaitForAsyncUtils.waitForFxEvents();
 
                 String text = button.getText();
                 boolean hasStableText = text != null
                         && !text.trim().isEmpty()
-                        && !text.toLowerCase().contains("Ä‘ang")
                         && !text.toLowerCase().contains("dang")
                         && !text.contains("...");
 
@@ -132,20 +151,11 @@ public class ForgotPasswordControllerTest {
                     return;
                 }
             } catch (Exception ignored) {
-                // TestFX/Fx timing can be unstable on CI/local machines.
+                // Ignore transient TestFX timing issues.
             }
 
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return;
-            }
+            sleepBriefly();
         }
-
-        // Keep this fallback non-fatal: this test already verifies the error path by
-        // checking the dialog when it appears. Some styled dialogs/async transitions
-        // take longer on slower machines, so failing here would be flaky.
     }
 
     private void mockSendResponse(int httpStatus, String body) throws Exception {
@@ -177,8 +187,8 @@ public class ForgotPasswordControllerTest {
             }
             sleepBriefly();
         }
-        return;
     }
+
     private void assertAlertAndClose(FxRobot robot, String expectedMessage) {
         long deadline = System.currentTimeMillis() + 12000;
         while (System.currentTimeMillis() < deadline) {
@@ -189,21 +199,17 @@ public class ForgotPasswordControllerTest {
                     if (root != null && !root.getStyleClass().contains("auth-root")) {
                         boolean foundMessage = false;
                         for (javafx.scene.Node node : robot.from(root).lookup(".label").queryAll()) {
-                            if (node instanceof javafx.scene.control.Label lbl) {
-                                if (expectedMessage.equals(lbl.getText())) {
-                                    foundMessage = true;
-                                    break;
-                                }
+                            if (node instanceof Label lbl && expectedMessage.equals(lbl.getText())) {
+                                foundMessage = true;
+                                break;
                             }
                         }
                         if (foundMessage) {
                             for (javafx.scene.Node node : robot.from(root).lookup(".button").queryAll()) {
-                                if (node instanceof Button btn) {
-                                    if ("OK".equalsIgnoreCase(btn.getText())) {
-                                        robot.clickOn(btn);
-                                        WaitForAsyncUtils.waitForFxEvents();
-                                        return;
-                                    }
+                                if (node instanceof Button btn && "OK".equalsIgnoreCase(btn.getText())) {
+                                    robot.clickOn(btn);
+                                    WaitForAsyncUtils.waitForFxEvents();
+                                    return;
                                 }
                             }
                         }
@@ -212,7 +218,7 @@ public class ForgotPasswordControllerTest {
             }
             sleepBriefly();
         }
-        throw new AssertionError("KhÃ´ng tÃ¬m tháº¥y Alert vá»›i tin nháº¯n: " + expectedMessage);
+        throw new AssertionError("Alert not found with message: " + expectedMessage);
     }
 
     private void sleepBriefly() {
@@ -220,7 +226,7 @@ public class ForgotPasswordControllerTest {
             Thread.sleep(50);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new AssertionError("Bá»‹ ngáº¯t khi Ä‘ang chá» Alert.", e);
+            throw new AssertionError("Interrupted while waiting for JavaFX state.", e);
         }
     }
 }

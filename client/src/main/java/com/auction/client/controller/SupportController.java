@@ -3,6 +3,8 @@ package com.auction.client.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.auction.client.model.User;
+import com.auction.client.service.SupportRequestService;
+import com.auction.client.util.AlertUtil;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -10,9 +12,13 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.regex.Pattern;
 
 public class SupportController implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(SupportController.class);
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
+
+    private final SupportRequestService supportRequestService = new SupportRequestService();
 
     @FXML private TextField txtEmail;
     @FXML private TextField txtSubject;
@@ -70,47 +76,72 @@ public class SupportController implements Initializable {
 
     @FXML
     public void handleSendSupport(ActionEvent event) {
-        String email = txtEmail.getText().trim();
-        String subject = txtSubject.getText().trim();
-        String message = txtAreaMessage.getText().trim();
+        String email = getTrimmedText(txtEmail);
+        String subject = getTrimmedText(txtSubject);
+        String message = getTrimmedText(txtAreaMessage);
 
+        if (!validateSupportForm(email, subject, message)) {
+            return;
+        }
+
+        setSendingState(true);
+
+        Thread openEmailThread = new Thread(() -> openSupportEmailDraft(email, subject, message), "support-email-draft");
+        openEmailThread.setDaemon(true);
+        openEmailThread.start();
+    }
+
+    private boolean validateSupportForm(String email, String subject, String message) {
         if (email.isEmpty() || subject.isEmpty() || message.isEmpty()) {
             showStatus("Please fill in all required fields marked with *!", true);
-            return;
+            return false;
         }
 
-        // Validate basic email format
-        if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+        if (!EMAIL_PATTERN.matcher(email).matches()) {
             showStatus("Invalid email format!", true);
+            return false;
+        }
+
+        return true;
+    }
+
+    private void openSupportEmailDraft(String email, String subject, String message) {
+        try {
+            boolean opened = supportRequestService.openSupportEmailDraft(email, subject, message);
+            Platform.runLater(() -> handleSupportDraftResult(opened, subject));
+        } catch (Exception e) {
+            logger.error("Could not open support email draft:", e);
+            Platform.runLater(() -> handleSupportDraftResult(false, subject));
+        }
+    }
+
+    private void handleSupportDraftResult(boolean opened, String subject) {
+        setSendingState(false);
+
+        if (opened) {
+            txtSubject.clear();
+            txtAreaMessage.clear();
+            showStatus("Email draft opened. Please review and send it from your email app.", false);
+            AlertUtil.show(
+                    Alert.AlertType.INFORMATION,
+                    "Email Draft Opened",
+                    "A support email draft has been opened. Please review and send it from your email app."
+            );
             return;
         }
 
-        btnSendSupport.setDisable(true);
+        String instruction = supportRequestService.buildManualSendInstruction(subject);
+        showStatus(instruction, true);
+        AlertUtil.show(Alert.AlertType.WARNING, "Open Email App Failed", instruction);
+    }
 
-        // Simulation sending request
-        new Thread(() -> {
-            try {
-                Thread.sleep(1000); // Simulate network delay
-                Platform.runLater(() -> {
-                    btnSendSupport.setDisable(false);
-                    txtSubject.clear();
-                    txtAreaMessage.clear();
-                    showStatus("Request sent successfully! We will respond as soon as possible.", false);
+    private void setSendingState(boolean sending) {
+        btnSendSupport.setDisable(sending);
+        btnSendSupport.setText(sending ? "Opening Email..." : "Open Email Draft");
+    }
 
-                    com.auction.client.util.AlertUtil.show(
-                            Alert.AlertType.INFORMATION,
-                            "Send Success",
-                            "Thank you for contacting us!\n\nYour support request has been received. We will respond soon via email: " + email
-                    );
-                });
-            } catch (InterruptedException e) {
-                logger.error("Error sending support request:", e);
-                Platform.runLater(() -> {
-                    btnSendSupport.setDisable(false);
-                    showStatus("Error sending request. Please try again later!", true);
-                });
-            }
-        }).start();
+    private String getTrimmedText(TextInputControl control) {
+        return control == null || control.getText() == null ? "" : control.getText().trim();
     }
 
     private void showStatus(String text, boolean isError) {

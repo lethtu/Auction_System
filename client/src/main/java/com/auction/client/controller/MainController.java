@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
+import com.auction.client.util.ImageUrlUtil;
 import com.auction.client.HttpClientSingleton;
 import javafx.application.Platform;
 import javafx.animation.PauseTransition;
@@ -2445,34 +2446,7 @@ public class MainController implements Initializable {
     }
 
     private String buildImageUrl(String rawPath) {
-        if (rawPath == null || rawPath.isBlank()) {
-            return "";
-        }
-
-        String path = rawPath.trim().replace("\\", "/");
-        if ((path.startsWith("http://") || path.startsWith("https://")) && !path.contains("/api/files/images/")) {
-            return Config.applyCacheBuster(path);
-        }
-        int apiIndex = path.indexOf("/api/files/images/");
-        if (apiIndex >= 0) {
-            path = path.substring(apiIndex + "/api/files/images/".length());
-        }
-
-        while (path.startsWith("/")) {
-            path = path.substring(1);
-        }
-        if (path.startsWith("server/upload/images/")) {
-            path = path.substring("server/upload/images/".length());
-        }
-        if (path.startsWith("upload/images/")) {
-            path = path.substring("upload/images/".length());
-        }
-        if (path.startsWith("images/")) {
-            path = path.substring("images/".length());
-        }
-
-        String url = path.isBlank() ? "" : Config.API_URL + "/api/files/images/" + path;
-        return Config.applyCacheBuster(url);
+        return ImageUrlUtil.buildImageUrl(rawPath);
     }
 
     private String formatPrice(BigDecimal price) {

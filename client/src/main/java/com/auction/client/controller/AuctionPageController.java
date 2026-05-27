@@ -1,6 +1,7 @@
 package com.auction.client.controller;
 
 import com.auction.client.Config;
+import com.auction.client.util.ImageUrlUtil;
 import com.auction.client.model.User;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -2380,50 +2381,9 @@ public class AuctionPageController {
     }
 
     private String buildImageUrl(String rawPath) {
-        if (rawPath == null || rawPath.isBlank()) {
-            return "";
-        }
-
-        String path = rawPath.trim().replace("\\", "/");
-
-        if ((path.startsWith("http://") || path.startsWith("https://")) && !path.contains("/api/files/images/")) {
-            return Config.applyCacheBuster(path);
-        }
-        int apiIndex = path.indexOf("/api/files/images/");
-        if (apiIndex >= 0) {
-            path = path.substring(apiIndex + "/api/files/images/".length());
-        }
-
-        path = removeLeadingSlashes(path);
-        path = removeKnownImagePrefix(path);
-
-        String url = path.isBlank() ? "" : Config.API_URL + "/api/files/images/" + path;
-        return Config.applyCacheBuster(url);
+        return ImageUrlUtil.buildImageUrl(rawPath);
     }
 
-    private String removeLeadingSlashes(String path) {
-        while (path.startsWith("/")) {
-            path = path.substring(1);
-        }
-
-        return path;
-    }
-
-    private String removeKnownImagePrefix(String path) {
-        String[] prefixes = {
-                "server/upload/images/",
-                "upload/images/",
-                "images/"
-        };
-
-        for (String prefix : prefixes) {
-            if (path.startsWith(prefix)) {
-                return path.substring(prefix.length());
-            }
-        }
-
-        return path;
-    }
 
     private String extractUuid(String path) {
         if (path == null || path.isBlank())
