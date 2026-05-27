@@ -17,7 +17,9 @@ import org.testfx.framework.junit5.Start;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.testfx.api.FxAssert.verifyThat;
 import static org.testfx.matcher.base.NodeMatchers.isVisible;
 
@@ -68,21 +70,19 @@ public class MyBidsControllerTest {
         assertNotNull(btnOutbid);
         assertNotNull(btnEnded);
 
-        // Click Winning Tab
+        assertActiveTab(btnActive, btnWinning, btnOutbid, btnEnded);
+
         robot.clickOn(btnWinning);
-        robot.sleep(200);
+        assertActiveTab(btnWinning, btnActive, btnOutbid, btnEnded);
 
-        // Click Outbid Tab
         robot.clickOn(btnOutbid);
-        robot.sleep(200);
+        assertActiveTab(btnOutbid, btnActive, btnWinning, btnEnded);
 
-        // Click Ended Tab
         robot.clickOn(btnEnded);
-        robot.sleep(200);
+        assertActiveTab(btnEnded, btnActive, btnWinning, btnOutbid);
 
-        // Click Active Tab
         robot.clickOn(btnActive);
-        robot.sleep(200);
+        assertActiveTab(btnActive, btnWinning, btnOutbid, btnEnded);
     }
 
     @Test
@@ -98,5 +98,20 @@ public class MyBidsControllerTest {
 
         assertEquals(List.of(12, 13, 11),
                 ordered.stream().map(product -> product.getInt("id")).toList());
+    }
+
+    private static void assertActiveTab(Button expectedActive, Button... expectedInactiveButtons) {
+        assertTrue(hasActiveTabStyle(expectedActive),
+                expectedActive.getId() + " should use the active tab style.");
+
+        for (Button inactiveButton : expectedInactiveButtons) {
+            assertFalse(hasActiveTabStyle(inactiveButton),
+                    inactiveButton.getId() + " should not use the active tab style.");
+        }
+    }
+
+    private static boolean hasActiveTabStyle(Button button) {
+        String style = button.getStyle();
+        return style != null && style.contains("-fx-background-color: -fx-accent;");
     }
 }
