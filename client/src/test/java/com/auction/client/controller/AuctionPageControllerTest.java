@@ -33,6 +33,7 @@ public class AuctionPageControllerTest {
 
     @Start
     public void start(Stage stage) throws Exception {
+        disableSoundsForCiHeadlessTest();
         SidebarController.isSidebarCollapsed = false;
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/auction/client/view/AuctionPage.fxml"));
         scene = new Scene(loader.load(), 1280, 800);
@@ -139,6 +140,12 @@ public class AuctionPageControllerTest {
         assertEquals("Dashboard", dashboardBtn.getText());
     }
 
+    private void disableSoundsForCiHeadlessTest() {
+        com.auction.client.service.SettingsService settings =
+                com.auction.client.service.SettingsService.getInstance();
+        settings.setSoundEnabled(false);
+        settings.flush();
+    }
     private void invokeUpdateResponsiveFonts(double width) {
         try {
             Method method = AuctionPageController.class.getDeclaredMethod("updateResponsiveFonts", double.class);
