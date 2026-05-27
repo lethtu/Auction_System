@@ -1,9 +1,12 @@
 package com.auction.client.controller;
 
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Labeled;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,7 +20,10 @@ import org.mockito.Mockito;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.testfx.api.FxAssert.verifyThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -44,22 +50,21 @@ public class SignUpControllerTest {
         stage.toFront();
     }
 
-    // TEST 1: BỎ TRỐNG TRƯỜNG DỮ LIỆU
+    // TEST 1: BO TRONG TRUONG DU LIEU
     @Test
-    @DisplayName("Test: Bỏ trống form -> Hiện cảnh báo")
+    @DisplayName("Test: Bo trong form -> Hien canh bao")
     public void testSignUp_EmptyFields(FxRobot robot) {
-        robot.clickOn("#txtFullName").write("Lê Thanh Tùng");
+        robot.clickOn("#txtFullName").write("Le Thanh Tung");
         robot.clickOn("#btnSignUp");
         verifyThat("Please fill in all fields!", NodeMatchers.isVisible());
         robot.clickOn("OK");
     }
 
-    // TEST 2: SAI MẬT KHẨU XÁC NHẬN
-
+    // TEST 2: SAI MAT KHAU XAC NHAN
     @Test
-    @DisplayName("Test: Mật khẩu xác nhận không khớp -> Hiện cảnh báo")
+    @DisplayName("Test: Mat khau xac nhan khong khop -> Hien canh bao")
     public void testSignUp_PasswordMismatch(FxRobot robot) {
-        robot.clickOn("#txtFullName").write("Lê Thanh Tùng");
+        robot.clickOn("#txtFullName").write("Le Thanh Tung");
         robot.clickOn("#txtUsername").write("lethtu");
         robot.clickOn("#txtEmail").write("lethtu@gmail.com");
         robot.clickOn("#txtPassword").write("123456");
@@ -72,19 +77,16 @@ public class SignUpControllerTest {
         robot.clickOn("OK");
     }
 
-
-    // TEST 3: SERVER BÁO TRÙNG TÀI KHOẢN (Đăng ký thất bại)
-
+    // TEST 3: SERVER BAO TRUNG TAI KHOAN
     @Test
-    @DisplayName("Test: Server trả về trùng Username -> Hiện thông báo lỗi")
+    @DisplayName("Test: Server tra ve trung Username -> Hien thong bao loi")
     public void testSignUp_ServerFail_Duplicate(FxRobot robot) throws Exception {
-        // Mock Server trả về lỗi
-        String jsonError = "{\"message\": \"Email hoặc Username đã tồn tại\"}";
+        String jsonError = "{\"message\": \"Email hoac Username da ton tai\"}";
         when(mockHttpClient.<String>send(any(HttpRequest.class), any())).thenReturn(mockHttpResponse);
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(jsonError);
 
-        robot.clickOn("#txtFullName").write("Lê Thanh Tùng");
+        robot.clickOn("#txtFullName").write("Le Thanh Tung");
         robot.clickOn("#txtUsername").write("lethtu");
         robot.clickOn("#txtEmail").write("lethtu@gmail.com");
         robot.clickOn("#txtPassword").write("123456");
@@ -96,22 +98,20 @@ public class SignUpControllerTest {
         robot.sleep(1500);
         WaitForAsyncUtils.waitForFxEvents();
 
-        verifyThat("Email hoặc Username đã tồn tại", NodeMatchers.isVisible());
+        verifyThat("Email hoac Username da ton tai", NodeMatchers.isVisible());
         robot.clickOn("OK");
     }
 
-    // TEST 4: ĐĂNG KÝ THÀNH CÔNG -> NHẢY VỀ LOGIN
-
+    // TEST 4: DANG KY THANH CONG
     @Test
-    @DisplayName("Test: Mock Server báo thành công -> Hiện Popup Thành công")
+    @DisplayName("Test: Mock Server bao thanh cong -> Hien popup thanh cong")
     public void testSignUp_Success(FxRobot robot) throws Exception {
-        // Nặn JSON giả thành công
         String jsonSuccess = "{\"message\": \"success\"}";
         when(mockHttpClient.<String>send(any(HttpRequest.class), any())).thenReturn(mockHttpResponse);
         when(mockHttpResponse.statusCode()).thenReturn(200);
         when(mockHttpResponse.body()).thenReturn(jsonSuccess);
 
-        robot.clickOn("#txtFullName").write("Thành viên Mới");
+        robot.clickOn("#txtFullName").write("Thanh vien Moi");
         robot.clickOn("#txtUsername").write("newuser");
         robot.clickOn("#txtEmail").write("new@gmail.com");
         robot.clickOn("#txtPassword").write("123456");
@@ -120,12 +120,24 @@ public class SignUpControllerTest {
         robot.clickOn("#chkTerms");
         robot.clickOn("#btnSignUp");
 
-        robot.sleep(1500);
-        WaitForAsyncUtils.waitForFxEvents();
-
-        verifyThat("Account registered successfully!", NodeMatchers.isVisible());
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS,
+                () -> isTextVisibleInAnyWindow("Account registered successfully!"));
+        assertTrue(isTextVisibleInAnyWindow("Account registered successfully!"));
         robot.clickOn("OK");
+        WaitForAsyncUtils.waitForFxEvents();
+    }
 
-        robot.sleep(500);
+    private static boolean isTextVisibleInAnyWindow(String expectedText) {
+        return Window.getWindows().stream()
+                .filter(Window::isShowing)
+                .map(Window::getScene)
+                .filter(Objects::nonNull)
+                .map(Scene::getRoot)
+                .filter(Objects::nonNull)
+                .flatMap(root -> root.lookupAll(".label").stream())
+                .filter(Node::isVisible)
+                .filter(node -> node instanceof Labeled)
+                .map(node -> ((Labeled) node).getText())
+                .anyMatch(expectedText::equals);
     }
 }
