@@ -194,7 +194,7 @@ public final class SellerAuctionFormBuilder {
 
     private static BigDecimal parsePositiveMoney(String value, String message) {
         try {
-            BigDecimal money = new BigDecimal(normalizeMoneyText(value));
+            BigDecimal money = MoneyFormatUtil.parseMoneyInput(value);
 
             if (money.compareTo(BigDecimal.ZERO) <= 0) {
                 throw new IllegalArgumentException(message);
@@ -218,15 +218,6 @@ public final class SellerAuctionFormBuilder {
         }
 
         return reservePrice;
-    }
-
-    private static String normalizeMoneyText(String value) {
-        return trimOrEmpty(value)
-                .replace("₫", "")
-                .replace("đ", "")
-                .replace(" ", "")
-                .replace(".", "")
-                .replace(",", "");
     }
 
     private static String defaultStartTime() {

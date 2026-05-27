@@ -182,7 +182,7 @@ public class SignUpController {
         String jsonBody = json.toString();
         logger.info("Submitting signup request.");
         //Run on separate thread to avoid freezing UI
-        new Thread(() -> {
+        Thread signupThread = new Thread(() -> {
             try {
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create(Config.API_URL + "/api/signup"))
@@ -226,7 +226,9 @@ public class SignUpController {
                         () -> showAlert(Alert.AlertType.ERROR, "Connection Error", "Cannot connect to the server!"));
                 logger.error("Error connecting to server: {}", e.getMessage(), e);
             }
-        }).start();
+        }, "signup-submit-worker");
+        signupThread.setDaemon(true);
+        signupThread.start();
     }
 
     public void setHttpClient(HttpClient httpClient) {
@@ -247,7 +249,7 @@ public class SignUpController {
     private void loadActiveProducts() {
         if (activeProductCarousel == null || activeProductImage == null) return;
 
-        new Thread(() -> {
+        Thread carouselThread = new Thread(() -> {
             try {
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create(Config.API_URL + "/api/auctions/all"))
@@ -287,7 +289,9 @@ public class SignUpController {
             } catch (Exception e) {
                 logger.warn("Failed to load active product carousel", e);
             }
-        }).start();
+        }, "signup-carousel-loader");
+        carouselThread.setDaemon(true);
+        carouselThread.start();
     }
 
     private FeaturedProduct toFeaturedProduct(JSONObject session) {

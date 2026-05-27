@@ -2,6 +2,8 @@ package com.auction.client.controller;
 
 import com.auction.client.Config;
 import com.auction.client.util.ImageUrlUtil;
+import com.auction.client.util.MoneyFormatUtil;
+import com.auction.client.util.BidStepPolicy;
 import com.auction.client.model.User;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -49,8 +51,6 @@ import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
@@ -843,7 +843,7 @@ public class AuctionPageController {
             } catch (Exception e) {
                 logger.warn("Error loading bid history: {}", e.getMessage());
             }
-        });
+        }, "auction-bid-history-loader");
         t.setDaemon(true);
         t.start();
     }
@@ -1562,7 +1562,7 @@ public class AuctionPageController {
             } catch (Exception e) {
                 logger.warn("Could not reload session {} details: {}", currentSessionId, e.getMessage());
             }
-        });
+        }, "auction-session-refresh");
 
         refreshThread.setDaemon(true);
         refreshThread.start();
@@ -1697,20 +1697,7 @@ public class AuctionPageController {
     }
 
     private BigDecimal getDynamicStepPrice(BigDecimal price) {
-        if (price == null || price.compareTo(new BigDecimal("100000")) < 0) {
-            return new BigDecimal("10000");
-        } else if (price.compareTo(new BigDecimal("500000")) < 0) {
-            return new BigDecimal("20000");
-        } else if (price.compareTo(new BigDecimal("1000000")) < 0) {
-            return new BigDecimal("50000");
-        } else if (price.compareTo(new BigDecimal("5000000")) < 0) {
-            return new BigDecimal("100000");
-        } else if (price.compareTo(new BigDecimal("10000000")) < 0) {
-            return new BigDecimal("200000");
-        } else if (price.compareTo(new BigDecimal("50000000")) < 0) {
-            return new BigDecimal("500000");
-        }
-        return new BigDecimal("1000000");
+        return BidStepPolicy.getDynamicStepPrice(price);
     }
 
     private void updateBidInfoLabels() {
@@ -1761,7 +1748,7 @@ public class AuctionPageController {
     private void connectToServer() {
         disconnectSocket();
 
-        listenerThread = new Thread(this::listenToSocketServer);
+        listenerThread = new Thread(this::listenToSocketServer, "auction-socket-listener");
         listenerThread.setDaemon(true);
         listenerThread.start();
     }
@@ -1965,7 +1952,7 @@ public class AuctionPageController {
     private void fetchLatestUserBalance() {
         if (User.getId() == null)
             return;
-        new Thread(() -> {
+        Thread balanceThread = new Thread(() -> {
             try {
                 HttpRequest.Builder builder = HttpRequest.newBuilder()
                         .uri(URI.create(Config.API_URL + "/api/users/" + User.getId()))
@@ -1999,7 +1986,9 @@ public class AuctionPageController {
             } catch (Exception e) {
                 logger.warn("Failed to fetch latest user balance: {}", e.getMessage());
             }
-        }).start();
+        }, "auction-user-balance-refresh");
+        balanceThread.setDaemon(true);
+        balanceThread.start();
     }
 
     private void handleRoomCountMessage(String countText) {
@@ -2299,16 +2288,7 @@ public class AuctionPageController {
     }
 
     private BigDecimal parseMoneyInput(String raw) {
-        String normalized = raw == null
-                ? ""
-                : raw.trim()
-                        .replace("₫", "")
-                        .replace("đ", "")
-                        .replace(" ", "")
-                        .replace(".", "")
-                        .replace(",", "");
-
-        return new BigDecimal(normalized);
+        return MoneyFormatUtil.parseMoneyInput(raw);
     }
 
     private BigDecimal getMoney(JSONObject object, String key, BigDecimal defaultValue) {
@@ -2651,19 +2631,11 @@ public class AuctionPageController {
     }
 
     private String formatPrice(BigDecimal price) {
-        if (price == null) {
-            return "0";
-        }
-
-        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
-        symbols.setGroupingSeparator('.');
-
-        DecimalFormat decimalFormat = new DecimalFormat("###,###", symbols);
-        return decimalFormat.format(price);
+        return MoneyFormatUtil.formatGrouped(price);
     }
 
     private String formatVnd(BigDecimal price) {
-        return formatPrice(price) + " ₫";
+        return MoneyFormatUtil.formatVndSuffix(price);
     }
 
     private void showError(String message) {

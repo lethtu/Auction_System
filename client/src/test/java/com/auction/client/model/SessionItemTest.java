@@ -25,6 +25,9 @@ public class SessionItemTest {
         assertTrue(display.contains("Vase"));
         assertTrue(display.contains("ACTIVE"));
         assertTrue(display.contains("MinRate:"));
+        assertTrue(display.contains("Current Price: 500.000 VND"));
+        assertTrue(display.contains("Step Price: 20.000 VND"));
+        assertTrue(display.contains("Reserve Price: 1.000.000 VND"));
 
         display = item.toDisplayText(3);
         assertTrue(display.contains("Index 3 | Session #42"));
@@ -43,6 +46,6 @@ public class SessionItemTest {
 
         String display = item.toDisplayText();
         assertTrue(display.contains("Unknown"));
-        assertTrue(display.contains("Current Price: 0"));
+        assertTrue(display.contains("Current Price: 0 VND"));
     }
 }

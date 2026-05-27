@@ -35,7 +35,7 @@ public class ForgotPasswordController {
         btnGetOTP.setDisable(true);
         btnGetOTP.setText("Processing...");
 
-        new Thread(() -> {
+        Thread otpThread = new Thread(() -> {
             try {
                 JSONObject json = new JSONObject();
                 json.put("email", email);
@@ -73,7 +73,9 @@ public class ForgotPasswordController {
                 logger.error("Error sending request to server: {}", e.getMessage(), e);
                 Platform.runLater(() -> btnGetOTP.setDisable(false));
             }
-        }).start();
+        }, "forgot-password-otp-worker");
+        otpThread.setDaemon(true);
+        otpThread.start();
     }
 
     @FXML
@@ -88,7 +90,7 @@ public class ForgotPasswordController {
             return;
         }
 
-        new Thread(() -> {
+        Thread resetThread = new Thread(() -> {
             try {
                 JSONObject json = new JSONObject();
                 json.put("email", email);
@@ -129,7 +131,9 @@ public class ForgotPasswordController {
             catch (Exception e) {
                 logger.error("Error during execution: {}", e.getMessage(), e);
             }
-        }).start();
+        }, "forgot-password-reset-worker");
+        resetThread.setDaemon(true);
+        resetThread.start();
     }
 
     public void setHttpClient(HttpClient httpClient) {

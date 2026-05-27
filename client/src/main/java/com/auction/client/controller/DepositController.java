@@ -6,6 +6,7 @@ import com.auction.client.Config;
 import com.auction.client.model.User;
 import com.auction.client.util.NotificationBellBinder;
 import com.auction.client.util.AlertUtil;
+import com.auction.client.util.MoneyFormatUtil;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -29,8 +30,6 @@ import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.util.ResourceBundle;
 
 public class DepositController implements Initializable {
@@ -169,17 +168,13 @@ public class DepositController implements Initializable {
     }
 
     private String formatPrice(BigDecimal price) {
-        if (price == null) return "0";
-        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
-        symbols.setGroupingSeparator('.');
-        DecimalFormat df = new DecimalFormat("###,###", symbols);
-        return df.format(price);
+        return MoneyFormatUtil.formatGrouped(price);
     }
 
     private void fetchLatestBalance() {
         if (User.getId() == null) return;
         
-        new Thread(() -> {
+        Thread balanceThread = new Thread(() -> {
             try {
                 HttpRequest.Builder builder = HttpRequest.newBuilder()
                         .uri(URI.create(Config.API_URL + "/api/users/" + User.getId()))
@@ -210,7 +205,9 @@ public class DepositController implements Initializable {
             } catch (Exception e) {
                 logger.warn("Cannot get latest balance: {}", e.getMessage());
             }
-        }).start();
+        }, "deposit-balance-refresh");
+        balanceThread.setDaemon(true);
+        balanceThread.start();
     }
 
     @FXML
@@ -228,7 +225,7 @@ public class DepositController implements Initializable {
         btnConfirmDeposit.setDisable(true);
         btnConfirmDeposit.setText("Processing...");
 
-        new Thread(() -> {
+        startDaemonThread("deposit-money", () -> {
             try {
                 String url = Config.API_URL + "/api/bidder/deposit?bidderId=" + User.getId() + "&amount=" + currentDepositAmount.toPlainString();
                 HttpRequest.Builder builder = HttpRequest.newBuilder()
@@ -266,9 +263,14 @@ public class DepositController implements Initializable {
                     showError("Cannot connect to the server.");
                 });
             }
-        }, "deposit-money").start();
+        });
     }
 
+    private void startDaemonThread(String threadName, Runnable task) {
+        Thread thread = new Thread(task, threadName);
+        thread.setDaemon(true);
+        thread.start();
+    }
     private void showInfo(String title, String message) {
         showAlert(Alert.AlertType.INFORMATION, title, message);
     }

@@ -10,6 +10,7 @@ import javafx.animation.TranslateTransition;
 import javafx.animation.Timeline;
 import javafx.animation.KeyFrame;
 import javafx.animation.Animation;
+import javafx.animation.PauseTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -125,7 +126,7 @@ public class LoginController {
     private void loadActiveProducts() {
         if (activeProductCarousel == null || activeProductImage == null) return;
 
-        new Thread(() -> {
+        startDaemonThread("login-active-products-loader", () -> {
             try {
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create(Config.API_URL + "/api/auctions/all"))
@@ -165,7 +166,7 @@ public class LoginController {
             } catch (Exception e) {
                 logger.warn("Failed to load active product carousel", e);
             }
-        }).start();
+        });
     }
 
     private FeaturedProduct toFeaturedProduct(JSONObject session) {
@@ -337,7 +338,7 @@ public class LoginController {
     public void handleGoogleLogin(ActionEvent event) {
         if (btnGoogle == null) return;
         btnGoogle.setDisable(true);
-        new Thread(() -> {
+        startDaemonThread("google-login-config-worker", () -> {
             try {
                 HttpRequest configRequest = HttpRequest.newBuilder()
                         .uri(URI.create(Config.API_URL + "/api/auth/google/config"))
@@ -374,7 +375,7 @@ public class LoginController {
                         dialog.setContentText("Email:");
 
                         dialog.showAndWait().ifPresent(email -> {
-                            new Thread(() -> submitGoogleLoginPayload(event, email, "Mock Google User", null, null)).start();
+                            startDaemonThread("google-login-mock-submit-worker", () -> submitGoogleLoginPayload(event, email, "Mock Google User", null, null));
                         });
                         btnGoogle.setDisable(false);
                     });
@@ -384,7 +385,7 @@ public class LoginController {
                         oauthService.startAuthorizationFlow(clientIdStr, new GoogleOAuthService.AuthorizationCallback() {
                             @Override
                             public void onSuccess(String code, String redirectUri) {
-                                new Thread(() -> submitGoogleLoginPayload(event, null, null, code, redirectUri)).start();
+                                startDaemonThread("google-login-oauth-submit-worker", () -> submitGoogleLoginPayload(event, null, null, code, redirectUri));
                             }
 
                             @Override
@@ -404,7 +405,13 @@ public class LoginController {
                     btnGoogle.setDisable(false);
                 });
             }
-        }).start();
+        });
+    }
+
+    private void startDaemonThread(String threadName, Runnable task) {
+        Thread thread = new Thread(task, threadName);
+        thread.setDaemon(true);
+        thread.start();
     }
 
     private void submitGoogleLoginPayload(ActionEvent event, String email, String name, String code, String redirectUri) {
@@ -486,13 +493,12 @@ public class LoginController {
         button.setDisable(true);
         button.setText("Not supported");
 
-        new Thread(() -> {
-            try { Thread.sleep(2000); } catch (InterruptedException e) {}
-            Platform.runLater(() -> {
-                button.setText(originalText);
-                button.setDisable(false);
-            });
-        }).start();
+        PauseTransition restoreButton = new PauseTransition(Duration.seconds(2));
+        restoreButton.setOnFinished(ignored -> {
+            button.setText(originalText);
+            button.setDisable(false);
+        });
+        restoreButton.play();
     }
 
     @FXML

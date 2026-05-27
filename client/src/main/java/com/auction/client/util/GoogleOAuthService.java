@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
 public class GoogleOAuthService {
@@ -25,16 +26,16 @@ public class GoogleOAuthService {
             String redirectUri = "http://127.0.0.1:" + port + "/callback";
 
             server.createContext("/callback", exchange -> {
-                String query = exchange.getRequestURI().getQuery();
+                String query = exchange.getRequestURI().getRawQuery();
                 String code = null;
                 String error = null;
 
                 if (query != null) {
                     for (String param : query.split("&")) {
-                        String[] pair = param.split("=");
+                        String[] pair = param.split("=", 2);
                         if (pair.length > 0) {
-                            String key = pair[0];
-                            String val = pair.length > 1 ? pair[1] : "";
+                            String key = decodeQueryComponent(pair[0]);
+                            String val = pair.length > 1 ? decodeQueryComponent(pair[1]) : "";
                             if ("code".equals(key)) {
                                 code = val;
                             } else if ("error".equals(key)) {
@@ -149,7 +150,12 @@ public class GoogleOAuthService {
                     }
 
                     final String finalCode = code;
-                    new Thread(() -> callback.onSuccess(finalCode, redirectUri)).start();
+                    Thread successCallbackThread = new Thread(
+                            () -> callback.onSuccess(finalCode, redirectUri),
+                            "google-oauth-success-callback"
+                    );
+                    successCallbackThread.setDaemon(true);
+                    successCallbackThread.start();
                 } else {
                     String errorText = error != null ? error : "Unknown error";
                     responseHtml = "<!DOCTYPE html>"
@@ -218,11 +224,18 @@ public class GoogleOAuthService {
                     }
 
                     final String finalError = error != null ? error : "Unknown error";
-                    new Thread(() -> callback.onFailure(finalError)).start();
+                    Thread failureCallbackThread = new Thread(
+                            () -> callback.onFailure(finalError),
+                            "google-oauth-failure-callback"
+                    );
+                    failureCallbackThread.setDaemon(true);
+                    failureCallbackThread.start();
                 }
 
                 // Stop the server in a separate thread so it completes the response stream cleanly
-                new Thread(this::stopServer).start();
+                Thread stopServerThread = new Thread(this::stopServer, "google-oauth-stop-server");
+                stopServerThread.setDaemon(true);
+                stopServerThread.start();
             });
 
             server.start();
@@ -243,6 +256,10 @@ public class GoogleOAuthService {
             callback.onFailure(e.getMessage());
             stopServer();
         }
+    }
+
+    private static String decodeQueryComponent(String value) {
+        return URLDecoder.decode(value.replace("+", "%2B"), StandardCharsets.UTF_8);
     }
 
     public synchronized void stopServer() {
@@ -284,4 +301,3 @@ public class GoogleOAuthService {
         }
     }
 }
-// Force compile check

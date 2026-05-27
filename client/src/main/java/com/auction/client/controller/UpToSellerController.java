@@ -70,7 +70,7 @@ public class UpToSellerController implements Initializable {
         lblMessage.setVisible(false);
         lblMessage.setManaged(false);
 
-        new Thread(() -> {
+        Thread upgradeThread = new Thread(() -> {
             try {
                 String apiUrl = Config.API_URL + "/api/bidder/up-to-seller?userId=" + User.getId();
                 HttpURLConnection conn = (HttpURLConnection) java.net.URI.create(apiUrl).toURL().openConnection();
@@ -112,7 +112,9 @@ public class UpToSellerController implements Initializable {
                     showError("Server connection error during upgrade!");
                 });
             }
-        }).start();
+        }, "up-to-seller-worker");
+        upgradeThread.setDaemon(true);
+        upgradeThread.start();
     }
 
     @FXML

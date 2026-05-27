@@ -29,7 +29,7 @@ public class CacheManager {
             .followRedirects(HttpClient.Redirect.ALWAYS)
             .build();
     private static final ExecutorService executor = Executors.newCachedThreadPool(runnable -> {
-        Thread thread = new Thread(runnable);
+        Thread thread = new Thread(runnable, "cache-manager-worker");
         thread.setDaemon(true);
         return thread;
     });

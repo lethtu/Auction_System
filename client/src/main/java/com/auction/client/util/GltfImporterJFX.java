@@ -452,7 +452,9 @@ public class GltfImporterJFX {
                         StandardOpenOption.CREATE,
                         StandardOpenOption.TRUNCATE_EXISTING
                     );
-                } catch (Exception ignored) {}
+                } catch (Exception writeError) {
+                    logger.warn("Could not write GLB debug error file: {}", writeError.getMessage(), writeError);
+                }
             }
         }
         

@@ -6,6 +6,7 @@ import com.auction.client.model.notification.AppNotification;
 import com.auction.client.model.notification.NotificationType;
 import com.auction.client.model.notification.NotificationSeverity;
 import com.auction.client.util.ShippingInfoDialog;
+import com.auction.client.util.MoneyFormatUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -20,8 +21,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
@@ -438,10 +437,6 @@ public class NotificationSocketService {
     }
 
     private String formatPrice(BigDecimal price) {
-        if (price == null) return "0";
-        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
-        symbols.setGroupingSeparator('.');
-        DecimalFormat decimalFormat = new DecimalFormat("###,###", symbols);
-        return decimalFormat.format(price);
+        return MoneyFormatUtil.formatGrouped(price);
     }
 }

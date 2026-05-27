@@ -1,14 +1,13 @@
 package com.auction.client.model;
 
+import com.auction.client.util.MoneyFormatUtil;
+
 import java.math.BigDecimal;
-import java.text.NumberFormat;
-import java.util.Locale;
 
 public class SessionItem {
-    private static final Locale MONEY_LOCALE = new Locale.Builder().setLanguage("vi").setRegion("VN").build();
     private static final String DEFAULT_TEXT = "Unknown";
     private static final String DEFAULT_STATUS = "UNKNOWN";
-    private static final String CURRENCY_SUFFIX = " VND";
+
 
     public int id;
     public String productName = "";
@@ -54,14 +53,6 @@ public class SessionItem {
     }
 
     private static String formatPrice(BigDecimal value) {
-        BigDecimal safeValue = value == null ? BigDecimal.ZERO : value;
-        return createMoneyFormat().format(safeValue) + CURRENCY_SUFFIX;
-    }
-
-    private static NumberFormat createMoneyFormat() {
-        NumberFormat format = NumberFormat.getNumberInstance(MONEY_LOCALE);
-        format.setMinimumFractionDigits(0);
-        format.setMaximumFractionDigits(2);
-        return format;
+        return MoneyFormatUtil.formatVndCode(value);
     }
 }

@@ -7,6 +7,7 @@ import com.auction.client.HttpClientSingleton;
 import com.auction.client.model.User;
 import com.auction.client.util.CacheManager;
 import com.auction.client.util.HttpRequestUtil;
+import com.auction.client.util.MoneyFormatUtil;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -39,7 +40,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -405,7 +405,7 @@ public class SellerDashboardController {
             lblImageUploadProgress.setManaged(true);
         }
 
-        new Thread(() -> {
+        startDaemonThread("seller-image-upload-worker", () -> {
             try {
                 if (currentItemUuid == null) {
                     currentItemUuid = java.util.UUID.randomUUID().toString();
@@ -458,7 +458,7 @@ public class SellerDashboardController {
                     showAlert(Alert.AlertType.ERROR, "Image Upload Error", "Failed to upload image: " + e.getMessage());
                 });
             }
-        }).start();
+        });
     }
 
     private void startModelUpload(File file) {
@@ -483,7 +483,7 @@ public class SellerDashboardController {
             lblModelUploadProgress.setManaged(true);
         }
 
-        new Thread(() -> {
+        startDaemonThread("seller-model-upload-worker", () -> {
             try {
                 if (currentItemUuid == null) {
                     currentItemUuid = java.util.UUID.randomUUID().toString();
@@ -537,9 +537,14 @@ public class SellerDashboardController {
                             "Failed to upload 3D model: " + e.getMessage());
                 });
             }
-        }).start();
+        });
     }
 
+    private void startDaemonThread(String threadName, Runnable task) {
+        Thread thread = new Thread(task, threadName);
+        thread.setDaemon(true);
+        thread.start();
+    }
     private boolean isSupportedModelFile(File file) {
         if (file == null || file.getName() == null) {
             return false;
@@ -658,12 +663,6 @@ public class SellerDashboardController {
 
         colBid.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().currentPrice));
         colBid.setCellFactory(col -> new TableCell<>() {
-            private final java.text.DecimalFormatSymbols symbols = new java.text.DecimalFormatSymbols() {
-                {
-                    setGroupingSeparator('.');
-                }
-            };
-            private final DecimalFormat df = new DecimalFormat("###,###", symbols);
 
             @Override
             protected void updateItem(BigDecimal price, boolean empty) {
@@ -678,7 +677,7 @@ public class SellerDashboardController {
                     return;
                 }
 
-                Label priceLabel = new Label(price.compareTo(BigDecimal.ZERO) == 0 ? "--" : "₫ " + df.format(price));
+                Label priceLabel = new Label(price.compareTo(BigDecimal.ZERO) == 0 ? "--" : "₫ " + MoneyFormatUtil.formatGrouped(price));
                 priceLabel.setStyle(price.compareTo(BigDecimal.ZERO) == 0
                         ? "-fx-text-fill: -app-text-muted; -fx-font-weight: bold;"
                         : "-fx-text-fill: -fx-accent; -fx-font-weight: 900;");
@@ -2514,9 +2513,8 @@ public class SellerDashboardController {
             }
         }
 
-        DecimalFormat df = new DecimalFormat("#,##0.##");
         if (lblTotalRevenue != null) {
-            lblTotalRevenue.setText("$" + df.format(revenue));
+            lblTotalRevenue.setText("$" + MoneyFormatUtil.formatGrouped(revenue));
         }
         if (lblActiveAuctions != null) {
             lblActiveAuctions.setText(String.valueOf(active));

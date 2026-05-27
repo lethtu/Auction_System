@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.auction.client.Config;
 import com.auction.client.util.ImageUrlUtil;
+import com.auction.client.util.MoneyFormatUtil;
 import com.auction.client.HttpClientSingleton;
 import javafx.application.Platform;
 import javafx.animation.PauseTransition;
@@ -27,8 +28,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import com.auction.client.model.User;
 import com.auction.client.util.ShippingInfoDialog;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.math.BigDecimal;
 import java.io.IOException;
 import java.net.URI;
@@ -176,7 +175,7 @@ public class MyBidsController implements Initializable {
 
     private void startPolling() {
         pollingScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread t = new Thread(r);
+            Thread t = new Thread(r, "my-bids-polling-worker");
             t.setDaemon(true);
             return t;
         });
@@ -842,12 +841,7 @@ public class MyBidsController implements Initializable {
         return ImageUrlUtil.buildImageUrl(rawPath);
     }
     private String formatPrice(BigDecimal price) {
-        if (price == null)
-            return "0";
-        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
-        symbols.setGroupingSeparator('.');
-        DecimalFormat df = new DecimalFormat("###,###", symbols);
-        return df.format(price);
+        return MoneyFormatUtil.formatGrouped(price);
     }
 
 }

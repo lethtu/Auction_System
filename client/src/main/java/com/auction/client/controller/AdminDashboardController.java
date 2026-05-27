@@ -7,6 +7,7 @@ import com.auction.client.model.PendingSessionRow;
 import com.auction.client.model.User;
 import com.auction.client.service.AdminDashboardService;
 import com.auction.client.util.AlertUtil;
+import com.auction.client.util.MoneyFormatUtil;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
@@ -22,7 +23,6 @@ import javafx.scene.control.TabPane;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
@@ -35,7 +35,6 @@ public class AdminDashboardController {
     private static final int LOGIN_WIDTH = 1000;
     private static final int LOGIN_HEIGHT = 700;
 
-    private static final String CURRENCY_SUFFIX = " VND";
     private static final BigDecimal PLATFORM_FEE_RATE = new BigDecimal("0.05");
     private static final String USER_BANNED_TEXT = "Banned";
     private static final String USER_ACTIVE_TEXT = "Active";
@@ -52,7 +51,6 @@ public class AdminDashboardController {
     private static final String INVALID_API_RESULT_MESSAGE = "Server did not return a valid result.";
 
     private final AdminDashboardService adminDashboardService = new AdminDashboardService();
-    private final NumberFormat currencyFormat = NumberFormat.getNumberInstance(Locale.forLanguageTag("vi-VN"));
     private final ExecutorService dataExecutor = Executors.newFixedThreadPool(3, runnable -> {
         Thread thread = new Thread(runnable, "admin-dashboard-load");
         thread.setDaemon(true);
@@ -252,7 +250,7 @@ public class AdminDashboardController {
     }
 
     private String formatCurrency(BigDecimal price) {
-        return currencyFormat.format(price) + CURRENCY_SUFFIX;
+        return MoneyFormatUtil.formatVndCode(price);
     }
 
     @FXML

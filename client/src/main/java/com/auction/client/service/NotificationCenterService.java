@@ -2,6 +2,7 @@ package com.auction.client.service;
 
 import com.auction.client.Config;
 import com.auction.client.model.User;
+import com.auction.client.util.MoneyFormatUtil;
 import com.auction.client.model.notification.AppNotification;
 import com.auction.client.model.notification.NotificationType;
 import com.auction.client.model.audio.SoundEvent;
@@ -21,8 +22,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -221,9 +220,7 @@ public class NotificationCenterService {
     }
 
     private String formatPrice(BigDecimal price) {
-        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
-        symbols.setGroupingSeparator('.');
-        return new DecimalFormat("###,###", symbols).format(price == null ? BigDecimal.ZERO : price);
+        return MoneyFormatUtil.formatGrouped(price);
     }
 
     private boolean shouldDisplayNotification(AppNotification notification) {

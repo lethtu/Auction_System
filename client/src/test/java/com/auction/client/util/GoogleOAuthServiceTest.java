@@ -113,4 +113,41 @@ public class GoogleOAuthServiceTest {
         assertTrue(latch.await(3, TimeUnit.SECONDS));
         assertEquals("access_denied", failureError.get());
     }
+    @Test
+    public void testAuthorizationFlow_EncodedCodeWithEqualsAndSlash() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<String> successCode = new AtomicReference<>();
+
+        oauthService.startAuthorizationFlow("mockClientId", new GoogleOAuthService.AuthorizationCallback() {
+            @Override
+            public void onSuccess(String code, String redirectUri) {
+                successCode.set(code);
+                latch.countDown();
+            }
+
+            @Override
+            public void onFailure(String error) {
+                latch.countDown();
+            }
+        });
+
+        Field serverField = GoogleOAuthService.class.getDeclaredField("server");
+        serverField.setAccessible(true);
+        com.sun.net.httpserver.HttpServer server = (com.sun.net.httpserver.HttpServer) serverField.get(oauthService);
+        assertNotNull(server);
+        int port = server.getAddress().getPort();
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://127.0.0.1:" + port + "/callback?code=mock%2Bauth%3Dcode%252F123"))
+                .GET()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        assertEquals(200, response.statusCode());
+        assertTrue(response.body().contains("Login Successful"));
+
+        assertTrue(latch.await(3, TimeUnit.SECONDS));
+        assertEquals("mock+auth=code%2F123", successCode.get());
+    }
+
 }
