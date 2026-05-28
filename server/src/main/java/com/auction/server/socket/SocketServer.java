@@ -34,9 +34,9 @@ public class SocketServer {
     private ServerSocket serverSocket;
     private volatile boolean running = true;
 
-    private static final ConcurrentHashMap<Integer, List<PrintWriter>> rooms = new ConcurrentHashMap<>();
-    private static final List<PrintWriter> homeClients = new CopyOnWriteArrayList<>();
-    private static final ConcurrentHashMap<Integer, List<PrintWriter>> homeUserClients = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Integer, List<SocketClient>> rooms = new ConcurrentHashMap<>();
+    private static final List<SocketClient> homeClients = new CopyOnWriteArrayList<>();
+    private static final ConcurrentHashMap<Integer, List<SocketClient>> homeUserClients = new ConcurrentHashMap<>();
 
     @Autowired
     public SocketServer(BiddingController biddingController, SessionManager sessionManager) {
@@ -76,75 +76,92 @@ public class SocketServer {
         acceptThread.start();
     }
 
+    // Overloads for PrintWriter to support legacy TCP client handler
     public static void joinRoom(Integer sessionId, PrintWriter out) {
-        rooms.computeIfAbsent(sessionId, k -> new CopyOnWriteArrayList<>()).add(out);
+        joinRoom(sessionId, new TcpSocketClient(out));
+    }
+
+    public static void joinHome(PrintWriter out) {
+        joinHome(new TcpSocketClient(out));
+    }
+
+    public static void joinHome(Integer userId, PrintWriter out) {
+        joinHome(userId, new TcpSocketClient(out));
+    }
+
+    public static void removeFromAllRooms(PrintWriter out) {
+        removeFromAllRooms(new TcpSocketClient(out));
+    }
+
+    // New API using SocketClient interface
+    public static void joinRoom(Integer sessionId, SocketClient client) {
+        rooms.computeIfAbsent(sessionId, k -> new CopyOnWriteArrayList<>()).add(client);
         logger.info("SERVER: Client joined room ID: {}", sessionId);
         broadcastCounts(sessionId);
     }
 
     public static void broadcastToRoom(Integer sessionId, String message) {
-        List<PrintWriter> clients = rooms.get(sessionId);
+        List<SocketClient> clients = rooms.get(sessionId);
         if (clients != null) {
-            clients.removeIf(out -> !sendSafely(out, message));
+            clients.removeIf(client -> !sendSafely(client, message));
         }
     }
 
-    public static void joinHome(PrintWriter out) {
-        homeClients.add(out);
+    public static void joinHome(SocketClient client) {
+        homeClients.add(client);
         logger.info("SERVER: Home Client connected for global events.");
     }
 
-    public static void joinHome(Integer userId, PrintWriter out) {
-        homeUserClients.computeIfAbsent(userId, k -> new CopyOnWriteArrayList<>()).add(out);
+    public static void joinHome(Integer userId, SocketClient client) {
+        homeUserClients.computeIfAbsent(userId, k -> new CopyOnWriteArrayList<>()).add(client);
         logger.info("SERVER: Home Client connected for user ID: {}", userId);
     }
 
     public static void sendToHomeUser(Integer userId, String message) {
-        List<PrintWriter> clients = homeUserClients.get(userId);
+        List<SocketClient> clients = homeUserClients.get(userId);
         if (clients != null) {
-            clients.removeIf(out -> !sendSafely(out, message));
+            clients.removeIf(client -> !sendSafely(client, message));
         }
     }
 
     public static void broadcastToAll(String message) {
         // Send to all Home clients
-        homeClients.removeIf(out -> !sendSafely(out, message));
+        homeClients.removeIf(client -> !sendSafely(client, message));
         // Send to all targeted Home clients
         homeUserClients.values().forEach(clients -> {
-            clients.removeIf(out -> !sendSafely(out, message));
+            clients.removeIf(client -> !sendSafely(client, message));
         });
         // Send to all clients in auction rooms
         rooms.values().forEach(clients -> {
-            clients.removeIf(out -> !sendSafely(out, message));
+            clients.removeIf(client -> !sendSafely(client, message));
         });
     }
 
-    private static boolean sendSafely(PrintWriter out, String message) {
-        if (out == null) {
+    private static boolean sendSafely(SocketClient client, String message) {
+        if (client == null) {
             return false;
         }
         try {
-            out.println(message);
-            out.flush();
-            return !out.checkError();
+            client.sendMessage(message);
+            return client.isOpen();
         } catch (Exception e) {
-            logger.warn("Removing stale socket writer: {}", e.getMessage());
+            logger.warn("Removing stale socket client: {}", e.getMessage());
             return false;
         }
     }
 
-    public static void removeFromAllRooms(PrintWriter out) {
+    public static void removeFromAllRooms(SocketClient client) {
         rooms.forEach((sessionId, clients) -> {
-            if (clients.remove(out)) {
+            if (clients.remove(client)) {
                 broadcastCounts(sessionId);
             }
         });
-        homeClients.remove(out);
-        homeUserClients.values().forEach(clients -> clients.remove(out));
+        homeClients.remove(client);
+        homeUserClients.values().forEach(clients -> clients.remove(client));
     }
 
     private static void broadcastCounts(Integer sessionId) {
-        List<PrintWriter> clients = rooms.get(sessionId);
+        List<SocketClient> clients = rooms.get(sessionId);
         int count = clients == null ? 0 : clients.size();
         JSONObject notice = new JSONObject();
         notice.put("watchingCount", count);

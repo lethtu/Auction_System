@@ -12,15 +12,12 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.math.BigDecimal;
-import java.net.Socket;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.WebSocket;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
@@ -30,9 +27,7 @@ public class NotificationSocketService {
     private static final Logger logger = LoggerFactory.getLogger(NotificationSocketService.class);
     private static NotificationSocketService instance;
 
-    private Socket socket;
-    private PrintWriter out;
-    private BufferedReader in;
+    private WebSocket webSocket;
     private Thread listenerThread;
     private volatile boolean running = false;
     private Integer userId;
@@ -107,15 +102,13 @@ public class NotificationSocketService {
 
     private void disconnect() {
         try {
-            if (out != null) out.close();
-            if (in != null) in.close();
-            if (socket != null && !socket.isClosed()) socket.close();
+            if (webSocket != null) {
+                webSocket.sendClose(WebSocket.NORMAL_CLOSURE, "Stopping");
+            }
         } catch (Exception e) {
-            logger.warn("Error during socket disconnect: {}", e.getMessage());
+            logger.warn("Error during websocket disconnect: {}", e.getMessage());
         } finally {
-            out = null;
-            in = null;
-            socket = null;
+            webSocket = null;
         }
     }
 
@@ -123,30 +116,71 @@ public class NotificationSocketService {
         int delay = 2000; // start with 2s reconnect delay
         while (running) {
             try {
-                logger.info("Connecting to global socket server at {}:{}", Config.SOCKET_HOST, Config.PORT_SOCKET);
-                socket = new Socket(Config.SOCKET_HOST, Config.PORT_SOCKET);
-                out = new PrintWriter(socket.getOutputStream(), true);
-                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                String wsUrl = Config.API_URL.replace("https://", "wss://").replace("http://", "ws://") + "/ws/notification";
+                logger.info("Connecting to global WebSocket server at {}", wsUrl);
 
-                if (User.getSessionToken() != null) {
-                    JSONObject authJson = new JSONObject();
-                    authJson.put("token", User.getSessionToken());
-                    out.println("AUTH:" + authJson.toString());
-                    out.flush();
-                }
+                HttpClient client = HttpClient.newHttpClient();
+                
+                java.util.concurrent.CompletableFuture<WebSocket> wsFuture = client.newWebSocketBuilder()
+                        .buildAsync(URI.create(wsUrl), new WebSocket.Listener() {
+                            private final StringBuilder buffer = new StringBuilder();
 
-                // Register with user ID
-                out.println("JOIN_HOME:" + userId);
+                            @Override
+                            public void onOpen(WebSocket ws) {
+                                logger.info("Global WebSocket connection opened.");
+                                webSocket = ws;
+                                if (User.getSessionToken() != null) {
+                                    JSONObject authJson = new JSONObject();
+                                    authJson.put("token", User.getSessionToken());
+                                    ws.sendText("AUTH:" + authJson.toString(), true);
+                                }
+                                ws.sendText("JOIN_HOME:" + userId, true);
+                                ws.request(1);
+                            }
+
+                            @Override
+                            public java.util.concurrent.CompletionStage<?> onText(WebSocket ws, CharSequence data, boolean last) {
+                                buffer.append(data);
+                                if (last) {
+                                    String msg = buffer.toString();
+                                    buffer.setLength(0);
+                                    handleServerMessage(msg);
+                                }
+                                ws.request(1);
+                                return null;
+                            }
+
+                            @Override
+                            public java.util.concurrent.CompletionStage<?> onClose(WebSocket ws, int statusCode, String reason) {
+                                logger.warn("Global WebSocket closed: {} - {}", statusCode, reason);
+                                synchronized (NotificationSocketService.this) {
+                                    NotificationSocketService.this.notifyAll();
+                                }
+                                return null;
+                            }
+
+                            @Override
+                            public void onError(WebSocket ws, Throwable error) {
+                                logger.error("Global WebSocket error: {}", error.getMessage());
+                                synchronized (NotificationSocketService.this) {
+                                    NotificationSocketService.this.notifyAll();
+                                }
+                            }
+                        });
+
+                this.webSocket = wsFuture.get(); // block until connected
+                logger.info("Successfully connected to global WebSocket server.");
                 delay = 2000; // reset delay on success
-                logger.info("Successfully connected and registered JOIN_HOME:{} on socket server.", userId);
 
-                String line;
-                while (running && (line = in.readLine()) != null) {
-                    handleServerMessage(line);
+                // Wait until running is false or websocket is closed
+                synchronized (this) {
+                    while (running && this.webSocket != null && !this.webSocket.isInputClosed() && !this.webSocket.isOutputClosed()) {
+                        this.wait(5000); // periodically check
+                    }
                 }
             } catch (Exception e) {
                 if (running) {
-                    logger.warn("Socket connection lost or failed. Reconnecting in {}ms... Error: {}", delay, e.getMessage());
+                    logger.warn("Global WebSocket connection lost or failed. Reconnecting in {}ms... Error: {}", delay, e.getMessage());
                     try {
                         Thread.sleep(delay);
                     } catch (InterruptedException ie) {
