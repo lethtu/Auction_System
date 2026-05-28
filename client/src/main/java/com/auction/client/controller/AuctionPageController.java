@@ -87,6 +87,20 @@ public class AuctionPageController {
     private static final String EXTENSION_STYLE = BASE_ALERT_STYLE +
             "-fx-background-color: #fdf2e9; -fx-border-color: #fcd7b6; -fx-text-fill: #b25900;";
 
+    private static final String RESERVE_BADGE_BASE_STYLE =
+            "-fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: 900; "
+                    + "-fx-padding: 4 10; -fx-background-radius: 999; -fx-border-radius: 999; -fx-border-width: 1;";
+
+    private static final String RESERVE_MET_STYLE = RESERVE_BADGE_BASE_STYLE
+            + "-fx-background-color: rgba(19, 115, 51, 0.14); "
+            + "-fx-border-color: rgba(19, 115, 51, 0.32); "
+            + "-fx-text-fill: #38a169;";
+
+    private static final String UNDER_RESERVE_STYLE = RESERVE_BADGE_BASE_STYLE
+            + "-fx-background-color: rgba(229, 62, 62, 0.14); "
+            + "-fx-border-color: rgba(229, 62, 62, 0.34); "
+            + "-fx-text-fill: #e53e3e;";
+
     @FXML
     private Label productNameLabel;
     @FXML
@@ -210,7 +224,7 @@ public class AuctionPageController {
 
     private static final int EXPANDED_SIDEBAR_WIDTH = 200;
     private static final int COLLAPSED_SIDEBAR_WIDTH = 70;
-    private static final int BID_TIMEOUT_SECONDS = 8;
+    private static final int BID_TIMEOUT_SECONDS = 15;
 
     private final java.util.List<com.auction.client.model.BidChartPoint> allBidPoints = new java.util.ArrayList<>();
     private final java.util.Set<Integer> seenBidIds = new java.util.HashSet<>();
@@ -442,8 +456,14 @@ public class AuctionPageController {
             return;
         }
 
+        if (hasPendingLocalBidRequest()) {
+            showInfo("Your previous bid is still being processed. Please wait a moment.");
+            return;
+        }
+
         if (!isSocketReady()) {
-            showError("Socket server connection error!");
+            reconnectBidSocket();
+            showError("Bid server is reconnecting. Please try again in a moment.");
             return;
         }
 
@@ -1467,6 +1487,10 @@ public class AuctionPageController {
         setLabelText(minIncrementLabel, "Min increment ₫ 0");
         setLabelText(highestBidderLabel, DEFAULT_HIGHEST_BIDDER);
         setLabelText(reserveStatusLabel, "");
+        if (reserveStatusLabel != null) {
+            reserveStatusLabel.setVisible(false);
+            reserveStatusLabel.setManaged(false);
+        }
         setLabelText(totalBidsLabel, "0");
         setLabelText(watchingLabel, "0");
         setLabelText(itemDescriptionLabel, DEFAULT_DESCRIPTION);
@@ -1848,7 +1872,7 @@ public class AuctionPageController {
         updateQuickBidLabels(getEffectiveStepPrice());
         setLabelText(minIncrementLabel, "Min increment ₫ " + formatPrice(getEffectiveStepPrice()));
         setLabelText(highestBidderLabel, formatHighestBidder());
-        setLabelText(reserveStatusLabel, formatReserveStatus());
+        updateReserveStatusLabel();
         int displayBidCount = Math.max(Math.max(0, bidCount), allBidPoints.size());
         setLabelText(totalBidsLabel, String.valueOf(displayBidCount));
         setLabelText(watchingLabel, String.valueOf(Math.max(0, watchingCount)));
@@ -1879,18 +1903,29 @@ public class AuctionPageController {
         return "Highest bidder: User #" + highestBidderId;
     }
 
-    private String formatReserveStatus() {
-        if (reservePrice == null || reservePrice.compareTo(BigDecimal.ZERO) <= 0) {
-            return "";
+    private void updateReserveStatusLabel() {
+        if (reserveStatusLabel == null) {
+            return;
         }
 
-        return currentPrice.compareTo(reservePrice) >= 0
-                ? "Reserve price met"
-                : "Reserve price not met";
+        if (reservePrice == null || reservePrice.compareTo(BigDecimal.ZERO) <= 0) {
+            reserveStatusLabel.setText("");
+            reserveStatusLabel.setVisible(false);
+            reserveStatusLabel.setManaged(false);
+            return;
+        }
+
+        boolean reserveMet = currentPrice.compareTo(reservePrice) >= 0;
+        reserveStatusLabel.setVisible(true);
+        reserveStatusLabel.setManaged(true);
+        reserveStatusLabel.setText(reserveMet ? "Reserve Met" : "Under Reserve");
+        reserveStatusLabel.setStyle(reserveMet ? RESERVE_MET_STYLE : UNDER_RESERVE_STYLE);
     }
 
     private void connectToServer() {
         disconnectSocket();
+        startSocketListener("auction-socket-listener");
+    }
 
         String wsUrl = Config.API_URL.replace("https://", "wss://").replace("http://", "ws://") + "/ws/notification";
         logger.info("Connecting to session WebSocket: {}", wsUrl);
@@ -2347,8 +2382,11 @@ public class AuctionPageController {
 
             if (PROCESSING_MESSAGE.equals(messageLabel.getText())) {
                 messageLabel.setStyle(WARNING_STYLE);
-                messageLabel.setText("Server response is slow, please check connection or try again.");
+                messageLabel.setText("No bid response from server. Auction data was refreshed; please try again.");
                 clearLocalBidRequest("timeout");
+                refreshSessionFromServer();
+                fetchLatestUserBalance();
+                reconnectBidSocket();
                 if (!bidErrorSoundPlayedForCurrentAttempt) {
                     com.auction.client.service.SoundManager.getInstance()
                             .playSound(com.auction.client.model.audio.SoundEvent.BID_ERROR);
