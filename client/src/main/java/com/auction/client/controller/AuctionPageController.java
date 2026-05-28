@@ -1,6 +1,7 @@
 package com.auction.client.controller;
 
 import com.auction.client.Config;
+import com.auction.client.util.BalanceDisplayBinder;
 import com.auction.client.util.ImageUrlUtil;
 import com.auction.client.util.MoneyFormatUtil;
 import com.auction.client.util.BidStepPolicy;
@@ -181,6 +182,10 @@ public class AuctionPageController {
     @FXML
     private Label minIncrementLabel;
     @FXML
+    private Label availableBalanceValue;
+    @FXML
+    private Button availableBalanceToggle;
+    @FXML
     private VBox chartContainer;
     @FXML
     private VBox bidHistoryContainer;
@@ -242,6 +247,8 @@ public class AuctionPageController {
         createUserOption("Avatar");
         initDefaultView();
         setupQuickBidControls();
+        BalanceDisplayBinder.bindAvailableBalance(availableBalanceValue, availableBalanceToggle);
+        fetchLatestUserBalance();
 
         // The media frame owns the size. Switching from the 2D ImageView to the 3D
         // container must never allow the product card to shrink or change shape.
@@ -1887,6 +1894,7 @@ public class AuctionPageController {
                     notif.setAuctionId(currentSessionId);
                     notif.setItemName(productNameLabel.getText());
                     NotificationCenterService.getInstance().addNotification(notif);
+                    fetchLatestUserBalance();
                 } else {
                     if (!isExpectedLocalBidResponse(responseObj)) {
                         logger.info("Ignoring successful RESPONSE without matching local BID request: {}", responseObj);

@@ -4403,3 +4403,99 @@
     -fx-border-radius: 32px;
 }
 
+/* ====== BALANCE DISPLAY ====== */
+.balance-chip {
+    -fx-background-color: -app-accent-opacity-08;
+    -fx-background-radius: 999px;
+    -fx-border-color: -app-accent-opacity-30;
+    -fx-border-radius: 999px;
+    -fx-border-width: 1.2px;
+    -fx-padding: 4px 6px 4px 12px;
+    -fx-effect: dropshadow(gaussian, -app-accent-opacity-08, 10, 0.10, 0, 2);
+}
+
+.balance-chip-title {
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 11px;
+    -fx-font-weight: 900;
+    -fx-text-fill: -app-text-muted;
+}
+
+.balance-chip-value {
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 12px;
+    -fx-font-weight: 900;
+    -fx-text-fill: -fx-accent;
+}
+
+.balance-eye-button {
+    -fx-font-family: 'Material Symbols Outlined';
+    -fx-font-size: 17px;
+    -fx-font-weight: normal;
+    -fx-text-fill: -app-text-muted;
+    -fx-background-color: transparent;
+    -fx-background-radius: 999px;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+    -fx-alignment: center;
+}
+
+.balance-eye-button:hover {
+    -fx-background-color: -app-accent-opacity-16;
+    -fx-text-fill: -fx-accent;
+}
+
+.balance-eye-button:disabled {
+    -fx-opacity: 0.45;
+    -fx-cursor: default;
+}
+
+.available-balance-card {
+    -fx-background-color: linear-gradient(to right, -app-accent-opacity-16, -app-surface-2);
+    -fx-background-radius: 18px;
+    -fx-border-color: -app-accent-opacity-30;
+    -fx-border-radius: 18px;
+    -fx-border-width: 1.3px;
+    -fx-padding: 10px 12px;
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-08, 12, 0.10, 0, 3);
+}
+
+.available-balance-icon-wrap {
+    -fx-background-color: -fx-accent;
+    -fx-background-radius: 12px;
+    -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-25, 10, 0, 0, 3);
+}
+
+.available-balance-icon {
+    -fx-font-family: 'Material Symbols Outlined';
+    -fx-font-size: 17px;
+    -fx-font-weight: normal;
+    -fx-text-fill: white;
+}
+
+.available-balance-label {
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 11px;
+    -fx-font-weight: 900;
+    -fx-text-fill: -app-text-muted;
+}
+
+.available-balance-value {
+    -fx-font-family: 'DM Sans';
+    -fx-font-size: 17px;
+    -fx-font-weight: 900;
+    -fx-text-fill: -app-text;
+}
+
+.theme-dark .balance-chip,
+.theme-dark .available-balance-card {
+    -fx-border-color: -app-accent-opacity-38;
+}
+
+.theme-light .balance-chip,
+.theme-light .available-balance-card {
+    -fx-background-color: -app-accent-chip-bg;
+    -fx-border-color: -app-accent-opacity-38;
+}
+

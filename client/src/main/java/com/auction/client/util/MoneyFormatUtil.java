@@ -27,6 +27,10 @@ public final class MoneyFormatUtil {
         return formatGrouped(value) + " \u20ab";
     }
 
+    public static String formatVndPrefix(BigDecimal value) {
+        return "\u20ab " + formatGrouped(value);
+    }
+
     public static String formatVndCode(BigDecimal value) {
         BigDecimal safeValue = value == null ? BigDecimal.ZERO : value;
         NumberFormat format = NumberFormat.getNumberInstance(Locale.forLanguageTag("vi-VN"));

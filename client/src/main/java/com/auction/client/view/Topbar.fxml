@@ -24,6 +24,13 @@
     <Region HBox.hgrow="ALWAYS" />
 
     <HBox spacing="10.0" alignment="CENTER_RIGHT" minHeight="52.0" prefHeight="52.0" maxHeight="52.0" style="-fx-padding: 0;">
+        <HBox fx:id="balanceChip" alignment="CENTER" spacing="7.0" minWidth="218.0" prefWidth="226.0" maxWidth="260.0" minHeight="36.0" prefHeight="36.0" maxHeight="36.0" styleClass="balance-chip">
+            <children>
+                <Label text="Balance" minWidth="44.0" prefWidth="44.0" styleClass="balance-chip-title" />
+                <Label fx:id="topbarBalanceValue" text="--" minWidth="118.0" prefWidth="126.0" maxWidth="Infinity" styleClass="balance-chip-value" />
+                <Button fx:id="topbarBalanceToggle" text="&#xe8f4;" minWidth="28.0" prefWidth="28.0" maxWidth="28.0" minHeight="28.0" prefHeight="28.0" maxHeight="28.0" styleClass="balance-eye-button" />
+            </children>
+        </HBox>
         <StackPane alignment="CENTER" minWidth="44.0" prefWidth="44.0" maxWidth="44.0" minHeight="44.0" prefHeight="44.0" maxHeight="44.0">
             <Button fx:id="btnNotificationBell" minWidth="44.0" prefWidth="44.0" maxWidth="44.0" minHeight="44.0" prefHeight="44.0" maxHeight="44.0" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0; -fx-alignment: center;">
                 <graphic>

@@ -1,5 +1,11 @@
 package com.auction.client.model;
 
+import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
+
 import java.math.BigDecimal;
 
 public class User {
@@ -19,6 +25,11 @@ public class User {
 
     private static BigDecimal balance = BigDecimal.ZERO;
     private static BigDecimal frozenBalance = BigDecimal.ZERO;
+    private static boolean balanceLoaded = false;
+    private static final SimpleObjectProperty<BigDecimal> balanceObservable = new SimpleObjectProperty<>(BigDecimal.ZERO);
+    private static final SimpleObjectProperty<BigDecimal> frozenBalanceObservable = new SimpleObjectProperty<>(BigDecimal.ZERO);
+    private static final SimpleBooleanProperty balanceLoadedObservable = new SimpleBooleanProperty(false);
+    private static final SimpleBooleanProperty balanceVisibleObservable = new SimpleBooleanProperty(true);
 
     private static String avatarUrl;
 
@@ -68,6 +79,8 @@ public class User {
         avatarUrl = AvatarUrl;
         balance = BigDecimal.ZERO;
         frozenBalance = BigDecimal.ZERO;
+        balanceLoaded = false;
+        updateBalanceObservables(balance, frozenBalance, balanceLoaded);
         watchlistIds.clear();
         if (username != null) {
             watchlistIds.addAll(com.auction.client.service.ClientLogger.loadUserFavorites(username));
@@ -100,6 +113,8 @@ public class User {
 
     public static void setBalance(BigDecimal Balance) {
         balance = Balance == null ? BigDecimal.ZERO : Balance;
+        balanceLoaded = true;
+        updateBalanceObservables(balance, frozenBalance, balanceLoaded);
     }
 
     public static void setAvatarUrl(String AvatarUrl) {
@@ -116,6 +131,8 @@ public class User {
         role = null;
         balance = BigDecimal.ZERO;
         frozenBalance = BigDecimal.ZERO;
+        balanceLoaded = false;
+        updateBalanceObservables(balance, frozenBalance, balanceLoaded);
         avatarUrl = null;
         sessionToken = null;
         watchlistIds.clear();
@@ -168,10 +185,40 @@ public class User {
 
     public static void setFrozenBalance(BigDecimal fb) {
         frozenBalance = fb == null ? BigDecimal.ZERO : fb;
+        balanceLoaded = true;
+        updateBalanceObservables(balance, frozenBalance, balanceLoaded);
     }
 
     public static BigDecimal getAvailableBalance() {
         return getBalance().subtract(getFrozenBalance());
+    }
+
+    public static boolean isBalanceLoaded() {
+        return balanceLoaded;
+    }
+
+    public static ReadOnlyObjectProperty<BigDecimal> balanceProperty() {
+        return balanceObservable;
+    }
+
+    public static ReadOnlyObjectProperty<BigDecimal> frozenBalanceProperty() {
+        return frozenBalanceObservable;
+    }
+
+    public static BooleanProperty balanceLoadedProperty() {
+        return balanceLoadedObservable;
+    }
+
+    public static BooleanProperty balanceVisibleProperty() {
+        return balanceVisibleObservable;
+    }
+
+    public static boolean isBalanceVisible() {
+        return balanceVisibleObservable.get();
+    }
+
+    public static void setBalanceVisible(boolean visible) {
+        runOnFxThread(() -> balanceVisibleObservable.set(visible));
     }
 
     public static String getAvatarUrl() {
@@ -184,5 +231,27 @@ public class User {
 
     public static void setPasswordSet(boolean set) {
         passwordSet = set;
+    }
+
+    private static void updateBalanceObservables(BigDecimal newBalance, BigDecimal newFrozenBalance, boolean loaded) {
+        BigDecimal safeBalance = newBalance == null ? BigDecimal.ZERO : newBalance;
+        BigDecimal safeFrozenBalance = newFrozenBalance == null ? BigDecimal.ZERO : newFrozenBalance;
+        runOnFxThread(() -> {
+            balanceObservable.set(safeBalance);
+            frozenBalanceObservable.set(safeFrozenBalance);
+            balanceLoadedObservable.set(loaded);
+        });
+    }
+
+    private static void runOnFxThread(Runnable action) {
+        try {
+            if (Platform.isFxApplicationThread()) {
+                action.run();
+            } else {
+                Platform.runLater(action);
+            }
+        } catch (IllegalStateException e) {
+            action.run();
+        }
     }
 }
