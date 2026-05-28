@@ -15,6 +15,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import com.auction.client.Config;
 import com.auction.client.util.CacheManager;
+import com.auction.client.util.BalanceDisplayBinder;
 import com.auction.client.util.NotificationBellBinder;
  
 import java.io.IOException;
@@ -29,6 +30,8 @@ public class TopbarController implements Initializable {
     @FXML private TextField txtSearch;
     @FXML private Button btnNotificationBell;
     @FXML private Label notificationBadge;
+    @FXML private Label topbarBalanceValue;
+    @FXML private Button topbarBalanceToggle;
     @FXML private Button btnSettings;
     @FXML private MenuButton userMenuButton;
     @FXML private StackPane topBarAvatarPane;
@@ -46,6 +49,8 @@ public class TopbarController implements Initializable {
         if (btnNotificationBell != null && notificationBadge != null) {
             NotificationBellBinder.bind(btnNotificationBell, notificationBadge);
         }
+
+        BalanceDisplayBinder.bindAvailableBalance(topbarBalanceValue, topbarBalanceToggle);
  
         if (btnSettings != null) {
             btnSettings.setOnAction(e -> {

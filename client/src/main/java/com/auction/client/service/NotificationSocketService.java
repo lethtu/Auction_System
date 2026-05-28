@@ -76,6 +76,7 @@ public class NotificationSocketService {
         listenerThread.setDaemon(true);
         listenerThread.start();
         logger.info("NotificationSocketService started for user {}", userId);
+        fetchLatestUserBalance();
     }
 
     public synchronized void stop() {
