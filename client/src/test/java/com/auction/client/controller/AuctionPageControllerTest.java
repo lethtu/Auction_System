@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@DisabledIfEnvironmentVariable(named = "GITHUB_ACTIONS", matches = "true", disabledReason = "AuctionPageControllerTest loads JavaFX Media, which is not reliable on GitHub Actions headless runner")
 @ExtendWith(ApplicationExtension.class)
 public class AuctionPageControllerTest {
 
@@ -77,7 +78,6 @@ public class AuctionPageControllerTest {
     }
 
     @Test
-    @DisabledIfEnvironmentVariable(named = "GITHUB_ACTIONS", matches = "true", disabledReason = "JavaFX Media is not available reliably on GitHub Actions headless runner")
     public void testResponsiveFontScaling() throws Exception {
         assertNotNull(scene.lookup("#endingInTitleLabel"));
         assertNotNull(scene.lookup("#startPriceTitleLabel"));
