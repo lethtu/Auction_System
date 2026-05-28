@@ -80,11 +80,6 @@ jobs:
         run: |
           sudo apt-get update
 
-          ASOUND_PACKAGE="libasound2"
-          if ! apt-cache show libasound2 >/dev/null 2>&1; then
-            ASOUND_PACKAGE="libasound2t64"
-          fi
-
           sudo apt-get install -y \
             xvfb \
             libgtk-3-0 \
@@ -93,7 +88,7 @@ jobs:
             libxi6 \
             libgl1 \
             libpulse0 \
-            "$ASOUND_PACKAGE" \
+            libasound2t64 \
             gstreamer1.0-plugins-base \
             gstreamer1.0-plugins-good \
             gstreamer1.0-libav \
