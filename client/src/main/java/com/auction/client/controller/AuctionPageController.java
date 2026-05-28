@@ -214,7 +214,8 @@ public class AuctionPageController {
     private static final String RESPONSE_PREFIX = "RESPONSE:";
     private static final String ROOM_COUNT_PREFIX = "ROOM_COUNT:";
 
-    private static final String MONEY_PREFIX = "ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â« ";
+    private static final String MONEY_SYMBOL = "\u20ab";
+    private static final String MONEY_PREFIX = MONEY_SYMBOL + " ";
     private static final String DEFAULT_PRODUCT_NAME = "Unknown Product";
     private static final String DEFAULT_DESCRIPTION = "No product description available.";
     private static final String DEFAULT_HIGHEST_BIDDER = "No bidder yet";
@@ -589,13 +590,13 @@ public class AuctionPageController {
         titleBar.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         titleBar.setStyle("-fx-padding: 0 0 10 0; -fx-cursor: move;");
 
-        Label titleLbl = new Label("ÃƒÂ¢Ã…Â¡Ã‚Â¡ Auto-bidding Configuration");
+        Label titleLbl = new Label("Auto-bidding Configuration");
         titleLbl.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; ");
 
         javafx.scene.layout.Region titleSpacer = new javafx.scene.layout.Region();
         javafx.scene.layout.HBox.setHgrow(titleSpacer, javafx.scene.layout.Priority.ALWAYS);
 
-        Button minBtn = new Button("ÃƒÂ¢Ã‹â€ Ã¢â‚¬â„¢");
+        Button minBtn = new Button("_");
         minBtn.setStyle(
                 "-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px;");
         minBtn.setOnAction(ev -> dialog.setIconified(true));
@@ -604,20 +605,20 @@ public class AuctionPageController {
         minBtn.setOnMouseExited(ev -> minBtn.setStyle(
                 "-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px;"));
 
-        Button maxBtn = new Button("ÃƒÂ¢Ã¢â‚¬â€Ã‚Â»");
+        Button maxBtn = new Button("\u25a1");
         maxBtn.setStyle(
                 "-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px;");
         maxBtn.setOnAction(ev -> {
             boolean isMax = dialog.isMaximized();
             dialog.setMaximized(!isMax);
-            maxBtn.setText(isMax ? "ÃƒÂ¢Ã¢â‚¬â€Ã‚Â»" : "ÃƒÂ¢Ã‚ÂÃ‚Â");
+            maxBtn.setText(isMax ? "\u25a1" : "\u2750");
         });
         maxBtn.setOnMouseEntered(ev -> maxBtn.setStyle(
                 "-fx-background-color: #f2e8f2; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px; -fx-background-radius: 8;"));
         maxBtn.setOnMouseExited(ev -> maxBtn.setStyle(
                 "-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px;"));
 
-        Button closeBtn = new Button("ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¢");
+        Button closeBtn = new Button("X");
         closeBtn.setStyle(
                 "-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 14px;");
         closeBtn.setOnAction(ev -> dialog.close());
@@ -643,7 +644,7 @@ public class AuctionPageController {
         subtitleLabel.setStyle("-fx-font-size: 13px; -fx-font-family: 'DM Sans'; ");
         subtitleLabel.setWrapText(true);
 
-        Label priceBadge = new Label("ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â° Current price: " + MONEY_PREFIX + formatPrice(currentPrice));
+        Label priceBadge = new Label("Current price: " + MONEY_PREFIX + formatPrice(currentPrice));
         priceBadge.setStyle(
                 "-fx-background-color: #fff0f8;" +
                         "-fx-background-radius: 8px;" +
@@ -952,12 +953,12 @@ public class AuctionPageController {
             public String toString(Number num) {
                 double v = num.doubleValue();
                 if (v >= 1000000000)
-                    return "ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â«" + String.format("%.1fB", v / 1000000000);
+                    return MONEY_SYMBOL + String.format("%.1fB", v / 1000000000);
                 if (v >= 1000000)
-                    return "ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â«" + String.format("%.1fM", v / 1000000);
+                    return MONEY_SYMBOL + String.format("%.1fM", v / 1000000);
                 if (v >= 1000)
-                    return "ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â«" + String.format("%.1fK", v / 1000);
-                return "ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â«" + String.format("%.0f", v);
+                    return MONEY_SYMBOL + String.format("%.1fK", v / 1000);
+                return MONEY_SYMBOL + String.format("%.0f", v);
             }
 
             @Override
@@ -1011,7 +1012,7 @@ public class AuctionPageController {
                         if (timeStr.length() > 19)
                             timeStr = timeStr.substring(0, 19);
                         javafx.scene.control.Tooltip tip = new javafx.scene.control.Tooltip(
-                                "Bid #" + p.getBidId() + "\n" + p.getDisplayName() + "\nÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â« " + formatPrice(p.getAmount())
+                                "Bid #" + p.getBidId() + "\n" + p.getDisplayName() + "\n" + MONEY_PREFIX + formatPrice(p.getAmount())
                                         + "\n" + timeStr + "\n" + p.getRelativeTime());
                         tip.setStyle(
                                 "-fx-font-family:'DM Sans';-fx-font-size:12px; -fx-background-color: rgba(46,26,40,0.9); -fx-text-fill: white; -fx-padding: 8px; -fx-background-radius: 8px;");
@@ -1116,7 +1117,7 @@ public class AuctionPageController {
             nl.setStyle("-fx-font-family:'DM Sans';-fx-font-size:12px;-fx-font-weight:bold;");
             javafx.scene.layout.Region sp = new javafx.scene.layout.Region();
             javafx.scene.layout.HBox.setHgrow(sp, javafx.scene.layout.Priority.ALWAYS);
-            Label al = new Label("ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â« " + formatPrice(pt.getAmount()));
+            Label al = new Label(MONEY_PREFIX + formatPrice(pt.getAmount()));
             al.setStyle("-fx-font-family:'DM Sans';-fx-font-size:13px;-fx-font-weight:900;");
             Label tl = new Label(pt.getRelativeTime());
             tl.setStyle("-fx-font-family:'DM Sans';-fx-font-size:10px;");
@@ -1166,7 +1167,7 @@ public class AuctionPageController {
         VBox.setVgrow(mainCard, javafx.scene.layout.Priority.ALWAYS);
         root.getChildren().add(mainCard);
 
-        // CSS cho TableView vÃƒâ€šÃ‚Âµ Chart
+        // CSS for TableView and Chart
         String css = ".table-view { -fx-background-color: transparent; -fx-border-color: -app-border; -fx-border-radius: 8px; -fx-background-radius: 8px; } "
                 +
                 ".table-view .column-header-background { -fx-background-color: -app-surface-2; -fx-background-radius: 8px 8px 0 0; } "
@@ -1210,7 +1211,7 @@ public class AuctionPageController {
         titleBar.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         titleBar.setStyle("-fx-padding: 0 0 10 0; -fx-cursor: move;");
 
-        Label titleLbl = new Label("ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â  Bid Trajectory & Full History");
+        Label titleLbl = new Label("Bid Trajectory & Full History");
         titleLbl.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; ");
 
         javafx.scene.layout.Region titleSpacer = new javafx.scene.layout.Region();
@@ -1321,7 +1322,7 @@ public class AuctionPageController {
             try {
                 java.time.LocalDateTime dt = java.time.LocalDateTime.parse(cd.getValue().getBidTime());
                 java.time.format.DateTimeFormatter dtf = java.time.format.DateTimeFormatter
-                        .ofPattern("HH:mm:ss Ãƒâ€šÃ‚Â· dd/MM/yyyy");
+                        .ofPattern("HH:mm:ss \u00b7 dd/MM/yyyy");
                 return new javafx.beans.property.SimpleStringProperty(dt.format(dtf));
             } catch (Exception ex) {
                 return new javafx.beans.property.SimpleStringProperty(cd.getValue().getBidTime());
@@ -1335,7 +1336,7 @@ public class AuctionPageController {
         javafx.scene.control.TableColumn<com.auction.client.model.BidChartPoint, String> c3 = new javafx.scene.control.TableColumn<>(
                 "Amount");
         c3.setCellValueFactory(
-                cd -> new javafx.beans.property.SimpleStringProperty("ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â« " + formatPrice(cd.getValue().getAmount())));
+                cd -> new javafx.beans.property.SimpleStringProperty(MONEY_PREFIX + formatPrice(cd.getValue().getAmount())));
         c3.setStyle("-fx-alignment: CENTER-RIGHT; -fx-font-weight: 900;  -fx-font-size: 14px;");
         javafx.scene.control.TableColumn<com.auction.client.model.BidChartPoint, String> c4 = new javafx.scene.control.TableColumn<>(
                 "Increment");
@@ -1344,7 +1345,7 @@ public class AuctionPageController {
             if (idx <= 0)
                 return new javafx.beans.property.SimpleStringProperty("-");
             return new javafx.beans.property.SimpleStringProperty(
-                    "+ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â« " + formatPrice(cd.getValue().getAmount().subtract(allBidPoints.get(idx - 1).getAmount())));
+                    "+" + MONEY_PREFIX + formatPrice(cd.getValue().getAmount().subtract(allBidPoints.get(idx - 1).getAmount())));
         });
         c4.setStyle(
                 "-fx-alignment: CENTER-RIGHT; -fx-text-fill: -fx-accent; -fx-font-weight: 900; -fx-font-size: 14px;");
@@ -1393,7 +1394,7 @@ public class AuctionPageController {
                         if (timeStr.length() > 19)
                             timeStr = timeStr.substring(0, 19);
                         javafx.scene.control.Tooltip tip = new javafx.scene.control.Tooltip(
-                                "Bid #" + p.getBidId() + "\n" + p.getDisplayName() + "\nÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â« " + formatPrice(p.getAmount())
+                                "Bid #" + p.getBidId() + "\n" + p.getDisplayName() + "\n" + MONEY_PREFIX + formatPrice(p.getAmount())
                                         + "\n" + timeStr + "\n" + p.getRelativeTime());
                         tip.setStyle(
                                 "-fx-font-family:'DM Sans';-fx-font-size:12px; -fx-background-color: rgba(46,26,40,0.9); -fx-text-fill: white; -fx-padding: 8px; -fx-background-radius: 8px;");
@@ -1422,8 +1423,8 @@ public class AuctionPageController {
             }
             String lt = allBidPoints.isEmpty() ? "-"
                     : formatRelativeTime(allBidPoints.get(allBidPoints.size() - 1).getBidTime());
-            String[][] sts = { { "Total Bids", "" + allBidPoints.size() }, { "Highest", "ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â« " + formatPrice(hi) },
-                    { "Start", "ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â« " + formatPrice(lo) }, { "Max ÃƒÅ½Ã¢â‚¬Â", "+ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â« " + formatPrice(mxi) }, { "Last Bid", lt } };
+            String[][] sts = { { "Total Bids", "" + allBidPoints.size() }, { "Highest", MONEY_PREFIX + formatPrice(hi) },
+                    { "Start", MONEY_PREFIX + formatPrice(lo) }, { "Max Delta", "+" + MONEY_PREFIX + formatPrice(mxi) }, { "Last Bid", lt } };
             for (String[] st : sts) {
                 VBox sv = new VBox(4);
                 sv.setAlignment(javafx.geometry.Pos.CENTER);
@@ -1483,7 +1484,7 @@ public class AuctionPageController {
         currentPriceLabel.setText("...");
         remainingTimeLabel.setText("Loading...");
 
-        setLabelText(minIncrementLabel, "Min increment ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â« 0");
+        setLabelText(minIncrementLabel, "Min increment " + MONEY_PREFIX + "0");
         setLabelText(highestBidderLabel, DEFAULT_HIGHEST_BIDDER);
         setLabelText(reserveStatusLabel, "");
         if (reserveStatusLabel != null) {
@@ -1869,7 +1870,7 @@ public class AuctionPageController {
 
     private void updateBidInfoLabels() {
         updateQuickBidLabels(getEffectiveStepPrice());
-        setLabelText(minIncrementLabel, "Min increment ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â« " + formatPrice(getEffectiveStepPrice()));
+        setLabelText(minIncrementLabel, "Min increment " + MONEY_PREFIX + formatPrice(getEffectiveStepPrice()));
         setLabelText(highestBidderLabel, formatHighestBidder());
         updateReserveStatusLabel();
         int displayBidCount = Math.max(Math.max(0, bidCount), allBidPoints.size());
@@ -2330,14 +2331,14 @@ public class AuctionPageController {
         }
 
         if (bidAmount.compareTo(currentPrice) <= 0) {
-            showError("Bid must be GREATER THAN current price (ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â« " + formatPrice(currentPrice) + ")!");
+            showError("Bid must be GREATER THAN current price (" + MONEY_PREFIX + formatPrice(currentPrice) + ")!");
             return null;
         }
 
         BigDecimal increment = getEffectiveStepPrice();
         BigDecimal minimumBid = currentPrice.add(increment);
         if (bidAmount.compareTo(minimumBid) < 0) {
-            showError("Minimum bid is ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â« " + formatPrice(minimumBid) + "!");
+            showError("Minimum bid is " + MONEY_PREFIX + formatPrice(minimumBid) + "!");
             return null;
         }
 
@@ -2361,7 +2362,7 @@ public class AuctionPageController {
             logger.error("Failed to send BID request to server (socket not ready)!");
             Platform.runLater(() -> {
                 finishBidProcessing();
-                showError("KhÃƒÆ’Ã‚Â´ng gÃƒÂ¡Ã‚Â»Ã‚Â­i Ãƒâ€žÃ¢â‚¬ËœÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã‚Â£c yÃƒÆ’Ã‚Âªu cÃƒÂ¡Ã‚ÂºÃ‚Â§u Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚ÂºÃ‚Â·t giÃƒÆ’Ã‚Â¡ tÃƒÂ¡Ã‚Â»Ã¢â‚¬Âºi server");
+                showError("Khong gui duoc yeu cau dat gia toi server");
                 if (!bidErrorSoundPlayedForCurrentAttempt) {
                     com.auction.client.service.SoundManager.getInstance()
                             .playSound(com.auction.client.model.audio.SoundEvent.BID_ERROR);
@@ -2378,7 +2379,7 @@ public class AuctionPageController {
             logger.error("Failed to send BID request: {}", e.getMessage());
             Platform.runLater(() -> {
                 finishBidProcessing();
-                showError("KhÃƒÆ’Ã‚Â´ng gÃƒÂ¡Ã‚Â»Ã‚Â­i Ãƒâ€žÃ¢â‚¬ËœÃƒâ€ Ã‚Â°ÃƒÂ¡Ã‚Â»Ã‚Â£c yÃƒÆ’Ã‚Âªu cÃƒÂ¡Ã‚ÂºÃ‚Â§u Ãƒâ€žÃ¢â‚¬ËœÃƒÂ¡Ã‚ÂºÃ‚Â·t giÃƒÆ’Ã‚Â¡ tÃƒÂ¡Ã‚Â»Ã¢â‚¬Âºi server");
+                showError("Khong gui duoc yeu cau dat gia toi server");
             });
             return false;
         }
