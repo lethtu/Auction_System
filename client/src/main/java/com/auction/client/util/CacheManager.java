@@ -110,11 +110,15 @@ public class CacheManager {
 
         // Asynchronously check for server updates and download/reload if needed
         validateAndDownloadAsync(imageUrl, cachedFile, metaFile, isUpdated -> {
-            if (isUpdated || !finalHasLocal) {
+            if ((isUpdated || !finalHasLocal) && Files.exists(cachedFile)) {
                 logger.info("Local image cache updated or loaded for the first time, reloading: {}", cachedFile.toAbsolutePath());
                 try {
                     Image newImage = new Image(cachedFile.toUri().toString(), false);
-                    Platform.runLater(() -> onImageLoaded.accept(newImage));
+                    if (!newImage.isError() && newImage.getWidth() > 1 && newImage.getHeight() > 1) {
+                        Platform.runLater(() -> onImageLoaded.accept(newImage));
+                    } else {
+                        logger.warn("Downloaded image cache is not displayable: {}", cachedFile.toAbsolutePath());
+                    }
                 } catch (Exception e) {
                     logger.error("Failed to load updated image from local file", e);
                 }

@@ -176,7 +176,7 @@
                                                                     <children>
                                                                         <HBox alignment="CENTER_LEFT" spacing="10.0">
                                                                             <children>
-                                                                                <Label text="Your Bid Amount" style="-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: 900; " />
+                                                                                <Label fx:id="bidAmountTitleLabel" text="Your Bid Amount" style="-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: 900; " />
                                                                                 <Region HBox.hgrow="ALWAYS" />
                                                                                 <Label fx:id="minIncrementLabel" text="Min increment ₫ 0" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: -fx-accent;" />
                                                                             </children>
