@@ -135,7 +135,7 @@ class AdminControllerTest {
         ApiResponse<Void> response = controller.banUser(2, 1);
 
         assertEquals(500, response.getStatus());
-        assertEquals("Cannot ban another Admin account", response.getMessage());
+        assertEquals("Internal server error", response.getMessage());
         assertNull(response.getData());
     }
 

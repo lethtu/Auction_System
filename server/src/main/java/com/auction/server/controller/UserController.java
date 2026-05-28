@@ -1,6 +1,7 @@
 package com.auction.server.controller;
 
 import com.auction.server.dto.ApiResponse;
+import com.auction.server.exception.ClientErrorException;
 import com.auction.server.model.User;
 import com.auction.server.service.CloudinaryService;
 import com.auction.server.service.UserService;
@@ -74,6 +75,8 @@ public class UserController {
         try {
             User updatedUser = userService.updateProfile(id, request);
             return ResponseEntity.ok(success("Account information updated successfully", updatedUser));
+        } catch (ClientErrorException e) {
+            return ResponseEntity.status(e.getStatus()).body(error(e.getMessage(), null));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(error(e.getMessage(), null));
         }
@@ -194,6 +197,9 @@ public class UserController {
                     "Avatar updated successfully.",
                     Map.of("avatarUrl", publicUrl)));
 
+        } catch (ClientErrorException e) {
+            return ResponseEntity.status(e.getStatus()).body(
+                    new ApiResponse<>(e.getStatus(), e.getMessage(), null));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(
                     new ApiResponse<>(ERROR_STATUS, e.getMessage(), null));
@@ -255,6 +261,8 @@ public class UserController {
             String newPassword = request.get("password");
             User updatedUser = userService.setPassword(id, newPassword);
             return ResponseEntity.ok(success("Password set successfully.", updatedUser));
+        } catch (ClientErrorException e) {
+            return ResponseEntity.status(e.getStatus()).body(error(e.getMessage(), null));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(error(e.getMessage(), null));
         } catch (Exception e) {
@@ -273,6 +281,8 @@ public class UserController {
             String newPassword = request.get("newPassword");
             User updatedUser = userService.changePassword(id, oldPassword, newPassword);
             return ResponseEntity.ok(success("Password changed successfully.", updatedUser));
+        } catch (ClientErrorException e) {
+            return ResponseEntity.status(e.getStatus()).body(error(e.getMessage(), null));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(error(e.getMessage(), null));
         } catch (Exception e) {

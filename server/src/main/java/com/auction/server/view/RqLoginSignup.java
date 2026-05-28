@@ -2,6 +2,7 @@ package com.auction.server.view;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.auction.server.exception.ValidationException;
 import com.auction.server.model.Bidder;
 import com.auction.server.model.User;
 import com.auction.server.repository.HandleLoginSignup;
@@ -41,7 +42,7 @@ public class RqLoginSignup {
             logger.info("Adding user: {}", newUser.getUsername());
             if (newUser.getPassword() == null) {
                 logger.info("Error: password for user {} is null", newUser.getUsername());
-                throw new RuntimeException("Error: Password sent is null!");
+                throw new ValidationException("Password is required.");
             }
 
             // Always create Bidder on signup so Hibernate writes "BIDDER" discriminator to DB

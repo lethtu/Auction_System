@@ -1,6 +1,7 @@
 package com.auction.server.controller;
 
 import com.auction.server.dto.ApiResponse;
+import com.auction.server.exception.ClientErrorException;
 import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.dto.UserResponseDTO;
 import com.auction.server.service.AdminService;
@@ -199,13 +200,17 @@ public class AdminController {
             logger.info(logMessage);
             return ApiResponse.success(successMessage, action.get());
 
-        } catch (IllegalArgumentException e) {
+        } catch (ClientErrorException e) {
+            logger.warn("{} failed: {}", logMessage, e.getMessage());
+            return ApiResponse.error(e.getStatus(), e.getMessage());
+
+        } catch (IllegalArgumentException | IllegalStateException e) {
             logger.warn("{} failed: {}", logMessage, e.getMessage());
             return ApiResponse.error(BAD_REQUEST_STATUS, e.getMessage());
 
         } catch (Exception e) {
             logger.error("{} failed: {}", logMessage, e.getMessage(), e);
-            return ApiResponse.error(e.getMessage());
+            return ApiResponse.error(500, "Internal server error");
         }
     }
 }

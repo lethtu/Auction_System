@@ -3,6 +3,9 @@ package com.auction.server.service;
 import com.auction.server.dto.CreateAuctionRequest;
 import com.auction.server.dto.SellerStatsDTO;
 import com.auction.server.dto.SessionResponseDTO;
+import com.auction.server.exception.BusinessException;
+import com.auction.server.exception.PermissionDeniedException;
+import com.auction.server.exception.ResourceNotFoundException;
 import com.auction.server.factory.ItemFactory;
 import com.auction.server.mapper.SessionResponseMapper;
 import com.auction.server.model.AuctionSession;
@@ -126,7 +129,7 @@ public class SellerService {
         sellerSessionGuard.validateSessionOwner(session, sellerId, "You do not have permission to edit this session");
 
         if (session.getStatus() != AuctionStatus.ACTIVE && session.getStatus() != AuctionStatus.COMING && session.getStatus() != AuctionStatus.DRAFT) {
-            throw new IllegalArgumentException("Can only edit sessions that are not ended or drafts");
+            throw new BusinessException("Can only edit sessions that are not ended or drafts");
         }
 
         Item item = session.getItem();
@@ -148,7 +151,7 @@ public class SellerService {
         AuctionSession session = sellerSessionGuard.getSessionById(sessionId);
         sellerSessionGuard.validateSessionOwner(session, sellerId, "You do not have permission to cancel this session");
         if (session.getStatus() != AuctionStatus.ACTIVE && session.getStatus() != AuctionStatus.COMING && session.getStatus() != AuctionStatus.DRAFT) {
-            throw new IllegalArgumentException("Can only cancel active, upcoming, or draft sessions");
+            throw new BusinessException("Can only cancel active, upcoming, or draft sessions");
         }
 
         session.setStatus(AuctionStatus.CANCELED);
@@ -192,16 +195,16 @@ public class SellerService {
     @Transactional
     public void softDeleteItem(Integer itemId, Integer sellerId) {
         Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new IllegalArgumentException("Product not found."));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found."));
 
         List<AuctionSession> sessions = auctionSessionRepository.findByItem_Id(itemId);
 
         for (AuctionSession session : sessions) {
             if (session.getSeller() == null || !session.getSeller().getId().equals(sellerId)) {
-                throw new IllegalArgumentException("You do not have permission to delete this product.");
+                throw new PermissionDeniedException("You do not have permission to delete this product.");
             }
             if (session.getStatus() == AuctionStatus.ACTIVE || session.getStatus() == AuctionStatus.ENDED || session.getStatus() == AuctionStatus.PAID) {
-                throw new IllegalArgumentException("Cannot delete product with active, ended, or paid auction sessions.");
+                throw new BusinessException("Cannot delete product with active, ended, or paid auction sessions.");
             }
         }
 

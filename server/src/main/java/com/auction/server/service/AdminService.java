@@ -2,6 +2,9 @@ package com.auction.server.service;
 
 import com.auction.server.dto.SessionResponseDTO;
 import com.auction.server.dto.UserResponseDTO;
+import com.auction.server.exception.BusinessException;
+import com.auction.server.exception.PermissionDeniedException;
+import com.auction.server.exception.ResourceNotFoundException;
 import com.auction.server.mapper.SessionResponseMapper;
 import com.auction.server.model.Admin;
 import com.auction.server.model.AuctionSession;
@@ -95,7 +98,7 @@ public class AdminService {
         AuctionSession session = getSessionById(sessionId);
 
         if (session.getStatus() != AuctionStatus.DRAFT) {
-            throw new IllegalArgumentException(ERROR_APPROVE_NOT_PENDING);
+            throw new BusinessException(ERROR_APPROVE_NOT_PENDING);
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -118,7 +121,7 @@ public class AdminService {
         AuctionSession session = getSessionById(sessionId);
 
         if (session.getStatus() != AuctionStatus.DRAFT) {
-            throw new IllegalArgumentException(ERROR_REJECT_NOT_PENDING);
+            throw new BusinessException(ERROR_REJECT_NOT_PENDING);
         }
 
         session.setStatus(AuctionStatus.CANCELED);
@@ -135,13 +138,13 @@ public class AdminService {
         Admin admin = checkAdminPermission(adminId);
 
         if (targetUserId == null || targetUserId.equals(admin.getId())) {
-            throw new IllegalArgumentException(ERROR_SELF_BAN);
+            throw new BusinessException(ERROR_SELF_BAN);
         }
 
         User target = getUserById(targetUserId, ERROR_TARGET_USER_NOT_FOUND);
 
         if (target instanceof Admin) {
-            throw new IllegalArgumentException(ERROR_BAN_ADMIN);
+            throw new BusinessException(ERROR_BAN_ADMIN);
         }
 
         target.setBanned(true);
@@ -165,7 +168,7 @@ public class AdminService {
         AuctionSession session = getSessionById(sessionId);
 
         if (session.getStatus() == AuctionStatus.ENDED || session.getStatus() == AuctionStatus.PAID || session.getStatus() == AuctionStatus.CANCELED) {
-            throw new IllegalArgumentException(ERROR_CANCEL_FINISHED_SESSION);
+            throw new BusinessException(ERROR_CANCEL_FINISHED_SESSION);
         }
 
         session.setStatus(AuctionStatus.CANCELED);
@@ -229,20 +232,20 @@ public class AdminService {
 
     private AuctionSession getSessionById(Integer sessionId) {
         if (sessionId == null) {
-            throw new IllegalArgumentException(ERROR_SESSION_NOT_FOUND);
+            throw new ResourceNotFoundException(ERROR_SESSION_NOT_FOUND);
         }
 
         return sessionRepository.findById(sessionId)
-                .orElseThrow(() -> new IllegalArgumentException(ERROR_SESSION_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(ERROR_SESSION_NOT_FOUND));
     }
 
     private User getUserById(Integer userId, String errorMessage) {
         if (userId == null) {
-            throw new IllegalArgumentException(errorMessage);
+            throw new ResourceNotFoundException(errorMessage);
         }
 
         return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException(errorMessage));
+                .orElseThrow(() -> new ResourceNotFoundException(errorMessage));
     }
 
     private Item getItemById(Integer productId) {
@@ -251,11 +254,11 @@ public class AdminService {
         }
 
         if (productId == null) {
-            throw new IllegalArgumentException(ERROR_PRODUCT_NOT_FOUND);
+            throw new ResourceNotFoundException(ERROR_PRODUCT_NOT_FOUND);
         }
 
         return itemRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException(ERROR_PRODUCT_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(ERROR_PRODUCT_NOT_FOUND));
     }
 
     private Admin checkAdminPermission(Integer adminId) {
@@ -263,7 +266,7 @@ public class AdminService {
 
         if (!(user instanceof Admin admin)) {
             logger.warn("{} is not an administrator", adminId);
-            throw new IllegalArgumentException(ERROR_NOT_ADMIN);
+            throw new PermissionDeniedException(ERROR_NOT_ADMIN);
         }
 
         return admin;
@@ -271,7 +274,7 @@ public class AdminService {
 
     private String normalizeRequiredReason(String reason) {
         if (!hasText(reason)) {
-            throw new IllegalArgumentException(ERROR_REJECT_REASON_REQUIRED);
+            throw new BusinessException(ERROR_REJECT_REASON_REQUIRED);
         }
 
         return reason.trim();
