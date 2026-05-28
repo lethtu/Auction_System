@@ -76,10 +76,28 @@ jobs:
           distribution: "temurin"
           cache: maven
 
-      - name: Install JavaFX test dependencies
+      - name: Install JavaFX test and media dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb libgtk-3-0 libxrender1 libxtst6 libxi6
+
+          ASOUND_PACKAGE="libasound2"
+          if ! apt-cache show libasound2 >/dev/null 2>&1; then
+            ASOUND_PACKAGE="libasound2t64"
+          fi
+
+          sudo apt-get install -y \
+            xvfb \
+            libgtk-3-0 \
+            libxrender1 \
+            libxtst6 \
+            libxi6 \
+            libgl1 \
+            libpulse0 \
+            "$ASOUND_PACKAGE" \
+            gstreamer1.0-plugins-base \
+            gstreamer1.0-plugins-good \
+            gstreamer1.0-libav \
+            ffmpeg
 
       - name: Check Code Convention (Checkstyle)
         working-directory: client
