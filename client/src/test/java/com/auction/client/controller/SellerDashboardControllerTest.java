@@ -706,8 +706,8 @@ public class SellerDashboardControllerTest {
             controller.displayedSessions.add(draftSession);
         });
         WaitForAsyncUtils.waitForFxEvents();
-        robot.clickOn("#btnEdit_123");
-        robot.sleep(500);
+        Button editButton = (Button) robot.lookup("#btnEdit_123").query();
+        Platform.runLater(editButton::fire);
         WaitForAsyncUtils.waitForFxEvents();
 
         // Xác minh tên nút ở chế độ edit Draft: nút chính là "Publish", nút nháp là
@@ -719,9 +719,8 @@ public class SellerDashboardControllerTest {
 
         // 3. Thay đổi tên sản phẩm trên giao diện
         TextField nameField = (TextField) robot.lookup("#productNameField").query();
-        Platform.runLater(() -> nameField.clear());
+        Platform.runLater(() -> nameField.setText("Sản phẩm Draft Đã Sửa"));
         WaitForAsyncUtils.waitForFxEvents();
-        robot.clickOn("#productNameField").write("Sản phẩm Draft Đã Sửa");
 
         // 4. Mock API lưu thay đổi thành công
         String jsonSuccess = "{\"status\": 200, \"message\": \"Cập nhật phiên đấu giá thành công.\" }";
