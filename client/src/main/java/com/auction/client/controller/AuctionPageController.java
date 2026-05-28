@@ -782,6 +782,12 @@ public class AuctionPageController {
         }
 
         BigDecimal minimumIncrement = getEffectiveStepPrice();
+        BigDecimal minimumAutoBid = currentPrice.add(minimumIncrement);
+        if (maxBid.compareTo(minimumAutoBid) < 0) {
+            showError("Max bid must be at least " + MONEY_PREFIX + formatPrice(minimumAutoBid) + "!");
+            return false;
+        }
+
         if (increment.compareTo(minimumIncrement) < 0) {
             showError("Auto increment must be at least " + MONEY_PREFIX + formatPrice(minimumIncrement) + "!");
             return false;

@@ -302,6 +302,10 @@ public class AuctionService {
         if (maxBid.compareTo(currentPrice) <= 0) {
             throw new InvalidBidException("Maximum bid must be higher than the current price.");
         }
+        BigDecimal minimumAutoBid = currentPrice.add(getEffectiveBidIncrement(session, currentPrice));
+        if (maxBid.compareTo(minimumAutoBid) < 0) {
+            throw new InvalidBidException("Maximum bid must be at least the next minimum bid.");
+        }
         if (userRepository.findById(bidderId).isEmpty()) {
             throw new ResourceNotFoundException("Bidder not found.");
         }
@@ -327,6 +331,8 @@ public class AuctionService {
             return null;
         }
 
+        BigDecimal currentPrice = session.getCurrentPrice() == null ? BigDecimal.ZERO : session.getCurrentPrice();
+        BigDecimal minimumNextBid = currentPrice.add(getEffectiveBidIncrement(session, currentPrice));
         AutoBidConfig winner = null;
         for (AutoBidConfig config : configs) {
             if (isSessionSeller(session, config.getBidderId())) {
@@ -336,28 +342,66 @@ public class AuctionService {
                         config.getBidderId(), sessionId);
                 continue;
             }
+            if (!config.getBidderId().equals(session.getHighestBidderId())
+                    && config.getMaxBid().compareTo(minimumNextBid) < 0) {
+                config.setActive(false);
+                autoBidConfigRepository.save(config);
+                logger.info("AUTO-BID deactivated: bidderId={} maxBid={} is below next minimum bid={}",
+                        config.getBidderId(), config.getMaxBid(), minimumNextBid);
+                continue;
+            }
             winner = config;
             break;
         }
         if (winner == null) {
             return null;
         }
-        if (winner.getBidderId().equals(session.getHighestBidderId())) {
+
+        AutoBidConfig challenger = findBestChallenger(configs, session, winner.getBidderId(), minimumNextBid);
+        if (winner.getBidderId().equals(session.getHighestBidderId()) && challenger == null) {
             return null;
         }
 
-        BigDecimal currentPrice = session.getCurrentPrice() == null ? BigDecimal.ZERO : session.getCurrentPrice();
-        BigDecimal increment = winner.getIncrement() == null || winner.getIncrement().signum() <= 0
-                ? DEFAULT_BID_INCREMENT
-                : winner.getIncrement();
-        increment = increment.max(getEffectiveBidIncrement(session, currentPrice));
+        BigDecimal increment = getAutoBidIncrement(session, winner, currentPrice);
         BigDecimal newPrice = currentPrice.add(increment);
+        if (challenger != null) {
+            newPrice = newPrice.max(challenger.getMaxBid().add(increment));
+        }
         if (newPrice.compareTo(winner.getMaxBid()) > 0) {
-            winner.setActive(false);
-            autoBidConfigRepository.save(winner);
+            newPrice = winner.getMaxBid();
+        }
+        if (newPrice.compareTo(minimumNextBid) < 0) {
+            if (!winner.getBidderId().equals(session.getHighestBidderId())) {
+                winner.setActive(false);
+                autoBidConfigRepository.save(winner);
+            }
             return null;
         }
         return executeAutoBid(session, winner, configs, newPrice, currentPrice);
+    }
+
+    private AutoBidConfig findBestChallenger(
+            List<AutoBidConfig> configs,
+            AuctionSession session,
+            Integer winnerBidderId,
+            BigDecimal minimumNextBid
+    ) {
+        for (AutoBidConfig config : configs) {
+            if (config.getBidderId().equals(winnerBidderId)
+                    || isSessionSeller(session, config.getBidderId())
+                    || config.getMaxBid().compareTo(minimumNextBid) < 0) {
+                continue;
+            }
+            return config;
+        }
+        return null;
+    }
+
+    private BigDecimal getAutoBidIncrement(AuctionSession session, AutoBidConfig winner, BigDecimal currentPrice) {
+        BigDecimal increment = winner.getIncrement() == null || winner.getIncrement().signum() <= 0
+                ? DEFAULT_BID_INCREMENT
+                : winner.getIncrement();
+        return increment.max(getEffectiveBidIncrement(session, currentPrice));
     }
 
     private String extendEndTimeIfNeeded(AuctionSession session, LocalDateTime bidTime, String source) {
@@ -513,7 +557,8 @@ public class AuctionService {
 
             // Deactivate configs that have exceeded maxBid
             for (com.auction.server.model.AutoBidConfig cfg : allConfigs) {
-                if (newPrice.compareTo(cfg.getMaxBid()) >= 0 && !cfg.getId().equals(winner.getId())) {
+                if (newPrice.compareTo(cfg.getMaxBid()) >= 0
+                        && !java.util.Objects.equals(cfg.getId(), winner.getId())) {
                     cfg.setActive(false);
                     autoBidConfigRepository.save(cfg);
                     logger.info("AUTO-BID deactivated: bidderId={} exceeded maxBid={}",

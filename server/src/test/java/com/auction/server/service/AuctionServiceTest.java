@@ -587,6 +587,42 @@ public class AuctionServiceTest {
     }
 
     @Test
+    @DisplayName("resolveAutoBids lets current highest auto-bid against a lower challenger config")
+    public void resolveAutoBids_currentHighestCountersChallengerConfig() {
+        mockSession.setCurrentPrice(new BigDecimal("10000.00"));
+        mockSession.setHighestBidderId(99);
+
+        User incumbent = new User();
+        incumbent.setId(99);
+        incumbent.setBalance(new BigDecimal("100000.00"));
+        incumbent.setFrozenBalance(new BigDecimal("10000.00"));
+
+        AutoBidConfig incumbentConfig = new AutoBidConfig(1, 99, new BigDecimal("50000.00"), new BigDecimal("1000.00"));
+        incumbentConfig.setId(1);
+        AutoBidConfig challengerConfig = new AutoBidConfig(1, 88, new BigDecimal("30000.00"), new BigDecimal("1000.00"));
+        challengerConfig.setId(2);
+
+        when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
+        when(autoBidConfigRepository.findBySessionIdAndActiveTrueOrderByMaxBidDesc(1))
+                .thenReturn(List.of(incumbentConfig, challengerConfig));
+        when(userRepository.findById(99)).thenReturn(Optional.of(incumbent));
+        when(bidRepository.countBySessionId(1)).thenReturn(4);
+
+        BidResponse response = auctionService.resolveAutoBids(1);
+
+        assertNotNull(response);
+        assertTrue(response.isSuccess());
+        assertEquals(0, new BigDecimal("40000.00").compareTo(response.getCurrentPrice()));
+        assertEquals(Integer.valueOf(99), response.getHighestBidderId());
+        assertEquals(Integer.valueOf(99), response.getPreviousHighestBidderId());
+        assertEquals(0, new BigDecimal("40000.00").compareTo(incumbent.getFrozenBalance()));
+        assertFalse(challengerConfig.isActive());
+        verify(autoBidConfigRepository).save(challengerConfig);
+        verify(bidRepository).save(any(Bid.class));
+        verify(auctionSessionRepository).save(mockSession);
+    }
+
+    @Test
     @DisplayName("resolveAutoBids deactivates config when next price exceeds max bid")
     public void resolveAutoBids_deactivatesWhenNextPriceExceedsMaxBid() {
         mockSession.setCurrentPrice(new BigDecimal("50000.00"));
@@ -793,12 +829,12 @@ public class AuctionServiceTest {
         assertNotNull(response);
         assertTrue(response.isSuccess());
         assertEquals("Auto-bid: Price has been automatically raised!", response.getMessage());
-        assertEquals(0, new BigDecimal("20000.00").compareTo(response.getCurrentPrice()));
+        assertEquals(0, new BigDecimal("30000.00").compareTo(response.getCurrentPrice()));
         assertEquals(Integer.valueOf(99), response.getHighestBidderId());
         assertEquals(Integer.valueOf(77), response.getPreviousHighestBidderId());
         assertEquals(Integer.valueOf(7), response.getBidCount());
         assertEquals(originalEndTime.plusSeconds(60), mockSession.getEndTime());
-        assertEquals(0, new BigDecimal("20000.00").compareTo(autoBidder.getFrozenBalance()));
+        assertEquals(0, new BigDecimal("30000.00").compareTo(autoBidder.getFrozenBalance()));
         assertEquals(0, BigDecimal.ZERO.compareTo(oldTopBidder.getFrozenBalance()));
         assertFalse(capped.isActive());
         verify(autoBidConfigRepository).save(capped);
