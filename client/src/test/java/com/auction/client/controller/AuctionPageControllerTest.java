@@ -10,6 +10,7 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.api.FxAssert;
 import org.testfx.framework.junit5.ApplicationExtension;
@@ -76,6 +77,7 @@ public class AuctionPageControllerTest {
     }
 
     @Test
+    @DisabledIfEnvironmentVariable(named = "GITHUB_ACTIONS", matches = "true", disabledReason = "JavaFX Media is not available reliably on GitHub Actions headless runner")
     public void testResponsiveFontScaling() throws Exception {
         assertNotNull(scene.lookup("#endingInTitleLabel"));
         assertNotNull(scene.lookup("#startPriceTitleLabel"));
