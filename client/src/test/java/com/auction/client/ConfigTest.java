@@ -8,12 +8,15 @@ class ConfigTest {
 
     @Test
     void normalizeBaseUrl_trimsWhitespaceAndTrailingSlashes() {
-        assertEquals("http://localhost:8080", Config.normalizeBaseUrl("  http://localhost:8080///  "));
+        assertEquals(
+                "http://localhost:8080",
+                Config.normalizeBaseUrl("  http://localhost:8080///  ")
+        );
     }
 
     @Test
     void normalizeBaseUrl_usesDefaultWhenBlank() {
-        assertEquals("http://127.0.0.1:8080", Config.normalizeBaseUrl("   "));
+        assertEquals(Config.DEFAULT_API_URL, Config.normalizeBaseUrl("   "));
     }
 
     @Test
@@ -21,7 +24,10 @@ class ConfigTest {
         String propertyName = "auction.test.invalid.port";
         System.setProperty(propertyName, "invalid");
         try {
-            assertEquals(8081, Config.readPositiveIntConfig(propertyName, "AUCTION_TEST_INVALID_PORT", 8081));
+            assertEquals(
+                    8081,
+                    Config.readPositiveIntConfig(propertyName, "AUCTION_TEST_INVALID_PORT", 8081)
+            );
         } finally {
             System.clearProperty(propertyName);
         }
@@ -32,7 +38,10 @@ class ConfigTest {
         String propertyName = "auction.test.valid.port";
         System.setProperty(propertyName, "9090");
         try {
-            assertEquals(9090, Config.readPositiveIntConfig(propertyName, "AUCTION_TEST_VALID_PORT", 8081));
+            assertEquals(
+                    9090,
+                    Config.readPositiveIntConfig(propertyName, "AUCTION_TEST_VALID_PORT", 8081)
+            );
         } finally {
             System.clearProperty(propertyName);
         }
