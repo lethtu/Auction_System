@@ -234,10 +234,7 @@ public class AuctionPageController {
     private static final double[] ACTIVITY_OPACITY = { 1.0, 0.7, 0.5, 0.35, 0.25 };
     private javafx.stage.Stage fullHistoryPopup = null;
 
-    private Socket socket;
-    private PrintWriter out;
-    private BufferedReader in;
-    private Thread listenerThread;
+    private java.net.http.WebSocket webSocket;
 
     private int currentSessionId;
     private boolean endingSoonNotified = false;
@@ -796,7 +793,9 @@ public class AuctionPageController {
         json.put("maxBid", maxBid);
         json.put("increment", increment);
 
-        out.println(AUTOBID_PREFIX + json.toString());
+        if (webSocket != null) {
+            webSocket.sendText(AUTOBID_PREFIX + json.toString(), true);
+        }
 
         messageLabel.setStyle(WARNING_STYLE);
         messageLabel.setText("Activating Auto-bidding...");
@@ -1928,51 +1927,56 @@ public class AuctionPageController {
         startSocketListener("auction-socket-listener");
     }
 
-    private void startSocketListener(String threadName) {
-        listenerThread = new Thread(this::listenToSocketServer, threadName);
-        listenerThread.setDaemon(true);
-        listenerThread.start();
-    }
+        String wsUrl = Config.API_URL.replace("https://", "wss://").replace("http://", "ws://") + "/ws/notification";
+        logger.info("Connecting to session WebSocket: {}", wsUrl);
 
-    private void listenToSocketServer() {
-        try {
-            openSocketConnection();
-            listenForServerMessages();
-        } catch (EOFException | java.net.SocketException e) {
-            logger.info("Socket connection closed.");
-        } catch (Exception e) {
-            logger.error("Socket connection error", e);
-            Platform.runLater(() -> {
-                finishBidProcessing();
-                clearLocalBidRequest("socket error");
-                showError("Lost connection to Socket server!");
-            });
-        } finally {
-            clearLocalBidRequest("socket listener stopped");
-        }
-    }
+        java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+        client.newWebSocketBuilder()
+                .buildAsync(URI.create(wsUrl), new java.net.http.WebSocket.Listener() {
+                    private final StringBuilder buffer = new StringBuilder();
 
-    private void openSocketConnection() throws IOException {
-        socket = new Socket(Config.SOCKET_HOST, Config.PORT_SOCKET);
-        out = new PrintWriter(socket.getOutputStream(), true);
-        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    @Override
+                    public void onOpen(java.net.http.WebSocket ws) {
+                        logger.info("WebSocket connection opened for session {}", currentSessionId);
+                        webSocket = ws;
 
-        if (com.auction.client.model.User.getSessionToken() != null) {
-            JSONObject authJson = new JSONObject();
-            authJson.put("token", com.auction.client.model.User.getSessionToken());
-            out.println("AUTH:" + authJson.toString());
-            out.flush();
-        }
+                        if (com.auction.client.model.User.getSessionToken() != null) {
+                            JSONObject authJson = new JSONObject();
+                            authJson.put("token", com.auction.client.model.User.getSessionToken());
+                            ws.sendText("AUTH:" + authJson.toString(), true);
+                        }
+                        ws.sendText(JOIN_PREFIX + currentSessionId, true);
+                        ws.request(1);
+                    }
 
-        out.println(JOIN_PREFIX + currentSessionId);
-    }
+                    @Override
+                    public java.util.concurrent.CompletionStage<?> onText(java.net.http.WebSocket ws, CharSequence data, boolean last) {
+                        buffer.append(data);
+                        if (last) {
+                            String msg = buffer.toString();
+                            buffer.setLength(0);
+                            handleServerMessage(msg);
+                        }
+                        ws.request(1);
+                        return null;
+                    }
 
-    private void listenForServerMessages() throws IOException {
-        String serverResponse;
+                    @Override
+                    public java.util.concurrent.CompletionStage<?> onClose(java.net.http.WebSocket ws, int statusCode, String reason) {
+                        logger.info("WebSocket connection closed: {} - {}", statusCode, reason);
+                        return null;
+                    }
 
-        while (!socket.isClosed() && (serverResponse = in.readLine()) != null) {
-            handleServerMessage(serverResponse);
-        }
+                    @Override
+                    public void onError(java.net.http.WebSocket ws, Throwable error) {
+                        logger.error("WebSocket error", error);
+                        Platform.runLater(() -> {
+                            finishBidProcessing();
+                            clearLocalBidRequest("socket error");
+                            showError("Lost connection to Socket server!");
+                        });
+                    }
+                });
     }
 
     private void handleServerMessage(String serverResponse) {
@@ -2183,27 +2187,18 @@ public class AuctionPageController {
     }
 
     private void disconnectSocket() {
-        closeSocketResources();
+        try {
+            if (webSocket != null) {
+                webSocket.sendClose(java.net.http.WebSocket.NORMAL_CLOSURE, "Disconnecting");
+            }
+        } catch (Exception e) {
+            logger.warn("Cannot close WebSocket", e);
+        }
+        webSocket = null;
 
         stopTimeline();
         stopBidTimeout();
         clearLocalBidRequest("socket disconnected");
-    }
-
-    private void reconnectBidSocket() {
-        logger.info("Reconnecting auction socket for auctionId={}", currentSessionId);
-        closeSocketResources();
-        startSocketListener("auction-socket-recovery-listener");
-    }
-
-    private void closeSocketResources() {
-        closeQuietly(out);
-        closeQuietly(in);
-        closeSocketQuietly();
-
-        out = null;
-        in = null;
-        socket = null;
     }
 
     private synchronized void markLocalBidRequestInFlight(BigDecimal bidAmount) {
@@ -2327,7 +2322,7 @@ public class AuctionPageController {
     }
 
     private boolean isSocketReady() {
-        return socket != null && socket.isConnected() && !socket.isClosed() && out != null && !out.checkError();
+        return webSocket != null && !webSocket.isOutputClosed();
     }
 
     private boolean sendBidRequest(BigDecimal bidAmount) {
@@ -2338,10 +2333,9 @@ public class AuctionPageController {
 
         String payload = BID_PREFIX + jsonBid;
         logger.info("Sending BID request: {}", payload);
-        out.println(payload);
-        out.flush();
-        if (out.checkError()) {
-            logger.error("Failed to send BID request to server (out.checkError() is true)!");
+
+        if (!isSocketReady()) {
+            logger.error("Failed to send BID request to server (socket not ready)!");
             Platform.runLater(() -> {
                 finishBidProcessing();
                 showError("Không gửi được yêu cầu đặt giá tới server");
@@ -2353,7 +2347,18 @@ public class AuctionPageController {
             });
             return false;
         }
-        return true;
+
+        try {
+            webSocket.sendText(payload, true);
+            return true;
+        } catch (Exception e) {
+            logger.error("Failed to send BID request: {}", e.getMessage());
+            Platform.runLater(() -> {
+                finishBidProcessing();
+                showError("Không gửi được yêu cầu đặt giá tới server");
+            });
+            return false;
+        }
     }
 
     private void showBidProcessing() {
@@ -2865,15 +2870,6 @@ public class AuctionPageController {
         }
     }
 
-    private void closeSocketQuietly() {
-        try {
-            if (socket != null && !socket.isClosed()) {
-                socket.close();
-            }
-        } catch (IOException e) {
-            logger.warn("Cannot close socket", e);
-        }
-    }
 
     private void updateTopBarAvatar(String avatarUrl) {
         if (topBarAvatarPane == null)
