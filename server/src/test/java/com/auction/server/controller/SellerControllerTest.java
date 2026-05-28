@@ -71,7 +71,7 @@ class SellerControllerTest {
 
         ApiResponse<SessionResponseDTO> response = controller.createAuction(requestWithoutUser, new CreateAuctionRequest());
 
-        assertEquals(400, response.getStatus());
+        assertEquals(401, response.getStatus());
         assertEquals("Seller not authenticated", response.getMessage());
         assertNull(response.getData());
         assertNull(service.createdRequest);
@@ -146,7 +146,7 @@ class SellerControllerTest {
         ApiResponse<SessionResponseDTO> response = controller.updateSession(mockReq, 9, 999, new CreateAuctionRequest());
 
         assertEquals(500, response.getStatus());
-        assertEquals("Update failed", response.getMessage());
+        assertEquals("Internal server error", response.getMessage());
         assertNull(response.getData());
     }
 
@@ -175,7 +175,7 @@ class SellerControllerTest {
         ApiResponse<Void> response = controller.cancelAuction(mockReq, 8, 10);
 
         assertEquals(500, response.getStatus());
-        assertEquals("Cannot cancel session", response.getMessage());
+        assertEquals("Internal server error", response.getMessage());
         assertNull(response.getData());
     }
 

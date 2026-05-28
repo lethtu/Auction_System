@@ -1,6 +1,8 @@
 package com.auction.server.controller;
 
 import com.auction.server.dto.ApiResponse;
+import com.auction.server.exception.AuthenticationException;
+import com.auction.server.exception.ClientErrorException;
 import com.auction.server.dto.CreateAuctionRequest;
 import com.auction.server.dto.SellerStatsDTO;
 import com.auction.server.dto.SessionResponseDTO;
@@ -160,7 +162,7 @@ public class SellerController {
     private Integer getAuthenticatedSellerId(HttpServletRequest request) {
         SessionManager.SessionUser actor = (SessionManager.SessionUser) request.getAttribute("sessionUser");
         if (actor == null || actor.getUserId() == null) {
-            throw new IllegalArgumentException("Seller not authenticated");
+            throw new AuthenticationException("Seller not authenticated");
         }
         return actor.getUserId();
     }
@@ -189,13 +191,17 @@ public class SellerController {
             logger.info(logMessage);
             return ApiResponse.success(successMessage, action.get());
 
-        } catch (IllegalArgumentException e) {
+        } catch (ClientErrorException e) {
+            logger.warn("{} failed: {}", logMessage, e.getMessage());
+            return ApiResponse.error(e.getStatus(), e.getMessage());
+
+        } catch (IllegalArgumentException | IllegalStateException e) {
             logger.warn("{} failed: {}", logMessage, e.getMessage());
             return ApiResponse.error(BAD_REQUEST_STATUS, e.getMessage());
 
         } catch (Exception e) {
             logger.error("{} failed: {}", logMessage, e.getMessage(), e);
-            return ApiResponse.error(e.getMessage());
+            return ApiResponse.error(500, "Internal server error");
         }
     }
 }

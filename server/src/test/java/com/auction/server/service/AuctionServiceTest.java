@@ -3,6 +3,8 @@ package com.auction.server.service;
 import com.auction.server.dto.BidResponse;
 import com.auction.server.dto.DeliveryInfoRequest;
 import com.auction.server.exception.AuctionClosedException;
+import com.auction.server.exception.BusinessException;
+import com.auction.server.exception.PermissionDeniedException;
 import com.auction.server.model.AutoBidConfig;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.model.AuctionStatus;
@@ -484,7 +486,7 @@ public class AuctionServiceTest {
         mockSession.setStatus(null);
         when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
 
-        IllegalStateException error = assertThrows(IllegalStateException.class,
+        BusinessException error = assertThrows(BusinessException.class,
                 () -> auctionService.registerAutoBid(1, 99, new BigDecimal("15000.00"), new BigDecimal("1000.00")));
 
         assertEquals("Auto-bid is available only for active auctions.", error.getMessage());
@@ -663,7 +665,7 @@ public class AuctionServiceTest {
         DeliveryInfoRequest request = deliveryRequest("A", "090", "Address", null);
         when(auctionSessionRepository.findById(1)).thenReturn(Optional.of(mockSession));
 
-        IllegalStateException error = assertThrows(IllegalStateException.class,
+        BusinessException error = assertThrows(BusinessException.class,
                 () -> auctionService.saveDeliveryInfo(1, 99, request));
 
         assertEquals("Delivery details can be submitted only after the auction has ended.", error.getMessage());
@@ -679,7 +681,7 @@ public class AuctionServiceTest {
         when(auctionSessionRepository.findById(1)).thenReturn(Optional.of(mockSession));
         when(bidRepository.findWinningBidsForSessions(List.of(1))).thenReturn(List.of());
 
-        SecurityException error = assertThrows(SecurityException.class,
+        PermissionDeniedException error = assertThrows(PermissionDeniedException.class,
                 () -> auctionService.saveDeliveryInfo(1, 77, request));
 
         assertEquals("Only the auction winner can submit delivery information.", error.getMessage());

@@ -4,6 +4,7 @@ import com.auction.server.dto.ApiResponse;
 import com.auction.server.dto.BidHistoryDTO;
 import com.auction.server.dto.DeliveryInfoRequest;
 import com.auction.server.dto.SessionResponseDTO;
+import com.auction.server.exception.ClientErrorException;
 import com.auction.server.mapper.SessionResponseMapper;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.model.Bid;
@@ -76,6 +77,8 @@ public class AuctionController {
         try {
             auctionService.saveDeliveryInfo(id, sessionUser.getUserId(), request);
             return ResponseEntity.ok(ApiResponse.success("Delivery information saved successfully.", "SAVED"));
+        } catch (ClientErrorException e) {
+            return ResponseEntity.status(e.getStatus()).body(ApiResponse.error(e.getStatus(), e.getMessage()));
         } catch (SecurityException e) {
             return ResponseEntity.status(403).body(ApiResponse.error(403, e.getMessage()));
         } catch (IllegalArgumentException | IllegalStateException e) {

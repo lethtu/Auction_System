@@ -6,6 +6,11 @@ import com.auction.server.dto.BidHistoryDTO;
 import com.auction.server.dto.BidResponse;
 import com.auction.server.dto.DeliveryInfoRequest;
 import com.auction.server.exception.AuctionClosedException;
+import com.auction.server.exception.BusinessException;
+import com.auction.server.exception.InvalidBidException;
+import com.auction.server.exception.PermissionDeniedException;
+import com.auction.server.exception.ResourceNotFoundException;
+import com.auction.server.exception.ValidationException;
 import com.auction.server.model.AutoBidConfig;
 import com.auction.server.model.AuctionSession;
 import com.auction.server.model.AuctionStatus;
@@ -71,19 +76,19 @@ public class AuctionService {
     public void saveDeliveryInfo(Integer sessionId, Integer winnerId, DeliveryInfoRequest request) {
         if (request == null || isBlank(request.getRecipientName()) || isBlank(request.getPhoneNumber())
                 || isBlank(request.getAddress())) {
-            throw new IllegalArgumentException("Recipient, phone number and address are required.");
+            throw new ValidationException("Recipient, phone number and address are required.");
         }
 
         AuctionSession session = auctionSessionRepository.findById(sessionId)
-                .orElseThrow(() -> new IllegalArgumentException("Auction session not found."));
+                .orElseThrow(() -> new ResourceNotFoundException("Auction session not found."));
         if (session.getStatus() != AuctionStatus.ENDED) {
-            throw new IllegalStateException("Delivery details can be submitted only after the auction has ended.");
+            throw new BusinessException("Delivery details can be submitted only after the auction has ended.");
         }
         Integer authoritativeWinnerId = getWinningBid(session.getId())
                 .map(bid -> bid.getBidder() == null ? null : bid.getBidder().getId())
                 .orElse(session.getHighestBidderId());
         if (winnerId == null || !winnerId.equals(authoritativeWinnerId)) {
-            throw new SecurityException("Only the auction winner can submit delivery information.");
+            throw new PermissionDeniedException("Only the auction winner can submit delivery information.");
         }
 
         session.setDeliveryRecipient(trimToLength(request.getRecipientName(), 150));
@@ -270,22 +275,22 @@ public class AuctionService {
     public void registerAutoBid(Integer sessionId, Integer bidderId, BigDecimal maxBid, BigDecimal increment) {
         if (sessionId == null || bidderId == null || maxBid == null || increment == null
                 || maxBid.signum() <= 0 || increment.signum() <= 0) {
-            throw new IllegalArgumentException("Auto-bid amount and increment must be positive.");
+            throw new ValidationException("Auto-bid amount and increment must be positive.");
         }
         AuctionSession session = auctionSessionRepository.findByIdForUpdate(sessionId)
-                .orElseThrow(() -> new IllegalArgumentException("Auction session not found."));
+                .orElseThrow(() -> new ResourceNotFoundException("Auction session not found."));
         if (session.getStatus() != AuctionStatus.ACTIVE) {
-            throw new IllegalStateException("Auto-bid is available only for active auctions.");
+            throw new BusinessException("Auto-bid is available only for active auctions.");
         }
         if (isSessionSeller(session, bidderId)) {
-            throw new com.auction.server.exception.InvalidBidException("Sellers cannot enable auto-bid on their own auction.");
+            throw new InvalidBidException("Sellers cannot enable auto-bid on their own auction.");
         }
         BigDecimal currentPrice = session.getCurrentPrice() == null ? BigDecimal.ZERO : session.getCurrentPrice();
         if (maxBid.compareTo(currentPrice) <= 0) {
-            throw new com.auction.server.exception.InvalidBidException("Maximum bid must be higher than the current price.");
+            throw new InvalidBidException("Maximum bid must be higher than the current price.");
         }
         if (userRepository.findById(bidderId).isEmpty()) {
-            throw new IllegalArgumentException("Bidder not found.");
+            throw new ResourceNotFoundException("Bidder not found.");
         }
 
         AutoBidConfig config = autoBidConfigRepository

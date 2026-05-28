@@ -1,6 +1,7 @@
 package com.auction.server.factory;
 
 import com.auction.server.dto.CreateAuctionRequest;
+import com.auction.server.exception.InvalidItemException;
 import com.auction.server.model.Art;
 import com.auction.server.model.Electronics;
 import com.auction.server.model.Item;
@@ -13,7 +14,7 @@ public final class ItemFactory {
 
     public static Item createItem(String type) {
         if (type == null || type.trim().isEmpty()) {
-            throw new IllegalArgumentException("Invalid product type");
+            throw new InvalidItemException("Invalid product type");
         }
 
         switch (type.trim().toLowerCase()) {
@@ -24,7 +25,7 @@ public final class ItemFactory {
             case "vehicle":
                 return new Vehicle();
             default:
-                throw new IllegalArgumentException("Unknown item type: " + type);
+                throw new InvalidItemException("Unknown item type: " + type);
         }
     }
 
