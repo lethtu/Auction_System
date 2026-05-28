@@ -254,16 +254,6 @@ public class AuthGetImage {
                 || ext.equals(".gif") || ext.equals(".webp") || ext.equals(".bmp");
     }
 
-    private Path createItemFolder(Path root) throws IOException {
-        Path itemFolderPath = root.resolve(UUID.randomUUID().toString()).normalize();
-        Files.createDirectories(itemFolderPath);
-        return itemFolderPath;
-    }
-
-    private String buildStoredFileName(String originalFileName) {
-        return UUID.randomUUID() + getSafeExtension(originalFileName);
-    }
-
     private String getSafeExtension(String fileName) {
         if (fileName == null || !fileName.contains(".")) {
             return DEFAULT_EXTENSION;
@@ -282,13 +272,6 @@ public class AuthGetImage {
         return extension.length() > 1
                 && extension.length() <= MAX_EXTENSION_LENGTH
                 && extension.matches("\\.[a-z0-9]+");
-    }
-
-    private String toClientImagePath(Path destination) {
-        return getRootLocation()
-                .relativize(destination)
-                .toString()
-                .replace('\\', '/');
     }
 
     private ResponseEntity<Resource> serve(Path file) {
