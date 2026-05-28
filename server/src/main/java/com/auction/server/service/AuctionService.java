@@ -306,8 +306,17 @@ public class AuctionService {
         if (maxBid.compareTo(minimumAutoBid) < 0) {
             throw new InvalidBidException("Maximum bid must be at least the next minimum bid.");
         }
-        if (userRepository.findById(bidderId).isEmpty()) {
-            throw new ResourceNotFoundException("Bidder not found.");
+        User bidder = userRepository.findById(bidderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Bidder not found."));
+        BigDecimal spendableForThisSession = bidder.getAvailableBalance();
+        if (bidderId.equals(session.getHighestBidderId())) {
+            spendableForThisSession = spendableForThisSession.add(currentPrice);
+        }
+        if (spendableForThisSession.compareTo(minimumAutoBid) < 0) {
+            throw new InvalidBidException("Insufficient available balance for the next auto-bid.");
+        }
+        if (spendableForThisSession.compareTo(maxBid) < 0) {
+            throw new InvalidBidException("Maximum bid exceeds your available balance.");
         }
 
         AutoBidConfig config = autoBidConfigRepository
@@ -317,17 +326,21 @@ public class AuctionService {
         config.setIncrement(increment);
         config.setActive(true);
         autoBidConfigRepository.save(config);
+        logger.info("AUTO-BID config saved: sessionId={}, bidderId={}, maxBid={}, increment={}, spendable={}",
+                sessionId, bidderId, maxBid, increment, spendableForThisSession);
     }
 
     @Transactional
     public BidResponse resolveAutoBids(Integer sessionId) {
         AuctionSession session = auctionSessionRepository.findByIdForUpdate(sessionId).orElse(null);
         if (session == null || session.getStatus() != AuctionStatus.ACTIVE) {
+            logger.info("AUTO-BID skipped: session {} missing or not active.", sessionId);
             return null;
         }
         List<AutoBidConfig> configs = autoBidConfigRepository
                 .findBySessionIdAndActiveTrueOrderByMaxBidDesc(sessionId);
         if (configs == null || configs.isEmpty()) {
+            logger.info("AUTO-BID skipped: no active configs for session {}.", sessionId);
             return null;
         }
 
@@ -354,11 +367,14 @@ public class AuctionService {
             break;
         }
         if (winner == null) {
+            logger.info("AUTO-BID skipped: no eligible winner config for session {}.", sessionId);
             return null;
         }
 
         AutoBidConfig challenger = findBestChallenger(configs, session, winner.getBidderId(), minimumNextBid);
         if (winner.getBidderId().equals(session.getHighestBidderId()) && challenger == null) {
+            logger.info("AUTO-BID skipped: bidder {} is already highest and no challenger can bid next minimum {}.",
+                    winner.getBidderId(), minimumNextBid);
             return null;
         }
 
@@ -375,8 +391,12 @@ public class AuctionService {
                 winner.setActive(false);
                 autoBidConfigRepository.save(winner);
             }
+            logger.info("AUTO-BID skipped: computed price {} is below next minimum {} for bidder {}.",
+                    newPrice, minimumNextBid, winner.getBidderId());
             return null;
         }
+        logger.info("AUTO-BID resolving: sessionId={}, bidderId={}, currentPrice={}, newPrice={}, maxBid={}",
+                sessionId, winner.getBidderId(), currentPrice, newPrice, winner.getMaxBid());
         return executeAutoBid(session, winner, configs, newPrice, currentPrice);
     }
 

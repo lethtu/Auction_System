@@ -788,6 +788,18 @@ public class AuctionPageController {
             return false;
         }
 
+        if (User.isBalanceLoaded()) {
+            BigDecimal spendableForThisSession = User.getAvailableBalance();
+            if (User.getId() != null && User.getId().equals(highestBidderId)) {
+                spendableForThisSession = spendableForThisSession.add(currentPrice);
+            }
+            if (maxBid.compareTo(spendableForThisSession) > 0) {
+                showError("Max bid cannot exceed available balance (" + MONEY_PREFIX
+                        + formatPrice(spendableForThisSession) + ")!");
+                return false;
+            }
+        }
+
         if (increment.compareTo(minimumIncrement) < 0) {
             showError("Auto increment must be at least " + MONEY_PREFIX + formatPrice(minimumIncrement) + "!");
             return false;

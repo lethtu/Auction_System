@@ -520,6 +520,21 @@ public class AuctionServiceTest {
     }
 
     @Test
+    @DisplayName("registerAutoBid rejects maximum bid above available balance")
+    public void registerAutoBid_rejectsMaxBidAboveAvailableBalance() {
+        mockUser.setBalance(new BigDecimal("12000.00"));
+        mockUser.setFrozenBalance(BigDecimal.ZERO);
+        when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
+        when(userRepository.findById(99)).thenReturn(Optional.of(mockUser));
+
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+                () -> auctionService.registerAutoBid(1, 99, new BigDecimal("15000.00"), new BigDecimal("1000.00")));
+
+        assertEquals("Maximum bid exceeds your available balance.", error.getMessage());
+        verify(autoBidConfigRepository, never()).save(any());
+    }
+
+    @Test
     @DisplayName("registerAutoBid updates an existing active config")
     public void registerAutoBid_updatesExistingConfig() {
         AutoBidConfig existing = new AutoBidConfig(1, 99, new BigDecimal("15000.00"), new BigDecimal("1000.00"));
