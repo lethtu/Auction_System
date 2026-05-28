@@ -159,14 +159,19 @@
                                                     <children>
                                                         <VBox spacing="24.0" style="-fx-background-color: -app-card; -fx-padding: 24; -fx-background-radius: 32; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-20, 24, 0, 0, 8); -fx-border-color: -fx-accent; -fx-border-width: 2; -fx-border-radius: 32;">
                                                             <children>
-                                                                <Label fx:id="highestBidTitleLabel" text="CURRENT HIGHEST BID" style="-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: 900; " />
+                                                                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                                                    <children>
+                                                                        <Label fx:id="highestBidTitleLabel" text="CURRENT HIGHEST BID" style="-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: 900; " />
+                                                                        <Region HBox.hgrow="ALWAYS" />
+                                                                        <Label fx:id="reserveStatusLabel" text="" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: -fx-accent;" />
+                                                                    </children>
+                                                                </HBox>
                                                                 <HBox alignment="BASELINE_LEFT" spacing="8.0">
                                                                     <children>
                                                                         <Label fx:id="currentPriceLabel" text="₫ 0" style="-fx-font-family: 'DM Sans'; -fx-font-size: 48px; -fx-font-weight: 900; " />
                                                                     </children>
                                                                 </HBox>
                                                                 <Label fx:id="highestBidderLabel" text="No bids yet" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 800; " />
-                                                                <Label fx:id="reserveStatusLabel" text="" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: -fx-accent;" />
                                                             </children>
                                                         </VBox>
                                                         
