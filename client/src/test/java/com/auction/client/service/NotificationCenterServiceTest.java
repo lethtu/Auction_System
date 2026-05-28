@@ -24,6 +24,12 @@ import static org.mockito.Mockito.when;
 @ExtendWith(ApplicationExtension.class)
 public class NotificationCenterServiceTest {
 
+    @BeforeEach
+    void disableSoundForHeadlessCi() {
+        SettingsService.getInstance().setSoundEnabled(false);
+        SettingsService.getInstance().setSoundVolume(0.0);
+    }
+
     private HttpClient mockHttpClient;
     private NotificationCenterService service;
 
