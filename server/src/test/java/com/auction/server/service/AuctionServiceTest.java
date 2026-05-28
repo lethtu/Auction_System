@@ -186,7 +186,7 @@ public class AuctionServiceTest {
     @DisplayName("Káº¿t thÃºc phiÃªn: Cáº­p nháº­t tráº¡ng thÃ¡i thÃ nh CLOSED")
     public void testKetThucPhien_HopLe() {
         // 1. Giáº£ láº­p Database
-        when(auctionSessionRepository.findById(1)).thenReturn(Optional.of(mockSession));
+        when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
 
         // 2. Cháº¡y hÃ nh Ä‘á»™ng
         boolean isSuccess = auctionService.endSession(1);
@@ -214,7 +214,7 @@ public class AuctionServiceTest {
 
         Bid winningBid = new Bid(mockSession, winningBidder, new BigDecimal("50000.00"), LocalDateTime.now());
 
-        when(auctionSessionRepository.findById(1)).thenReturn(Optional.of(mockSession));
+        when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
         when(bidRepository.findWinningBidsForSessions(List.of(1))).thenReturn(List.of(winningBid));
         when(userRepository.findById(99)).thenReturn(Optional.of(winningBidder));
 
@@ -424,8 +424,7 @@ public class AuctionServiceTest {
         previousBidder.setBalance(new BigDecimal("100000.00"));
         previousBidder.setFrozenBalance(new BigDecimal("10000.00"));
         when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
-        when(userRepository.findById(99)).thenReturn(Optional.of(mockUser));
-        when(userRepository.findById(77)).thenReturn(Optional.of(previousBidder));
+        when(userRepository.findAllById(List.of(99, 77))).thenReturn(List.of(mockUser, previousBidder));
         when(bidRepository.countBySessionId(1)).thenReturn(6);
 
         BidResponse response = auctionService.updateBid(1, 99, new BigDecimal("20000.00"));
@@ -604,7 +603,7 @@ public class AuctionServiceTest {
     @Test
     @DisplayName("endSession returns false when session does not exist")
     public void endSession_returnsFalseWhenSessionDoesNotExist() {
-        when(auctionSessionRepository.findById(404)).thenReturn(Optional.empty());
+        when(auctionSessionRepository.findByIdForUpdate(404)).thenReturn(Optional.empty());
 
         assertFalse(auctionService.endSession(404));
 
@@ -620,7 +619,7 @@ public class AuctionServiceTest {
         mockSession.setCurrentPrice(new BigDecimal("15000.00"));
         mockSession.setHighestBidderId(99);
         mockUser.setFrozenBalance(new BigDecimal("15000.00"));
-        when(auctionSessionRepository.findById(1)).thenReturn(Optional.of(mockSession));
+        when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
         when(userRepository.findById(99)).thenReturn(Optional.of(mockUser));
 
         boolean result = auctionService.endSession(1);
@@ -875,7 +874,7 @@ public class AuctionServiceTest {
         mockSession.setHighestBidderId(99);
         mockUser.setBalance(new BigDecimal("200000.00"));
         mockUser.setFrozenBalance(new BigDecimal("50000.00"));
-        when(auctionSessionRepository.findById(1)).thenReturn(Optional.of(mockSession));
+        when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
         when(bidRepository.findWinningBidsForSessions(List.of(1))).thenReturn(List.of());
         when(userRepository.findById(99)).thenReturn(Optional.of(mockUser));
         when(userRepository.findById(55)).thenReturn(Optional.of(seller));
@@ -910,7 +909,7 @@ public class AuctionServiceTest {
         mockSession.setCurrentPrice(new BigDecimal("50000.00"));
         mockSession.setHighestBidderId(123);
 
-        when(auctionSessionRepository.findById(1)).thenReturn(Optional.of(mockSession));
+        when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
         when(bidRepository.findWinningBidsForSessions(List.of(1))).thenReturn(List.of());
         when(userRepository.findById(123)).thenReturn(Optional.empty());
 
@@ -931,7 +930,7 @@ public class AuctionServiceTest {
         mockUser.setBalance(new BigDecimal("200000.00"));
         mockUser.setFrozenBalance(new BigDecimal("50000.00"));
 
-        when(auctionSessionRepository.findById(1)).thenReturn(Optional.of(mockSession));
+        when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
         when(bidRepository.findWinningBidsForSessions(List.of(1))).thenReturn(List.of());
         when(userRepository.findById(99)).thenReturn(Optional.of(mockUser));
 
@@ -955,7 +954,7 @@ public class AuctionServiceTest {
         mockUser.setBalance(new BigDecimal("200000.00"));
         mockUser.setFrozenBalance(new BigDecimal("50000.00"));
 
-        when(auctionSessionRepository.findById(1)).thenReturn(Optional.of(mockSession));
+        when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
         when(bidRepository.findWinningBidsForSessions(List.of(1))).thenReturn(List.of());
         when(userRepository.findById(99)).thenReturn(Optional.of(mockUser));
         when(userRepository.findById(55)).thenReturn(Optional.empty());
@@ -976,7 +975,7 @@ public class AuctionServiceTest {
         mockSession.setHighestBidderId(null);
         Bid winningBidWithoutBidder = new Bid(mockSession, null, new BigDecimal("50000.00"), LocalDateTime.now());
 
-        when(auctionSessionRepository.findById(1)).thenReturn(Optional.of(mockSession));
+        when(auctionSessionRepository.findByIdForUpdate(1)).thenReturn(Optional.of(mockSession));
         when(bidRepository.findWinningBidsForSessions(List.of(1))).thenReturn(List.of(winningBidWithoutBidder));
 
         assertTrue(auctionService.endSession(1));

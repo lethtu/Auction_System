@@ -50,10 +50,8 @@ public interface AuctionSessionRepository extends JpaRepository<AuctionSession, 
     @Query("SELECT s FROM AuctionSession s WHERE s.id = :id")
     Optional<AuctionSession> findByIdForUpdate(@Param("id") Integer id);
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<AuctionSession> findByStatusAndStartTimeLessThanEqual(AuctionStatus status, LocalDateTime now);
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<AuctionSession> findByStatusAndEndTimeLessThanEqual(AuctionStatus status, LocalDateTime now);
 
     @Modifying

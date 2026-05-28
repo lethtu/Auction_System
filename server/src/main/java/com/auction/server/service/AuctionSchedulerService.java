@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.json.JSONObject;
 import com.auction.server.socket.SocketServer;
 
@@ -27,7 +26,6 @@ public class AuctionSchedulerService {
         this.auctionService = auctionService;
     }
 
-    @Transactional
     @Scheduled(fixedDelay = 5000)
     public void scanAndUpdateAuctionStatus() {
         LocalDateTime now = LocalDateTime.now();

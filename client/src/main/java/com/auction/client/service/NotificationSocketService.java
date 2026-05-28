@@ -161,7 +161,13 @@ public class NotificationSocketService {
 
                             @Override
                             public void onError(WebSocket ws, Throwable error) {
-                                logger.error("Global WebSocket error: {}", error.getMessage());
+                                if (error instanceof java.net.http.WebSocketHandshakeException) {
+                                    java.net.http.WebSocketHandshakeException ex = (java.net.http.WebSocketHandshakeException) error;
+                                    logger.error("Global WebSocket handshake failed. Status: {}, Headers: {}", 
+                                            ex.getResponse().statusCode(), ex.getResponse().headers().map());
+                                } else {
+                                    logger.error("Global WebSocket error: {}", error.getMessage());
+                                }
                                 synchronized (NotificationSocketService.this) {
                                     NotificationSocketService.this.notifyAll();
                                 }
@@ -180,7 +186,14 @@ public class NotificationSocketService {
                 }
             } catch (Exception e) {
                 if (running) {
-                    logger.warn("Global WebSocket connection lost or failed. Reconnecting in {}ms... Error: {}", delay, e.getMessage());
+                    Throwable cause = e.getCause();
+                    if (cause instanceof java.net.http.WebSocketHandshakeException) {
+                        java.net.http.WebSocketHandshakeException ex = (java.net.http.WebSocketHandshakeException) cause;
+                        logger.warn("Global WebSocket handshake failed. Reconnecting in {}ms... Status: {}, Headers: {}, Body: {}", 
+                                delay, ex.getResponse().statusCode(), ex.getResponse().headers().map(), ex.getResponse().body());
+                    } else {
+                        logger.warn("Global WebSocket connection lost or failed. Reconnecting in {}ms... Error: {}", delay, e.getMessage());
+                    }
                     try {
                         Thread.sleep(delay);
                     } catch (InterruptedException ie) {

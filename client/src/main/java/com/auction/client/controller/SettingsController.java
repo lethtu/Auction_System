@@ -49,6 +49,7 @@ public class SettingsController implements Initializable {
     @FXML private CheckBox chkSound;
     @FXML private Slider sliderVolume;
     @FXML private Label lblVolumeValue;
+    @FXML private Label lblPingLatency;
 
     @FXML private ComboBox<String> cbTheme;
     @FXML private ComboBox<String> cbColor;
@@ -360,6 +361,78 @@ public class SettingsController implements Initializable {
                         showToast("Data sync failed with server status " + response.statusCode() + ".", true);
                     }
                 }));
+    }
+
+    @FXML
+    public void handleTestConnection(ActionEvent event) {
+        lblPingLatency.setText("Testing...");
+        showToast("Testing latency to server...", false);
+
+        new Thread(() -> {
+            long restStart = System.currentTimeMillis();
+            long restLatency = -1;
+            boolean restOk = false;
+
+            try {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(Config.API_URL + "/api/auctions/hello"))
+                        .timeout(java.time.Duration.ofSeconds(5))
+                        .GET()
+                        .build();
+                HttpResponse<String> response = HttpClient.newHttpClient()
+                        .send(request, HttpResponse.BodyHandlers.ofString());
+                if (response.statusCode() == 200) {
+                    restLatency = System.currentTimeMillis() - restStart;
+                    restOk = true;
+                }
+            } catch (Exception e) {
+                logger.error("REST ping test failed: ", e);
+            }
+
+            long wsStart = System.currentTimeMillis();
+            final long[] wsLatency = {-1};
+            final boolean[] wsOk = {false};
+
+            try {
+                String wsUrl = Config.API_URL.replace("https://", "wss://").replace("http://", "ws://") + "/ws/notification";
+                HttpClient client = HttpClient.newHttpClient();
+                java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
+
+                client.newWebSocketBuilder()
+                        .connectTimeout(java.time.Duration.ofSeconds(5))
+                        .buildAsync(URI.create(wsUrl), new java.net.http.WebSocket.Listener() {
+                            @Override
+                            public void onOpen(java.net.http.WebSocket webSocket) {
+                                wsLatency[0] = System.currentTimeMillis() - wsStart;
+                                wsOk[0] = true;
+                                webSocket.sendClose(java.net.http.WebSocket.NORMAL_CLOSURE, "latency test close");
+                                latch.countDown();
+                            }
+
+                            @Override
+                            public void onError(java.net.http.WebSocket webSocket, Throwable error) {
+                                logger.error("WS test error: ", error);
+                                latch.countDown();
+                            }
+                        });
+
+                latch.await(6, java.util.concurrent.TimeUnit.SECONDS);
+            } catch (Exception e) {
+                logger.error("WS ping test failed: ", e);
+            }
+
+            final long finalRest = restLatency;
+            final long finalWs = wsLatency[0];
+            final boolean finalRestOk = restOk;
+            final boolean finalWsOk = wsOk[0];
+
+            Platform.runLater(() -> {
+                String restText = finalRestOk ? finalRest + " ms" : "Failed";
+                String wsText = finalWsOk ? finalWs + " ms" : "Failed";
+                lblPingLatency.setText("REST: " + restText + " | Socket: " + wsText);
+                showToast("Connection test completed.", false);
+            });
+        }).start();
     }
 
     private void applyCurrentStyle() {

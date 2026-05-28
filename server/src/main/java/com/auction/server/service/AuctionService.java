@@ -146,7 +146,7 @@ public class AuctionService {
 
     @Transactional
     public boolean endSession(Integer sessionId) {
-        Optional<AuctionSession> sessionOpt = auctionSessionRepository.findById(sessionId);
+        Optional<AuctionSession> sessionOpt = auctionSessionRepository.findByIdForUpdate(sessionId);
         if (sessionOpt.isPresent()) {
             AuctionSession session = sessionOpt.get();
             reconcileSessionResultFromBids(session);
@@ -228,14 +228,30 @@ public class AuctionService {
             return BidResponse.failure("Bid must be at least " + minimumBid + ".", currentPrice);
         }
 
-        User bidder = userRepository.findById(bidderId).orElse(null);
+        Integer previousHighestBidderId = session.getHighestBidderId();
+        boolean bidderAlreadyHighest = bidderId != null && bidderId.equals(previousHighestBidderId);
+
+        User bidder = null;
+        User previousBidder = null;
+
+        if (previousHighestBidderId != null && !bidderAlreadyHighest) {
+            List<User> users = userRepository.findAllById(List.of(bidderId, previousHighestBidderId));
+            for (User u : users) {
+                if (u.getId().equals(bidderId)) {
+                    bidder = u;
+                } else if (u.getId().equals(previousHighestBidderId)) {
+                    previousBidder = u;
+                }
+            }
+        } else {
+            bidder = userRepository.findById(bidderId).orElse(null);
+        }
+
         if (bidder == null) {
             logger.error("Failed: User not found with ID = {}", bidderId);
             return BidResponse.failure("Bidder not found.", currentPrice);
         }
 
-        Integer previousHighestBidderId = session.getHighestBidderId();
-        boolean bidderAlreadyHighest = bidderId != null && bidderId.equals(previousHighestBidderId);
         BigDecimal amountToFreeze = bidderAlreadyHighest ? bidAmount.subtract(currentPrice) : bidAmount;
         logger.info("Validating balance for Bidder ID={}: balance={}, frozen={}, available={}",
                 bidderId, bidder.getBalance(), bidder.getFrozenBalance(), bidder.getAvailableBalance());
@@ -243,12 +259,9 @@ public class AuctionService {
             return BidResponse.failure("Insufficient available balance.", currentPrice);
         }
 
-        if (!bidderAlreadyHighest && previousHighestBidderId != null) {
-            User previousBidder = userRepository.findById(previousHighestBidderId).orElse(null);
-            if (previousBidder != null) {
-                previousBidder.setFrozenBalance(previousBidder.getFrozenBalance().subtract(currentPrice));
-                userRepository.save(previousBidder);
-            }
+        if (previousBidder != null) {
+            previousBidder.setFrozenBalance(previousBidder.getFrozenBalance().subtract(currentPrice));
+            userRepository.save(previousBidder);
         }
         bidder.setFrozenBalance(bidder.getFrozenBalance().add(amountToFreeze));
         userRepository.save(bidder);

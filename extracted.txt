@@ -1,0 +1,34 @@
+<USER_REQUEST>
+Tôi sẽ mô tả cho bạn context của tôi, hiện tôi đang cho một serevr hugging server host server của tôi và tôi đang để project đó là private, để có thể cho người khác dùng tôi đã dùng cloudflare worker và đây là code :
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+
+    if (request.method === "OPTIONS") {
+      return corsResponse(request);
+    }
+
+    if (url.pathname === "/worker-health") {
+      return json({
+        ok: true,
+        service: "auction-worker",
+      }, 200, request);
+    }
+
+    const isWebSocket =
+      request.headers.get("Upgrade")?.toLowerCase() === "websocket";
+
+    return isWebSocket
+      ? proxyWebSocket(request, env)
+      : proxyHttp(request, env);
+  },
+};
+
+function getBackendUrl(env) {
+  return env.BACKEND_URL || "https://tbttkc-host-server-btl.hf.space";
+}
+
+async function proxyHttp(request, env) {
+  const incomingUrl = new URL(request.url);
+  const backendUrl = getBackendUrl(env);
+<truncated 23246 bytes>

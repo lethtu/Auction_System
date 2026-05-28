@@ -143,9 +143,14 @@
                                     <Label text="Server Status:" styleClass="setting-label" />
                                     <Label text="Connected" style="-fx-text-fill: #10b981;" />
                                 </HBox>
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <Label text="Ping Latency:" styleClass="setting-label" />
+                                    <Label fx:id="lblPingLatency" text="N/A" style="-fx-text-fill: -fx-accent; -fx-font-weight: bold;" />
+                                </HBox>
                                 <HBox spacing="15" style="-fx-padding: 10px 0 0 0;">
                                     <Button onAction="#handleResetFilters" text="Reset Filters" styleClass="secondary-btn" />
                                     <Button onAction="#handleReloadData" text="Sync Latest Data" styleClass="secondary-btn" />
+                                    <Button onAction="#handleTestConnection" text="Test Connection" styleClass="secondary-btn" />
                                 </HBox>
                             </VBox>
                         </FlowPane>

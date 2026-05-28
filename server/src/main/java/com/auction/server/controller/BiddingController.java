@@ -21,7 +21,7 @@ public class BiddingController {
         this.auctionService = auctionService;
     }
 
-    public synchronized BidResponse handleBid(BidRequest req) {
+    public BidResponse handleBid(BidRequest req) {
         BidResponse success = auctionService.updateBid(req.getAuctionId(), req.getBidderId(), req.getBidAmount());
         return success;
     }
