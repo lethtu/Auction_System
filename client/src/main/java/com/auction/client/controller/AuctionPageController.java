@@ -579,55 +579,130 @@ public class AuctionPageController {
 
         VBox mainCard = new VBox(15);
         mainCard.setStyle(
-                "-fx-padding: 24; -fx-background-color: #fef7ff; -fx-background-radius: 18;  -fx-border-radius: 18; -fx-border-width: 2;");
+                "-fx-padding: 24;"
+                        + "-fx-background-color: -app-card;"
+                        + "-fx-background-radius: 18;"
+                        + "-fx-border-color: -app-border;"
+                        + "-fx-border-radius: 18;"
+                        + "-fx-border-width: 1.5;");
         javafx.scene.effect.DropShadow shadow = new javafx.scene.effect.DropShadow();
-        shadow.setColor(javafx.scene.paint.Color.rgb(46, 26, 40, 0.15));
-        shadow.setRadius(20);
-        shadow.setOffsetY(8);
+        shadow.setColor(javafx.scene.paint.Color.rgb(0, 0, 0, 0.20));
+        shadow.setRadius(24);
+        shadow.setOffsetY(10);
         mainCard.setEffect(shadow);
 
-        javafx.scene.layout.HBox titleBar = new javafx.scene.layout.HBox(10);
+        javafx.scene.layout.HBox titleBar = new javafx.scene.layout.HBox(8);
         titleBar.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        titleBar.setMinHeight(34);
+        titleBar.setPrefHeight(34);
         titleBar.setStyle("-fx-padding: 0 0 10 0; -fx-cursor: move;");
 
         Label titleLbl = new Label("Auto-bidding Configuration");
-        titleLbl.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 16px; -fx-font-weight: 900; ");
+        titleLbl.setStyle(
+                "-fx-font-family: 'DM Sans';"
+                        + "-fx-font-size: 16px;"
+                        + "-fx-font-weight: 900;"
+                        + "-fx-text-fill: -app-text;");
 
         javafx.scene.layout.Region titleSpacer = new javafx.scene.layout.Region();
         javafx.scene.layout.HBox.setHgrow(titleSpacer, javafx.scene.layout.Priority.ALWAYS);
 
-        Button minBtn = new Button("_");
-        minBtn.setStyle(
-                "-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px;");
+        String windowButtonBaseStyle =
+                "-fx-background-color: transparent;"
+                        + "-fx-text-fill: -app-text;"
+                        + "-fx-font-family: 'DM Sans';"
+                        + "-fx-font-weight: 900;"
+                        + "-fx-font-size: 13px;"
+                        + "-fx-background-radius: 8;"
+                        + "-fx-padding: 0;"
+                        + "-fx-cursor: hand;";
+        String windowButtonHoverStyle =
+                "-fx-background-color: -app-surface-2;"
+                        + "-fx-text-fill: -app-text;"
+                        + "-fx-font-family: 'DM Sans';"
+                        + "-fx-font-weight: 900;"
+                        + "-fx-font-size: 13px;"
+                        + "-fx-background-radius: 8;"
+                        + "-fx-padding: 0;"
+                        + "-fx-cursor: hand;";
+        String closeButtonHoverStyle =
+                "-fx-background-color: #ef4444;"
+                        + "-fx-text-fill: white;"
+                        + "-fx-font-family: 'DM Sans';"
+                        + "-fx-font-weight: 900;"
+                        + "-fx-font-size: 13px;"
+                        + "-fx-background-radius: 8;"
+                        + "-fx-padding: 0;"
+                        + "-fx-cursor: hand;";
+
+        String macButtonBaseStyle =
+                "-fx-background-radius: 999;" +
+                "-fx-border-radius: 999;" +
+                "-fx-min-width: 14px;" +
+                "-fx-min-height: 14px;" +
+                "-fx-pref-width: 14px;" +
+                "-fx-pref-height: 14px;" +
+                "-fx-max-width: 14px;" +
+                "-fx-max-height: 14px;" +
+                "-fx-padding: 0;" +
+                "-fx-cursor: hand;" +
+                "-fx-border-color: rgba(255,255,255,0.18);" +
+                "-fx-border-width: 1px;" +
+                "-fx-font-size: 9px;" +
+                "-fx-font-weight: 900;";
+
+        Button minBtn = new Button();
+        minBtn.setFocusTraversable(false);
+        minBtn.setText("");
+        minBtn.setStyle(macButtonBaseStyle + "-fx-background-color: #febc2e;");
         minBtn.setOnAction(ev -> dialog.setIconified(true));
-        minBtn.setOnMouseEntered(ev -> minBtn.setStyle(
-                "-fx-background-color: #f2e8f2; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px; -fx-background-radius: 8;"));
-        minBtn.setOnMouseExited(ev -> minBtn.setStyle(
-                "-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px;"));
-
-        Button maxBtn = new Button("\u25a1");
-        maxBtn.setStyle(
-                "-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px;");
-        maxBtn.setOnAction(ev -> {
-            boolean isMax = dialog.isMaximized();
-            dialog.setMaximized(!isMax);
-            maxBtn.setText(isMax ? "\u25a1" : "\u2750");
+        minBtn.setOnMouseEntered(ev -> {
+            minBtn.setText("\u2013");
+            minBtn.setStyle(macButtonBaseStyle
+                    + "-fx-background-color: #febc2e;"
+                    + "-fx-text-fill: #6a4700;");
         });
-        maxBtn.setOnMouseEntered(ev -> maxBtn.setStyle(
-                "-fx-background-color: #f2e8f2; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px; -fx-background-radius: 8;"));
-        maxBtn.setOnMouseExited(ev -> maxBtn.setStyle(
-                "-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 16px;"));
+        minBtn.setOnMouseExited(ev -> {
+            minBtn.setText("");
+            minBtn.setStyle(macButtonBaseStyle + "-fx-background-color: #febc2e;");
+        });
 
-        Button closeBtn = new Button("X");
-        closeBtn.setStyle(
-                "-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 14px;");
+        Button maxBtn = new Button();
+        maxBtn.setFocusTraversable(false);
+        maxBtn.setText("");
+        maxBtn.setStyle(macButtonBaseStyle + "-fx-background-color: #28c840;");
+        maxBtn.setOnAction(ev -> dialog.setMaximized(!dialog.isMaximized()));
+        maxBtn.setOnMouseEntered(ev -> {
+            maxBtn.setText("+");
+            maxBtn.setStyle(macButtonBaseStyle
+                    + "-fx-background-color: #28c840;"
+                    + "-fx-text-fill: #0d4f18;");
+        });
+        maxBtn.setOnMouseExited(ev -> {
+            maxBtn.setText("");
+            maxBtn.setStyle(macButtonBaseStyle + "-fx-background-color: #28c840;");
+        });
+
+        Button closeBtn = new Button();
+        closeBtn.setFocusTraversable(false);
+        closeBtn.setText("");
+        closeBtn.setStyle(macButtonBaseStyle + "-fx-background-color: #ff5f57;");
         closeBtn.setOnAction(ev -> dialog.close());
-        closeBtn.setOnMouseEntered(ev -> closeBtn.setStyle(
-                "-fx-background-color: #ffe4e4; -fx-font-weight: bold; -fx-text-fill: #d32f2f; -fx-cursor: hand; -fx-font-size: 14px; -fx-background-radius: 8;"));
-        closeBtn.setOnMouseExited(ev -> closeBtn.setStyle(
-                "-fx-background-color: transparent; -fx-font-weight: bold;  -fx-cursor: hand; -fx-font-size: 14px;"));
+        closeBtn.setOnMouseEntered(ev -> {
+            closeBtn.setText("\u00d7");
+            closeBtn.setStyle(macButtonBaseStyle
+                    + "-fx-background-color: #ff5f57;"
+                    + "-fx-text-fill: #5b0a0a;");
+        });
+        closeBtn.setOnMouseExited(ev -> {
+            closeBtn.setText("");
+            closeBtn.setStyle(macButtonBaseStyle + "-fx-background-color: #ff5f57;");
+        });
 
-        titleBar.getChildren().addAll(titleLbl, titleSpacer, minBtn, maxBtn, closeBtn);
+        javafx.scene.layout.HBox windowControls = new javafx.scene.layout.HBox(8, minBtn, maxBtn, closeBtn);
+        windowControls.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+
+        titleBar.getChildren().addAll(titleLbl, titleSpacer, windowControls);
 
         final double[] xOffset = { 0 };
         final double[] yOffset = { 0 };
@@ -641,74 +716,76 @@ public class AuctionPageController {
         });
 
         Label subtitleLabel = new Label("The system will automatically bid when someone outbids you.");
-        subtitleLabel.setStyle("-fx-font-size: 13px; -fx-font-family: 'DM Sans'; ");
+        subtitleLabel.setStyle(
+                "-fx-font-size: 13px;"
+                        + "-fx-font-family: 'DM Sans';"
+                        + "-fx-text-fill: -app-text-muted;");
         subtitleLabel.setWrapText(true);
 
         Label priceBadge = new Label("Current price: " + MONEY_PREFIX + formatPrice(currentPrice));
         priceBadge.setStyle(
-                "-fx-background-color: #fff0f8;" +
-                        "-fx-background-radius: 8px;" +
-                        "-fx-padding: 10px 14px;" +
-                        "-fx-font-family: 'DM Sans';" +
-                        "-fx-font-size: 14px;" +
-                        "-fx-font-weight: bold;" +
-                        "-fx-text-fill: -fx-accent;" +
-                        "-fx-border-color: #ffe8f2;" +
-                        "-fx-border-radius: 8px;" +
-                        "-fx-border-width: 1px;");
+                "-fx-background-color: -app-accent-opacity-08;"
+                        + "-fx-background-radius: 8px;"
+                        + "-fx-padding: 10px 14px;"
+                        + "-fx-font-family: 'DM Sans';"
+                        + "-fx-font-size: 14px;"
+                        + "-fx-font-weight: bold;"
+                        + "-fx-text-fill: -fx-accent;"
+                        + "-fx-border-color: -app-accent-opacity-30;"
+                        + "-fx-border-radius: 8px;"
+                        + "-fx-border-width: 1px;");
         priceBadge.setMaxWidth(Double.MAX_VALUE);
 
         Label maxBidLabel = new Label("Max Bid");
-        maxBidLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; ");
+        maxBidLabel.setStyle(
+                "-fx-font-family: 'DM Sans';"
+                        + "-fx-font-size: 14px;"
+                        + "-fx-font-weight: bold;"
+                        + "-fx-text-fill: -app-text;");
         Label maxBidHint = new Label("Maximum price you are willing to pay");
-        maxBidHint.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-text-fill: #a890a8;");
+        maxBidHint.setStyle(
+                "-fx-font-family: 'DM Sans';"
+                        + "-fx-font-size: 12px;"
+                        + "-fx-text-fill: -app-text-muted;");
+
+        String inputBaseStyle =
+                "-fx-background-color: -app-input-bg;"
+                        + "-fx-text-fill: -app-input-text;"
+                        + "-fx-prompt-text-fill: -app-text-muted;"
+                        + "-fx-border-color: -app-border;"
+                        + "-fx-border-radius: 8px;"
+                        + "-fx-background-radius: 8px;"
+                        + "-fx-padding: 10px 14px;"
+                        + "-fx-font-family: 'DM Sans';"
+                        + "-fx-font-size: 14px;"
+                        + "-fx-pref-height: 40px;";
+        String inputFocusStyle = inputBaseStyle + "-fx-border-color: -fx-accent;";
 
         TextField maxBidField = new TextField();
         maxBidField.setPromptText("VD: 5000000");
-        maxBidField.setStyle(
-                "-fx-background-color: #faf6fa;" +
-                        "-fx-border-color: #e8d8e8;" +
-                        "-fx-border-radius: 8px;" +
-                        "-fx-background-radius: 8px;" +
-                        "-fx-padding: 10px 14px;" +
-                        "-fx-font-family: 'DM Sans';" +
-                        "-fx-font-size: 14px;" +
-                        "-fx-pref-height: 40px;");
-        maxBidField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
-            if (isFocused) {
-                maxBidField.setStyle(maxBidField.getStyle() + "-fx-border-color: -fx-accent;");
-            } else {
-                maxBidField.setStyle(
-                        maxBidField.getStyle().replace("-fx-border-color: -fx-accent;", "-fx-border-color: #e8d8e8;"));
-            }
-        });
+        maxBidField.setStyle(inputBaseStyle);
+        maxBidField.focusedProperty().addListener((obs, wasFocused, isFocused) ->
+                maxBidField.setStyle(isFocused ? inputFocusStyle : inputBaseStyle));
 
         Label incLabel = new Label("Auto Increment");
-        incLabel.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: bold; ");
+        incLabel.setStyle(
+                "-fx-font-family: 'DM Sans';"
+                        + "-fx-font-size: 14px;"
+                        + "-fx-font-weight: bold;"
+                        + "-fx-text-fill: -app-text;");
         BigDecimal minimumIncrement = getEffectiveStepPrice();
         Label incHint = new Label("Minimum at current price: " + MONEY_PREFIX + formatPrice(minimumIncrement));
-        incHint.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-text-fill: #a890a8;");
+        incHint.setStyle(
+                "-fx-font-family: 'DM Sans';"
+                        + "-fx-font-size: 12px;"
+                        + "-fx-text-fill: -app-text-muted;");
 
         TextField incrementField = new TextField();
         incrementField.setPromptText("VD: " + formatPrice(minimumIncrement));
         incrementField.setText(formatPrice(minimumIncrement));
-        incrementField.setStyle(
-                "-fx-background-color: #faf6fa;" +
-                        "-fx-border-color: #e8d8e8;" +
-                        "-fx-border-radius: 8px;" +
-                        "-fx-background-radius: 8px;" +
-                        "-fx-padding: 10px 14px;" +
-                        "-fx-font-family: 'DM Sans';" +
-                        "-fx-font-size: 14px;" +
-                        "-fx-pref-height: 40px;");
-        incrementField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
-            if (isFocused) {
-                incrementField.setStyle(incrementField.getStyle() + "-fx-border-color: -fx-accent;");
-            } else {
-                incrementField.setStyle(incrementField.getStyle().replace("-fx-border-color: -fx-accent;",
-                        "-fx-border-color: #e8d8e8;"));
-            }
-        });
+        incrementField.setStyle(inputBaseStyle);
+        incrementField.focusedProperty().addListener((obs, wasFocused, isFocused) ->
+                incrementField.setStyle(isFocused ? inputFocusStyle : inputBaseStyle));
 
         VBox maxBidGroup = new VBox(4, maxBidLabel, maxBidHint, maxBidField);
         VBox incGroup = new VBox(4, incLabel, incHint, incrementField);
@@ -719,26 +796,26 @@ public class AuctionPageController {
 
         Button cancelBtn = new Button("Cancel");
         cancelBtn.setStyle(
-                "-fx-background-color: #f2e8f2;" +
-                        "" +
-                        "-fx-font-family: 'DM Sans';" +
-                        "-fx-font-weight: bold;" +
-                        "-fx-font-size: 14px;" +
-                        "-fx-background-radius: 10px;" +
-                        "-fx-padding: 10px 24px;" +
-                        "-fx-cursor: hand;");
+                "-fx-background-color: -app-surface-2;"
+                        + "-fx-text-fill: -app-text;"
+                        + "-fx-font-family: 'DM Sans';"
+                        + "-fx-font-weight: bold;"
+                        + "-fx-font-size: 14px;"
+                        + "-fx-background-radius: 10px;"
+                        + "-fx-padding: 10px 24px;"
+                        + "-fx-cursor: hand;");
         cancelBtn.setOnAction(ev -> dialog.close());
 
         Button activateBtn = new Button("Activate");
         activateBtn.setStyle(
-                "-fx-background-color: linear-gradient(to right, -fx-accent, #f06292);" +
-                        "-fx-text-fill: white;" +
-                        "-fx-font-family: 'DM Sans';" +
-                        "-fx-font-weight: bold;" +
-                        "-fx-font-size: 14px;" +
-                        "-fx-background-radius: 10px;" +
-                        "-fx-padding: 10px 24px;" +
-                        "-fx-cursor: hand;");
+                "-fx-background-color: linear-gradient(to right, -fx-accent, #f06292);"
+                        + "-fx-text-fill: white;"
+                        + "-fx-font-family: 'DM Sans';"
+                        + "-fx-font-weight: bold;"
+                        + "-fx-font-size: 14px;"
+                        + "-fx-background-radius: 10px;"
+                        + "-fx-padding: 10px 24px;"
+                        + "-fx-cursor: hand;");
         activateBtn.setOnAction(ev -> {
             if (processAutoBidInput(maxBidField.getText(), incrementField.getText())) {
                 dialog.close();
@@ -752,6 +829,7 @@ public class AuctionPageController {
 
         javafx.scene.Scene scene = new javafx.scene.Scene(root);
         scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
+        com.auction.client.service.AppStyleManager.applyCurrentStyle(scene);
         dialog.setScene(scene);
 
         Platform.runLater(maxBidField::requestFocus);
