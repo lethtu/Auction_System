@@ -87,6 +87,20 @@ public class AuctionPageController {
     private static final String EXTENSION_STYLE = BASE_ALERT_STYLE +
             "-fx-background-color: #fdf2e9; -fx-border-color: #fcd7b6; -fx-text-fill: #b25900;";
 
+    private static final String RESERVE_BADGE_BASE_STYLE =
+            "-fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: 900; "
+                    + "-fx-padding: 4 10; -fx-background-radius: 999; -fx-border-radius: 999; -fx-border-width: 1;";
+
+    private static final String RESERVE_MET_STYLE = RESERVE_BADGE_BASE_STYLE
+            + "-fx-background-color: rgba(19, 115, 51, 0.14); "
+            + "-fx-border-color: rgba(19, 115, 51, 0.32); "
+            + "-fx-text-fill: #38a169;";
+
+    private static final String UNDER_RESERVE_STYLE = RESERVE_BADGE_BASE_STYLE
+            + "-fx-background-color: rgba(229, 62, 62, 0.14); "
+            + "-fx-border-color: rgba(229, 62, 62, 0.34); "
+            + "-fx-text-fill: #e53e3e;";
+
     @FXML
     private Label productNameLabel;
     @FXML
@@ -182,6 +196,8 @@ public class AuctionPageController {
     @FXML
     private Label minIncrementLabel;
     @FXML
+    private Label bidAmountTitleLabel;
+    @FXML
     private Label availableBalanceValue;
     @FXML
     private Button availableBalanceToggle;
@@ -189,6 +205,8 @@ public class AuctionPageController {
     private VBox chartContainer;
     @FXML
     private VBox bidHistoryContainer;
+    @FXML
+    private javafx.scene.layout.GridPane mainContentGrid;
 
     private static final String MAIN_TEMPLATE_FXML = "MainTemplate.fxml";
     private static final String JOIN_PREFIX = "JOIN:";
@@ -206,7 +224,7 @@ public class AuctionPageController {
 
     private static final int EXPANDED_SIDEBAR_WIDTH = 200;
     private static final int COLLAPSED_SIDEBAR_WIDTH = 70;
-    private static final int BID_TIMEOUT_SECONDS = 8;
+    private static final int BID_TIMEOUT_SECONDS = 15;
 
     private final java.util.List<com.auction.client.model.BidChartPoint> allBidPoints = new java.util.ArrayList<>();
     private final java.util.Set<Integer> seenBidIds = new java.util.HashSet<>();
@@ -441,8 +459,14 @@ public class AuctionPageController {
             return;
         }
 
+        if (hasPendingLocalBidRequest()) {
+            showInfo("Your previous bid is still being processed. Please wait a moment.");
+            return;
+        }
+
         if (!isSocketReady()) {
-            showError("Socket server connection error!");
+            reconnectBidSocket();
+            showError("Bid server is reconnecting. Please try again in a moment.");
             return;
         }
 
@@ -1464,6 +1488,10 @@ public class AuctionPageController {
         setLabelText(minIncrementLabel, "Min increment ₫ 0");
         setLabelText(highestBidderLabel, DEFAULT_HIGHEST_BIDDER);
         setLabelText(reserveStatusLabel, "");
+        if (reserveStatusLabel != null) {
+            reserveStatusLabel.setVisible(false);
+            reserveStatusLabel.setManaged(false);
+        }
         setLabelText(totalBidsLabel, "0");
         setLabelText(watchingLabel, "0");
         setLabelText(itemDescriptionLabel, DEFAULT_DESCRIPTION);
@@ -1495,15 +1523,39 @@ public class AuctionPageController {
                 }
             });
 
+            productNameLabel.textProperty().addListener((obs, oldVal, newVal) -> {
+                if (currentPriceLabel.getScene() != null) {
+                    updateResponsiveFonts(currentPriceLabel.getScene().getWidth());
+                }
+            });
+
             updateResponsiveFonts(initialWidth);
         });
     }
 
     private void updateResponsiveFonts(double windowWidth) {
+        double scale = calculateAuctionPageScale(windowWidth);
         double priceFont = calculatePriceFont(windowWidth);
         double timeFont = calculateTimeFont(windowWidth);
-        double startPriceFont = Math.max(14, Math.min(20, windowWidth * 0.014));
-        double bidFieldFont = Math.max(12, Math.min(24, windowWidth * 0.017));
+        double productNameFont = calculateProductNameFont(windowWidth);
+        double startPriceFont = Math.max(11, Math.min(20, windowWidth * 0.012));
+        double bidFieldFont = Math.max(16, Math.min(24, windowWidth * 0.017));
+        double compactLabelFont = Math.max(9, Math.min(12, 12 * scale));
+        double quickBidFont = Math.max(9, Math.min(12, 12 * scale));
+        double mediaHeight = Math.max(250, Math.min(400, 400 * scale));
+
+        if (mainContentGrid != null) {
+            mainContentGrid.setHgap(Math.max(14, 24 * scale));
+        }
+
+        if (productMediaFrame != null) {
+            productMediaFrame.setPrefHeight(mediaHeight);
+            productMediaFrame.setMaxHeight(mediaHeight);
+        }
+
+        if (productImageView != null) {
+            productImageView.setFitHeight(mediaHeight);
+        }
 
         setNodeStyle(currentPriceLabel,
                 "-fx-font-family: 'DM Sans'; -fx-font-size: " + (int) priceFont + "px; -fx-font-weight: 900; ");
@@ -1520,6 +1572,10 @@ public class AuctionPageController {
                 "-fx-font-family: 'DM Sans'; -fx-font-size: " + (int) Math.max(10, timeFont * 0.7)
                         + "px; -fx-font-weight: 900; -fx-text-fill: -app-text-muted;");
 
+        setNodeStyle(productNameLabel,
+                "-fx-font-family: 'DM Sans'; -fx-font-size: " + (int) productNameFont
+                        + "px; -fx-font-weight: 900; -fx-text-fill: -app-text;");
+
         setNodeStyle(startPriceLabel,
                 "-fx-font-family: 'DM Sans'; -fx-font-size: " + (int) startPriceFont
                         + "px; -fx-font-weight: 900; -fx-text-fill: -app-text;");
@@ -1529,24 +1585,86 @@ public class AuctionPageController {
                         + "px; -fx-font-weight: 900; -fx-text-fill: -app-text-muted; -fx-padding: 8 0 0 0;");
 
         setNodeStyle(bidAmountField,
-                " -fx-border-color: #ece2ec; -fx-border-width: 2; " +
-                        "-fx-border-radius: 999; -fx-padding: 16 16 16 48; " +
-                        "-fx-font-family: 'DM Sans'; -fx-font-size: " + (int) bidFieldFont
+                "-fx-background-color: -app-input-bg; -fx-background-radius: 999; -fx-text-fill: -app-input-text; "
+                        + "-fx-border-color: -app-border; -fx-border-width: 2; "
+                        + "-fx-border-radius: 999; -fx-padding: " + (int) Math.max(12, 16 * scale)
+                        + " 16 " + (int) Math.max(12, 16 * scale) + " 48; "
+                        + "-fx-font-family: 'DM Sans'; -fx-font-size: " + (int) bidFieldFont
                         + "px; -fx-font-weight: 900;");
+
+        setNodeStyle(bidAmountTitleLabel,
+                "-fx-font-family: 'DM Sans'; -fx-font-size: " + (int) Math.max(10, Math.min(14, 14 * scale))
+                        + "px; -fx-font-weight: 900; -fx-text-fill: -app-text;");
+
+        setNodeStyle(minIncrementLabel,
+                "-fx-font-family: 'DM Sans'; -fx-font-size: " + (int) compactLabelFont
+                        + "px; -fx-font-weight: 900; -fx-text-fill: -fx-accent;");
+
+        if (productNameLabel != null) {
+            productNameLabel.setWrapText(true);
+            productNameLabel.setMaxWidth(Double.MAX_VALUE);
+            productNameLabel.setMinHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+        }
+
+        if (remainingTimeLabel != null) {
+            remainingTimeLabel.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
+            if (remainingTimeLabel.getParent() instanceof javafx.scene.layout.Region parentRegion) {
+                parentRegion.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
+            }
+        }
+
+        setQuickBidButtonFont(btnQuickBidOne, quickBidFont);
+        setQuickBidButtonFont(btnQuickBidTwo, quickBidFont);
+        setQuickBidButtonFont(btnQuickBidFive, quickBidFont);
+        setButtonFont(placeBidBtn, Math.max(14, Math.min(18, 18 * scale)));
+        setButtonFont(btnAutoBid, Math.max(10, Math.min(14, 14 * scale)));
     }
 
     private double calculatePriceFont(double windowWidth) {
         String priceText = currentPriceLabel.getText();
-        double baseFont = Math.max(22, Math.min(48, windowWidth * 0.034));
+        double baseFont = Math.max(19, Math.min(48, windowWidth * 0.031));
         int extraChars = Math.max(0, priceText.length() - 8);
-        return Math.max(16, baseFont - extraChars * 1.5);
+        return Math.max(16, baseFont - extraChars * 1.7);
     }
 
     private double calculateTimeFont(double windowWidth) {
         String timeText = remainingTimeLabel.getText();
-        double baseFont = Math.max(14, Math.min(22, windowWidth * 0.016));
+        double baseFont = Math.max(11, Math.min(22, windowWidth * 0.014));
         int extraChars = Math.max(0, timeText.length() - 8);
-        return Math.max(12, baseFont - extraChars * 0.8);
+        return Math.max(10, baseFont - extraChars * 0.95);
+    }
+
+    private double calculateProductNameFont(double windowWidth) {
+        String nameText = productNameLabel.getText();
+        double baseFont = Math.max(20, Math.min(30, windowWidth * 0.021));
+        int extraChars = Math.max(0, nameText == null ? 0 : nameText.length() - 28);
+        return Math.max(17, baseFont - extraChars * 0.22);
+    }
+
+    private double calculateAuctionPageScale(double windowWidth) {
+        return Math.max(0.68, Math.min(1.0, windowWidth / 1500.0));
+    }
+
+    private void setQuickBidButtonFont(Button button, double fontSize) {
+        if (button == null) {
+            return;
+        }
+        button.setStyle("-fx-background-color: -app-accent-opacity-08; -fx-text-fill: -fx-accent; "
+                + "-fx-border-color: -fx-accent; -fx-border-width: 1; -fx-border-radius: 999; "
+                + "-fx-background-radius: 999; -fx-padding: 7 8; -fx-font-family: 'DM Sans'; "
+                + "-fx-font-size: " + (int) fontSize + "px; -fx-font-weight: 900; -fx-cursor: hand;");
+    }
+
+    private void setButtonFont(Button button, double fontSize) {
+        if (button == null) {
+            return;
+        }
+        String style = button.getStyle();
+        if (style == null) {
+            style = "";
+        }
+        button.setStyle(style.replaceAll("-fx-font-size:\\s*\\d+(\\.\\d+)?px;", "")
+                + " -fx-font-size: " + (int) fontSize + "px;");
     }
 
     private void refreshSessionFromServer() {
@@ -1620,17 +1738,22 @@ public class AuctionPageController {
                 "description",
                 sessionObj.optString("description", ""));
 
-        String imagePath = source.optString(
-                "imagePath",
-                sessionObj.optString("imagePath", ""));
+        String imagePath = firstNonBlank(
+                getString(source, "imagePath"),
+                getString(source, "imageUrl"),
+                getString(source, "image_url"),
+                getString(sessionObj, "imagePath"),
+                getString(sessionObj, "imageUrl"),
+                getString(sessionObj, "image_url"),
+                productImagePath);
 
         productNameLabel.setText(productName);
         updateDescription(description);
         loadProductImage(imagePath);
 
         // Reset and check 3D Mode
-        this.productImagePath = imagePath;
-        this.itemUuid = extractUuid(imagePath);
+        String effectiveImagePath = firstNonBlank(productImagePath, imagePath);
+        this.itemUuid = extractUuid(effectiveImagePath);
         this.is3DMode = false;
         if (model3DContainer != null) {
             model3DContainer.setVisible(false);
@@ -1655,7 +1778,7 @@ public class AuctionPageController {
                 }
             }
         }
-        check3DModelExists(resolveModelUrl(imagePath));
+        check3DModelExists(resolveModelUrl(effectiveImagePath));
     }
 
     private void updatePriceLabels() {
@@ -1672,13 +1795,20 @@ public class AuctionPageController {
         String imageUrl = buildImageUrl(imagePath);
 
         if (imageUrl.isBlank()) {
-            productImageView.setImage(null);
+            if (productImagePath == null || productImagePath.isBlank()) {
+                productImageView.setImage(null);
+            }
             return;
         }
 
+        boolean hasAcceptedPath = productImagePath != null && !productImagePath.isBlank();
+
         try {
             Image image = CacheManager.getCachedImage(imageUrl, newImage -> {
-                if (productImageView != null && !is3DMode) {
+                if (isDisplayableImage(newImage)
+                        && productImageView != null
+                        && !is3DMode
+                        && imageUrl.equals(buildImageUrl(productImagePath))) {
                     productImageView.setImage(newImage);
                 }
             });
@@ -1688,11 +1818,43 @@ public class AuctionPageController {
                         logger.warn("Could not load product image from {}", imageUrl);
                     }
                 });
-                productImageView.setImage(image);
+                if (isDisplayableImage(image)) {
+                    productImagePath = imagePath;
+                    productImageView.setImage(image);
+                } else if (!hasAcceptedPath && !isDisplayableImage(productImageView.getImage())) {
+                    productImagePath = imagePath;
+                    productImageView.setImage(image);
+                }
             }
         } catch (Exception e) {
             logger.error("Error loading product image from {}", imageUrl, e);
         }
+    }
+
+    private boolean isDisplayableImage(Image image) {
+        return image != null
+                && !image.isError()
+                && image.getWidth() > 1
+                && image.getHeight() > 1;
+    }
+
+    private String getString(JSONObject object, String key) {
+        if (object == null || key == null || !object.has(key) || object.isNull(key)) {
+            return "";
+        }
+        return object.optString(key, "");
+    }
+
+    private String firstNonBlank(String... values) {
+        if (values == null) {
+            return "";
+        }
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value.trim();
+            }
+        }
+        return "";
     }
 
     private BigDecimal getEffectiveStepPrice() {
@@ -1711,7 +1873,7 @@ public class AuctionPageController {
         updateQuickBidLabels(getEffectiveStepPrice());
         setLabelText(minIncrementLabel, "Min increment ₫ " + formatPrice(getEffectiveStepPrice()));
         setLabelText(highestBidderLabel, formatHighestBidder());
-        setLabelText(reserveStatusLabel, formatReserveStatus());
+        updateReserveStatusLabel();
         int displayBidCount = Math.max(Math.max(0, bidCount), allBidPoints.size());
         setLabelText(totalBidsLabel, String.valueOf(displayBidCount));
         setLabelText(watchingLabel, String.valueOf(Math.max(0, watchingCount)));
@@ -1742,20 +1904,32 @@ public class AuctionPageController {
         return "Highest bidder: User #" + highestBidderId;
     }
 
-    private String formatReserveStatus() {
-        if (reservePrice == null || reservePrice.compareTo(BigDecimal.ZERO) <= 0) {
-            return "";
+    private void updateReserveStatusLabel() {
+        if (reserveStatusLabel == null) {
+            return;
         }
 
-        return currentPrice.compareTo(reservePrice) >= 0
-                ? "Reserve price met"
-                : "Reserve price not met";
+        if (reservePrice == null || reservePrice.compareTo(BigDecimal.ZERO) <= 0) {
+            reserveStatusLabel.setText("");
+            reserveStatusLabel.setVisible(false);
+            reserveStatusLabel.setManaged(false);
+            return;
+        }
+
+        boolean reserveMet = currentPrice.compareTo(reservePrice) >= 0;
+        reserveStatusLabel.setVisible(true);
+        reserveStatusLabel.setManaged(true);
+        reserveStatusLabel.setText(reserveMet ? "Reserve Met" : "Under Reserve");
+        reserveStatusLabel.setStyle(reserveMet ? RESERVE_MET_STYLE : UNDER_RESERVE_STYLE);
     }
 
     private void connectToServer() {
         disconnectSocket();
+        startSocketListener("auction-socket-listener");
+    }
 
-        listenerThread = new Thread(this::listenToSocketServer, "auction-socket-listener");
+    private void startSocketListener(String threadName) {
+        listenerThread = new Thread(this::listenToSocketServer, threadName);
         listenerThread.setDaemon(true);
         listenerThread.start();
     }
@@ -2009,6 +2183,20 @@ public class AuctionPageController {
     }
 
     private void disconnectSocket() {
+        closeSocketResources();
+
+        stopTimeline();
+        stopBidTimeout();
+        clearLocalBidRequest("socket disconnected");
+    }
+
+    private void reconnectBidSocket() {
+        logger.info("Reconnecting auction socket for auctionId={}", currentSessionId);
+        closeSocketResources();
+        startSocketListener("auction-socket-recovery-listener");
+    }
+
+    private void closeSocketResources() {
         closeQuietly(out);
         closeQuietly(in);
         closeSocketQuietly();
@@ -2016,10 +2204,6 @@ public class AuctionPageController {
         out = null;
         in = null;
         socket = null;
-
-        stopTimeline();
-        stopBidTimeout();
-        clearLocalBidRequest("socket disconnected");
     }
 
     private synchronized void markLocalBidRequestInFlight(BigDecimal bidAmount) {
@@ -2143,7 +2327,7 @@ public class AuctionPageController {
     }
 
     private boolean isSocketReady() {
-        return socket != null && !socket.isClosed() && out != null;
+        return socket != null && socket.isConnected() && !socket.isClosed() && out != null && !out.checkError();
     }
 
     private boolean sendBidRequest(BigDecimal bidAmount) {
@@ -2193,8 +2377,11 @@ public class AuctionPageController {
 
             if (PROCESSING_MESSAGE.equals(messageLabel.getText())) {
                 messageLabel.setStyle(WARNING_STYLE);
-                messageLabel.setText("Server response is slow, please check connection or try again.");
+                messageLabel.setText("No bid response from server. Auction data was refreshed; please try again.");
                 clearLocalBidRequest("timeout");
+                refreshSessionFromServer();
+                fetchLatestUserBalance();
+                reconnectBidSocket();
                 if (!bidErrorSoundPlayedForCurrentAttempt) {
                     com.auction.client.service.SoundManager.getInstance()
                             .playSound(com.auction.client.model.audio.SoundEvent.BID_ERROR);
