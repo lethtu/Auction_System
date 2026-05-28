@@ -263,7 +263,6 @@ public class AuthGetImage {
     private String buildStoredFileName(String originalFileName) {
         return UUID.randomUUID() + getSafeExtension(originalFileName);
     }
-
     private String getSafeExtension(String fileName) {
         if (fileName == null || !fileName.contains(".")) {
             return DEFAULT_EXTENSION;
@@ -290,7 +289,6 @@ public class AuthGetImage {
                 .toString()
                 .replace('\\', '/');
     }
-
     private ResponseEntity<Resource> serve(Path file) {
         return serveFrom(file, getRootLocation());
     }

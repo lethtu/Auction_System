@@ -403,7 +403,7 @@ public class GoogleAuthControllerTest {
                                 "redirectUri", "http://localhost/callback"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(500))
-                .andExpect(jsonPath("$.message", org.hamcrest.Matchers.containsString("Google Authentication error")));
+                .andExpect(jsonPath("$.message").value("Google Authentication error"));
     }
 
 }
