@@ -26,8 +26,19 @@ public class Config {
             DEFAULT_SOCKET_PORT
     );
 
-    public static final String CACHE_3D_DIR = "client/cache/models";
-    public static final String CACHE_IMAGES_DIR = "client/cache/images";
+    public static final String CACHE_3D_DIR = resolveCacheDir("client/cache/models");
+    public static final String CACHE_IMAGES_DIR = resolveCacheDir("client/cache/images");
+
+    private static String resolveCacheDir(String defaultPath) {
+        String userDir = System.getProperty("user.dir");
+        if (userDir != null) {
+            java.io.File file = new java.io.File(userDir);
+            if ("client".equals(file.getName())) {
+                return defaultPath.replace("client/", "");
+            }
+        }
+        return defaultPath;
+    }
 
     // Cache buster for images to bypass JavaFX internal cache when images are updated
     public static volatile long imageCacheBuster = System.currentTimeMillis();

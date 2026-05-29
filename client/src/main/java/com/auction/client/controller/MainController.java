@@ -41,6 +41,7 @@ import org.json.JSONObject;
 import com.auction.client.model.User;
 import com.auction.client.service.NotificationSocketService;
 import com.auction.client.service.SettingsService;
+import com.auction.client.util.CacheManager;
 
 import com.auction.client.service.ClientLogger;
 import java.math.BigDecimal;
@@ -1024,22 +1025,41 @@ public class MainController implements Initializable {
         String imageUrl = buildImageUrl(imagePath);
         if (!imageUrl.isBlank()) {
             Image cached = imageCache.get(imageUrl);
-            if (cached == null || cached.isError()) {
-                cached = new Image(imageUrl, true);
-                imageCache.put(imageUrl, cached);
+            if (cached == null || cached.isError() || (cached.getWidth() <= 1 && cached.getHeight() <= 1 && !(cached instanceof javafx.scene.image.WritableImage))) {
+                cached = CacheManager.getCachedImage(imageUrl, newImage -> {
+                    if (newImage != null && !newImage.isError() && newImage.getWidth() > 1) {
+                        imageCache.put(imageUrl, newImage);
+                        Platform.runLater(() -> {
+                            imageView.setImage(newImage);
+                            if (!imageWrapper.getChildren().contains(imageView)) {
+                                imageWrapper.getChildren().remove(placeholderBox);
+                                imageWrapper.getChildren().add(0, imageView);
+                            }
+                        });
+                    }
+                });
+                if (cached != null) {
+                    imageCache.put(imageUrl, cached);
+                }
             }
             imageView.setImage(cached);
-            imageWrapper.getChildren().add(imageView);
-            cached.errorProperty().addListener((obs, oldValue, isError) -> {
-                if (isError) {
-                    Platform.runLater(() -> {
-                        imageWrapper.getChildren().remove(imageView);
-                        if (!imageWrapper.getChildren().contains(placeholderBox)) {
-                            imageWrapper.getChildren().add(0, placeholderBox);
-                        }
-                    });
-                }
-            });
+            if (cached != null && !cached.isError() && cached.getWidth() > 1 && cached.getHeight() > 1) {
+                imageWrapper.getChildren().add(imageView);
+            } else {
+                imageWrapper.getChildren().add(placeholderBox);
+            }
+            if (cached != null) {
+                cached.errorProperty().addListener((obs, oldValue, isError) -> {
+                    if (isError) {
+                        Platform.runLater(() -> {
+                            imageWrapper.getChildren().remove(imageView);
+                            if (!imageWrapper.getChildren().contains(placeholderBox)) {
+                                imageWrapper.getChildren().add(0, placeholderBox);
+                            }
+                        });
+                    }
+                });
+            }
         } else {
             imageWrapper.getChildren().add(placeholderBox);
         }
@@ -1074,10 +1094,10 @@ public class MainController implements Initializable {
             if (startDT != null) {
                 LocalDateTime now = LocalDateTime.now();
                 if (startDT.toLocalDate().equals(now.toLocalDate())) {
-                    displayStart = "Opening Soon\nStarts: "
+                    displayStart = "Starts: "
                             + startDT.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
                 } else {
-                    displayStart = "Opening Soon\nStarts: "
+                    displayStart = "Starts: "
                             + startDT.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM HH:mm"));
                 }
             }
