@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.json.JSONObject;
-import com.auction.server.socket.SocketServer;
+import com.auction.server.socket.WebSocketRoomRegistry;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -78,7 +78,7 @@ public class AuctionSchedulerService {
                         if (updated.getItem() != null) {
                             endEvent.put("itemName", updated.getItem().getName());
                         }
-                        SocketServer.broadcastToAll("EVENT:" + endEvent.toString());
+                        WebSocketRoomRegistry.broadcastToAll("EVENT:" + endEvent.toString());
                     }
                 } catch (Exception e) {
                     logger.error("[SCHEDULER] Error broadcasting AUCTION_ENDED for session {}: {}",

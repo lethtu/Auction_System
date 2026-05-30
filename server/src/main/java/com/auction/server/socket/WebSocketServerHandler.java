@@ -37,6 +37,12 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         String payload = message.getPayload();
         logger.info("Received WebSocket message: {}", payload);
+        if ("PING".equals(payload)) {
+            synchronized (session) {
+                session.sendMessage(new TextMessage("PONG"));
+            }
+            return;
+        }
         SocketMessageProcessor processor = (SocketMessageProcessor) session.getAttributes().get("processor");
         if (processor != null) {
             processor.processMessage(payload);
@@ -48,7 +54,7 @@ public class WebSocketServerHandler extends TextWebSocketHandler {
         logger.info("WebSocket connection closed: {}", session.getId());
         WebSocketClient client = (WebSocketClient) session.getAttributes().get("client");
         if (client != null) {
-            SocketServer.removeFromAllRooms(client);
+            WebSocketRoomRegistry.removeFromAllRooms(client);
         }
     }
 }

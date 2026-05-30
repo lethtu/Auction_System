@@ -38,7 +38,7 @@ public class SocketMessageProcessor {
                 handleAuthMessage(inputLine.substring(5));
             } else if (inputLine.startsWith("JOIN:")) {
                 int sessionId = Integer.parseInt(inputLine.substring(5));
-                SocketServer.joinRoom(sessionId, socketClient);
+                WebSocketRoomRegistry.joinRoom(sessionId, socketClient);
             } else if (inputLine.startsWith("BID:")) {
                 handleBidMessage(inputLine.substring(4));
             } else if (inputLine.startsWith("AUTOBID:")) {
@@ -47,12 +47,12 @@ public class SocketMessageProcessor {
                 if (inputLine.contains(":")) {
                     try {
                         int userId = Integer.parseInt(inputLine.substring("JOIN_HOME:".length()));
-                        SocketServer.joinHome(userId, socketClient);
+                        WebSocketRoomRegistry.joinHome(userId, socketClient);
                     } catch (NumberFormatException e) {
                         logger.error("Invalid JOIN_HOME format: {}", inputLine);
                     }
                 } else {
-                    SocketServer.joinHome(socketClient);
+                    WebSocketRoomRegistry.joinHome(socketClient);
                 }
             }
         } catch (Exception e) {
@@ -221,7 +221,7 @@ public class SocketMessageProcessor {
                 response.getBidId(),
                 response.getBidCount(),
                 response.getCurrentPrice());
-        SocketServer.broadcastToRoom(auctionId, "NOTICE:" + notice);
+        WebSocketRoomRegistry.broadcastToRoom(auctionId, "NOTICE:" + notice);
 
         if (response.getPreviousHighestBidderId() != null) {
             JSONObject homeNotice = new JSONObject(notice.toString());
@@ -239,7 +239,7 @@ public class SocketMessageProcessor {
             }
             homeNotice.put("itemName", itemName);
 
-            SocketServer.sendToHomeUser(response.getPreviousHighestBidderId(), "NOTICE:" + homeNotice);
+            WebSocketRoomRegistry.sendToHomeUser(response.getPreviousHighestBidderId(), "NOTICE:" + homeNotice);
         }
     }
 

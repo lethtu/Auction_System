@@ -37,22 +37,22 @@ import com.auction.client.util.CacheManager;
 import com.auction.client.util.GltfImporterJFX;
 import javafx.scene.Node;
 
-import java.io.BufferedReader;
-import java.io.EOFException;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class AuctionPageController {
     private static final Logger logger = LoggerFactory.getLogger(AuctionPageController.class);
@@ -225,6 +225,10 @@ public class AuctionPageController {
     private static final int EXPANDED_SIDEBAR_WIDTH = 200;
     private static final int COLLAPSED_SIDEBAR_WIDTH = 70;
     private static final int BID_TIMEOUT_SECONDS = 15;
+    private static final long SOCKET_HEARTBEAT_INTERVAL_MS = 25_000L;
+    private static final long SOCKET_HEARTBEAT_TIMEOUT_MS = 75_000L;
+    private static final long SOCKET_RECONNECT_BASE_DELAY_MS = 2_000L;
+    private static final long SOCKET_RECONNECT_MAX_DELAY_MS = 30_000L;
 
     private final java.util.List<com.auction.client.model.BidChartPoint> allBidPoints = new java.util.ArrayList<>();
     private final java.util.Set<Integer> seenBidIds = new java.util.HashSet<>();
@@ -235,6 +239,13 @@ public class AuctionPageController {
     private javafx.stage.Stage fullHistoryPopup = null;
 
     private java.net.http.WebSocket webSocket;
+    private ScheduledExecutorService bidSocketHeartbeatExecutor;
+    private ScheduledExecutorService bidSocketReconnectExecutor;
+    private volatile boolean bidSocketActive = false;
+    private volatile boolean bidSocketReconnectScheduled = false;
+    private volatile long bidSocketLastServerContactAt = 0L;
+    private volatile long bidSocketLastHeartbeatSentAt = 0L;
+    private volatile int bidSocketReconnectAttempts = 0;
 
     private int currentSessionId;
     private boolean endingSoonNotified = false;
@@ -2019,7 +2030,9 @@ public class AuctionPageController {
     }
 
     private void connectToServer() {
+        bidSocketActive = false;
         disconnectSocket();
+        bidSocketActive = true;
         startSocketListener("auction-socket-listener");
     }
 
@@ -2043,6 +2056,10 @@ public class AuctionPageController {
                         public void onOpen(java.net.http.WebSocket ws) {
                             logger.info("WebSocket connection opened for session {}", currentSessionId);
                             webSocket = ws;
+                            bidSocketReconnectAttempts = 0;
+                            markBidSocketServerContact();
+                            bidSocketLastHeartbeatSentAt = 0L;
+                            startBidSocketHeartbeat(ws);
 
                             if (com.auction.client.model.User.getSessionToken() != null) {
                                 JSONObject authJson = new JSONObject();
@@ -2059,6 +2076,7 @@ public class AuctionPageController {
                                 java.net.http.WebSocket ws,
                                 CharSequence data,
                                 boolean last) {
+                            markBidSocketServerContact();
                             buffer.append(data);
                             if (last) {
                                 String msg = buffer.toString();
@@ -2070,17 +2088,28 @@ public class AuctionPageController {
                         }
 
                         @Override
+                        public java.util.concurrent.CompletionStage<?> onPong(
+                                java.net.http.WebSocket ws,
+                                ByteBuffer message) {
+                            markBidSocketServerContact();
+                            ws.request(1);
+                            return null;
+                        }
+
+                        @Override
                         public java.util.concurrent.CompletionStage<?> onClose(
                                 java.net.http.WebSocket ws,
                                 int statusCode,
                                 String reason) {
                             logger.info("WebSocket connection closed: {} - {}", statusCode, reason);
+                            handleBidSocketClosed(ws, "closed");
                             return null;
                         }
 
                         @Override
                         public void onError(java.net.http.WebSocket ws, Throwable error) {
                             logger.error("WebSocket error", error);
+                            handleBidSocketClosed(ws, "error");
                             Platform.runLater(() -> {
                                 finishBidProcessing();
                                 clearLocalBidRequest("socket error");
@@ -2090,6 +2119,7 @@ public class AuctionPageController {
                     })
                     .exceptionally(error -> {
                         logger.error("Failed to connect session WebSocket", error);
+                        scheduleBidSocketReconnect("connect failed");
                         Platform.runLater(() -> showError("Cannot connect to Socket server!"));
                         return null;
                     });
@@ -2097,6 +2127,126 @@ public class AuctionPageController {
 
         listenerThread.setDaemon(true);
         listenerThread.start();
+    }
+
+    private void markBidSocketServerContact() {
+        bidSocketLastServerContactAt = System.currentTimeMillis();
+    }
+
+    private synchronized void startBidSocketHeartbeat(java.net.http.WebSocket ws) {
+        stopBidSocketHeartbeat();
+        bidSocketHeartbeatExecutor = Executors.newSingleThreadScheduledExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "auction-socket-heartbeat");
+            thread.setDaemon(true);
+            return thread;
+        });
+        bidSocketHeartbeatExecutor.scheduleAtFixedRate(
+                () -> sendBidSocketHeartbeatIfNeeded(ws),
+                5,
+                5,
+                TimeUnit.SECONDS);
+    }
+
+    private synchronized void stopBidSocketHeartbeat() {
+        if (bidSocketHeartbeatExecutor != null) {
+            bidSocketHeartbeatExecutor.shutdownNow();
+            bidSocketHeartbeatExecutor = null;
+        }
+    }
+
+    private synchronized void scheduleBidSocketReconnect(String reason) {
+        if (!bidSocketActive || bidSocketReconnectScheduled || isSocketReady()) {
+            return;
+        }
+
+        long delay = calculateBidSocketReconnectDelay();
+        bidSocketReconnectScheduled = true;
+        logger.info("Scheduling bid WebSocket reconnect in {}ms after {}", delay, reason);
+
+        if (bidSocketReconnectExecutor == null || bidSocketReconnectExecutor.isShutdown()) {
+            bidSocketReconnectExecutor = Executors.newSingleThreadScheduledExecutor(runnable -> {
+                Thread thread = new Thread(runnable, "auction-socket-reconnect");
+                thread.setDaemon(true);
+                return thread;
+            });
+        }
+
+        bidSocketReconnectExecutor.schedule(() -> {
+            synchronized (AuctionPageController.this) {
+                bidSocketReconnectScheduled = false;
+            }
+            if (bidSocketActive && !isSocketReady()) {
+                startSocketListener("auction-socket-reconnect");
+            }
+        }, delay, TimeUnit.MILLISECONDS);
+    }
+
+    private long calculateBidSocketReconnectDelay() {
+        int attempt = Math.min(bidSocketReconnectAttempts++, 4);
+        long delay = SOCKET_RECONNECT_BASE_DELAY_MS * (1L << attempt);
+        return Math.min(delay, SOCKET_RECONNECT_MAX_DELAY_MS);
+    }
+
+    private synchronized void stopBidSocketReconnect() {
+        bidSocketReconnectScheduled = false;
+        bidSocketReconnectAttempts = 0;
+        if (bidSocketReconnectExecutor != null) {
+            bidSocketReconnectExecutor.shutdownNow();
+            bidSocketReconnectExecutor = null;
+        }
+    }
+
+    private void sendBidSocketHeartbeatIfNeeded(java.net.http.WebSocket ws) {
+        if (!bidSocketActive || ws == null || webSocket != ws || ws.isInputClosed() || ws.isOutputClosed()) {
+            return;
+        }
+
+        long now = System.currentTimeMillis();
+        if (bidSocketLastServerContactAt > 0
+                && now - bidSocketLastServerContactAt > SOCKET_HEARTBEAT_TIMEOUT_MS) {
+            logger.warn("Bid WebSocket heartbeat timed out. Reconnecting session {}", currentSessionId);
+            forceBidSocketReconnect(ws);
+            return;
+        }
+
+        if (now - bidSocketLastHeartbeatSentAt < SOCKET_HEARTBEAT_INTERVAL_MS) {
+            return;
+        }
+
+        bidSocketLastHeartbeatSentAt = now;
+        try {
+            ws.sendPing(ByteBuffer.wrap(new byte[] {1}))
+                    .exceptionally(error -> {
+                        logger.warn("Bid WebSocket heartbeat failed: {}", error.getMessage());
+                        forceBidSocketReconnect(ws);
+                        return null;
+                    });
+        } catch (Exception e) {
+            logger.warn("Bid WebSocket heartbeat send failed: {}", e.getMessage());
+            forceBidSocketReconnect(ws);
+        }
+    }
+
+    private void handleBidSocketClosed(java.net.http.WebSocket ws, String reason) {
+        stopBidSocketHeartbeat();
+        if (!bidSocketActive || webSocket != ws) {
+            return;
+        }
+
+        webSocket = null;
+        logger.info("Scheduling bid WebSocket reconnect after {}", reason);
+        scheduleBidSocketReconnect(reason);
+    }
+
+    private void forceBidSocketReconnect(java.net.http.WebSocket ws) {
+        try {
+            if (ws != null) {
+                ws.abort();
+            }
+        } catch (Exception e) {
+            logger.warn("Error aborting stale bid websocket: {}", e.getMessage());
+        }
+        handleBidSocketClosed(ws, "heartbeat failure");
     }
 
     private void handleServerMessage(String serverResponse) {
@@ -2307,6 +2457,9 @@ public class AuctionPageController {
     }
 
     private void disconnectSocket() {
+        bidSocketActive = false;
+        stopBidSocketHeartbeat();
+        stopBidSocketReconnect();
         try {
             if (webSocket != null) {
                 webSocket.sendClose(java.net.http.WebSocket.NORMAL_CLOSURE, "Disconnecting");

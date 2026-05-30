@@ -18,6 +18,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.WebSocket;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
@@ -25,11 +26,15 @@ import java.util.concurrent.Executors;
 
 public class NotificationSocketService {
     private static final Logger logger = LoggerFactory.getLogger(NotificationSocketService.class);
+    private static final long HEARTBEAT_INTERVAL_MS = 25_000L;
+    private static final long HEARTBEAT_TIMEOUT_MS = 75_000L;
     private static NotificationSocketService instance;
 
     private WebSocket webSocket;
     private Thread listenerThread;
     private volatile boolean running = false;
+    private volatile long lastServerContactAt = 0L;
+    private volatile long lastHeartbeatSentAt = 0L;
     private Integer userId;
     private final HttpClient httpClient = HttpClient.newBuilder()
             .followRedirects(HttpClient.Redirect.ALWAYS)
@@ -128,6 +133,8 @@ public class NotificationSocketService {
                             @Override
                             public void onOpen(WebSocket ws) {
                                 logger.info("Global WebSocket connection opened.");
+                                markServerContact();
+                                lastHeartbeatSentAt = 0L;
                                 webSocket = ws;
                                 if (User.getSessionToken() != null) {
                                     JSONObject authJson = new JSONObject();
@@ -140,12 +147,20 @@ public class NotificationSocketService {
 
                             @Override
                             public java.util.concurrent.CompletionStage<?> onText(WebSocket ws, CharSequence data, boolean last) {
+                                markServerContact();
                                 buffer.append(data);
                                 if (last) {
                                     String msg = buffer.toString();
                                     buffer.setLength(0);
                                     handleServerMessage(msg);
                                 }
+                                ws.request(1);
+                                return null;
+                            }
+
+                            @Override
+                            public java.util.concurrent.CompletionStage<?> onPong(WebSocket ws, ByteBuffer message) {
+                                markServerContact();
                                 ws.request(1);
                                 return null;
                             }
@@ -181,6 +196,7 @@ public class NotificationSocketService {
                 // Wait until running is false or websocket is closed
                 synchronized (this) {
                     while (running && this.webSocket != null && !this.webSocket.isInputClosed() && !this.webSocket.isOutputClosed()) {
+                        sendHeartbeatIfNeeded(this.webSocket);
                         this.wait(5000); // periodically check
                     }
                 }
@@ -205,6 +221,53 @@ public class NotificationSocketService {
                 }
             } finally {
                 disconnect();
+            }
+        }
+    }
+
+    private void markServerContact() {
+        lastServerContactAt = System.currentTimeMillis();
+    }
+
+    private void sendHeartbeatIfNeeded(WebSocket ws) {
+        long now = System.currentTimeMillis();
+        if (lastServerContactAt > 0 && now - lastServerContactAt > HEARTBEAT_TIMEOUT_MS) {
+            logger.warn("Global WebSocket heartbeat timed out. Forcing reconnect.");
+            forceReconnect(ws);
+            return;
+        }
+
+        if (now - lastHeartbeatSentAt < HEARTBEAT_INTERVAL_MS) {
+            return;
+        }
+
+        lastHeartbeatSentAt = now;
+        try {
+            ws.sendPing(ByteBuffer.wrap(new byte[] {1}))
+                    .exceptionally(error -> {
+                        logger.warn("Global WebSocket heartbeat failed: {}", error.getMessage());
+                        forceReconnect(ws);
+                        return null;
+                    });
+        } catch (Exception e) {
+            logger.warn("Global WebSocket heartbeat send failed: {}", e.getMessage());
+            forceReconnect(ws);
+        }
+    }
+
+    private void forceReconnect(WebSocket ws) {
+        try {
+            if (ws != null) {
+                ws.abort();
+            }
+        } catch (Exception e) {
+            logger.warn("Error aborting stale websocket: {}", e.getMessage());
+        } finally {
+            synchronized (this) {
+                if (webSocket == ws) {
+                    webSocket = null;
+                }
+                this.notifyAll();
             }
         }
     }
