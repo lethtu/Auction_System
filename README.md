@@ -288,4 +288,4 @@ WebSocket realtime được suy ra tự động từ `API_URL`:
 ## 11. Link báo cáo và video demo
 
 - Báo cáo PDF: https://drive.google.com/file/d/1Laf1aX2HR_uxoy012ON7dtIsHZIkfMfK/view?usp=sharing
-- Video demo: cập nhật link video demo tại đây.
+- Video demo: https://drive.google.com/drive/folders/1lGXy85Uv6c3gUsLks1Bsg_k5NVa3DG8x?usp=drive_link
