@@ -181,7 +181,7 @@ public class MainController implements Initializable {
 
         // Initialize display status on main market
         cbStatus.getItems().addAll("All", "Active", "Starting Soon", "Ended");
-        cbStatus.setValue("Active");
+        cbStatus.setValue("All");
 
         updateViewToggleButton(false);
 
@@ -737,7 +737,7 @@ public class MainController implements Initializable {
         if (lblPageTitle != null)
             lblPageTitle.setText("Watchlist");
         if (cbStatus != null) {
-            cbStatus.setValue("Active");
+            cbStatus.setValue("All");
         }
         filterAndRenderProducts();
     }
@@ -783,7 +783,7 @@ public class MainController implements Initializable {
             lblPageTitle.setText("Live Auctions");
         hideFilterControlsForAccountPage(false);
         if (cbStatus != null) {
-            cbStatus.setValue("Active");
+            cbStatus.setValue("All");
         }
         filterAndRenderProducts();
     }

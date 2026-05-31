@@ -24,9 +24,9 @@
     </StackPane>
 
     <HBox spacing="10.0" alignment="CENTER_RIGHT" minHeight="52.0" prefHeight="52.0" maxHeight="52.0" style="-fx-padding: 0;">
-        <HBox fx:id="balanceChip" alignment="CENTER" spacing="9.0" minWidth="272.0" prefWidth="286.0" maxWidth="326.0" minHeight="40.0" prefHeight="40.0" maxHeight="40.0" styleClass="balance-chip">
+        <HBox fx:id="balanceChip" alignment="CENTER" spacing="9.0" minWidth="292.0" prefWidth="306.0" maxWidth="346.0" minHeight="40.0" prefHeight="40.0" maxHeight="40.0" styleClass="balance-chip">
             <children>
-                <Label text="Balance" minWidth="50.0" prefWidth="50.0" styleClass="balance-chip-title" />
+                <Label text="Available" minWidth="70.0" prefWidth="70.0" styleClass="balance-chip-title" />
                 <Label fx:id="topbarBalanceValue" text="--" minWidth="156.0" prefWidth="164.0" maxWidth="Infinity" styleClass="balance-chip-value" />
                 <Button fx:id="topbarBalanceToggle" text="&#xe8f4;" minWidth="30.0" prefWidth="30.0" maxWidth="30.0" minHeight="30.0" prefHeight="30.0" maxHeight="30.0" styleClass="balance-eye-button" />
             </children>
