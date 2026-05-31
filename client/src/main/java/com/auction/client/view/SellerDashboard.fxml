@@ -261,7 +261,7 @@
 
                     <VBox spacing="8">
                         <Label text="Description" style="-fx-font-weight: bold; -fx-text-fill: -app-text-muted; -fx-font-size: 14px;"/>
-                        <TextArea fx:id="descriptionArea" prefRowCount="3" promptText="Describe the item..." styleClass="transparent-text-area" style="-fx-padding: 12px;"/>
+                        <TextArea fx:id="descriptionArea" prefRowCount="3" wrapText="true" promptText="Describe the item..." styleClass="transparent-text-area" style="-fx-padding: 12px;"/>
                     </VBox>
                 </VBox>
             </ScrollPane>

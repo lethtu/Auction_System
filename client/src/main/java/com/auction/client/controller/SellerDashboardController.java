@@ -183,6 +183,9 @@ public class SellerDashboardController {
         productTypeCombo.setItems(FXCollections.observableArrayList(
                 "Electronics", "Art", "Vehicle"));
         productTypeCombo.setValue("Electronics");
+        if (descriptionArea != null) {
+            descriptionArea.setWrapText(true);
+        }
 
         setupTable();
         setupImageUpload();
