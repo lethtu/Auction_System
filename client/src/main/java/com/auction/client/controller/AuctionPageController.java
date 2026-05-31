@@ -1853,13 +1853,29 @@ public class AuctionPageController {
                 getString(sessionObj, "image_url"),
                 productImagePath);
 
+        String previousItemUuid = this.itemUuid;
+
         productNameLabel.setText(productName);
         updateDescription(description);
         loadProductImage(imagePath);
 
-        // Reset and check 3D Mode
         String effectiveImagePath = firstNonBlank(productImagePath, imagePath);
-        this.itemUuid = extractUuid(effectiveImagePath);
+        String newItemUuid = extractUuid(effectiveImagePath);
+        boolean sameItem = previousItemUuid != null
+                && newItemUuid != null
+                && previousItemUuid.equals(newItemUuid);
+
+        this.itemUuid = newItemUuid;
+        if (sameItem) {
+            applyCurrentMediaModeVisibility();
+        } else {
+            resetProductMediaTo2D();
+        }
+
+        check3DModelExists(resolveModelUrl(effectiveImagePath));
+    }
+
+    private void resetProductMediaTo2D() {
         this.is3DMode = false;
         if (model3DContainer != null) {
             model3DContainer.setVisible(false);
@@ -1873,18 +1889,20 @@ public class AuctionPageController {
         if (btnToggle3D != null) {
             btnToggle3D.setVisible(false);
             btnToggle3D.setManaged(false);
-            if (btnToggle3D.getGraphic() instanceof javafx.scene.layout.HBox) {
-                javafx.scene.layout.HBox hbox = (javafx.scene.layout.HBox) btnToggle3D.getGraphic();
-                if (hbox.getChildren().size() >= 2 && hbox.getChildren().get(0) instanceof Label
-                        && hbox.getChildren().get(1) instanceof Label) {
-                    Label iconLabel = (Label) hbox.getChildren().get(0);
-                    Label textLabel = (Label) hbox.getChildren().get(1);
-                    iconLabel.setText("\uE0B4"); // 3d_rotation
-                    textLabel.setText("3D VIEW");
-                }
-            }
         }
-        check3DModelExists(resolveModelUrl(effectiveImagePath));
+        setToggle3DLabel(false);
+    }
+
+    private void applyCurrentMediaModeVisibility() {
+        if (productImageView != null) {
+            productImageView.setVisible(!is3DMode);
+            productImageView.setManaged(!is3DMode);
+        }
+        if (model3DContainer != null) {
+            model3DContainer.setVisible(is3DMode);
+            model3DContainer.setManaged(is3DMode);
+        }
+        setToggle3DLabel(is3DMode);
     }
 
     private void updatePriceLabels() {
@@ -2887,6 +2905,7 @@ public class AuctionPageController {
         if (modelUrl == null || modelUrl.isBlank() || itemUuid == null || itemUuid.isBlank()) {
             return;
         }
+        String expectedItemUuid = itemUuid;
         try {
             Path cachedFile = Paths.get(Config.CACHE_3D_DIR, itemUuid + ".glb");
             if (Files.exists(cachedFile)) {
@@ -2894,6 +2913,9 @@ public class AuctionPageController {
                 byte[] bytes = Files.readAllBytes(cachedFile);
                 Node node3D = GltfImporterJFX.loadFromBytes(bytes, modelUrl);
                 Platform.runLater(() -> {
+                    if (!isCurrent3DModel(expectedItemUuid, modelUrl)) {
+                        return;
+                    }
                     model3DContainer.getChildren().clear();
                     model3DContainer.getChildren().add(node3D);
                 });
@@ -2914,8 +2936,12 @@ public class AuctionPageController {
             return;
         }
 
-        Path cachedFile = CacheManager.getCachedModel(modelUrl, itemUuid, () -> {
+        String expectedItemUuid = itemUuid;
+        Path cachedFile = CacheManager.getCachedModel(modelUrl, expectedItemUuid, () -> {
             Platform.runLater(() -> {
+                if (!isCurrent3DModel(expectedItemUuid, modelUrl)) {
+                    return;
+                }
                 if (btnToggle3D != null) {
                     btnToggle3D.setVisible(true);
                     btnToggle3D.setManaged(true);
@@ -2928,6 +2954,9 @@ public class AuctionPageController {
 
         if (cachedFile != null) {
             Platform.runLater(() -> {
+                if (!isCurrent3DModel(expectedItemUuid, modelUrl)) {
+                    return;
+                }
                 if (btnToggle3D != null) {
                     btnToggle3D.setVisible(true);
                     btnToggle3D.setManaged(true);
@@ -2946,6 +2975,9 @@ public class AuctionPageController {
                     .thenAccept(response -> {
                         boolean exists = response.statusCode() == 200;
                         Platform.runLater(() -> {
+                            if (!isCurrent3DModel(expectedItemUuid, modelUrl)) {
+                                return;
+                            }
                             if (btnToggle3D != null) {
                                 btnToggle3D.setVisible(exists);
                                 btnToggle3D.setManaged(exists);
@@ -2954,6 +2986,9 @@ public class AuctionPageController {
                     })
                     .exceptionally(ex -> {
                         Platform.runLater(() -> {
+                            if (!isCurrent3DModel(expectedItemUuid, modelUrl)) {
+                                return;
+                            }
                             if (btnToggle3D != null) {
                                 btnToggle3D.setVisible(false);
                                 btnToggle3D.setManaged(false);
@@ -2962,6 +2997,14 @@ public class AuctionPageController {
                         return null;
                     });
         }
+    }
+
+    private boolean isCurrent3DModel(String expectedItemUuid, String expectedModelUrl) {
+        if (expectedItemUuid == null || !expectedItemUuid.equals(itemUuid)) {
+            return false;
+        }
+        String currentModelUrl = resolveModelUrl(productImagePath);
+        return expectedModelUrl != null && expectedModelUrl.equals(currentModelUrl);
     }
 
     @FXML
@@ -2985,7 +3028,8 @@ public class AuctionPageController {
                 if (model3DContainer.getChildren().isEmpty()) {
                     model3DContainer.getChildren().add(create3DLoadingNode());
 
-                    CacheManager.getModelAsync(modelUrl, itemUuid).thenAccept(cachedFile -> {
+                    String expectedItemUuid = itemUuid;
+                    CacheManager.getModelAsync(modelUrl, expectedItemUuid).thenAccept(cachedFile -> {
                         if (cachedFile != null) {
                             // Parse GLB in background thread to avoid parsing lag on JavaFX thread
                             Thread parseThread = new Thread(() -> {
@@ -2998,14 +3042,21 @@ public class AuctionPageController {
                                     node3D = create3DMessageNode("3D model unavailable", "Cannot parse this GLB model.");
                                 }
                                 Node finalNode3D = node3D;
-                                Platform.runLater(() -> model3DContainer.getChildren().setAll(finalNode3D));
+                                Platform.runLater(() -> {
+                                    if (isCurrent3DModel(expectedItemUuid, modelUrl) && is3DMode) {
+                                        model3DContainer.getChildren().setAll(finalNode3D);
+                                    }
+                                });
                             });
                             parseThread.setDaemon(true);
                             parseThread.start();
                         } else {
-                            Platform.runLater(() -> model3DContainer.getChildren().setAll(
-                                create3DMessageNode("3D model unavailable", "Cannot load this GLB model.")
-                            ));
+                            Platform.runLater(() -> {
+                                if (isCurrent3DModel(expectedItemUuid, modelUrl) && is3DMode) {
+                                    model3DContainer.getChildren().setAll(
+                                            create3DMessageNode("3D model unavailable", "Cannot load this GLB model."));
+                                }
+                            });
                         }
                     });
                 } else {
