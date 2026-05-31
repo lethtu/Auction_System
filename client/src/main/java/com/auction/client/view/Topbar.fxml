@@ -12,11 +12,9 @@
             </graphic>
         </Button>
     </StackPane>
-    <Label fx:id="logoBrand" id="logoBrand" text="BidPop" onMouseClicked="#handleGoToDashboard" style="-fx-cursor: hand; -fx-text-fill: -fx-accent; -fx-font-weight: 900; -fx-font-size: 28px; -fx-font-family: 'DM Sans';" />
+    <Label fx:id="logoBrand" id="logoBrand" text="BidPop" minWidth="104.0" prefWidth="104.0" maxWidth="104.0" onMouseClicked="#handleGoToDashboard" style="-fx-cursor: hand; -fx-text-fill: -fx-accent; -fx-font-weight: 900; -fx-font-size: 28px; -fx-font-family: 'DM Sans';" />
 
-    <Region HBox.hgrow="ALWAYS" />
-
-    <HBox fx:id="searchContainer" alignment="CENTER_LEFT" prefWidth="500.0" prefHeight="40.0" style="-fx-background-color: -app-input-bg; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 999; -fx-background-radius: 999; -fx-padding: 0 16px; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-05, 10, 0, 0, 2);">
+    <HBox fx:id="searchContainer" alignment="CENTER_LEFT" minWidth="150.0" prefWidth="500.0" maxWidth="500.0" prefHeight="40.0" style="-fx-background-color: -app-input-bg; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 999; -fx-background-radius: 999; -fx-padding: 0 16px; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-05, 10, 0, 0, 2);">
         <Label text="&#xe8b6;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: -fx-accent;" translateY="0.0" />
         <TextField fx:id="txtSearch" promptText="Search items, categories, or auctions..." HBox.hgrow="ALWAYS" style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-background-insets: 0; -fx-border-width: 0; -fx-padding: 0 0 0 8px; -fx-prompt-text-fill: -app-placeholder; -fx-text-fill: -app-input-text; -fx-font-size: 14px;" />
     </HBox>
@@ -24,11 +22,11 @@
     <Region HBox.hgrow="ALWAYS" />
 
     <HBox spacing="10.0" alignment="CENTER_RIGHT" minHeight="52.0" prefHeight="52.0" maxHeight="52.0" style="-fx-padding: 0;">
-        <HBox fx:id="balanceChip" alignment="CENTER" spacing="7.0" minWidth="218.0" prefWidth="226.0" maxWidth="260.0" minHeight="36.0" prefHeight="36.0" maxHeight="36.0" styleClass="balance-chip">
+        <HBox fx:id="balanceChip" alignment="CENTER" spacing="9.0" minWidth="272.0" prefWidth="286.0" maxWidth="326.0" minHeight="40.0" prefHeight="40.0" maxHeight="40.0" styleClass="balance-chip">
             <children>
-                <Label text="Balance" minWidth="44.0" prefWidth="44.0" styleClass="balance-chip-title" />
-                <Label fx:id="topbarBalanceValue" text="--" minWidth="118.0" prefWidth="126.0" maxWidth="Infinity" styleClass="balance-chip-value" />
-                <Button fx:id="topbarBalanceToggle" text="&#xe8f4;" minWidth="28.0" prefWidth="28.0" maxWidth="28.0" minHeight="28.0" prefHeight="28.0" maxHeight="28.0" styleClass="balance-eye-button" />
+                <Label text="Balance" minWidth="50.0" prefWidth="50.0" styleClass="balance-chip-title" />
+                <Label fx:id="topbarBalanceValue" text="--" minWidth="156.0" prefWidth="164.0" maxWidth="Infinity" styleClass="balance-chip-value" />
+                <Button fx:id="topbarBalanceToggle" text="&#xe8f4;" minWidth="30.0" prefWidth="30.0" maxWidth="30.0" minHeight="30.0" prefHeight="30.0" maxHeight="30.0" styleClass="balance-eye-button" />
             </children>
         </HBox>
         <StackPane alignment="CENTER" minWidth="44.0" prefWidth="44.0" maxWidth="44.0" minHeight="44.0" prefHeight="44.0" maxHeight="44.0">

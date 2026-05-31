@@ -5,8 +5,11 @@ import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
+import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.Region;
 
 public final class BalanceDisplayBinder {
     private static final String MASKED_MONEY = "\u20ab \u2022\u2022\u2022\u2022\u2022\u2022";
@@ -29,7 +32,10 @@ public final class BalanceDisplayBinder {
         User.balanceLoadedProperty().addListener(listener);
         User.balanceVisibleProperty().addListener(listener);
 
+        valueLabel.setTextOverrun(OverrunStyle.CLIP);
+        valueLabel.setMinWidth(Region.USE_PREF_SIZE);
         toggleButton.setOnAction(event -> User.setBalanceVisible(!User.isBalanceVisible()));
+        toggleButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
 
         ChangeListener<Scene> sceneListener = new ChangeListener<>() {
             @Override
@@ -54,15 +60,33 @@ public final class BalanceDisplayBinder {
 
         if (!hasLoadedBalance) {
             valueLabel.setText("--");
-            toggleButton.setText(ICON_VISIBLE);
+            setEyeIcon(toggleButton, ICON_VISIBLE);
             toggleButton.setTooltip(new Tooltip("Balance not loaded"));
             return;
         }
 
         boolean visible = User.isBalanceVisible();
         valueLabel.setText(visible ? MoneyFormatUtil.formatVndPrefix(User.getAvailableBalance()) : MASKED_MONEY);
-        toggleButton.setText(visible ? ICON_VISIBLE : ICON_HIDDEN);
+        setEyeIcon(toggleButton, visible ? ICON_VISIBLE : ICON_HIDDEN);
         toggleButton.setTooltip(new Tooltip(visible ? "Hide balance" : "Show balance"));
+    }
+
+    private static void setEyeIcon(Button toggleButton, String iconText) {
+        Label icon;
+        if (toggleButton.getGraphic() instanceof Label existingIcon) {
+            icon = existingIcon;
+        } else {
+            icon = new Label();
+            icon.getStyleClass().add("balance-eye-icon");
+            icon.setMouseTransparent(true);
+            icon.setMinSize(18, 18);
+            icon.setPrefSize(18, 18);
+            icon.setAlignment(javafx.geometry.Pos.CENTER);
+            icon.setTranslateY(-1.0);
+            toggleButton.setGraphic(icon);
+        }
+        toggleButton.setText(null);
+        icon.setText(iconText);
     }
 
     private static void runOnFxThread(Runnable action) {

@@ -186,9 +186,9 @@
                                                                                 <Label fx:id="minIncrementLabel" text="Min increment ₫ 0" style="-fx-font-family: 'DM Sans'; -fx-font-size: 12px; -fx-font-weight: 900; -fx-text-fill: -fx-accent;" />
                                                                             </children>
                                                                         </HBox>
-                                                                        <HBox fx:id="availableBalanceCard" alignment="CENTER_LEFT" spacing="10.0" styleClass="available-balance-card">
+                                                                        <HBox fx:id="availableBalanceCard" alignment="CENTER_LEFT" spacing="12.0" styleClass="available-balance-card">
                                                                             <children>
-                                                                                <StackPane minWidth="34.0" prefWidth="34.0" maxWidth="34.0" minHeight="34.0" prefHeight="34.0" maxHeight="34.0" styleClass="available-balance-icon-wrap">
+                                                                                <StackPane minWidth="38.0" prefWidth="38.0" maxWidth="38.0" minHeight="38.0" prefHeight="38.0" maxHeight="38.0" styleClass="available-balance-icon-wrap">
                                                                                     <children>
                                                                                         <Label text="&#xe850;" styleClass="available-balance-icon" />
                                                                                     </children>
@@ -199,7 +199,7 @@
                                                                                         <Label fx:id="availableBalanceValue" text="--" styleClass="available-balance-value" />
                                                                                     </children>
                                                                                 </VBox>
-                                                                                <Button fx:id="availableBalanceToggle" text="&#xe8f4;" minWidth="34.0" prefWidth="34.0" maxWidth="34.0" minHeight="34.0" prefHeight="34.0" maxHeight="34.0" styleClass="balance-eye-button" />
+                                                                                <Button fx:id="availableBalanceToggle" text="&#xe8f4;" minWidth="38.0" prefWidth="38.0" maxWidth="38.0" minHeight="38.0" prefHeight="38.0" maxHeight="38.0" styleClass="balance-eye-button" />
                                                                             </children>
                                                                         </HBox>
                                                                         <StackPane alignment="CENTER_LEFT">

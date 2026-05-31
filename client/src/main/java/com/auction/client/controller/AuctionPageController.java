@@ -1635,6 +1635,12 @@ public class AuctionPageController {
                 }
             });
 
+            currentPriceLabel.setTextOverrun(javafx.scene.control.OverrunStyle.CLIP);
+            currentPriceLabel.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
+            startPriceLabel.setTextOverrun(javafx.scene.control.OverrunStyle.CLIP);
+            startPriceLabel.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
+            minIncrementLabel.setTextOverrun(javafx.scene.control.OverrunStyle.CLIP);
+
             updateResponsiveFonts(initialWidth);
         });
     }
@@ -1644,7 +1650,8 @@ public class AuctionPageController {
         double priceFont = calculatePriceFont(windowWidth);
         double timeFont = calculateTimeFont(windowWidth);
         double productNameFont = calculateProductNameFont(windowWidth);
-        double startPriceFont = Math.max(11, Math.min(20, windowWidth * 0.012));
+        double startPriceFont = calculateInlineMoneyFont(startPriceLabel.getText(), Math.max(11, Math.min(20, windowWidth * 0.012)), 11);
+        double minIncrementFont = calculateInlineMoneyFont(minIncrementLabel.getText(), Math.max(9, Math.min(12, 12 * scale)), 9);
         double bidFieldFont = Math.max(16, Math.min(24, windowWidth * 0.017));
         double compactLabelFont = Math.max(9, Math.min(12, 12 * scale));
         double quickBidFont = Math.max(9, Math.min(12, 12 * scale));
@@ -1703,7 +1710,7 @@ public class AuctionPageController {
                         + "px; -fx-font-weight: 900; -fx-text-fill: -app-text;");
 
         setNodeStyle(minIncrementLabel,
-                "-fx-font-family: 'DM Sans'; -fx-font-size: " + (int) compactLabelFont
+                "-fx-font-family: 'DM Sans'; -fx-font-size: " + (int) minIncrementFont
                         + "px; -fx-font-weight: 900; -fx-text-fill: -fx-accent;");
 
         if (productNameLabel != null) {
@@ -1731,6 +1738,11 @@ public class AuctionPageController {
         double baseFont = Math.max(19, Math.min(48, windowWidth * 0.031));
         int extraChars = Math.max(0, priceText.length() - 8);
         return Math.max(16, baseFont - extraChars * 1.7);
+    }
+
+    private double calculateInlineMoneyFont(String text, double baseFont, double minFont) {
+        int extraChars = Math.max(0, (text == null ? 0 : text.length()) - 14);
+        return Math.max(minFont, baseFont - extraChars * 0.8);
     }
 
     private double calculateTimeFont(double windowWidth) {

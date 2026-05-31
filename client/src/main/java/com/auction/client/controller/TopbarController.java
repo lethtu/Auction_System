@@ -25,7 +25,9 @@ import java.util.ResourceBundle;
 public class TopbarController implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(TopbarController.class);
  
+    @FXML private HBox topbar;
     @FXML private Button btnHamburger;
+    @FXML private Label logoBrand;
     @FXML private HBox searchContainer;
     @FXML private TextField txtSearch;
     @FXML private Button btnNotificationBell;
@@ -37,6 +39,7 @@ public class TopbarController implements Initializable {
     @FXML private StackPane topBarAvatarPane;
  
     private SidebarController sidebarController;
+    private boolean searchRequestedVisible = true;
  
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -51,6 +54,7 @@ public class TopbarController implements Initializable {
         }
 
         BalanceDisplayBinder.bindAvailableBalance(topbarBalanceValue, topbarBalanceToggle);
+        setupResponsiveTopbar();
  
         if (btnSettings != null) {
             btnSettings.setOnAction(e -> {
@@ -92,9 +96,37 @@ public class TopbarController implements Initializable {
     }
  
     public void setSearchVisible(boolean visible) {
+        searchRequestedVisible = visible;
+        applyResponsiveTopbar();
+    }
+
+    private void setupResponsiveTopbar() {
+        if (logoBrand != null) {
+            logoBrand.setMinWidth(104.0);
+            logoBrand.setPrefWidth(104.0);
+            logoBrand.setMaxWidth(104.0);
+            logoBrand.setTextOverrun(OverrunStyle.CLIP);
+        }
         if (searchContainer != null) {
-            searchContainer.setVisible(visible);
-            searchContainer.setManaged(visible);
+            searchContainer.setMinWidth(150.0);
+        }
+        if (topbar != null) {
+            topbar.widthProperty().addListener((obs, oldWidth, newWidth) -> applyResponsiveTopbar());
+        }
+        Platform.runLater(this::applyResponsiveTopbar);
+    }
+
+    private void applyResponsiveTopbar() {
+        if (searchContainer != null) {
+            double width = topbar == null ? 1280.0 : topbar.getWidth();
+            searchContainer.setVisible(searchRequestedVisible);
+            searchContainer.setManaged(searchRequestedVisible);
+
+            if (searchRequestedVisible) {
+                double targetWidth = Math.max(150.0, Math.min(500.0, width - 730.0));
+                searchContainer.setPrefWidth(targetWidth);
+                searchContainer.setMaxWidth(targetWidth);
+            }
         }
     }
  

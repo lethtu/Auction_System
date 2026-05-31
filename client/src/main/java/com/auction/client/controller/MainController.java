@@ -1186,11 +1186,15 @@ public class MainController implements Initializable {
         bottomRow.setAlignment(Pos.CENTER_LEFT);
 
         VBox priceBox = new VBox(0);
+        priceBox.setMinWidth(0);
+        priceBox.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(priceBox, Priority.ALWAYS);
         Label lblCurrentBid = new Label("CURRENT BID");
         lblCurrentBid.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: -app-text-muted;");
         Label priceLabel = new Label("₫ " + formatPrice(currentPrice));
         priceLabel.setId("priceLabel_" + id); // Set ID for fast updating
-        priceLabel.setStyle("-fx-font-weight: 900; -fx-font-size: 18px; -fx-text-fill: -fx-accent;");
+        styleMoneyLabel(priceLabel, currentPrice, 18, 13,
+                "-fx-font-weight: 900; -fx-text-fill: -fx-accent;");
         priceBox.getChildren().addAll(lblCurrentBid, priceLabel);
 
         Region hSpacer = new Region();
@@ -1198,8 +1202,8 @@ public class MainController implements Initializable {
 
         HBox actionBox = new HBox(10);
         actionBox.setAlignment(Pos.CENTER_RIGHT);
-        actionBox.setMinWidth(102.0);
-        actionBox.setPrefWidth(102.0);
+        actionBox.setMinWidth(44.0);
+        actionBox.setPrefWidth(44.0);
         actionBox.setMaxWidth(102.0);
 
         Button mainBtn = new Button();
@@ -1312,6 +1316,8 @@ public class MainController implements Initializable {
             });
 
             actionBox.setOnMouseEntered(e -> {
+                actionBox.setMinWidth(102.0);
+                actionBox.setPrefWidth(102.0);
                 mainBtn.setVisible(false);
                 mainBtn.setManaged(false);
                 btnWatch.setVisible(true);
@@ -1326,10 +1332,14 @@ public class MainController implements Initializable {
                 btnBid.setManaged(false);
                 mainBtn.setVisible(true);
                 mainBtn.setManaged(true);
+                actionBox.setMinWidth(44.0);
+                actionBox.setPrefWidth(44.0);
             });
 
             mainBtn.setOnAction(e -> {
                 e.consume();
+                actionBox.setMinWidth(102.0);
+                actionBox.setPrefWidth(102.0);
                 mainBtn.setVisible(false);
                 mainBtn.setManaged(false);
                 btnWatch.setVisible(true);
@@ -2197,9 +2207,11 @@ public class MainController implements Initializable {
         statusBadge.getStyleClass().add("compact-status-badge");
 
         Label price = new Label("₫ " + formatPrice(currentPrice));
-        price.setMinWidth(110);
+        price.setMinWidth(150);
         price.setAlignment(Pos.CENTER_RIGHT);
         price.getStyleClass().add("compact-price");
+        styleMoneyLabel(price, currentPrice, 16, 12,
+                "-fx-font-weight: 900; -fx-text-fill: -fx-accent;");
 
         Button bidButton = new Button(canBid ? "Bid" : "Ended");
         bidButton.setMinWidth(92);
@@ -2485,6 +2497,17 @@ public class MainController implements Initializable {
 
     private String buildImageUrl(String rawPath) {
         return ImageUrlUtil.buildImageUrl(rawPath);
+    }
+
+    private void styleMoneyLabel(Label label, BigDecimal value, int baseFontSize, int minFontSize, String baseStyle) {
+        if (label == null) {
+            return;
+        }
+        int length = MoneyFormatUtil.formatVndPrefix(value).length();
+        int fontSize = Math.max(minFontSize, baseFontSize - Math.max(0, length - 12));
+        label.setTextOverrun(OverrunStyle.CLIP);
+        label.setMinWidth(Region.USE_PREF_SIZE);
+        label.setStyle(baseStyle + " -fx-font-size: " + fontSize + "px;");
     }
 
     private String formatPrice(BigDecimal price) {

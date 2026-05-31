@@ -622,7 +622,8 @@ public class MyBidsController implements Initializable {
         HBox.setHgrow(spacer1, Priority.ALWAYS);
         Label priceLabel = new Label("₫ " + formatPrice(currentPrice));
         priceLabel.setId("priceLabel_" + id);
-        priceLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: -app-text;");
+        styleMoneyLabel(priceLabel, currentPrice, 16, 12,
+                "-fx-font-weight: bold; -fx-text-fill: -app-text;");
         currentBidRow.getChildren().addAll(lblCurrentBid, spacer1, priceLabel);
 
         HBox userBidRow = new HBox();
@@ -636,13 +637,16 @@ public class MyBidsController implements Initializable {
         Label userPriceLabel = new Label();
         if (winningSession || wonSession) {
             userPriceLabel.setText("₫ " + formatPrice(currentPrice));
-            userPriceLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #10b981;");
+            styleMoneyLabel(userPriceLabel, currentPrice, 13, 11,
+                    "-fx-font-weight: bold; -fx-text-fill: #10b981;");
         } else if (outbidSession) {
             userPriceLabel.setText("₫ " + formatPrice(userMaxBid));
-            userPriceLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #ef4444;");
+            styleMoneyLabel(userPriceLabel, userMaxBid, 13, 11,
+                    "-fx-font-weight: bold; -fx-text-fill: #ef4444;");
         } else {
             userPriceLabel.setText("₫ " + formatPrice(userMaxBid));
-            userPriceLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #6c757d;");
+            styleMoneyLabel(userPriceLabel, userMaxBid, 13, 11,
+                    "-fx-font-weight: bold; -fx-text-fill: #6c757d;");
         }
         userBidRow.getChildren().addAll(lblYourBid, spacer2, userPriceLabel);
         bidDetailsBox.getChildren().addAll(currentBidRow, userBidRow);
@@ -863,6 +867,18 @@ public class MyBidsController implements Initializable {
     private String buildImageUrl(String rawPath) {
         return ImageUrlUtil.buildImageUrl(rawPath);
     }
+
+    private void styleMoneyLabel(Label label, BigDecimal value, int baseFontSize, int minFontSize, String baseStyle) {
+        if (label == null) {
+            return;
+        }
+        int length = MoneyFormatUtil.formatVndPrefix(value).length();
+        int fontSize = Math.max(minFontSize, baseFontSize - Math.max(0, length - 12));
+        label.setTextOverrun(OverrunStyle.CLIP);
+        label.setMinWidth(Region.USE_PREF_SIZE);
+        label.setStyle(baseStyle + " -fx-font-size: " + fontSize + "px;");
+    }
+
     private String formatPrice(BigDecimal price) {
         return MoneyFormatUtil.formatGrouped(price);
     }
