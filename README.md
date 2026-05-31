@@ -1,122 +1,277 @@
-<h1 align="center">Hệ thống Đấu giá Trực tuyến (Auction System)</h1>
+# Auction System - Hệ thống đấu giá trực tuyến
 
-<p align="center">
-  <i>Hệ thống quản lý và tham gia đấu giá trực tuyến được phát triển bằng Java, ứng dụng kiến trúc Client-Server với khả năng cập nhật thời gian thực.</i>
-</p>
+## 1. Mô tả bài toán và phạm vi hệ thống
 
----
+Auction System là hệ thống đấu giá trực tuyến theo kiến trúc Client-Server. Người dùng có thể đăng ký, đăng nhập, xem các phiên đấu giá, đặt giá theo thời gian thực, theo dõi lịch sử bid và nhận thông báo khi giá thay đổi hoặc phiên đấu giá kết thúc.
 
-## 1. Thành viên Nhóm
+Hệ thống gồm ba nhóm vai trò chính:
 
-| STT | Họ và Tên | Mã Sinh Viên | Username (GitHub) |
-| :---: | :--- | :---: | :--- |
+- Bidder: xem phiên đấu giá, đặt giá, dùng auto-bid, theo dõi các phiên đã tham gia.
+- Seller: tạo và quản lý sản phẩm/phiên đấu giá.
+- Admin: quản lý người dùng, sản phẩm và phiên đấu giá trong hệ thống.
+
+## 2. Thành viên nhóm
+
+| STT | Họ và tên | Mã sinh viên | GitHub |
+| --- | --- | --- | --- |
 | 1 | Lê Thanh Tùng | 25022003 | `lethtu` |
 | 2 | Lê Đình Quốc Khánh | 25021824 | `Ledinhquockhanh2007` |
 | 3 | Nguyễn Lê Quang Minh | 25021877 | `nguyenlequangminh2409-png` |
 | 4 | Nguyên Hà Phan | 25021927 | `nhphan0505` |
 
----
+## 3. Công nghệ sử dụng và yêu cầu cài đặt
 
-## 2. Mô tả bài toán và Phạm vi hệ thống
+### Công nghệ chính
 
-**Mô tả bài toán:**  
-Dự án số hóa quy trình đấu giá truyền thống thành một hệ sinh thái thương mại trực tuyến minh bạch và có tính tương tác cao. Bài toán giải quyết bao phủ toàn bộ luồng nghiệp vụ với sự tham gia của nhiều vai trò:
-- **Quản lý Định danh & Tài khoản:** Hỗ trợ đăng nhập, đăng ký, khôi phục mật khẩu an toàn và quản lý hồ sơ cá nhân.
-- **Dành cho Người bán (Seller):** Cho phép người dùng tạo mới sản phẩm, tự do thiết lập thông tin, giá khởi điểm, bước giá và khoảng thời gian diễn ra đấu giá.
-- **Dành cho Người mua (Bidder):** Duyệt danh mục sản phẩm công khai. Khi tham gia một phiên, người dùng có thể "đặt giá (bid)" liên tục. Lịch sử đặt giá và đồng hồ đếm ngược được cập nhật theo thời gian thực (real-time) để đảm bảo tính công bằng.
-- **Dành cho Quản trị viên (Admin):** Cung cấp các công cụ đặc quyền để giám sát hệ thống, quản lý người dùng và trực tiếp kiểm duyệt các phiên đấu giá trước khi chúng được hiển thị công khai.
+- Client: Java 21, JavaFX 21.0.2, FXML, Maven.
+- Server: Java 17+, Spring Boot 3.2.4, Spring Web, Spring Data JPA, WebSocket.
+- Database: MySQL hoặc TiDB Cloud.
+- Kiểm thử và chất lượng mã: JUnit 5, Mockito, JaCoCo, Checkstyle.
+- Công cụ hỗ trợ: Git, GitHub Actions, Maven.
 
-**Phạm vi hệ thống:**  
-Hệ thống được thiết kế theo kiến trúc Client-Server, phân chia trách nhiệm rõ ràng:
-- **Máy chủ (Server - Spring Boot):** Kiểm soát toàn bộ logic nghiệp vụ, giao tiếp với cơ sở dữ liệu, phân quyền bảo mật qua REST API. Đặc biệt, Server chịu trách nhiệm quản lý kết nối Socket để phát sóng (broadcast) trạng thái đấu giá đồng bộ tới toàn bộ Client ngay tức thì.
-- **Máy trạm (Client - JavaFX):** Cung cấp giao diện đồ họa (GUI) trực quan. Client tiếp nhận thao tác của người dùng cuối, hiển thị dữ liệu và duy trì kết nối liên tục (Socket) để cập nhật các biến động giá mới nhất không có độ trễ.
+### Yêu cầu cài đặt
 
----
+- JDK 21.
+- Maven 3.8 trở lên.
+- MySQL 8.0 trở lên nếu chạy database local.
+- Kết nối internet nếu dùng database/cloud service đã cấu hình sẵn.
 
-## 3. Công nghệ sử dụng và Yêu cầu cài đặt
+## 4. Cấu hình database
 
-### Công nghệ cốt lõi
-- **Server:** Java 17, Spring Boot 3.2.4.
-- **Client:** Java 21, JavaFX 21.
-- **Giao tiếp:** Kết hợp REST API (cho các thao tác CRUD) và **Socket** (đảm bảo cập nhật thời gian thực cho phiên đấu giá).
-- **Cơ sở dữ liệu:** MySQL 8.0+.
+Server đọc cấu hình database tại:
 
-### Yêu cầu môi trường
-- **Java Development Kit (JDK):** Phiên bản 21 (được khuyến nghị để tương thích tốt nhất với cả Server và Client).
-- **Build Tool:** Maven 3.8 trở lên.
-- **Database:** MySQL Server bản 8.0 trở lên.
-
----
-
-## 4. Cấu trúc thư mục chính
-
-Hệ thống được chia làm hai module độc lập để dễ quản lý và triển khai:
-
-- `server/` : Chứa mã nguồn của backend (Spring Boot), cung cấp RESTful API và xử lý các kết nối qua Socket.
-- `client/` : Chứa mã nguồn của giao diện ứng dụng desktop (JavaFX).
-- `Data.sql` : File kịch bản SQL dùng để khởi tạo cơ sở dữ liệu và dữ liệu mẫu.
-- `.github/workflows/` : Chứa các file cấu hình tự động hóa (CI/CD Pipeline) bằng GitHub Actions.
-
----
-
-## 5. Vị trí các file thực thi (.jar)
-
-Sau khi quá trình build hoàn tất, các file thực thi sẽ được đặt tại:
-- **Server:** `server/target/`
-- **Client:** `client/target/`
-
----
-
-## 6. Hướng dẫn cài đặt và Khởi chạy hệ thống
-
-Vui lòng thực hiện tuần tự các bước dưới đây để khởi chạy hệ thống trên máy cá nhân (Localhost).
-
-### Bước 6.1: Khởi tạo Cơ sở dữ liệu
-
-1. Truy cập vào MySQL và tạo cơ sở dữ liệu:
-   ```sql
-   CREATE DATABASE auction_system;
-   ```
-2. Nạp dữ liệu cấu trúc vào hệ thống từ file `Data.sql`:
-   ```bash
-   mysql -u root -p auction_system < Data.sql
-   ```
-3. Mở file cấu hình `server/src/main/resources/application.properties` và điều chỉnh `spring.datasource.username` / `spring.datasource.password` cho phù hợp với môi trường của bạn.
-
-### Bước 6.2: Khởi chạy Server (Bắt buộc chạy trước)
-
-Server cần được khởi động trước để có thể lắng nghe kết nối Socket và các truy xuất API từ Client. Mở terminal tại thư mục gốc dự án:
-
-```bash
-cd server
-mvn clean install
-mvn spring-boot:run
-```
-> Server sẽ được khởi chạy tại địa chỉ: `http://localhost:8080`
-
-### Bước 6.3: Khởi chạy Client
-
-Sau khi Server đã báo khởi chạy thành công, hãy mở một cửa sổ terminal mới từ thư mục gốc của dự án:
-
-```bash
-cd client
-mvn clean install
-mvn javafx:run
+```text
+server/src/main/resources/application.properties
 ```
 
----
+Hiện tại project đã cấu hình sẵn database TiDB Cloud trong file này. Nếu dùng cấu hình cloud sẵn, chỉ cần chạy server.
 
-## 7. Danh sách Chức năng đã hoàn thành
+Nếu muốn chạy database local bằng MySQL, thực hiện các bước sau.
 
-- Quản lý phiên đấu giá và danh mục sản phẩm.
-- Quản lý định danh: Đăng ký, Đăng nhập và Xác thực tài khoản người dùng an toàn.
-- Tham gia đấu giá thời gian thực với độ trễ thấp thông qua công nghệ **Socket**.
-- Tự động hóa quy trình kiểm thử và tích hợp liên tục (CI/CD) qua GitHub Actions.
+### Bước 1: Tạo database
 
----
+Đăng nhập MySQL:
 
-## 8. Tài nguyên đính kèm
+```bash
+mysql -u root -p
+```
 
-- **Báo cáo PDF:** [*(Nhấn vào đây để cập nhật link báo cáo)*](#)
-- **Video Demo:** [*(Nhấn vào đây để cập nhật link video)*](#)
+Tạo database:
 
+```sql
+CREATE DATABASE auction_system CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+EXIT;
+```
+
+### Bước 2: Import dữ liệu mẫu
+
+Từ thư mục gốc project, chạy:
+
+```bash
+mysql -u root -p auction_system < Data.sql
+```
+
+Nếu dùng PowerShell trên Windows, lệnh tương tự:
+
+```powershell
+mysql -u root -p auction_system < .\Data.sql
+```
+
+### Bước 3: Sửa cấu hình kết nối database
+
+Mở `server/src/main/resources/application.properties` và đổi các dòng database thành thông tin MySQL local:
+
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/auction_system?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+spring.datasource.username=root
+spring.datasource.password=YOUR_MYSQL_PASSWORD
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.jpa.hibernate.ddl-auto=update
+```
+
+Sau đó build/chạy lại server.
+
+## 5. Cấu trúc thư mục chính
+
+```text
+.
+|-- client/      # Ứng dụng desktop JavaFX
+|-- server/      # Backend Spring Boot
+|-- dist/        # File JAR nộp kèm repository
+|-- Data.sql     # Script database mẫu
+|-- README.md    # Hướng dẫn build, chạy và mô tả hệ thống
+`-- LICENSE
+```
+
+Các package quan trọng:
+
+- `client/src/main/java/com/auction/client/controller`: controller JavaFX.
+- `client/src/main/java/com/auction/client/service`: service phía client, notification, settings, socket.
+- `client/src/main/java/com/auction/client/model`: model phía client.
+- `server/src/main/java/com/auction/server/controller`: REST controller.
+- `server/src/main/java/com/auction/server/service`: xử lý nghiệp vụ.
+- `server/src/main/java/com/auction/server/repository`: truy cập dữ liệu.
+- `server/src/main/java/com/auction/server/socket`: WebSocket realtime.
+
+## 6. Vị trí file JAR và cách build
+
+File JAR nộp kèm repository nằm tại:
+
+- `dist/server.jar`
+- `dist/client.jar`
+
+Nếu cần build lại từ source, chạy từ thư mục gốc project:
+
+```bash
+mvn -f server/pom.xml clean package -Dcheckstyle.skip=true -Dmaven.test.skip=true
+mvn -f client/pom.xml clean package -Dcheckstyle.skip=true -Dmaven.test.skip=true
+```
+
+Sau khi build lại, Maven tạo JAR tại:
+
+- `server/target/server.jar`
+- `client/target/client.jar`
+
+Trong repository này, hai file đã được copy sẵn sang `dist/` để phục vụ nộp bài và chạy demo.
+
+## 7. Hướng dẫn chạy Server và Client
+
+Chạy server trước:
+
+```bash
+java -jar dist/server.jar
+```
+
+Server mặc định chạy tại:
+
+```text
+http://localhost:8080
+```
+
+Mở terminal khác và chạy client:
+
+```bash
+java -jar dist/client.jar
+```
+
+Để demo nhiều người tham gia đấu giá, mở nhiều terminal và chạy nhiều client:
+
+```bash
+java -jar dist/client.jar
+java -jar dist/client.jar
+```
+
+## 8. Cấu hình địa chỉ server cho client
+
+Client lấy địa chỉ backend tại:
+
+```text
+client/src/main/java/com/auction/client/Config.java
+```
+
+Dòng cấu hình chính:
+
+```java
+public static final String API_URL = "https://server-bai-tap-lon.shin25112007.workers.dev";
+```
+
+Nếu chạy server local, đổi thành:
+
+```java
+public static final String API_URL = "http://localhost:8080";
+```
+
+Sau khi đổi `API_URL`, build lại client:
+
+```bash
+mvn -f client/pom.xml clean package -Dcheckstyle.skip=true -Dmaven.test.skip=true
+```
+
+WebSocket realtime được suy ra tự động từ `API_URL`:
+
+- `https://...` -> `wss://.../ws/notification`
+- `http://localhost:8080` -> `ws://localhost:8080/ws/notification`
+
+## 9. Chức năng hoàn thành theo barem yêu cầu
+
+### 9.1 Quản lý người dùng
+
+- Đăng ký, đăng nhập, đăng xuất.
+- Quên mật khẩu qua email.
+- Đăng nhập Google.
+- Phân vai trò Bidder, Seller, Admin.
+- Quản lý hồ sơ người dùng, số dư và trạng thái tài khoản.
+
+### 9.2 Quản lý sản phẩm và phiên đấu giá
+
+- Seller tạo sản phẩm và phiên đấu giá.
+- Cấu hình tên, mô tả, ảnh, loại sản phẩm, giá khởi điểm, bước giá, thời gian bắt đầu/kết thúc.
+- Seller xem, sửa, hủy và theo dõi các phiên của mình.
+- Admin kiểm duyệt và quản lý phiên đấu giá.
+
+### 9.3 Tham gia đấu giá
+
+- Bidder xem danh sách phiên đấu giá đang hoạt động.
+- Xem chi tiết sản phẩm, giá hiện tại, người dẫn đầu, số lượt bid và thời gian còn lại.
+- Đặt giá trực tiếp trên màn đấu giá.
+- Kiểm tra giá hợp lệ trước khi gửi bid.
+- Không cho seller tự bid sản phẩm của mình.
+- Cập nhật kết quả bid theo thời gian thực qua WebSocket.
+
+### 9.4 Kết thúc phiên đấu giá
+
+- Server tự động kiểm tra và kết thúc phiên khi hết thời gian.
+- Xác định người thắng dựa trên bid hợp lệ cao nhất.
+- Gửi thông báo thắng/thua và cập nhật số dư liên quan.
+- Hỗ trợ nhập thông tin giao hàng sau khi thắng phiên.
+
+### 9.5 Xử lý lỗi và ngoại lệ
+
+- Chặn bid thấp hơn giá hiện tại hoặc sai bước giá.
+- Chặn bid khi phiên đã đóng.
+- Chặn bid khi số dư không đủ.
+- Xử lý lỗi kết nối WebSocket bằng heartbeat và reconnect.
+- Trả thông báo lỗi rõ ràng cho client thay vì làm treo giao diện.
+
+### 9.6 Giao diện người dùng
+
+- Giao diện desktop JavaFX/FXML.
+- Màn hình đăng nhập/đăng ký/quên mật khẩu.
+- Màn hình danh sách phiên đấu giá.
+- Màn hình chi tiết đấu giá realtime.
+- Dashboard cho Seller.
+- Dashboard cho Admin.
+- Notification center, topbar, sidebar, theme sáng/tối và màu nhấn.
+
+### 9.7 OOP, MVC và Design Pattern
+
+- OOP: dùng các model như `User`, `Bidder`, `Seller`, `Admin`, `Item`, `Art`, `Electronics`, `Vehicle`, `AuctionSession`, `Bid`.
+- Encapsulation: các entity/model có trường dữ liệu và getter/setter rõ ràng.
+- Inheritance/Abstraction: phân loại người dùng và sản phẩm theo vai trò/loại.
+- MVC: client tách FXML, controller, service; server tách controller, service, repository, model.
+- Factory Method: `ItemFactory` tạo các loại sản phẩm.
+- Observer/Event-based: WebSocket broadcast sự kiện bid và kết thúc phiên.
+- Singleton: các service client dùng chung như notification, settings, cache.
+
+### 9.8 Concurrency, test và CI
+
+- Server xử lý bid và auto-bid tập trung để tránh lost update/race condition.
+- Có test JUnit/Mockito cho nhiều phần logic quan trọng.
+- Có cấu hình Maven, Checkstyle, JaCoCo.
+- Có GitHub Actions phục vụ kiểm thử tự động.
+
+## 10. Chức năng nâng cao và điểm nổi bật
+
+- Auto-bidding: người dùng đặt `maxBid` và `increment`, hệ thống tự trả giá khi có đối thủ bid.
+- Anti-sniping/gia hạn phiên: hỗ trợ cập nhật thời gian kết thúc khi có bid sát giờ.
+- Realtime update: giá, số lượt bid, người dẫn đầu, lịch sử bid và số người đang xem được cập nhật không cần refresh.
+- Bid history visualization: hiển thị lịch sử/đường biến động giá trong phiên.
+- Notification realtime: thông báo khi bị vượt giá, thắng/thua phiên, phiên kết thúc.
+- Heartbeat/reconnect WebSocket: giảm lỗi mất kết nối khi app để lâu hoặc mạng chập chờn.
+- Upload ảnh và model 3D cho sản phẩm.
+- UI có theme, âm thanh thông báo và trải nghiệm giống ứng dụng desktop hoàn chỉnh.
+
+## 11. Link báo cáo và video demo
+
+- Báo cáo PDF: cập nhật link PDF báo cáo tại đây.
+- Video demo: cập nhật link video demo tại đây.
