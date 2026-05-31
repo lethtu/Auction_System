@@ -4,8 +4,9 @@
 ### Intellij ###
 application.properties
 
-# .idea folder
+# IntelliJ project files
 .idea/
+.idea/**
 
 # User-specific stuff
 .idea/**/workspace.xml

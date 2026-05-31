@@ -58,9 +58,9 @@
                                                             <children>
                                                                 <StackPane alignment="TOP_LEFT">
                                                                     <children>
-                                                                        <StackPane fx:id="productMediaFrame" alignment="CENTER" minWidth="0.0" prefWidth="550.0" maxWidth="Infinity" minHeight="400.0" prefHeight="400.0" maxHeight="400.0" style="-fx-background-color: -app-surface-2; -fx-background-radius: 32; -fx-overflow: hidden;">
+                                                                        <StackPane fx:id="productMediaFrame" alignment="CENTER" minWidth="0.0" prefWidth="350.0" maxWidth="Infinity" minHeight="400.0" prefHeight="400.0" maxHeight="400.0" style="-fx-background-color: -app-surface-2; -fx-background-radius: 32; -fx-overflow: hidden;">
                                                                             <children>
-                                                                                <ImageView fx:id="productImageView" fitHeight="400.0" fitWidth="550.0" preserveRatio="true" />
+                                                                                <ImageView fx:id="productImageView" fitHeight="400.0" fitWidth="350.0" preserveRatio="true" />
                                                                                 <StackPane fx:id="model3DContainer" visible="false" managed="false" alignment="CENTER" maxWidth="Infinity" maxHeight="Infinity" styleClass="model-3d-overlay" />
                                                                             </children>
                                                                         </StackPane>

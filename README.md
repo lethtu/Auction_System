@@ -118,7 +118,8 @@ Các package quan trọng:
 File JAR nộp kèm repository nằm tại:
 
 - `dist/server.jar`
-- `dist/client.jar`
+- `dist/client.jar`: client chạy với server local tại `http://localhost:8080`.
+- `dist/client-online.jar`: client chạy trực tiếp với server online, không cần bật server local.
 
 Nếu cần build lại từ source, chạy từ thư mục gốc project:
 
@@ -132,7 +133,8 @@ Sau khi build lại, Maven tạo JAR tại:
 - `server/target/server.jar`
 - `client/target/client.jar`
 
-Trong repository này, hai file đã được copy sẵn sang `dist/` để phục vụ nộp bài và chạy demo.
+Trong repository này, các file JAR đã được copy sẵn sang `dist/` để phục vụ nộp bài và chạy demo.
+Riêng `client-online.jar` là bản client đã trỏ sẵn tới server online.
 
 ## 7. Hướng dẫn chạy Server và Client
 
@@ -154,11 +156,23 @@ Mở terminal khác và chạy client:
 java -jar dist/client.jar
 ```
 
+`dist/client.jar` giao tiếp với server local tại:
+
+```text
+http://localhost:8080
+```
+
 Để demo nhiều người tham gia đấu giá, mở nhiều terminal và chạy nhiều client:
 
 ```bash
 java -jar dist/client.jar
 java -jar dist/client.jar
+```
+
+Nếu muốn chạy client với server online mà không bật server local, dùng:
+
+```bash
+java -jar dist/client-online.jar
 ```
 
 ## 8. Cấu hình địa chỉ server cho client
@@ -172,13 +186,13 @@ client/src/main/java/com/auction/client/Config.java
 Dòng cấu hình chính:
 
 ```java
-public static final String API_URL = "https://server-bai-tap-lon.shin25112007.workers.dev";
+public static final String API_URL = "http://localhost:8080";
 ```
 
-Nếu chạy server local, đổi thành:
+Nếu muốn build bản client chạy với server online, đổi thành:
 
 ```java
-public static final String API_URL = "http://localhost:8080";
+public static final String API_URL = "https://server-bai-tap-lon.shin25112007.workers.dev";
 ```
 
 Sau khi đổi `API_URL`, build lại client:
