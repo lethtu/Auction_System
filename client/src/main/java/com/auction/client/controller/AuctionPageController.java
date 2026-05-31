@@ -256,6 +256,7 @@ public class AuctionPageController {
     private Integer highestBidderId;
     private Integer sellerId;
     private boolean auctionOpenForBidding = true;
+    private String auctionStatus = "ACTIVE";
     private int bidCount;
     private int watchingCount;
     private BigDecimal myLastBidAmount = null;
@@ -280,6 +281,11 @@ public class AuctionPageController {
         // container must never allow the product card to shrink or change shape.
         if (productImageView != null && productMediaFrame != null) {
             productImageView.setPreserveRatio(true);
+            if (mainContentGrid != null) {
+                productMediaFrame.prefWidthProperty().bind(
+                    mainContentGrid.widthProperty().multiply(0.60).subtract(64)
+                );
+            }
             productImageView.fitWidthProperty().bind(productMediaFrame.widthProperty().subtract(16));
         }
 
@@ -1635,10 +1641,10 @@ public class AuctionPageController {
                 }
             });
 
-            currentPriceLabel.setTextOverrun(javafx.scene.control.OverrunStyle.CLIP);
-            currentPriceLabel.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
-            startPriceLabel.setTextOverrun(javafx.scene.control.OverrunStyle.CLIP);
-            startPriceLabel.setMinWidth(javafx.scene.layout.Region.USE_PREF_SIZE);
+            currentPriceLabel.setTextOverrun(javafx.scene.control.OverrunStyle.ELLIPSIS);
+            currentPriceLabel.setMinWidth(0.0);
+            startPriceLabel.setTextOverrun(javafx.scene.control.OverrunStyle.ELLIPSIS);
+            startPriceLabel.setMinWidth(0.0);
             minIncrementLabel.setTextOverrun(javafx.scene.control.OverrunStyle.CLIP);
 
             updateResponsiveFonts(initialWidth);
@@ -1819,7 +1825,8 @@ public class AuctionPageController {
 
     private void applySessionData(JSONObject sessionObj, JSONObject itemObj) {
         sellerId = getOptionalInt(sessionObj, "sellerId");
-        auctionOpenForBidding = "ACTIVE".equalsIgnoreCase(sessionObj.optString("status", "ACTIVE"));
+        auctionStatus = sessionObj.optString("status", "ACTIVE");
+        auctionOpenForBidding = "ACTIVE".equalsIgnoreCase(auctionStatus);
         loadPriceData(sessionObj);
         loadProductData(sessionObj, itemObj);
         updatePriceLabels();
@@ -2585,11 +2592,29 @@ public class AuctionPageController {
             btnAutoBid.setDisable(disabled);
         }
 
-        if (messageLabel != null && isSellerOfCurrentAuction()) {
-            messageLabel.setStyle(INFO_STYLE);
-            messageLabel.setText(OWN_AUCTION_BID_MESSAGE);
-        } else if (messageLabel != null && OWN_AUCTION_BID_MESSAGE.equals(messageLabel.getText())) {
-            messageLabel.setText("");
+        if (messageLabel != null) {
+            if (isSellerOfCurrentAuction()) {
+                messageLabel.setStyle(INFO_STYLE);
+                messageLabel.setText(OWN_AUCTION_BID_MESSAGE);
+            } else if ("COMING".equalsIgnoreCase(auctionStatus)) {
+                messageLabel.setStyle(WARNING_STYLE);
+                messageLabel.setText("This auction has not started yet.");
+            } else if ("DRAFT".equalsIgnoreCase(auctionStatus)) {
+                messageLabel.setStyle(WARNING_STYLE);
+                messageLabel.setText("This is a draft auction.");
+            } else if ("ENDED".equalsIgnoreCase(auctionStatus) || "PAID".equalsIgnoreCase(auctionStatus) || "CANCELED".equalsIgnoreCase(auctionStatus)) {
+                messageLabel.setStyle(ERROR_STYLE);
+                messageLabel.setText("This auction has ended.");
+            } else {
+                // Clear the message if it was one of the status messages or seller message
+                String currentText = messageLabel.getText();
+                if (OWN_AUCTION_BID_MESSAGE.equals(currentText)
+                        || "This auction has not started yet.".equals(currentText)
+                        || "This is a draft auction.".equals(currentText)
+                        || "This auction has ended.".equals(currentText)) {
+                    messageLabel.setText("");
+                }
+            }
         }
     }
 
@@ -2769,6 +2794,7 @@ public class AuctionPageController {
     }
 
     private void handleAuctionEnd() {
+        auctionStatus = "ENDED";
         auctionOpenForBidding = false;
         updateBiddingAvailability();
         disconnectSocket();

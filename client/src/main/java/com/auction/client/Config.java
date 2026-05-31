@@ -1,7 +1,7 @@
 package com.auction.client;
 
 public class Config {
-    public static final String API_URL = "http://localhost:8080";
+    public static final String API_URL = "https://server-bai-tap-lon.shin25112007.workers.dev";
     public static final String Title = "Auction System";
     public static final String LOGO_PATH = "/com/auction/client/images/logo.png";
 

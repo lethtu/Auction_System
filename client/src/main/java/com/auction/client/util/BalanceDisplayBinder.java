@@ -32,8 +32,8 @@ public final class BalanceDisplayBinder {
         User.balanceLoadedProperty().addListener(listener);
         User.balanceVisibleProperty().addListener(listener);
 
-        valueLabel.setTextOverrun(OverrunStyle.CLIP);
-        valueLabel.setMinWidth(Region.USE_PREF_SIZE);
+        valueLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
+        valueLabel.setMinWidth(0.0);
         toggleButton.setOnAction(event -> User.setBalanceVisible(!User.isBalanceVisible()));
         toggleButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
 
