@@ -28,6 +28,7 @@ public class TopbarController implements Initializable {
     @FXML private HBox topbar;
     @FXML private Button btnHamburger;
     @FXML private Label logoBrand;
+    @FXML private StackPane searchSlot;
     @FXML private HBox searchContainer;
     @FXML private TextField txtSearch;
     @FXML private Button btnNotificationBell;
@@ -108,7 +109,11 @@ public class TopbarController implements Initializable {
             logoBrand.setTextOverrun(OverrunStyle.CLIP);
         }
         if (searchContainer != null) {
-            searchContainer.setMinWidth(150.0);
+            searchContainer.setMinWidth(130.0);
+        }
+        if (searchSlot != null) {
+            searchSlot.setMinWidth(150.0);
+            searchSlot.widthProperty().addListener((obs, oldWidth, newWidth) -> applyResponsiveTopbar());
         }
         if (topbar != null) {
             topbar.widthProperty().addListener((obs, oldWidth, newWidth) -> applyResponsiveTopbar());
@@ -118,12 +123,12 @@ public class TopbarController implements Initializable {
 
     private void applyResponsiveTopbar() {
         if (searchContainer != null) {
-            double width = topbar == null ? 1280.0 : topbar.getWidth();
             searchContainer.setVisible(searchRequestedVisible);
             searchContainer.setManaged(searchRequestedVisible);
 
             if (searchRequestedVisible) {
-                double targetWidth = Math.max(150.0, Math.min(500.0, width - 730.0));
+                double slotWidth = searchSlot == null ? 520.0 : searchSlot.getWidth();
+                double targetWidth = Math.max(130.0, Math.min(680.0, slotWidth - 36.0));
                 searchContainer.setPrefWidth(targetWidth);
                 searchContainer.setMaxWidth(targetWidth);
             }

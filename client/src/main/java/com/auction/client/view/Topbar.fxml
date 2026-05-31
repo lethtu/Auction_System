@@ -5,21 +5,23 @@
 <?import javafx.scene.text.Font?>
 
 <HBox fx:id="topbar" alignment="CENTER_LEFT" spacing="0.0" styleClass="app-topbar" stylesheets="@styles.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.auction.client.controller.TopbarController">
-    <StackPane prefWidth="70.0" minWidth="70.0" maxWidth="70.0">
-        <Button fx:id="btnHamburger" id="btnHamburger" onAction="#handleToggleSidebar" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0;">
-            <graphic>
-                <Label text="&#xe5d2;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: -app-text-muted;" />
-            </graphic>
-        </Button>
-    </StackPane>
-    <Label fx:id="logoBrand" id="logoBrand" text="BidPop" minWidth="104.0" prefWidth="104.0" maxWidth="104.0" onMouseClicked="#handleGoToDashboard" style="-fx-cursor: hand; -fx-text-fill: -fx-accent; -fx-font-weight: 900; -fx-font-size: 28px; -fx-font-family: 'DM Sans';" />
-
-    <HBox fx:id="searchContainer" alignment="CENTER_LEFT" minWidth="150.0" prefWidth="500.0" maxWidth="500.0" prefHeight="40.0" style="-fx-background-color: -app-input-bg; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 999; -fx-background-radius: 999; -fx-padding: 0 16px; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-05, 10, 0, 0, 2);">
-        <Label text="&#xe8b6;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: -fx-accent;" translateY="0.0" />
-        <TextField fx:id="txtSearch" promptText="Search items, categories, or auctions..." HBox.hgrow="ALWAYS" style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-background-insets: 0; -fx-border-width: 0; -fx-padding: 0 0 0 8px; -fx-prompt-text-fill: -app-placeholder; -fx-text-fill: -app-input-text; -fx-font-size: 14px;" />
+    <HBox alignment="CENTER_LEFT" minWidth="174.0" prefWidth="174.0" maxWidth="174.0">
+        <StackPane prefWidth="70.0" minWidth="70.0" maxWidth="70.0">
+            <Button fx:id="btnHamburger" id="btnHamburger" onAction="#handleToggleSidebar" style="-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 0;">
+                <graphic>
+                    <Label text="&#xe5d2;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-font-weight: normal; -fx-text-fill: -app-text-muted;" />
+                </graphic>
+            </Button>
+        </StackPane>
+        <Label fx:id="logoBrand" id="logoBrand" text="BidPop" minWidth="104.0" prefWidth="104.0" maxWidth="104.0" onMouseClicked="#handleGoToDashboard" style="-fx-cursor: hand; -fx-text-fill: -fx-accent; -fx-font-weight: 900; -fx-font-size: 28px; -fx-font-family: 'DM Sans';" />
     </HBox>
 
-    <Region HBox.hgrow="ALWAYS" />
+    <StackPane fx:id="searchSlot" alignment="CENTER" minWidth="150.0" HBox.hgrow="ALWAYS" style="-fx-padding: 0 18px;">
+        <HBox fx:id="searchContainer" alignment="CENTER_LEFT" minWidth="130.0" prefWidth="520.0" maxWidth="680.0" prefHeight="40.0" style="-fx-background-color: -app-input-bg; -fx-border-color: -app-border; -fx-border-width: 2px; -fx-border-radius: 999; -fx-background-radius: 999; -fx-padding: 0 16px; -fx-effect: dropshadow(three-pass-box, -app-accent-opacity-05, 10, 0, 0, 2);">
+            <Label text="&#xe8b6;" style="-fx-font-family: 'Material Symbols Outlined'; -fx-font-size: 20px; -fx-text-fill: -fx-accent;" translateY="0.0" />
+            <TextField fx:id="txtSearch" promptText="Search items, categories, or auctions..." HBox.hgrow="ALWAYS" style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-background-insets: 0; -fx-border-width: 0; -fx-padding: 0 0 0 8px; -fx-prompt-text-fill: -app-placeholder; -fx-text-fill: -app-input-text; -fx-font-size: 14px;" />
+        </HBox>
+    </StackPane>
 
     <HBox spacing="10.0" alignment="CENTER_RIGHT" minHeight="52.0" prefHeight="52.0" maxHeight="52.0" style="-fx-padding: 0;">
         <HBox fx:id="balanceChip" alignment="CENTER" spacing="9.0" minWidth="272.0" prefWidth="286.0" maxWidth="326.0" minHeight="40.0" prefHeight="40.0" maxHeight="40.0" styleClass="balance-chip">
