@@ -86,9 +86,8 @@ public class AuctionPageController {
     private static final String EXTENSION_STYLE = BASE_ALERT_STYLE +
             "-fx-background-color: #fdf2e9; -fx-border-color: #fcd7b6; -fx-text-fill: #b25900;";
 
-    private static final String RESERVE_BADGE_BASE_STYLE =
-            "-fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: 900; "
-                    + "-fx-padding: 4 10; -fx-background-radius: 999; -fx-border-radius: 999; -fx-border-width: 1;";
+    private static final String RESERVE_BADGE_BASE_STYLE = "-fx-font-family: 'DM Sans'; -fx-font-size: 11px; -fx-font-weight: 900; "
+            + "-fx-padding: 4 10; -fx-background-radius: 999; -fx-border-radius: 999; -fx-border-width: 1;";
 
     private static final String RESERVE_MET_STYLE = RESERVE_BADGE_BASE_STYLE
             + "-fx-background-color: rgba(19, 115, 51, 0.14); "
@@ -283,8 +282,7 @@ public class AuctionPageController {
             productImageView.setPreserveRatio(true);
             if (mainContentGrid != null) {
                 productMediaFrame.prefWidthProperty().bind(
-                    mainContentGrid.widthProperty().multiply(0.60).subtract(64)
-                );
+                        mainContentGrid.widthProperty().multiply(0.60).subtract(64));
             }
             productImageView.fitWidthProperty().bind(productMediaFrame.widthProperty().subtract(16));
         }
@@ -298,7 +296,8 @@ public class AuctionPageController {
             model3DContainer.maxWidthProperty().bind(productMediaFrame.widthProperty());
             model3DContainer.maxHeightProperty().bind(productMediaFrame.heightProperty());
 
-            // Keep 3D content clipped to exactly the same rounded rectangular media frame as 2D.
+            // Keep 3D content clipped to exactly the same rounded rectangular media frame
+            // as 2D.
             javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle();
             clip.setArcWidth(64.0);
             clip.setArcHeight(64.0);
@@ -306,19 +305,20 @@ public class AuctionPageController {
             clip.heightProperty().bind(model3DContainer.heightProperty());
             model3DContainer.setClip(clip);
 
-            model3DContainer.getChildren().addListener((javafx.collections.ListChangeListener.Change<? extends Node> change) -> {
-                while (change.next()) {
-                    if (change.wasAdded()) {
-                        for (Node node : change.getAddedSubList()) {
-                            if (node instanceof javafx.scene.SubScene) {
-                                javafx.scene.SubScene subScene = (javafx.scene.SubScene) node;
-                                subScene.widthProperty().bind(model3DContainer.widthProperty());
-                                subScene.heightProperty().bind(model3DContainer.heightProperty());
+            model3DContainer.getChildren()
+                    .addListener((javafx.collections.ListChangeListener.Change<? extends Node> change) -> {
+                        while (change.next()) {
+                            if (change.wasAdded()) {
+                                for (Node node : change.getAddedSubList()) {
+                                    if (node instanceof javafx.scene.SubScene) {
+                                        javafx.scene.SubScene subScene = (javafx.scene.SubScene) node;
+                                        subScene.widthProperty().bind(model3DContainer.widthProperty());
+                                        subScene.heightProperty().bind(model3DContainer.heightProperty());
+                                    }
+                                }
                             }
                         }
-                    }
-                }
-            });
+                    });
         }
 
         if (btnNotificationBell != null && notificationBadge != null) {
@@ -624,36 +624,32 @@ public class AuctionPageController {
         javafx.scene.layout.Region titleSpacer = new javafx.scene.layout.Region();
         javafx.scene.layout.HBox.setHgrow(titleSpacer, javafx.scene.layout.Priority.ALWAYS);
 
-        String windowButtonBaseStyle =
-                "-fx-background-color: transparent;"
-                        + "-fx-text-fill: -app-text;"
-                        + "-fx-font-family: 'DM Sans';"
-                        + "-fx-font-weight: 900;"
-                        + "-fx-font-size: 13px;"
-                        + "-fx-background-radius: 8;"
-                        + "-fx-padding: 0;"
-                        + "-fx-cursor: hand;";
-        String windowButtonHoverStyle =
-                "-fx-background-color: -app-surface-2;"
-                        + "-fx-text-fill: -app-text;"
-                        + "-fx-font-family: 'DM Sans';"
-                        + "-fx-font-weight: 900;"
-                        + "-fx-font-size: 13px;"
-                        + "-fx-background-radius: 8;"
-                        + "-fx-padding: 0;"
-                        + "-fx-cursor: hand;";
-        String closeButtonHoverStyle =
-                "-fx-background-color: #ef4444;"
-                        + "-fx-text-fill: white;"
-                        + "-fx-font-family: 'DM Sans';"
-                        + "-fx-font-weight: 900;"
-                        + "-fx-font-size: 13px;"
-                        + "-fx-background-radius: 8;"
-                        + "-fx-padding: 0;"
-                        + "-fx-cursor: hand;";
+        String windowButtonBaseStyle = "-fx-background-color: transparent;"
+                + "-fx-text-fill: -app-text;"
+                + "-fx-font-family: 'DM Sans';"
+                + "-fx-font-weight: 900;"
+                + "-fx-font-size: 13px;"
+                + "-fx-background-radius: 8;"
+                + "-fx-padding: 0;"
+                + "-fx-cursor: hand;";
+        String windowButtonHoverStyle = "-fx-background-color: -app-surface-2;"
+                + "-fx-text-fill: -app-text;"
+                + "-fx-font-family: 'DM Sans';"
+                + "-fx-font-weight: 900;"
+                + "-fx-font-size: 13px;"
+                + "-fx-background-radius: 8;"
+                + "-fx-padding: 0;"
+                + "-fx-cursor: hand;";
+        String closeButtonHoverStyle = "-fx-background-color: #ef4444;"
+                + "-fx-text-fill: white;"
+                + "-fx-font-family: 'DM Sans';"
+                + "-fx-font-weight: 900;"
+                + "-fx-font-size: 13px;"
+                + "-fx-background-radius: 8;"
+                + "-fx-padding: 0;"
+                + "-fx-cursor: hand;";
 
-        String macButtonBaseStyle =
-                "-fx-background-radius: 999;" +
+        String macButtonBaseStyle = "-fx-background-radius: 999;" +
                 "-fx-border-radius: 999;" +
                 "-fx-min-width: 14px;" +
                 "-fx-min-height: 14px;" +
@@ -765,24 +761,23 @@ public class AuctionPageController {
                         + "-fx-font-size: 12px;"
                         + "-fx-text-fill: -app-text-muted;");
 
-        String inputBaseStyle =
-                "-fx-background-color: -app-input-bg;"
-                        + "-fx-text-fill: -app-input-text;"
-                        + "-fx-prompt-text-fill: -app-text-muted;"
-                        + "-fx-border-color: -app-border;"
-                        + "-fx-border-radius: 8px;"
-                        + "-fx-background-radius: 8px;"
-                        + "-fx-padding: 10px 14px;"
-                        + "-fx-font-family: 'DM Sans';"
-                        + "-fx-font-size: 14px;"
-                        + "-fx-pref-height: 40px;";
+        String inputBaseStyle = "-fx-background-color: -app-input-bg;"
+                + "-fx-text-fill: -app-input-text;"
+                + "-fx-prompt-text-fill: -app-text-muted;"
+                + "-fx-border-color: -app-border;"
+                + "-fx-border-radius: 8px;"
+                + "-fx-background-radius: 8px;"
+                + "-fx-padding: 10px 14px;"
+                + "-fx-font-family: 'DM Sans';"
+                + "-fx-font-size: 14px;"
+                + "-fx-pref-height: 40px;";
         String inputFocusStyle = inputBaseStyle + "-fx-border-color: -fx-accent;";
 
         TextField maxBidField = new TextField();
         maxBidField.setPromptText("VD: 5000000");
         maxBidField.setStyle(inputBaseStyle);
-        maxBidField.focusedProperty().addListener((obs, wasFocused, isFocused) ->
-                maxBidField.setStyle(isFocused ? inputFocusStyle : inputBaseStyle));
+        maxBidField.focusedProperty().addListener(
+                (obs, wasFocused, isFocused) -> maxBidField.setStyle(isFocused ? inputFocusStyle : inputBaseStyle));
 
         Label incLabel = new Label("Auto Increment");
         incLabel.setStyle(
@@ -801,8 +796,8 @@ public class AuctionPageController {
         incrementField.setPromptText("VD: " + formatPrice(minimumIncrement));
         incrementField.setText(formatPrice(minimumIncrement));
         incrementField.setStyle(inputBaseStyle);
-        incrementField.focusedProperty().addListener((obs, wasFocused, isFocused) ->
-                incrementField.setStyle(isFocused ? inputFocusStyle : inputBaseStyle));
+        incrementField.focusedProperty().addListener(
+                (obs, wasFocused, isFocused) -> incrementField.setStyle(isFocused ? inputFocusStyle : inputBaseStyle));
 
         VBox maxBidGroup = new VBox(4, maxBidLabel, maxBidHint, maxBidField);
         VBox incGroup = new VBox(4, incLabel, incHint, incrementField);
@@ -1125,7 +1120,8 @@ public class AuctionPageController {
                         if (timeStr.length() > 19)
                             timeStr = timeStr.substring(0, 19);
                         javafx.scene.control.Tooltip tip = new javafx.scene.control.Tooltip(
-                                "Bid #" + p.getBidId() + "\n" + p.getDisplayName() + "\n" + MONEY_PREFIX + formatPrice(p.getAmount())
+                                "Bid #" + p.getBidId() + "\n" + p.getDisplayName() + "\n" + MONEY_PREFIX
+                                        + formatPrice(p.getAmount())
                                         + "\n" + timeStr + "\n" + p.getRelativeTime());
                         tip.setStyle(
                                 "-fx-font-family:'DM Sans';-fx-font-size:12px; -fx-background-color: rgba(46,26,40,0.9); -fx-text-fill: white; -fx-padding: 8px; -fx-background-radius: 8px;");
@@ -1449,7 +1445,8 @@ public class AuctionPageController {
         javafx.scene.control.TableColumn<com.auction.client.model.BidChartPoint, String> c3 = new javafx.scene.control.TableColumn<>(
                 "Amount");
         c3.setCellValueFactory(
-                cd -> new javafx.beans.property.SimpleStringProperty(MONEY_PREFIX + formatPrice(cd.getValue().getAmount())));
+                cd -> new javafx.beans.property.SimpleStringProperty(
+                        MONEY_PREFIX + formatPrice(cd.getValue().getAmount())));
         c3.setStyle("-fx-alignment: CENTER-RIGHT; -fx-font-weight: 900;  -fx-font-size: 14px;");
         javafx.scene.control.TableColumn<com.auction.client.model.BidChartPoint, String> c4 = new javafx.scene.control.TableColumn<>(
                 "Increment");
@@ -1458,7 +1455,8 @@ public class AuctionPageController {
             if (idx <= 0)
                 return new javafx.beans.property.SimpleStringProperty("-");
             return new javafx.beans.property.SimpleStringProperty(
-                    "+" + MONEY_PREFIX + formatPrice(cd.getValue().getAmount().subtract(allBidPoints.get(idx - 1).getAmount())));
+                    "+" + MONEY_PREFIX
+                            + formatPrice(cd.getValue().getAmount().subtract(allBidPoints.get(idx - 1).getAmount())));
         });
         c4.setStyle(
                 "-fx-alignment: CENTER-RIGHT; -fx-text-fill: -fx-accent; -fx-font-weight: 900; -fx-font-size: 14px;");
@@ -1507,7 +1505,8 @@ public class AuctionPageController {
                         if (timeStr.length() > 19)
                             timeStr = timeStr.substring(0, 19);
                         javafx.scene.control.Tooltip tip = new javafx.scene.control.Tooltip(
-                                "Bid #" + p.getBidId() + "\n" + p.getDisplayName() + "\n" + MONEY_PREFIX + formatPrice(p.getAmount())
+                                "Bid #" + p.getBidId() + "\n" + p.getDisplayName() + "\n" + MONEY_PREFIX
+                                        + formatPrice(p.getAmount())
                                         + "\n" + timeStr + "\n" + p.getRelativeTime());
                         tip.setStyle(
                                 "-fx-font-family:'DM Sans';-fx-font-size:12px; -fx-background-color: rgba(46,26,40,0.9); -fx-text-fill: white; -fx-padding: 8px; -fx-background-radius: 8px;");
@@ -1536,8 +1535,10 @@ public class AuctionPageController {
             }
             String lt = allBidPoints.isEmpty() ? "-"
                     : formatRelativeTime(allBidPoints.get(allBidPoints.size() - 1).getBidTime());
-            String[][] sts = { { "Total Bids", "" + allBidPoints.size() }, { "Highest", MONEY_PREFIX + formatPrice(hi) },
-                    { "Start", MONEY_PREFIX + formatPrice(lo) }, { "Max Delta", "+" + MONEY_PREFIX + formatPrice(mxi) }, { "Last Bid", lt } };
+            String[][] sts = { { "Total Bids", "" + allBidPoints.size() },
+                    { "Highest", MONEY_PREFIX + formatPrice(hi) },
+                    { "Start", MONEY_PREFIX + formatPrice(lo) }, { "Max Delta", "+" + MONEY_PREFIX + formatPrice(mxi) },
+                    { "Last Bid", lt } };
             for (String[] st : sts) {
                 VBox sv = new VBox(4);
                 sv.setAlignment(javafx.geometry.Pos.CENTER);
@@ -1656,8 +1657,10 @@ public class AuctionPageController {
         double priceFont = calculatePriceFont(windowWidth);
         double timeFont = calculateTimeFont(windowWidth);
         double productNameFont = calculateProductNameFont(windowWidth);
-        double startPriceFont = calculateInlineMoneyFont(startPriceLabel.getText(), Math.max(11, Math.min(20, windowWidth * 0.012)), 11);
-        double minIncrementFont = calculateInlineMoneyFont(minIncrementLabel.getText(), Math.max(9, Math.min(12, 12 * scale)), 9);
+        double startPriceFont = calculateInlineMoneyFont(startPriceLabel.getText(),
+                Math.max(11, Math.min(20, windowWidth * 0.012)), 11);
+        double minIncrementFont = calculateInlineMoneyFont(minIncrementLabel.getText(),
+                Math.max(9, Math.min(12, 12 * scale)), 9);
         double bidFieldFont = Math.max(16, Math.min(24, windowWidth * 0.017));
         double compactLabelFont = Math.max(9, Math.min(12, 12 * scale));
         double quickBidFont = Math.max(9, Math.min(12, 12 * scale));
@@ -2252,7 +2255,7 @@ public class AuctionPageController {
 
         bidSocketLastHeartbeatSentAt = now;
         try {
-            ws.sendPing(ByteBuffer.wrap(new byte[] {1}))
+            ws.sendPing(ByteBuffer.wrap(new byte[] { 1 }))
                     .exceptionally(error -> {
                         logger.warn("Bid WebSocket heartbeat failed: {}", error.getMessage());
                         forceBidSocketReconnect(ws);
@@ -2355,7 +2358,8 @@ public class AuctionPageController {
 
     private void handleBidResponseMessage(String jsonString) {
         JSONObject responseObj = new JSONObject(jsonString);
-        logger.info("handleBidResponseMessage: auctionId={}, bidderId={}, highestBidderId={}, type={}, success={}, pendingLocalBid={}",
+        logger.info(
+                "handleBidResponseMessage: auctionId={}, bidderId={}, highestBidderId={}, type={}, success={}, pendingLocalBid={}",
                 responseObj.opt("auctionId"),
                 responseObj.opt("bidderId"),
                 responseObj.opt("highestBidderId"),
@@ -2602,7 +2606,8 @@ public class AuctionPageController {
             } else if ("DRAFT".equalsIgnoreCase(auctionStatus)) {
                 messageLabel.setStyle(WARNING_STYLE);
                 messageLabel.setText("This is a draft auction.");
-            } else if ("ENDED".equalsIgnoreCase(auctionStatus) || "PAID".equalsIgnoreCase(auctionStatus) || "CANCELED".equalsIgnoreCase(auctionStatus)) {
+            } else if ("ENDED".equalsIgnoreCase(auctionStatus) || "PAID".equalsIgnoreCase(auctionStatus)
+                    || "CANCELED".equalsIgnoreCase(auctionStatus)) {
                 messageLabel.setStyle(ERROR_STYLE);
                 messageLabel.setText("This auction has ended.");
             } else {
@@ -2658,6 +2663,7 @@ public class AuctionPageController {
         jsonBid.put("auctionId", currentSessionId);
         jsonBid.put("bidderId", User.getId());
         jsonBid.put("amount", bidAmount);
+        jsonBid.put("currentPrice", currentPrice);
 
         String payload = BID_PREFIX + jsonBid;
         logger.info("Sending BID request: {}", payload);
@@ -2890,7 +2896,6 @@ public class AuctionPageController {
         return ImageUrlUtil.buildImageUrl(rawPath);
     }
 
-
     private String extractUuid(String path) {
         if (path == null || path.isBlank())
             return null;
@@ -2929,7 +2934,8 @@ public class AuctionPageController {
         String cloudName = getCloudName(imagePath);
         String url;
         if (cloudName != null && !cloudName.isBlank()) {
-            url = "https://res.cloudinary.com/" + cloudName + "/raw/upload/auction_system/items/models_3d/" + uuid + ".glb";
+            url = "https://res.cloudinary.com/" + cloudName + "/raw/upload/auction_system/items/models_3d/" + uuid
+                    + ".glb";
         } else {
             url = Config.API_URL + "/api/files/models-3d/" + uuid + "/" + uuid + ".glb";
         }
@@ -3077,7 +3083,8 @@ public class AuctionPageController {
                                     node3D = GltfImporterJFX.loadFromBytes(bytes, modelUrl);
                                 } catch (Exception e) {
                                     logger.error("Failed to parse 3D model", e);
-                                    node3D = create3DMessageNode("3D model unavailable", "Cannot parse this GLB model.");
+                                    node3D = create3DMessageNode("3D model unavailable",
+                                            "Cannot parse this GLB model.");
                                 }
                                 Node finalNode3D = node3D;
                                 Platform.runLater(() -> {
@@ -3124,8 +3131,8 @@ public class AuctionPageController {
             if (node3D instanceof javafx.scene.SubScene subScene) {
                 javafx.scene.transform.Rotate rx = (javafx.scene.transform.Rotate) subScene.getProperties().get("rx");
                 javafx.scene.transform.Rotate ry = (javafx.scene.transform.Rotate) subScene.getProperties().get("ry");
-                javafx.scene.transform.Translate cameraTranslate =
-                        (javafx.scene.transform.Translate) subScene.getProperties().get("cameraTranslate");
+                javafx.scene.transform.Translate cameraTranslate = (javafx.scene.transform.Translate) subScene
+                        .getProperties().get("cameraTranslate");
                 if (rx != null) {
                     rx.setAngle(0);
                 }
@@ -3146,7 +3153,8 @@ public class AuctionPageController {
         indicator.setPrefSize(54, 54);
 
         Label label = new Label("Loading 3D model...");
-        label.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: -fx-accent;");
+        label.setStyle(
+                "-fx-font-family: 'DM Sans'; -fx-font-size: 14px; -fx-font-weight: 900; -fx-text-fill: -fx-accent;");
 
         VBox box = new VBox(12, indicator, label);
         box.setAlignment(javafx.geometry.Pos.CENTER);
@@ -3158,13 +3166,15 @@ public class AuctionPageController {
 
     private Node create3DMessageNode(String titleText, String detailText) {
         Label title = new Label(titleText);
-        title.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: -app-text;");
+        title.setStyle(
+                "-fx-font-family: 'DM Sans'; -fx-font-size: 18px; -fx-font-weight: 900; -fx-text-fill: -app-text;");
 
         Label detail = new Label(detailText);
         detail.setWrapText(true);
         detail.setMaxWidth(360);
         detail.setAlignment(javafx.geometry.Pos.CENTER);
-        detail.setStyle("-fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: 700; -fx-text-fill: -app-text-muted; -fx-text-alignment: center;");
+        detail.setStyle(
+                "-fx-font-family: 'DM Sans'; -fx-font-size: 13px; -fx-font-weight: 700; -fx-text-fill: -app-text-muted; -fx-text-alignment: center;");
 
         VBox box = new VBox(10, title, detail);
         box.setAlignment(javafx.geometry.Pos.CENTER);
@@ -3229,7 +3239,6 @@ public class AuctionPageController {
             logger.warn("Cannot close resource", e);
         }
     }
-
 
     private void updateTopBarAvatar(String avatarUrl) {
         if (topBarAvatarPane == null)

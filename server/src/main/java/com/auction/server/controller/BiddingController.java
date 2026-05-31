@@ -22,7 +22,7 @@ public class BiddingController {
     }
 
     public BidResponse handleBid(BidRequest req) {
-        BidResponse success = auctionService.updateBid(req.getAuctionId(), req.getBidderId(), req.getBidAmount());
+        BidResponse success = auctionService.updateBid(req.getAuctionId(), req.getBidderId(), req.getBidAmount(), req.getExpectedPrice());
         return success;
     }
 

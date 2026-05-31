@@ -192,6 +192,11 @@ public class AuctionService {
 
     @Transactional
     public BidResponse updateBid(Integer sessionId, Integer bidderId, BigDecimal bidAmount) {
+        return updateBid(sessionId, bidderId, bidAmount, null);
+    }
+
+    @Transactional
+    public BidResponse updateBid(Integer sessionId, Integer bidderId, BigDecimal bidAmount, BigDecimal expectedPrice) {
         AuctionSession session = auctionSessionRepository.findByIdForUpdate(sessionId).orElse(null);
         if (session == null) {
             return BidResponse.failure("Auction session not found.", BigDecimal.ZERO);
@@ -202,6 +207,11 @@ public class AuctionService {
                 : session.getCurrentPrice();
         logger.info("AuctionService.updateBid - Session found: ID={}, status={}", sessionId, session.getStatus());
         logger.info("Current price for session {}: {}", sessionId, currentPrice);
+
+        if (expectedPrice != null && currentPrice.compareTo(expectedPrice) != 0) {
+            logger.warn("Bid blocked: Client expected price {} but actual is {}", expectedPrice, currentPrice);
+            return BidResponse.failure("The current price has changed. Please refresh and try again.", currentPrice);
+        }
 
         BigDecimal stepPrice = getEffectiveBidIncrement(session, currentPrice);
         BigDecimal minimumBid = currentPrice.add(stepPrice);

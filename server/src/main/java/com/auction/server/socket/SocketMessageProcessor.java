@@ -103,12 +103,16 @@ public class SocketMessageProcessor {
     
         try {
             JSONObject jsonObj = new JSONObject(jsonString);
+            BigDecimal expectedPrice = jsonObj.has("currentPrice") && !jsonObj.isNull("currentPrice")
+                    ? new BigDecimal(jsonObj.get("currentPrice").toString())
+                    : null;
             request = new BidRequest(
                     jsonObj.getInt("auctionId"),
                     authenticatedUserId, // Safe bidderId from session
-                    new BigDecimal(jsonObj.get("amount").toString())
+                    new BigDecimal(jsonObj.get("amount").toString()),
+                    expectedPrice
             );
-            logger.info("Parsed BidRequest: auctionId={}, bidderId={}, amount={}", request.getAuctionId(), request.getBidderId(), request.getBidAmount());
+            logger.info("Parsed BidRequest: auctionId={}, bidderId={}, amount={}, expectedPrice={}", request.getAuctionId(), request.getBidderId(), request.getBidAmount(), request.getExpectedPrice());
     
             BidResponse response;
             try {
